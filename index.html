@@ -175,8 +175,15 @@ footer{padding:40px 0 60px;border-top:1px solid var(--line);font-size:13px;color
 <section id="modernism"><div class="wrap">
   <div class="eyebrow">Landmarks</div>
   <h2>Iconic modernist Beirut, as lanterns</h2>
-  <p class="lead">Proposed landmark lanterns, after studying photographs of each building. Each keeps the building's signature elements and its proportions: storey counts, height-to-width ratios and bay rhythm, measured from photos to about ±10 %.</p>
-  <p class="mono" style="color:var(--muted);margin-top:10px">All six are drawn at the same scale, 1 unit = 1 mm fired, so their sizes compare directly. A village house is 180 mm wide. Each landmark gets its own scale (1:200–1:400) so it stands 130–230 mm tall: at the village's 1:75 a 14-storey tower would be 0.6 m.</p>
+  <p class="lead">Proposed landmark lanterns, after studying photographs of each building. Each keeps the building's signature elements and its proportions (storey counts, height-to-width ratios, bay rhythm, measured from photos to about ±10 %) and is designed to survive casting and firing.</p>
+  <p class="mono" style="color:var(--muted);margin-top:10px">All six are drawn at the same scale, 1 unit = 1 mm fired, so their sizes compare directly. A village house is 180 mm wide. Each landmark gets its own scale (1:200–1:400): at the village's 1:75 a 14-storey tower would be 0.6 m.</p>
+  <div class="note" style="margin-top:14px;padding:12px 14px;border:1px solid var(--line);border-left:3px solid var(--terra);background:var(--paper);border-radius:6px;font-size:14px"><b>Porcelain-safe rules.</b> Porcelain softens at top temperature, so tall thin walls lean and lattice-like walls crack or slump. Every landmark follows four rules:
+  <ul style="margin:6px 0 0;padding-left:18px">
+    <li><b>Fired sections ≤ 60 mm</b>, each fired on its own, then stacked dry on 3 mm porcelain locating lips, with no glue. The tealight sits in the base section.</li>
+    <li><b>Each wall ≤ 40 % open.</b> The rest of a facade pattern (fins, slab edges, deep cells) is relief: raised 0.8–1 mm or recessed 1 mm. The card's figure is computed from the drawing.</li>
+    <li><b>3 mm walls</b> for anything over one section, and <b>fins and bars ≥ 2.5 mm</b> wherever they run long.</li>
+    <li><b>≤ 40 pins per insert set</b>, as in the studio.</li>
+  </ul></div>
   <div class="grid g3" style="margin-top:22px" id="modGrid"></div>
   <p style="font-size:13px;color:var(--muted);margin-top:18px">Facts from the
     <a href="https://arab-architecture.org/db/building/electricite-du-liban-headquarters">Arab Architecture database</a>,
@@ -414,105 +421,137 @@ function build(era){
 
 
 /* ---------- modernist landmarks ----------
-   Elevations at ONE common scale (1 unit = 1 mm fired), so lantern sizes compare directly.
-   Ratios come from storey counts and photographs (±10 %). Ground line y=240. */
+   Elevations at ONE common scale (1 unit = 1 mm fired). Ratios from storey counts and photographs (±10 %). Ground line y=240.
+   Porcelain-safe rules: fired sections ≤ 60 mm stacked on porcelain lips (dashed lines), each wall ≤ 40 % open
+   (the rest of the pattern is relief), 3 mm walls, fins and bars ≥ 2.5 mm. Open % is computed per wall from the drawing. */
 (function(){
-const WALL="#5a4a3d",EDGE="#3b3129",G="#ffbf66",DIM="#8a6a3e",TXT="#c9bfae",GROUND="#0f1420";
-const r=(x,y,w,h,f=G,o="")=>`<rect x="${+x.toFixed(2)}" y="${+y.toFixed(2)}" width="${+w.toFixed(2)}" height="${+h.toFixed(2)}" fill="${f}"${o}/>`;
-const mass=(x,y,w,h)=>r(x,y,w,h,WALL,` stroke="${EDGE}" stroke-width=".6"`);
-const Y=240,VW=260;
+const WALL="#5a4a3d",EDGE="#3b3129",REL="#7a6654",REC="#43372e",G="#ffbf66",DIM="#8a6a3e",TXT="#c9bfae",GROUND="#0f1420";
+const Y=240,VW=260,MAXH=60,MAXOPEN=40;
+const n2=v=>+v.toFixed(2);
 const lit=(i,j)=>((i*7+j*13)%10)<7?G:DIM;   /* a few rooms left dim, like a lived-in night */
-function dims(w,h){return `<text x="6" y="252" fill="${TXT}" font-family="JetBrains Mono,monospace" font-size="7">${w} × ${h} mm fired</text>`;}
+function ctx(){
+  const c={s:"",js:"",walls:[],joints:[]};
+  c.r=(x,y,w,h,f,o="")=>{c.s+=`<rect x="${n2(x)}" y="${n2(y)}" width="${n2(w)}" height="${n2(h)}" fill="${f}"${o}/>`;};
+  c.mass=(x,y,w,h)=>c.r(x,y,w,h,WALL,` stroke="${EDGE}" stroke-width=".6"`);
+  c.wall=(x,y,w,h)=>{c.mass(x,y,w,h);const W={a:w*h,o:0};c.walls.push(W);return W;};   /* a cast wall that carries openings */
+  c.hole=(W,x,y,w,h,f=G)=>{c.r(x,y,w,h,f);W.o+=w*h;};
+  c.rel=(x,y,w,h)=>c.r(x,y,w,h,REL);       /* raised relief */
+  c.rec=(x,y,w,h)=>c.r(x,y,w,h,REC);       /* recessed relief */
+  c.joint=(x,w,y)=>{c.joints.push(y);c.js+=`<line x1="${n2(x-3)}" y1="${n2(y)}" x2="${n2(x+w+3)}" y2="${n2(y)}" stroke="${TXT}" stroke-width=".7" stroke-dasharray="2 1.6"/>`;};
+  c.path=(d)=>{c.s+=`<path d="${d}" fill="${WALL}" stroke="${EDGE}" stroke-width=".6"/>`;};
+  return c;}
 const DRAW={
- egg(){const L=190,x=(VW-L)/2;let s="";
-  for(let k=0;k<4;k++){const yb=Y-k*14;s+=r(x+4,yb-11.5,L-8,11.5,k%2?DIM:G,` opacity=".8"`);s+=mass(x,yb-14,L,2.5);
-    for(let c=0;c<8;c++)s+=mass(x+4+c*(L-11)/7,yb-11.5,3,11.5);}
-  const yb=Y-56,yt=yb-78,x0=x+5,x1=x+L-5;
-  s+=`<path d="M${x0} ${yb} C${x0} ${yb-56} ${x0+22} ${yt} ${x0+62} ${yt} L${x1-62} ${yt} C${x1-22} ${yt} ${x1} ${yb-56} ${x1} ${yb} Z" fill="${WALL}" stroke="${EDGE}" stroke-width=".6"/>`;
-  for(let i=0;i<9;i++)s+=r(x0+27+i*14.5,yb-34,8,11,lit(i,1));
-  return s+dims(L,134);},
- edl(){const W=196,T=24,x=(VW-W-T)/2;let s="";
-  s+=r(x+3,Y-20,W-6,20,G,` opacity=".55"`);
-  const legs=[0,63.3,126.7,190];legs.forEach(l=>s+=mass(x+l,Y-20,6,20));
-  s+=mass(x,Y-188,W,168);
-  for(let j=0;j<14;j++){const y=Y-20-(j+1)*11.7+1.6;
-    for(let b=0;b<3;b++)for(let i=0;i<10;i++)s+=r(x+legs[b]+6+1.2+i*5.73,y,4,8.5,lit(b*10+i,j));}
-  legs.forEach(l=>s+=mass(x+l,Y-188,6,168));
-  s+=mass(x,Y-192,W,4);
-  s+=mass(x+W,Y-198,T,198);for(let j=0;j<15;j++)s+=r(x+W+10,Y-190+j*12,3,7,lit(j,3));
-  return s+dims(W+T,198);},
- gefinor(){const x=(VW-185)/2;let s="";
-  s+=r(x+4,Y-25,177,22,G,` opacity=".7"`);for(let c=0;c<8;c++)s+=mass(x+4+c*24.5,Y-25,3,25);s+=mass(x,Y-27,185,4);
-  const tx=x+8,tw=75,th=165;s+=mass(tx,Y-27-th,tw,th);
-  for(let seg=0;seg<5;seg++)for(let i=0;i<18;i++)s+=r(tx+6+i*3.6,Y-27-th+3+seg*32.4,2,30.8,lit(i,seg));
-  s+=mass(tx,Y-27-th-4,tw,4);
-  const lx=x+93,lw=90;s+=mass(lx,Y-27-50,lw,50);
-  for(let f=0;f<6;f++)s+=r(lx+4,Y-27-50+2+f*8.25,lw-8,4.6,lit(f,2));
-  return s+dims(185,196);},
- saroulla(){const W=150,x=(VW-W)/2;let s="";
-  s+=r(x+2,Y-25,W-4,25,G);s+=mass(x,Y-217,W,192);
-  for(let j=0;j<12;j++)for(let i=0;i<8;i++){const ox=x+2.5+i*18.2,oy=Y-25-(j+1)*16+2.5;s+=r(ox,oy,15.7,13.5,lit(i,j));s+=r(ox,oy+9,15.7,1.6,WALL);}
-  for(let j=0;j<=12;j++)s+=mass(x-2,Y-25-j*16-1.2,W+4,2.4);
-  s+=mass(x+18,Y-29,96,2.5);[34,98].forEach(c=>s+=mass(x+c,Y-26.5,4,26.5));
-  s+=r(x+46,Y-37,40,6,"#2a2a2a")+`<text x="${x+66}" y="${Y-32.4}" fill="${G}" font-size="4.6" text-anchor="middle" font-family="Inter,sans-serif">CINEMA</text>`;
-  return s+dims(W,217);},
- holiday(){const W=110,T=20,x=(VW-150)/2+25;let s="";
-  s+=r((VW-150)/2+3,Y-20,144,13,G,` opacity=".75"`);s+=mass((VW-150)/2,Y-7,150,7);s+=mass((VW-150)/2,Y-22,150,6);
-  s+=mass(x+T,Y-221.5,W,199.5);
-  for(let j=0;j<25;j++)for(let i=0;i<13;i++)s+=r(x+T+3+i*8.1,Y-22-(j+1)*7.75-0.5-4.5+7.75-1.6,4.4,4.5,lit(i,j));
-  s+=r(x+T+3,Y-219.5,W-6,4.6,G);
-  s+=mass(x,Y-228,T,206);s+=r(x+T/2-1,Y-224,2,8,G);
-  return s+dims(150,228);},
- museum(){const W=220,x=(VW-W)/2;let s="";
-  for(let k=0;k<3;k++)s+=mass(x-6+k*3,Y-(k+1)*2.7,W+12-k*6,2.7);
-  const b=Y-8;
-  [x,x+148].forEach(wx=>{s+=mass(wx,b-44,72,44)+mass(wx-1,b-47,74,3);
-    [10,40].forEach(px=>{s+=r(wx+px,b-36,22,28,EDGE);for(let k=0;k<3;k++)s+=r(wx+px+3+k*6.5,b-33,2.6,24,lit(k,px));});});
-  const px=x+72;s+=mass(px,b-60,76,60);s+=r(px+10,b-46,56,46,DIM,` opacity=".9"`);
-  [[16,3],[34,3],[52,3]].forEach(([dx])=>s+=r(px+dx-4+4,b-28,8,26,G));
-  s+=mass(px-2,b-56,80,10)+mass(px+10,b-62,56,6);
-  for(let c=0;c<4;c++){const cx=px+14+c*16.3;s+=mass(cx,b-40,5,40);s+=`<path d="M${cx-1.5} ${b-46} L${cx+6.5} ${b-46} L${cx+5} ${b-40} L${cx} ${b-40} Z" fill="${WALL}" stroke="${EDGE}" stroke-width=".5"/>`;}
-  s+=mass(px,b-46,10,46)+mass(px+66,b-46,10,46);
-  return s+dims(232,70);}
+ egg(c){const L=143,x=(VW-L)/2,lv=10.2;
+  for(let k=0;k<4;k++){const yb=Y-k*lv;
+    const W=c.wall(x+14,yb-lv,L-28,lv);for(let i=0;i<6;i++)c.hole(W,x+20+i*18.5,yb-lv+3.4,9,5,lit(i,k));   /* core wall carries the shell */
+    c.mass(x,yb-lv,L,2);for(let k2=0;k2<7;k2++)c.mass(x+3+k2*(L-9.5)/6,yb-lv+2,3.5,lv-2);
+    if(k)c.joint(x,L,yb);}
+  const yb=Y-4*lv,h=58,x0=x+5,x1=x+L-5;c.joint(x,L,yb);
+  c.path(`M${x0} ${yb} C${x0} ${yb-42} ${x0+16} ${yb-h} ${x0+46} ${yb-h} L${x1-46} ${yb-h} C${x1-16} ${yb-h} ${x1} ${yb-42} ${x1} ${yb} Z`);
+  const S={a:(x1-x0)*h*0.8,o:0};c.walls.push(S);
+  c.rel(x0+12,yb-30.5,x1-x0-24,1.2);
+  for(let i=0;i<7;i++)c.hole(S,x0+19+i*15.5,yb-27,6,8,lit(i,1));
+  return {w:L,h:n2(4*lv+h)};},
+ edl(c){const W=196,T=24,x=(VW-W-T)/2,fh=11.7,legs=[0,63.3,126.7,190];
+  const GW=c.wall(x+3,Y-20,W-6,20);for(let b=0;b<3;b++)[10,33].forEach(o=>c.hole(GW,x+legs[b]+6+o-3,Y-15,18,12));
+  legs.forEach(l=>c.mass(x+l,Y-20,6,20));
+  for(let j=0;j<14;j++){const y=Y-20-(j+1)*fh,F=c.wall(x,y,W,fh);
+    for(let b=0;b<3;b++)for(let i=0;i<10;i++){const cx=x+legs[b]+6+i*5.73;c.rec(cx+0.55,y+1,4.63,fh-2);c.hole(F,cx+1.36,y+3,3,6,lit(b*10+i,j));}}
+  legs.forEach(l=>c.rel(x+l,Y-20-14*fh,6,14*fh));
+  c.mass(x,Y-20-14*fh-4,W,4);
+  [55.1,101.9,148.7].forEach(h=>c.joint(x,W,Y-h));
+  const ST=c.wall(x+W,Y-198,T,198);for(let j=0;j<16;j++)c.hole(ST,x+W+10.5,Y-192+j*12,3,7,lit(j,3));
+  [49.5,99,148.5].forEach(h=>c.joint(x+W,T,Y-h));
+  return {w:W+T,h:198};},
+ gefinor(c){const x=(VW-185)/2;
+  const P=c.wall(x,Y-25,185,25);for(let i=0;i<7;i++)c.hole(P,x+6+i*24.5+4,Y-21,16,16,lit(i,0));c.mass(x-2,Y-27,189,3);
+  const tx=x+8,tw=75,sh=55;
+  for(let sct=0;sct<3;sct++){const y0=Y-27-(sct+1)*sh,S=c.wall(tx,y0,tw,sh);
+    for(let rw=0;rw<3;rw++)for(let i=0;i<11;i++)c.hole(S,tx+8.5+i*5.4,y0+1.25+rw*18.3,2,15.8,lit(i,rw+sct*3));
+    for(let i=0;i<10;i++)c.rel(tx+8.5+i*5.4+3.3,y0,0.8,sh);
+    if(sct)c.joint(tx,tw,y0+sh);}
+  c.mass(tx,Y-27-3*sh-4,tw,4);c.joint(tx,tw,Y-27);
+  const lx=x+93,lw=90,LB=c.wall(lx,Y-77,lw,50);
+  for(let f=0;f<6;f++){const y=Y-77+f*8.25;c.rel(lx,y,lw,3.25);for(let i=0;i<8;i++)c.hole(LB,lx+3.6+i*10.6+1.3,y+3.85,8,4,lit(i,f));}
+  c.joint(lx,lw,Y-27);
+  return {w:185,h:196};},
+ saroulla(c){const W=150,x=(VW-W)/2;
+  const B=c.wall(x,Y-25,W,25);[10,60,110].forEach((o,i)=>c.hole(B,x+o,Y-20,30,14,G));
+  for(let s3=0;s3<4;s3++){const y0=Y-25-(s3+1)*48,S=c.wall(x,y0,W,48);
+    for(let f=0;f<3;f++)for(let i=0;i<8;i++){const ox=x+2.5+i*18.2,oy=y0+(2-f)*16+1.25;c.rec(ox,oy,15.7,13.5);c.hole(S,ox+2.85,oy+2.25,10,9,lit(i,f+s3*3));}
+    c.joint(x,W,y0+48);}
+  for(let j=0;j<=12;j++)c.rel(x-2,Y-25-j*16-1.2,W+4,2.4);
+  c.mass(x+18,Y-29,96,2.5);[34,98].forEach(o=>c.mass(x+o,Y-26.5,4,26.5));
+  c.r(x+46,Y-37,40,6,"#2a2a2a");c.s+=`<text x="${x+66}" y="${Y-32.4}" fill="${G}" font-size="4.6" text-anchor="middle" font-family="Inter,sans-serif">CINEMA</text>`;
+  return {w:W,h:217};},
+ holiday(c){const px=(VW-150)/2,x=px+25,W=110,T=20,fh=7.75;
+  const P=c.wall(px,Y-22,150,22);for(let i=0;i<9;i++)c.hole(P,px+7+i*16,Y-16,10,9);c.mass(px-2,Y-24,154,3);
+  for(let j=0;j<26;j++){const y=Y-22-(j+1)*fh,F=c.wall(x+T,y,W,fh),top=j===25;
+    for(let i=0;i<13;i++){const wx=x+T+3+i*8.1;c.rec(wx-0.6,y+0.9,5.6,fh-1.8);c.hole(F,wx,top?y+1.1:y+1.6,4.4,top?5.5:4.5,top?G:lit(i,j));}}
+  c.mass(x+T,Y-22-26*fh-2,W,2);
+  [7,14,20].forEach(f=>c.joint(x+T,W,Y-22-f*fh));c.joint(x,W+T,Y-22);
+  const ST=c.wall(x,Y-230,T,208);c.hole(ST,x+T/2-1,Y-226,2,8);
+  [52,104,156].forEach(h=>c.joint(x,T,Y-22-h));
+  return {w:150,h:230};},
+ museum(c){const W=220,x=(VW-W)/2;
+  for(let k=0;k<3;k++)c.mass(x-6+k*3,Y-(k+1)*2.7,W+12-k*6,2.7);
+  const b=Y-8.1;c.joint(x,W,b);
+  [x,x+148].forEach(wx=>{const Wg=c.wall(wx,b-44,72,44);c.mass(wx-1,b-47,74,3);
+    [10,40].forEach(o=>{c.rec(wx+o,b-36,22,28);for(let k=0;k<3;k++)c.hole(Wg,wx+o+3+k*6.5,b-33,2.6,24,lit(k,o));});});
+  const px=x+72;const R=c.wall(px+10,b-44,56,44);[0,1,2].forEach(i=>c.hole(R,px+16+i*16-4+4,b-26,8,24));
+  c.mass(px-2,b-54,80,10);c.mass(px+10,b-59,56,5);
+  c.mass(px,b-44,10,44);c.mass(px+66,b-44,10,44);
+  for(let k=0;k<4;k++){const cx=px+14+k*16.3;c.mass(cx,b-34,5,34);c.path(`M${cx-1.5} ${b-40} L${cx+6.5} ${b-40} L${cx+5} ${b-34} L${cx} ${b-34} Z`);}
+  return {w:232,h:67};}
 };
 const L=[
  {k:"egg",t:"The Egg",m:"Beirut City Center · from 1965 · Joseph Philippe Karam",
   p:"A concrete shell cinema for about 1,000 seats, never finished. A long, rounded capsule sits over a four-level open concrete frame.",
-  el:["the capsule: flat crown, rounded ends","a band of rectangular openings along its flank","four open floors of slabs and square columns below"],
+  el:["the capsule: flat crown, rounded ends","a band of rectangular openings along its flank","four open floors of slabs and square columns"],
   pr:"Shell length ≈ 2.3 × shell height; the frame ≈ 0.7 × shell height.",
-  how:"1:250, 190 × 100 × 134 mm. Two moulds, both drain-cast: the shell is an upside-down bowl in a one-piece mould, with flank slots cut leather-hard through a printed guide. The frame is one slab-and-column tray, cast four times and stacked. Tealight in the frame."},
+  sec:"5 sections: four 10 mm frame trays and a 58 mm shell",
+  how:"1:330, 143 × 75 × 99 mm. The shell is drain-cast as an upside-down bowl in a one-piece mould, 3 mm thick, with flank slots cut leather-hard through a printed guide. One tray mould is cast four times: a closed core wall with small windows carries the shell, and the slabs and 3.5 mm columns wrap it as the open frame."},
  {k:"edl",t:"Électricité du Liban",m:"Mar Mikhaël · competition 1965, built c. 1967–72 · CETA (Aractingi, Neema, eng. Nassar)",
   p:"Fourteen office floors lifted on four prestressed portals over an open ground floor, with a deep sun-breaker grid on the south face and a slim service tower at the end.",
-  el:["four portal legs, read as strong verticals up the whole face","a deep cellular sun-breaker grid, 3 × 10 cells per floor","an open, lit ground floor","a slim service tower, a storey taller"],
+  el:["four portal legs, read as raised verticals up the whole face","the sun-breaker grid: 3 × 10 cells per floor","an open, lit ground floor","a slim service tower, a storey taller"],
   pr:"Long face height ≈ 0.9 × length; service tower ≈ 1/8 of the length.",
-  how:"1:300, 220 × 48 × 198 mm. Cast in floor bands: one band mould with a 30-pin insert set (under the 40-pin limit), cast 14 times. Portal legs are a separate cast frame, and the service tower is one tall module."},
+  sec:"4 slab sections (55, 47, 47, 39 mm) + 4 tower sections of 50 mm",
+  how:"1:300, 220 × 48 × 198 mm. Each cell is a 1 mm recess; only a 3 × 6 mm window in it goes through, with 2.7 mm fins between. One 30-pin set per floor. The portal legs are 6 mm raised relief. The service tower is its own stack."},
  {k:"gefinor",t:"Gefinor Center",m:"Clemenceau · c. 1969–74 · Victor Gruen Associates with Assem Salam; structure Walid Jabri",
   p:"Dark-glass office towers ribbed with thin vertical fins, with blank concrete end walls, beside a lower block of white horizontal bands, all on a podium raised on columns.",
-  el:["a tower of tight vertical fins","blank concrete end walls","a lower block of horizontal white bands","a podium on columns"],
+  el:["a tower of tight vertical fins","blank concrete end walls","a lower block of horizontal white bands","a podium of piers and shop windows"],
   pr:"Tower height ≈ 2.2 × width; lower block ≈ 0.55 × its width.",
-  how:"1:400, 185 × 70 × 196 mm. The fins are 2 mm slots at a 3.6 mm pitch, broken every four floors by a spandrel for strength: 90 pins in three sets. Three moulds: tower, lower block and podium tray."},
+  sec:"podium 25 mm + tower 3 × 55 mm + lower block 50 mm",
+  how:"1:400, 185 × 70 × 196 mm. Through-slots are 2 × 16 mm at a 5.4 mm pitch (3.4 mm fins), broken every two floors. A raised 0.8 mm rib between slots restores the dense fin rhythm. 33 pins per tower section; the lower block's windows are 8 × 4 mm under raised white bands."},
  {k:"saroulla",t:"Saroulla building",m:"Hamra Street · 1961 · Karol Schayer",
   p:"Twelve floors of deep loggias framed by projecting slabs and fins, over a glazed cinema floor with a thin canopy on round columns.",
-  el:["an egg-crate grid of loggias, 8 per floor","floor slabs that project past the facade","a thin entrance canopy on two round columns","a lit cinema base"],
+  el:["the loggia grid, 8 per floor, as deep recesses","floor slabs that project past the facade","a thin entrance canopy on two round columns","a lit cinema base"],
   pr:"Height ≈ 1.45 × width; ground floor ≈ 1.5 × a typical floor.",
-  how:"1:200, 150 × 75 × 217 mm. Loggia openings 15.7 × 13.5 mm in sets of 32 pins, four floors per set. The slab edges are 2.4 mm relief bands. The canopy rests on two B4 porcelain columns, so it needs no prop."},
+  sec:"cinema base 25 mm + 4 sections of 3 floors (48 mm)",
+  how:"1:200, 150 × 75 × 217 mm. Each loggia is a 15.7 × 13.5 mm recess with a 10 × 9 mm window at the back, as on the real building. 24 pins per section. Slab edges are 2.4 mm raised bands. The canopy rests on two B4 porcelain columns, so it needs no prop."},
  {k:"holiday",t:"Holiday Inn",m:"Minet el-Hosn · 1971–74 · André Wogenscky with Maurice Hindié",
   p:"A 26-storey hotel slab with a dense grid of small deep-set windows, a blank service tower rising above it, and a low, wide podium.",
-  el:["a blank, windowless service tower, taller than the slab","a dense window grid, 13 per floor","a lit crown floor","a podium wider than the tower"],
+  el:["a blank, windowless service tower, taller than the slab","a dense deep-set window grid, 13 per floor","a lit crown floor","a podium wider than the tower"],
   pr:"Slab height ≈ 1.8 × width; service tower ≈ 1/6 of the width.",
-  how:"1:400, 150 × 50 × 228 mm. 4.4 × 4.5 mm windows with 3.7 mm bars. One 26-pin comb (two floors) printed once and reused down the slab, 13 sets. The service tower is a separate closed module, which keeps the slab mould simple."},
+  sec:"podium 22 mm + slab 4 sections (7, 7, 6, 6 floors) + tower 4 × 52 mm",
+  how:"1:400, 150 × 50 × 230 mm. Windows are 4.4 × 4.5 mm in 1 mm recesses, with 3.7 mm bars. Pin sets are up to three floors (39 pins), from one printed comb. Sections keep the 50 mm-deep slab from leaning in the kiln."},
  {k:"museum",t:"National Museum of Beirut",m:"Museum crossing · built 1930–37, inaugurated 1942 · Antoine Nahas and Pierre Leprince-Ringuet",
   p:"Egyptian Revival, not modernist, and the city's landmark from before modernism. A deep portico of four lotus-capital columns stands between massive pylons, flanked by lower wings, on a broad stepped plinth.",
-  el:["four lotus-capital columns between two pylons","a deep cornice with a raised attic block","wings with tall slit windows in threes","a broad stepped plinth"],
+  el:["four lotus-capital columns between two pylons","a deep cornice with a raised attic block","wings with tall slit windows in threes, in recessed panels","a broad stepped plinth"],
   pr:"Portico ≈ 0.8 × as tall as it is wide and ≈ 1.35 × the wing height; wings ≈ 1/3 of the front each.",
-  how:"1:250, 232 × 120 × 70 mm. Three modules: wing, portico, wing. Four B4 columns, cast in a two-part mould with the lotus flare, sit on the plinth. Three lit doors behind the columns."}
+  sec:"plinth 8 mm + wings 47 mm + portico 59 mm; columns 40 mm, cast separately",
+  how:"1:250, 232 × 120 × 67 mm. Three modules (wing, portico, wing) on a plinth. Four B4 columns, cast solid in a two-part mould with the lotus flare, sit in front of a lit door wall."}
 ];
-document.getElementById("modGrid").innerHTML=L.map(b=>`<div class="card el">
-  <svg viewBox="0 0 ${VW} 258" role="img" aria-label="${b.t}, lantern elevation at true proportions">${r(0,Y,VW,18,GROUND)}${DRAW[b.k]()}</svg>
+document.getElementById("modGrid").innerHTML=L.map(b=>{const c=ctx(),d=DRAW[b.k](c);
+  const open=Math.max(...c.walls.map(W=>W.o/W.a*100));
+  const ok=open<=MAXOPEN;
+  return `<div class="card el">
+  <svg viewBox="0 0 ${VW} 258" role="img" aria-label="${b.t}, porcelain-safe lantern elevation at true proportions"><rect x="0" y="${Y}" width="${VW}" height="18" fill="${GROUND}"/>${c.s}${c.js}<text x="6" y="252" fill="${TXT}" font-family="JetBrains Mono,monospace" font-size="7">${Math.round(d.w)} × ${Math.round(d.h)} mm fired · dashed = section joints</text></svg>
   <div class="body"><h3>${b.t}</h3><p class="mono" style="font-size:12px">${b.m}</p><p>${b.p}</p>
   <p style="margin-bottom:4px"><b style="color:var(--ink)">Keep:</b></p><ul style="margin:0 0 8px;padding-left:18px;font-size:14px;color:var(--muted)">${b.el.map(e=>`<li>${e}</li>`).join("")}</ul>
   <p><b style="color:var(--ink)">Proportions:</b> ${b.pr}</p>
-  <div class="how"><b>Lantern:</b> ${b.how}</div></div></div>`).join("");
+  <p class="mono" style="font-size:12px;color:${ok?"#3c8a4f":"var(--terra)"}">${ok?"✓":"✕"} porcelain-safe · max ${open.toFixed(0)} % open per wall · ${b.sec}</p>
+  <div class="how"><b>Lantern:</b> ${b.how}</div></div></div>`;}).join("");
 })();
 
 /* ---------- render explorer ---------- */
