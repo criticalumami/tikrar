@@ -174,9 +174,9 @@ footer{padding:40px 0 60px;border-top:1px solid var(--line);font-size:13px;color
 
 <section id="modernism"><div class="wrap">
   <div class="eyebrow">Landmarks</div>
-  <h2>Iconic modernist Beirut</h2>
-  <p class="lead">The 1950s–70s gave Beirut buildings whose facades are already light-filters: concrete shells, claustra veils, ribbon windows. Each one below is drawn at night as it could be cast, with one idea for turning it into an all-porcelain lantern.</p>
-  <p class="mono" style="color:var(--muted);margin-top:10px">Drawings are simplified, not to scale. At the village's 1:75 a 14-storey tower would stand about 0.6 m tall, so landmarks work best as single pieces at 1:300–1:400, or as one-module motifs in a 1:75 house.</p>
+  <h2>Iconic modernist Beirut, as lanterns</h2>
+  <p class="lead">Proposed landmark lanterns, after studying photographs of each building. Each keeps the building's signature elements and its proportions: storey counts, height-to-width ratios and bay rhythm, measured from photos to about ±10 %.</p>
+  <p class="mono" style="color:var(--muted);margin-top:10px">All six are drawn at the same scale, 1 unit = 1 mm fired, so their sizes compare directly. A village house is 180 mm wide. Each landmark gets its own scale (1:200–1:400) so it stands 130–230 mm tall: at the village's 1:75 a 14-storey tower would be 0.6 m.</p>
   <div class="grid g3" style="margin-top:22px" id="modGrid"></div>
   <p style="font-size:13px;color:var(--muted);margin-top:18px">Facts from the
     <a href="https://arab-architecture.org/db/building/electricite-du-liban-headquarters">Arab Architecture database</a>,
@@ -323,7 +323,7 @@ footer{padding:40px 0 60px;border-top:1px solid var(--line);font-size:13px;color
 
 <footer><div class="wrap">
   <p>Design references: <i>Architectures de Beyrouth, 1925–1970 · Manuel de restauration</i>, ed. Fadlallah Dagher, Beirut Heritage Initiative / Éditions Al Ayn, 2022 (<a href="https://www.beirutheritageinitiative.com/restoration-manual/">beirutheritageinitiative.com</a>). Typologies pp. 18–39, cast facade elements pp. 62–101, claustras pp. 102–105, windows and doors pp. 154–185, ironwork pp. 186–195 of the book.</p>
-  <p>Full written proposals: <a href="https://github.com/criticalumami/beit-lantern-proposals/tree/main/crit_proposals">crit_proposals/</a>. Drawings on this page are schematic.</p>
+  <p>Full written proposals live in the repository's <span class="mono">crit_proposals/</span> folder. Drawings on this page are schematic.</p>
 </div></footer>
 
 <script>
@@ -413,65 +413,108 @@ function build(era){
 }
 
 
-/* ---------- modernist landmarks ---------- */
+/* ---------- modernist landmarks ----------
+   Elevations at ONE common scale (1 unit = 1 mm fired), so lantern sizes compare directly.
+   Ratios come from storey counts and photographs (±10 %). Ground line y=240. */
 (function(){
-const WALL="#5a4a3d",EDGE="#3b3129",G="#ffbf66",DIM="#8a6a3e",GROUND="#0f1420";
-const r=(x,y,w,h,f=G,o="")=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${f}"${o}/>`;
-const mass=(x,y,w,h)=>r(x,y,w,h,WALL,` stroke="${EDGE}" stroke-width="1"`);
-const ground=()=>r(0,184,320,16,GROUND);
-function rows(x,y,w,n,step,hh,f=G){let s="";for(let i=0;i<n;i++)s+=r(x,y+i*step,w,hh,f);return s;}
-function grid(x,y,cols,rws,dx,dy,w,h,f=G){let s="";for(let j=0;j<rws;j++)for(let i=0;i<cols;i++)s+=r(x+i*dx,y+j*dy,w,h,(i*7+j*3)%11===0?DIM:f);return s;}
+const WALL="#5a4a3d",EDGE="#3b3129",G="#ffbf66",DIM="#8a6a3e",TXT="#c9bfae",GROUND="#0f1420";
+const r=(x,y,w,h,f=G,o="")=>`<rect x="${+x.toFixed(2)}" y="${+y.toFixed(2)}" width="${+w.toFixed(2)}" height="${+h.toFixed(2)}" fill="${f}"${o}/>`;
+const mass=(x,y,w,h)=>r(x,y,w,h,WALL,` stroke="${EDGE}" stroke-width=".6"`);
+const Y=240,VW=260;
+const lit=(i,j)=>((i*7+j*13)%10)<7?G:DIM;   /* a few rooms left dim, like a lived-in night */
+function dims(w,h){return `<text x="6" y="252" fill="${TXT}" font-family="JetBrains Mono,monospace" font-size="7">${w} × ${h} mm fired</text>`;}
 const DRAW={
- egg(){let s=ground()+mass(58,148,204,36)+rows(66,156,188,1,0,18);
-  [100,140,180,220].forEach(x=>s+=r(x,156,4,18,WALL));
-  s+=`<path d="M78 150 C76 92 112 40 160 40 C208 40 244 92 242 150 Z" fill="${WALL}" stroke="${EDGE}" stroke-width="1"/>`;
-  [[118,120],[146,122],[174,122],[202,120]].forEach(([x,y])=>s+=r(x,y,10,22,G,` rx="5"`));
-  s+=`<path d="M100 104 Q160 86 220 104" fill="none" stroke="${EDGE}" stroke-width="1.2"/>`;return s;},
- edl(){let s=ground();
-  s+=r(104,150,112,34,G,` opacity=".55"`);[104,136,174,206].forEach(x=>s+=mass(x,150,10,34));
-  s+=mass(100,26,120,124)+mass(220,26,14,124);
-  for(let j=0;j<14;j++)for(let i=0;i<10;i++)s+=`<circle cx="${108+i*11.5}" cy="${33+j*8.5}" r="${(i+j)%5===0?1.6:2.6}" fill="${(i*3+j)%9===0?DIM:G}"/>`;
-  return s;},
- gefinor(){let s=ground()+mass(26,148,268,36)+rows(34,158,252,1,0,16);
-  s+=mass(56,40,92,108)+mass(172,66,92,82);
-  s+=rows(60,48,84,10,10,4)+rows(176,74,84,7,10,4);return s;},
- saroulla(){let s=ground()+mass(96,40,128,144);
-  s+=rows(100,48,120,11,10.5,4.5);
-  s+=r(100,166,120,18,G)+mass(88,160,144,5);
-  [118,160,202].forEach(x=>s+=r(x-1,168,2,16,WALL));return s;},
- holiday(){let s=ground()+mass(128,16,64,168);
-  s+=r(124,16,72,12,G)+mass(124,28,72,3);
-  s+=grid(134,36,6,26,9.3,5.6,5,3);return s;},
- museum(){let s=ground()+mass(56,96,208,88)+mass(52,88,216,9);
-  s+=mass(56,104,56,80)+mass(208,104,56,80);
-  s+=r(124,112,72,72,G,` opacity=".75"`);
-  [128,147,166,185].forEach(x=>{s+=mass(x,118,8,66);s+=`<path d="M${x-3} 118 L${x+11} 118 L${x+8} 112 L${x} 112 Z" fill="${WALL}" stroke="${EDGE}" stroke-width=".8"/>`;});
-  [70,226].forEach(x=>s+=r(x,128,24,30,G,` opacity=".9"`));return s;}
+ egg(){const L=190,x=(VW-L)/2;let s="";
+  for(let k=0;k<4;k++){const yb=Y-k*14;s+=r(x+4,yb-11.5,L-8,11.5,k%2?DIM:G,` opacity=".8"`);s+=mass(x,yb-14,L,2.5);
+    for(let c=0;c<8;c++)s+=mass(x+4+c*(L-11)/7,yb-11.5,3,11.5);}
+  const yb=Y-56,yt=yb-78,x0=x+5,x1=x+L-5;
+  s+=`<path d="M${x0} ${yb} C${x0} ${yb-56} ${x0+22} ${yt} ${x0+62} ${yt} L${x1-62} ${yt} C${x1-22} ${yt} ${x1} ${yb-56} ${x1} ${yb} Z" fill="${WALL}" stroke="${EDGE}" stroke-width=".6"/>`;
+  for(let i=0;i<9;i++)s+=r(x0+27+i*14.5,yb-34,8,11,lit(i,1));
+  return s+dims(L,134);},
+ edl(){const W=196,T=24,x=(VW-W-T)/2;let s="";
+  s+=r(x+3,Y-20,W-6,20,G,` opacity=".55"`);
+  const legs=[0,63.3,126.7,190];legs.forEach(l=>s+=mass(x+l,Y-20,6,20));
+  s+=mass(x,Y-188,W,168);
+  for(let j=0;j<14;j++){const y=Y-20-(j+1)*11.7+1.6;
+    for(let b=0;b<3;b++)for(let i=0;i<10;i++)s+=r(x+legs[b]+6+1.2+i*5.73,y,4,8.5,lit(b*10+i,j));}
+  legs.forEach(l=>s+=mass(x+l,Y-188,6,168));
+  s+=mass(x,Y-192,W,4);
+  s+=mass(x+W,Y-198,T,198);for(let j=0;j<15;j++)s+=r(x+W+10,Y-190+j*12,3,7,lit(j,3));
+  return s+dims(W+T,198);},
+ gefinor(){const x=(VW-185)/2;let s="";
+  s+=r(x+4,Y-25,177,22,G,` opacity=".7"`);for(let c=0;c<8;c++)s+=mass(x+4+c*24.5,Y-25,3,25);s+=mass(x,Y-27,185,4);
+  const tx=x+8,tw=75,th=165;s+=mass(tx,Y-27-th,tw,th);
+  for(let seg=0;seg<5;seg++)for(let i=0;i<18;i++)s+=r(tx+6+i*3.6,Y-27-th+3+seg*32.4,2,30.8,lit(i,seg));
+  s+=mass(tx,Y-27-th-4,tw,4);
+  const lx=x+93,lw=90;s+=mass(lx,Y-27-50,lw,50);
+  for(let f=0;f<6;f++)s+=r(lx+4,Y-27-50+2+f*8.25,lw-8,4.6,lit(f,2));
+  return s+dims(185,196);},
+ saroulla(){const W=150,x=(VW-W)/2;let s="";
+  s+=r(x+2,Y-25,W-4,25,G);s+=mass(x,Y-217,W,192);
+  for(let j=0;j<12;j++)for(let i=0;i<8;i++){const ox=x+2.5+i*18.2,oy=Y-25-(j+1)*16+2.5;s+=r(ox,oy,15.7,13.5,lit(i,j));s+=r(ox,oy+9,15.7,1.6,WALL);}
+  for(let j=0;j<=12;j++)s+=mass(x-2,Y-25-j*16-1.2,W+4,2.4);
+  s+=mass(x+18,Y-29,96,2.5);[34,98].forEach(c=>s+=mass(x+c,Y-26.5,4,26.5));
+  s+=r(x+46,Y-37,40,6,"#2a2a2a")+`<text x="${x+66}" y="${Y-32.4}" fill="${G}" font-size="4.6" text-anchor="middle" font-family="Inter,sans-serif">CINEMA</text>`;
+  return s+dims(W,217);},
+ holiday(){const W=110,T=20,x=(VW-150)/2+25;let s="";
+  s+=r((VW-150)/2+3,Y-20,144,13,G,` opacity=".75"`);s+=mass((VW-150)/2,Y-7,150,7);s+=mass((VW-150)/2,Y-22,150,6);
+  s+=mass(x+T,Y-221.5,W,199.5);
+  for(let j=0;j<25;j++)for(let i=0;i<13;i++)s+=r(x+T+3+i*8.1,Y-22-(j+1)*7.75-0.5-4.5+7.75-1.6,4.4,4.5,lit(i,j));
+  s+=r(x+T+3,Y-219.5,W-6,4.6,G);
+  s+=mass(x,Y-228,T,206);s+=r(x+T/2-1,Y-224,2,8,G);
+  return s+dims(150,228);},
+ museum(){const W=220,x=(VW-W)/2;let s="";
+  for(let k=0;k<3;k++)s+=mass(x-6+k*3,Y-(k+1)*2.7,W+12-k*6,2.7);
+  const b=Y-8;
+  [x,x+148].forEach(wx=>{s+=mass(wx,b-44,72,44)+mass(wx-1,b-47,74,3);
+    [10,40].forEach(px=>{s+=r(wx+px,b-36,22,28,EDGE);for(let k=0;k<3;k++)s+=r(wx+px+3+k*6.5,b-33,2.6,24,lit(k,px));});});
+  const px=x+72;s+=mass(px,b-60,76,60);s+=r(px+10,b-46,56,46,DIM,` opacity=".9"`);
+  [[16,3],[34,3],[52,3]].forEach(([dx])=>s+=r(px+dx-4+4,b-28,8,26,G));
+  s+=mass(px-2,b-56,80,10)+mass(px+10,b-62,56,6);
+  for(let c=0;c<4;c++){const cx=px+14+c*16.3;s+=mass(cx,b-40,5,40);s+=`<path d="M${cx-1.5} ${b-46} L${cx+6.5} ${b-46} L${cx+5} ${b-40} L${cx} ${b-40} Z" fill="${WALL}" stroke="${EDGE}" stroke-width=".5"/>`;}
+  s+=mass(px,b-46,10,46)+mass(px+66,b-46,10,46);
+  return s+dims(232,70);}
 };
 const L=[
  {k:"egg",t:"The Egg",m:"Beirut City Center · from 1965 · Joseph Philippe Karam",
-  p:"A concrete shell cinema for about 1,000 seats, raised over shops. Work stopped when the war began in 1975 and the shell was never finished; it has since hosted protests, art and screenings.",
-  how:"A drain-cast porcelain shell is the most natural slip-cast form there is. Cast the egg hollow in a two-part plaster mold, set it on a rectangular podium module, and let the candle glow through a row of rounded openings at the base."},
- {k:"edl",t:"Électricité du Liban",m:"Mar Mikhaël · competition 1965, built c. 1967–72 · CETA: Jacques Aractingi, Pierre Neema, engineer Joseph Nassar",
-  p:"A 14-storey office tower lifted on four prestressed-concrete portals (14 m spans), leaving a public space underneath. The sunny south face carries a deep claustra veil.",
-  how:"The whole facade is the studio's claustra role, stacked: a porcelain screen of round openings split into ≤ 40-pin insert sets. Cast the open ground floor as four porcelain portal legs."},
+  p:"A concrete shell cinema for about 1,000 seats, never finished. A long, rounded capsule sits over a four-level open concrete frame.",
+  el:["the capsule: flat crown, rounded ends","a band of rectangular openings along its flank","four open floors of slabs and square columns below"],
+  pr:"Shell length ≈ 2.3 × shell height; the frame ≈ 0.7 × shell height.",
+  how:"1:250, 190 × 100 × 134 mm. Two moulds, both drain-cast: the shell is an upside-down bowl in a one-piece mould, with flank slots cut leather-hard through a printed guide. The frame is one slab-and-column tray, cast four times and stacked. Tealight in the frame."},
+ {k:"edl",t:"Électricité du Liban",m:"Mar Mikhaël · competition 1965, built c. 1967–72 · CETA (Aractingi, Neema, eng. Nassar)",
+  p:"Fourteen office floors lifted on four prestressed portals over an open ground floor, with a deep sun-breaker grid on the south face and a slim service tower at the end.",
+  el:["four portal legs, read as strong verticals up the whole face","a deep cellular sun-breaker grid, 3 × 10 cells per floor","an open, lit ground floor","a slim service tower, a storey taller"],
+  pr:"Long face height ≈ 0.9 × length; service tower ≈ 1/8 of the length.",
+  how:"1:300, 220 × 48 × 198 mm. Cast in floor bands: one band mould with a 30-pin insert set (under the 40-pin limit), cast 14 times. Portal legs are a separate cast frame, and the service tower is one tall module."},
  {k:"gefinor",t:"Gefinor Center",m:"Clemenceau · c. 1969–74 · Victor Gruen Associates with Assem Salam; structure Walid Jabri",
-  p:"A business and shopping complex of about 55,000 m², one of the largest in the region when it opened: a lit commercial podium under office slabs.",
-  how:"Two slab towers on a shared podium: the ribbon-window role on every floor, with a continuous glowing shop band at the base. A good multi-module piece."},
+  p:"Dark-glass office towers ribbed with thin vertical fins, with blank concrete end walls, beside a lower block of white horizontal bands, all on a podium raised on columns.",
+  el:["a tower of tight vertical fins","blank concrete end walls","a lower block of horizontal white bands","a podium on columns"],
+  pr:"Tower height ≈ 2.2 × width; lower block ≈ 0.55 × its width.",
+  how:"1:400, 185 × 70 × 196 mm. The fins are 2 mm slots at a 3.6 mm pitch, broken every four floors by a spandrel for strength: 90 pins in three sets. Three moulds: tower, lower block and podium tray."},
  {k:"saroulla",t:"Saroulla building",m:"Hamra Street · 1961 · Karol Schayer",
-  p:"Twelve floors over two basements, mixing offices, shops and the Saroulla cinema, one of the Hamra cinemas of the 1960s. The theatre reopened in 2005 as Al Madina.",
-  how:"Horizontal ribbon floors over a bright cinema base under a thin porcelain canopy: the canopy is a 6 mm cantilever, inside the no-prop limit."},
+  p:"Twelve floors of deep loggias framed by projecting slabs and fins, over a glazed cinema floor with a thin canopy on round columns.",
+  el:["an egg-crate grid of loggias, 8 per floor","floor slabs that project past the facade","a thin entrance canopy on two round columns","a lit cinema base"],
+  pr:"Height ≈ 1.45 × width; ground floor ≈ 1.5 × a typical floor.",
+  how:"1:200, 150 × 75 × 217 mm. Loggia openings 15.7 × 13.5 mm in sets of 32 pins, four floors per set. The slab edges are 2.4 mm relief bands. The canopy rests on two B4 porcelain columns, so it needs no prop."},
  {k:"holiday",t:"Holiday Inn",m:"Minet el-Hosn · 1971–74 · André Wogenscky with Maurice Hindié",
-  p:"A tall hotel slab that opened months before the civil war and became a front line in the Battle of the Hotels. Its pierced shell still stands over the bay.",
-  how:"A tall single-module stack with a dense window grid; leave a few openings dark to keep it calm. Strong as a single landmark piece at 1:400."},
+  p:"A 26-storey hotel slab with a dense grid of small deep-set windows, a blank service tower rising above it, and a low, wide podium.",
+  el:["a blank, windowless service tower, taller than the slab","a dense window grid, 13 per floor","a lit crown floor","a podium wider than the tower"],
+  pr:"Slab height ≈ 1.8 × width; service tower ≈ 1/6 of the width.",
+  how:"1:400, 150 × 50 × 228 mm. 4.4 × 4.5 mm windows with 3.7 mm bars. One 26-pin comb (two floors) printed once and reused down the slab, 13 sets. The service tower is a separate closed module, which keeps the slab mould simple."},
  {k:"museum",t:"National Museum of Beirut",m:"Museum crossing · built 1930–37, inaugurated 1942 · Antoine Nahas and Pierre Leprince-Ringuet",
-  p:"Not modernist: an Egyptian Revival building with lotus-capital columns. It is the landmark Beirut's modernists grew up with, and it stood on the Green Line through the war.",
-  how:"Symmetrical pavilions either side of a column portico: use the B4 porcelain columns, flared at the top, in front of a lit recess."}
+  p:"Egyptian Revival, not modernist, and the city's landmark from before modernism. A deep portico of four lotus-capital columns stands between massive pylons, flanked by lower wings, on a broad stepped plinth.",
+  el:["four lotus-capital columns between two pylons","a deep cornice with a raised attic block","wings with tall slit windows in threes","a broad stepped plinth"],
+  pr:"Portico ≈ 0.8 × as tall as it is wide and ≈ 1.35 × the wing height; wings ≈ 1/3 of the front each.",
+  how:"1:250, 232 × 120 × 70 mm. Three modules: wing, portico, wing. Four B4 columns, cast in a two-part mould with the lotus flare, sit on the plinth. Three lit doors behind the columns."}
 ];
 document.getElementById("modGrid").innerHTML=L.map(b=>`<div class="card el">
-  <svg viewBox="0 0 320 200" role="img" aria-label="${b.t}, simplified night drawing">${DRAW[b.k]()}</svg>
-  <div class="body"><h3>${b.t}</h3><p class="mono" style="font-size:12px">${b.m}</p><p>${b.p}</p><div class="how"><b>As a lantern:</b> ${b.how}</div></div></div>`).join("");
+  <svg viewBox="0 0 ${VW} 258" role="img" aria-label="${b.t}, lantern elevation at true proportions">${r(0,Y,VW,18,GROUND)}${DRAW[b.k]()}</svg>
+  <div class="body"><h3>${b.t}</h3><p class="mono" style="font-size:12px">${b.m}</p><p>${b.p}</p>
+  <p style="margin-bottom:4px"><b style="color:var(--ink)">Keep:</b></p><ul style="margin:0 0 8px;padding-left:18px;font-size:14px;color:var(--muted)">${b.el.map(e=>`<li>${e}</li>`).join("")}</ul>
+  <p><b style="color:var(--ink)">Proportions:</b> ${b.pr}</p>
+  <div class="how"><b>Lantern:</b> ${b.how}</div></div></div>`).join("");
 })();
+
 /* ---------- render explorer ---------- */
 const stage=document.getElementById("stage");
 let ERA="ottoman",TOD="night",DIMS=false;

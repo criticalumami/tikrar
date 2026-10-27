@@ -16,7 +16,7 @@ These are proposals only. Nothing in `index.html` has been changed.
 | [02-process.md](02-process.md) | The whole making process step by step, from design to lit lantern, with improvements at each step |
 | [03-porcelain-elements.md](03-porcelain-elements.md) | New porcelain elements (openwork balustrades, claustra screens, translucent panes, relief, cast balconies, bay windows) and how each one is molded |
 | [04-app-roadmap.md](04-app-roadmap.md) | Concrete changes to the editor, Mold making and 3D print tabs, in priority order |
-| [05-beirut-modernism.md](05-beirut-modernism.md) | Iconic modernist Beirut buildings (the Egg, EDL, Gefinor, Saroulla, Holiday Inn) and the National Museum, each as a porcelain lantern |
+| [05-beirut-modernism.md](05-beirut-modernism.md) | Landmark lanterns from photos: the Egg, EDL, Gefinor, Saroulla, Holiday Inn and the National Museum, each with its signature elements, true proportions, scale, size and moulds |
 
 ## Website and 3D studio
 
