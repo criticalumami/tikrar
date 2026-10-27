@@ -134,7 +134,7 @@ footer{padding:40px 0 60px;border-top:1px solid var(--line);font-size:13px;color
   <p class="lead" style="margin-top:18px">How the Beit Lantern project can take the proportions, composition and cast ornament of Beirut houses (1860–1970), keep everything modular, and make every new element from porcelain alone.</p>
   <div class="note"><b>Rule used throughout:</b> no non-porcelain accessories. Every new element is cast from the same slip as the modules. The wood roofs and slabs already in the editor stay as they are.</div>
   <p style="margin-top:22px"><a href="app.html" style="display:inline-block;background:var(--ink);color:var(--paper);text-decoration:none;padding:11px 18px;border-radius:8px;font-weight:600">Open Beit Lantern Studio →</a>
-  <span style="color:var(--muted);font-size:14px;margin-left:10px">A modular 3D editor that applies these proposals, with mold counts and feature checks.</span></p>
+  <span style="color:var(--muted);font-size:14px;margin-left:10px">A modular 3D editor that applies these proposals, with mold counts and feature checks, including the porcelain-safe rules.</span></p>
 </div></header>
 
 <section id="ideas"><div class="wrap">
@@ -354,7 +354,7 @@ const circ=(cx,cy,r)=>`M${f(cx-r)} ${f(-cy)}a${f(r)} ${f(r)} 0 1 0 ${f(2*r)} 0a$
 const diamond=(cx,cy,rx,ry)=>`M${f(cx)} ${f(-cy-ry)}L${f(cx+rx)} ${f(-cy)}L${f(cx)} ${f(-cy+ry)}L${f(cx-rx)} ${f(-cy)}Z`;
 const cross=(cx,cy,a,t)=>`M${f(cx-t/2)} ${f(-cy-a)}h${f(t)}v${f(a-t/2)}h${f(a-t/2)}v${f(t)}h${f(-(a-t/2))}v${f(a-t/2)}h${f(-t)}v${f(-(a-t/2))}h${f(-(a-t/2))}v${f(-t)}h${f(a-t/2)}Z`;
 const waisted=(x,s,w,h)=>{const m=w*0.28;return `M${f(x)} ${f(-s)}h${f(w)}q${f(-m)} ${f(-h/2)} 0 ${f(-h)}h${f(-w)}q${f(m)} ${f(h/2)} 0 ${f(h)}Z`;};
-function triple(x,s,w,h,kind){const g=Math.max(1.8,w*0.06),wi=(w-2*g)/3,fn=kind==="pointed"?pointed:kind==="rect"?rect:arch;return [0,1,2].map(k=>fn(x+k*(wi+g),s,wi,h));}
+function triple(x,s,w,h,kind){const g=Math.max(2.6,w*0.065),wi=(w-2*g)/3,fn=kind==="pointed"?pointed:kind==="rect"?rect:arch;return [0,1,2].map(k=>fn(x+k*(wi+g),s,wi,h));}
 
 /* balustrade: returns {outline, holes} for a front piece from y0, width w, height h */
 function balustrade(x,y0,w,h,pattern){
@@ -405,7 +405,7 @@ function build(era){
     for(let i=0;i<n;i++){const b=base(i);
       [0,120].forEach(x0=>{op(arch(x0+24,b+(i?14:12),12,30),i>0);frame(x0+24,b+(i?14:12),12,30,1);});
       if(i===0){op(arch(M+22,b,16,38));frame(M+22,b,16,38,1.4);op(arch(M+8,b+16,7,16),false);op(arch(M+45,b+16,7,16),false);}
-      else{op(triple(M+7,b+4,46,44,"pointed"));const bl=balustrade(M+5,b,50,14,"waisted");front(bl.outline,bl.holes);}
+      else{op(triple(M+10,b+6,40,37,"pointed"));const bl=balustrade(M+5,b,50,14,"waisted");front(bl.outline,bl.holes);}
     }
   }
   if(era==="modern"){

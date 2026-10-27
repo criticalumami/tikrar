@@ -243,6 +243,8 @@ document.getElementById("themeBtn").onclick=()=>{const dark=root.dataset.theme?r
 /* Plans (manual figs. 11, 287): central-hall houses are ~square, 3 bays across and ~3 deep, the hall running front to back.
    Elevations (figs. 10, 285): facade width ≈ 3.2–3.7 × floor height; hipped roofs ≈ 21–22° pitch. */
 const MOD=60, GAP=40, RELIEF_D=0.8, MIN_OPEN=1.6, MIN_BAR=1.6, MIN_PIN=1.4, MAX_PINS=40, MAX_CANTI=6, BAL_D=6;
+/* porcelain-safe limits: sections fired on their own, walls that stay solid enough to fire without slumping */
+const MAX_OPEN=40, MAX_SECTION=60, STACK_WALL=3, MIN_FIN=2.5;
 const ERA={
   ottoman:{name:"Late Ottoman",floors:2,rows:3,roof:"hip-terra",balcony:true,kiosk:false,panes:true,relief:true,parapetOpen:false,bal:"waisted",cla:"circle",floorH:56},
   modern:{name:"Modern",floors:4,rows:2,roof:"flat",balcony:true,kiosk:false,panes:false,relief:true,parapetOpen:true,bal:"bars",cla:"circle",floorH:40}
@@ -254,7 +256,7 @@ const ROWN=["street","middle","back"];
 const KEY="beit-lantern-studio-v2";
 function newHouse(era,idx){const d=ERA[era];return {name:d.name+" "+(idx+1),era,cols:3,rows:d.rows,floors:d.floors,roof:d.roof,roles:["auto","auto","auto"],
   balcony:d.balcony,kiosk:d.kiosk,panes:d.panes,relief:d.relief,parapetOpen:d.parapetOpen,bal:d.bal,cla:d.cla,off:[]};}
-function defaults(){return {floorH:50,balH:14,shrink:14,wall:2.5,slabT:3,pitch:22,night:true,light:1,explode:0,sel:0,candleFloor:0,
+function defaults(){return {floorH:50,balH:14,shrink:14,wall:3,slabT:3,pitch:22,night:true,light:1,explode:0,sel:0,candleFloor:0,
   houses:[newHouse("ottoman",0),Object.assign(newHouse("ottoman",1),{floors:3}),Object.assign(newHouse("modern",2),{cols:2})]};}
 /* older designs: the Interwar and Art Deco eras were removed */
 const OLD_ERA={interwar:["ottoman",/^Interwar/],deco:["modern",/^(Beirut )?Art Deco/]};
@@ -283,7 +285,7 @@ function bbox(p){let a=1e9,b=1e9,c=-1e9,d=-1e9;p.forEach(([x,y])=>{a=Math.min(a,
 /* ================= facade generators: single clean openings, no transoms, slats or mullions ================= */
 function F(){return {holes:[],relief:[],extras:[],feats:[]};}
 function hole(o,p,pane,set){o.holes.push({p,pane:!!pane,set:set||0});}
-function feat(o,name,open,bar){o.feats.push({name,open,bar});}
+function feat(o,name,open,bar,long){o.feats.push({name,open,bar,long:!!long});}   /* long: a fin or bar that runs most of the opening height */
 function frame(o,H,fn,x,s,w,h,t){if(H.relief)o.relief.push({o:fn(x-t,s-t,w+2*t,h+2*t),i:fn(x,s,w,h)});}
 function course(o,H,y,hh){if(!H.relief)return;let segs=[[0,MOD]];
   o.holes.concat(o.relief.filter(r=>r.i).map(r=>({p:r.o}))).forEach(hl=>{const b=bbox(hl.p);if(b.y1<y-0.3||b.y0>y+hh+0.3)return;
@@ -291,14 +293,14 @@ function course(o,H,y,hh){if(!H.relief)return;let segs=[[0,MOD]];
   segs.filter(([a,c])=>c-a>=3).forEach(([a,c])=>o.relief.push({o:R(a,y,c-a,hh)}));}
 function balHoles(o,x,y0,w,h,pattern){
   const pl=2.2,inner=h-pl-3,margin=3;let pitch,hw;/* 3 mm handrail keeps openings clear of the scrape edge */
-  if(pattern==="waisted"){hw=2.4;pitch=4.2;}else if(pattern==="lozenge"){hw=2.0;pitch=3.6;}else if(pattern==="circles"){hw=2.0;pitch=3.6;}else{hw=1.8;pitch=3.6;}
+  if(pattern==="waisted"){hw=2.4;pitch=4.2;}else if(pattern==="lozenge"){hw=2.0;pitch=3.6;}else if(pattern==="circles"){hw=2.0;pitch=3.6;}else{hw=1.8;pitch=4.3;}
   const n=Math.max(1,Math.floor((w-2*margin-hw)/pitch)+1),off=x+(w-((n-1)*pitch+hw))/2;
   for(let i=0;i<n;i++){const hx=off+i*pitch;
     if(pattern==="lozenge")hole(o,DIAM(hx+hw/2,y0+pl+inner/2,hw/2,inner/2-0.2));
     else if(pattern==="circles"){hole(o,CIRC(hx+hw/2,y0+pl+inner*0.29,1));hole(o,CIRC(hx+hw/2,y0+pl+inner*0.71,1));}
     else if(pattern==="waisted")hole(o,WAIST(hx,y0+pl,hw,inner));
     else hole(o,R(hx,y0+pl,hw,inner));}
-  feat(o,"Balustrade · "+pattern,pattern==="waisted"?MIN_OPEN:hw,pitch-hw);
+  feat(o,"Balustrade · "+pattern,pattern==="waisted"?MIN_OPEN:hw,pitch-hw,pattern==="bars");
 }
 /* claustra: split by columns into as many insert sets as needed, each ≤ 40 pins */
 function claHoles(o,x,y0,w,h,pattern){
@@ -311,6 +313,8 @@ function claHoles(o,x,y0,w,h,pattern){
   const m={cross:[1.6,1.6],square:[3.2,1.8],offset:[2.0,2.1],circle:[3.2,1.8]}[pattern]||[3.2,1.8];
   feat(o,"Claustra · "+pattern,m[0],m[1]);
 }
+/* bay window front: one clean opening, ≤ 40 % of the front */
+const kioskOpening=(kw,kh)=>R(6,kh*0.25,kw-12,kh*0.55);
 function roleOf(H,c){const r=H.roles[c]||"auto";if(r!=="auto")return r;const n=H.cols;
   if(H.era==="modern")return (n>1&&c===n-1)?"claustra":"ribbon";
   if(n===1)return "bay";if(n===2)return c===0?"bay":"side";return c===Math.floor(n/2)?"bay":"side";}
@@ -319,16 +323,16 @@ function genFront(H,c,i,h){
   const o=F(),n=H.floors,gf=i===0,top=i===n-1,role=roleOf(H,c),e=H.era,first=c===0,last=c===H.cols-1;
   const kioskHere=H.kiosk&&role==="bay"&&i===1&&n>=2;
   if(role==="bay"){
-    if(kioskHere){hole(o,R(12,h*0.12,36,h*0.72));o.extras.push({t:"kiosk",x:10,w:40,y:h*0.08,h:h*0.84,d:BAL_D});}
+    if(kioskHere){hole(o,R(14,h*0.14,32,h*0.7));o.extras.push({t:"kiosk",x:10,w:40,y:h*0.08,h:h*0.84,d:BAL_D});}
     else if(e==="ottoman"){
       if(gf){const dh=Math.min(h*0.66,h-8);hole(o,ARCH(22,2,16,dh));frame(o,H,ARCH,22,2,16,dh,1.4);
         [8,45].forEach(x=>{hole(o,ARCH(x,h*0.3,7,h*0.3));frame(o,H,ARCH,x,h*0.3,7,h*0.3,1);});}
-      else{const g=2,wi=(46-2*g)/3;for(let k=0;k<3;k++)hole(o,POINTED(7+k*(wi+g),h*0.08,wi,h*0.74));feat(o,"Triple arch columns",wi,g);
+      else{const g=2.6,wi=(40-2*g)/3;for(let k=0;k<3;k++)hole(o,POINTED(10+k*(wi+g),h*0.1,wi,h*0.62));feat(o,"Triple arch columns",wi,g,true);
         if(H.balcony)o.extras.push({t:"balcony",x:5,w:50,d:BAL_D,par:"open"});}
     }else{
       if(gf){const dh=h*0.75;hole(o,SEGM(21,2,18,dh));frame(o,H,SEGM,21,2,18,dh,1.4);if(H.relief)o.relief.push({o:R(25,2+dh+2.5,10,Math.min(3.5,h-2-dh-2.5-1.2))});}
-      else{const s=h*0.14,hh=Math.min(h*0.62,h*0.86-3-40/6);/* one wide segmental opening, ≥ 3 mm below the scrape edge */
-        hole(o,SEGM(10,s,40,hh+40/6),H.panes&&!top);frame(o,H,SEGM,10,s,40,hh+40/6,1.4);
+      else{const s=h*0.14,hh=Math.min(h*0.55,h*0.86-3-32/6);/* one segmental opening, ≥ 3 mm below the scrape edge, ≤ 40 % of the wall */
+        hole(o,SEGM(14,s,32,hh+32/6),H.panes&&!top);frame(o,H,SEGM,14,s,32,hh+32/6,1.4);
         if(top&&H.balcony)o.extras.push({t:"balcony",x:3,w:54,d:BAL_D,par:"open"});}
     }
   }else if(role==="side"){
@@ -343,7 +347,7 @@ function genFrontRole(H,o,role,c,i,h,gf,top,first,last){
     else{const r=Math.min(5,h*0.13);hole(o,CIRC(30,h*0.58,r),H.panes);if(H.relief)o.relief.push({o:CIRC(30,h*0.58,r+1.3),i:CIRC(30,h*0.58,r)});}
     if(H.relief)[11.5,47.5].forEach(x=>o.relief.push({o:R(x,3,1,h-6)}));
   }else if(role==="ribbon"){
-    if(gf)hole(o,R(6,2,48,h*0.72));
+    if(gf)hole(o,R(11,2,38,h*0.6));
     else{hole(o,R(4,h*0.38,52,h*0.32));if(H.balcony)o.extras.push({t:"balcony",x:0,w:MOD,d:BAL_D,par:"solid",retL:first,retR:last});}
   }else if(role==="claustra"){
     if(gf){hole(o,R(23,2,14,h*0.72));frame(o,H,R,23,2,14,h*0.72,1.2);}
@@ -429,7 +433,7 @@ function buildExtras(g,o,t,bh,mat){
       if(x.retR!==false)returnWall(g,x.x+x.w,0,x.d-2,bh,[],t,mat);
     }else if(x.t==="kiosk"){
       const kg=new THREE.Group();kg.position.y=x.y;g.add(kg);const kh=x.h,kw=x.w,kd=x.d;
-      const fr=extrude(R(0,0,kw,kh),[R(3,kh*0.25,kw-6,kh*0.6)],2,mat);fr.position.set(x.x,0,t+kd-2);kg.add(fr);
+      const fr=extrude(R(0,0,kw,kh),[kioskOpening(kw,kh)],2,mat);fr.position.set(x.x,0,t+kd-2);kg.add(fr);
       const so=F();hole(so,R((kd-2)/2-0.9,kh*0.3,1.8,kh*0.5));
       returnWall(kg,x.x+2,0,kd-2,kh,so.holes,t,mat);returnWall(kg,x.x+kw,0,kd-2,kh,so.holes,t,mat);
       kg.add(box(kw+2.4,1.6,kd+1.2,x.x+kw/2,kh+0.8,t+kd/2,mat));
@@ -560,10 +564,12 @@ $("candlePlan").onclick=e=>{const b=e.target.closest("button");if(!b)return;togg
 /* ================= production analysis ================= */
 function sig(M){const r=v=>Math.round(v*10)/10;const f=o=>o?{h:o.holes.map(x=>x.p.map(p=>p.map(r)).join(";")+(x.pane?"P":"")).join("|"),r:o.relief.map(x=>x.o.map(p=>p.map(r)).join(";")).join("|")}:null;
   return JSON.stringify([f(M.front),f(M.right),f(M.back),f(M.left)]);}
+function area(p){let a=0;for(let i=0;i<p.length;i++){const [x0,y0]=p[i],[x1,y1]=p[(i+1)%p.length];a+=x0*y1-x1*y0;}return Math.abs(a)/2;}
 function setsOf(o){const m={};o.holes.forEach(h=>{m[h.set]=(m[h.set]||0)+1;});return Object.values(m);}
 function analyze(){
   const h=S.floorH,shr=S.shrink/100,k=1/(1-shr),types=new Map(),extras=new Map(),checks=[];
-  let minOpen={v:1e9,w:""},minBar={v:1e9,w:""},maxPins={v:0,w:""},edge=[],topZone=[],reliefTop=[],panes=0,modules=0;
+  let minOpen={v:1e9,w:""},minBar={v:1e9,w:""},maxPins={v:0,w:""},maxOpen={v:0,w:""},minFin={v:1e9,w:""},edge=[],topZone=[],reliefTop=[],panes=0,modules=0;
+  const wallOpen=(o,w,hh,where)=>{const pc=o.holes.reduce((a,hl)=>a+area(hl.p),0)/(w*hh)*100;if(pc>maxOpen.v)maxOpen={v:pc,w:where};};
   const visit=(M,label,hh)=>{
     const s=sig(M);if(!types.has(s))types.set(s,{label,count:0,M,h:hh});types.get(s).count++;modules++;
     ["front","right","back","left"].forEach(f=>{const o=M[f];if(!o)return;
@@ -572,7 +578,8 @@ function analyze(){
       o.holes.forEach(hl=>{const b=bbox(hl.p),m=Math.min(b.w,b.h);if(m<minOpen.v)minOpen={v:m,w:label+" · "+f};
         if(b.x0<3-1e-6||b.x1>MOD-3+1e-6)nearEdge=true;if(b.y1>hh-3+1e-6)nearTop=true;if(hl.pane)panes++;});
       if(nearEdge)edge.push(label+" · "+f);if(nearTop)topZone.push(label+" · "+f);
-      o.feats.forEach(ft=>{if(ft.bar<minBar.v)minBar={v:ft.bar,w:ft.name};if(ft.open<minOpen.v)minOpen={v:ft.open,w:ft.name};});
+      wallOpen(o,MOD,hh,label+" · "+f);
+      o.feats.forEach(ft=>{if(ft.bar<minBar.v)minBar={v:ft.bar,w:ft.name};if(ft.open<minOpen.v)minOpen={v:ft.open,w:ft.name};if(ft.long&&ft.bar<minFin.v)minFin={v:ft.bar,w:ft.name};});
       o.relief.forEach(r=>{if(bbox(r.o).y1>hh-1+1e-6)reliefTop.push(label+" · "+f);});
       o.extras.forEach(x=>{const key=x.t+"|"+x.w+"|"+x.d+"|"+(x.par||"");if(!extras.has(key))extras.set(key,{x,count:0});extras.get(key).count++;});
     });};
@@ -581,6 +588,13 @@ function analyze(){
       const pos=r===0?ROLES[roleOf(H,c)]:(r===H.rows-1?"back":"middle")+" row, bay "+(c+1);
       visit(genModule(H,c,r,i,h),H.name+" · "+(i?"F"+i:"GF")+" · "+pos,h);}
     if(H.roof==="flat")for(let r=0;r<H.rows;r++)for(let c=0;c<H.cols;c++){const P=genParapet(H,c,r,S.balH);if(P)visit(P,H.name+" · roof parapet",S.balH);}});
+  /* separate porcelain castings: open parapets and bay-window fronts are walls too */
+  extras.forEach(({x})=>{
+    if(x.par==="open"){const o=F();balHoles(o,0,0,x.w,S.balH,"bars");wallOpen(o,x.w,S.balH,"Balcony parapet "+x.w+" mm");
+      o.feats.forEach(ft=>{if(ft.long&&ft.bar<minFin.v)minFin={v:ft.bar,w:"Balcony parapet"};});}
+    if(x.t==="kiosk"){const o=F();hole(o,kioskOpening(x.w,x.h));wallOpen(o,x.w,x.h,"Bay window front");}});
+  const tallest=Math.max(h,S.balH,...[...extras.values()].filter(e=>e.x.t==="kiosk").map(e=>e.x.h));
+  const stacked=S.houses.filter(H=>H.floors>1);
   const pinMaster=minOpen.v*k-0.3;
   const add=(st,txt,v,where)=>checks.push({st,txt,v,where});
   add(minOpen.v>=MIN_OPEN-1e-6?"ok":"bad","Openings ≥ "+MIN_OPEN+" mm fired",minOpen.v.toFixed(2)+" mm",minOpen.w);
@@ -590,6 +604,10 @@ function analyze(){
   add(topZone.length?"bad":"ok","Openings clear of the scrape edge (3 mm)",topZone.length?topZone.length+" faces":"all clear",topZone[0]||"");
   add(reliefTop.length?"bad":"ok","Relief ≥ 1 mm below the top, "+RELIEF_D+" mm deep, 3° draft",reliefTop.length?reliefTop.length+" faces":"all clear",reliefTop[0]||"");
   add(maxPins.v>MAX_PINS?"warn":"ok","Pins per insert set ≤ "+MAX_PINS,maxPins.v+" max",maxPins.w);
+  add(maxOpen.v<=MAX_OPEN+1e-6?"ok":"bad","Each wall ≤ "+MAX_OPEN+" % open",maxOpen.v.toFixed(0)+" % max",maxOpen.w);
+  add(tallest<=MAX_SECTION+1e-6?"ok":"bad","Fired sections ≤ "+MAX_SECTION+" mm tall",tallest.toFixed(0)+" mm",tallest>MAX_SECTION?"lower the floor height":"one floor per section, stacked on porcelain lips");
+  add(!stacked.length||S.wall>=STACK_WALL-1e-6?"ok":"bad","Walls ≥ "+STACK_WALL+" mm where sections stack",S.wall+" mm",stacked.length?stacked.length+" houses stack "+Math.max(...stacked.map(H=>H.floors))+" sections":"no stacking");
+  add(minFin.v>=MIN_FIN-1e-6?"ok":"bad","Long fins and bars ≥ "+MIN_FIN+" mm",minFin.v<1e9?minFin.v.toFixed(2)+" mm":"none",minFin.w);
   const canti=[...extras.values()].filter(e=>e.x.d>MAX_CANTI);
   add(canti.length?"warn":"ok","Cantilevers ≤ "+MAX_CANTI+" mm, no firing prop",canti.length?canti.reduce((a,e)=>a+e.count,0)+" need a prop":"all "+BAL_D+" mm","");
   const inner=MOD-2*S.wall;add(inner>=40&&h>=30?"ok":"bad","LED tealight fits (Ø 38, one per module)","inside "+inner.toFixed(1)+" mm","");
@@ -644,7 +662,7 @@ function renderPanel(){
   renderCandles();
 }
 function changed(rebuildScene=true){
-  S.floorH=clamp(+S.floorH||50,30,70);S.balH=clamp(+S.balH||14,10,20);S.shrink=clamp(+S.shrink||14,5,20);S.wall=clamp(+S.wall||2.5,1.5,4);S.pitch=clamp(+S.pitch||22,12,40);
+  S.floorH=clamp(+S.floorH||50,30,70);S.balH=clamp(+S.balH||14,10,20);S.shrink=clamp(+S.shrink||14,5,20);S.wall=clamp(+S.wall||3,1.5,4);S.pitch=clamp(+S.pitch||22,12,40);
   S.houses.forEach(H=>{H.off=H.off.filter(k=>{const [i,c,r]=k.split(":").map(Number);return i<H.floors&&c<H.cols&&r<H.rows;});});
   save();renderPanel();renderProduction();if(rebuildScene)rebuild();}
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));

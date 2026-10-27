@@ -26,7 +26,7 @@ These are proposals only. Nothing in `index.html` has been changed.
   - a role for each front bay
   - all-porcelain elements: balconies with openwork, bay window, translucent panes, relief, openwork parapet; every window is one clean opening, with no bars
   - a day/night candle view with candle controls for the whole village, each house, each floor and each room, plus an explode slider
-  - a production panel that counts plaster and accessory molds and runs the new feature checks (opening, bar and pin sizes, corner and scrape-edge clearance, relief, pins per set, cantilever props, tealight fit)
+  - a production panel that counts plaster and accessory molds and runs the new feature checks (opening, bar and pin sizes, corner and scrape-edge clearance, relief, pins per set, cantilever props, tealight fit) and the porcelain-safe checks: each wall ≤ 40 % open, fired sections ≤ 60 mm, 3 mm walls where sections stack, long fins and bars ≥ 2.5 mm
 
   It keeps the editor's project rules: one floor height and one low-balcony height, fired sizes, master = fired ÷ (1 − shrink).
 

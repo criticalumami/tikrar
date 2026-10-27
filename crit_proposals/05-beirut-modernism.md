@@ -111,7 +111,7 @@ Egyptian Revival, not modernist: the landmark from before modernism.
 
 - A **landmark mode**: one building per piece at its own scale, outside the 60 mm module grid.
 - A **section generator**: split a tower at floor lines into sections of 60 mm or less, with locating lips and one reusable pin comb per section type.
-- New fit checks: **open area per wall ≤ 40 %**, **section height ≤ 60 mm**, **wall ≥ 3 mm above one section**, **long fins ≥ 2.5 mm**.
+- The four porcelain-safe checks (open area per wall ≤ 40 %, section height ≤ 60 mm, 3 mm walls where sections stack, long fins ≥ 2.5 mm) are **now in the studio** for village houses. Landmarks would reuse them.
 - A **shell element** for the Egg (a drain-cast form checked for wall thickness), and a **portal / pilotis ground floor** checked for span.
 
 ## Sources
