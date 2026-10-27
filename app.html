@@ -1,0 +1,678 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Beit Lantern Studio</title>
+<meta name="description" content="A modular 3D editor for porcelain Lebanese lantern houses, applying the Beit Lantern proposals: square central-hall plans, era styles, bay roles, porcelain openwork, panes, relief, balconies and bay windows, candle controls, mold counts and feature checks.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f4f2ed;--paper:#fffefb;--ink:#23201c;--muted:#6d665c;--line:#e3ded4;--terra:#b5562f;--blue:#2f6fd6;--ok:#2f8a4a;--warn:#b7791f;--bad:#c2412d;--field:#f7f5f0;--flame:#f0a33a}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#16140f;--paper:#1f1c17;--ink:#efe9df;--muted:#a59d90;--line:#36312a;--terra:#e07a4f;--field:#26221c;--ok:#5cc17c;--warn:#e0a84a;--bad:#ef7a64}}
+:root[data-theme="dark"]{--bg:#16140f;--paper:#1f1c17;--ink:#efe9df;--muted:#a59d90;--line:#36312a;--terra:#e07a4f;--field:#26221c;--ok:#5cc17c;--warn:#e0a84a;--bad:#ef7a64}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+header{display:flex;align-items:center;gap:14px;padding:12px 16px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+header h1{font:600 26px "Cormorant Garamond",Georgia,serif;margin:0}
+header .sub{color:var(--muted);font-size:13px}
+header a{color:var(--terra);font-size:13px;margin-left:auto}
+.btn{border:1px solid var(--line);background:var(--paper);color:var(--ink);font:500 13px Inter,sans-serif;padding:6px 10px;border-radius:7px;cursor:pointer}
+.btn:hover{border-color:var(--muted)}
+.btn.primary{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.btn.danger{color:var(--bad)}
+.layout{display:grid;grid-template-columns:380px 1fr;gap:14px;padding:14px 16px;align-items:start}
+@media (max-width:900px){.layout{grid-template-columns:1fr}.viewer{order:-1}}
+aside{display:grid;gap:12px}
+details.panel{background:var(--paper);border:1px solid var(--line);border-radius:10px}
+details.panel>summary{list-style:none;cursor:pointer;padding:12px 14px;font-weight:600;font-size:15px;display:flex;align-items:center;gap:8px}
+details.panel>summary::-webkit-details-marker{display:none}
+details.panel>summary::before{content:"▸";color:var(--muted);transition:transform .15s}
+details.panel[open]>summary::before{transform:rotate(90deg)}
+details.panel>summary .meta{margin-left:auto;font:500 12px "JetBrains Mono",monospace;color:var(--muted)}
+.pbody{padding:0 14px 14px;display:grid;gap:10px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.row3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+label.f{display:grid;gap:3px;font:500 11px "JetBrains Mono",monospace;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+input[type=number],input[type=text],select{width:100%;font:14px Inter,sans-serif;color:var(--ink);background:var(--field);border:1px solid var(--line);border-radius:6px;padding:6px 8px}
+.hint{font-size:12px;color:var(--muted)}
+.hint b{color:var(--ink);font-weight:600}
+.lbl{font-size:12px;color:var(--muted);margin-bottom:3px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:7px;overflow:hidden;flex-wrap:wrap}
+.seg button{border:0;background:transparent;color:var(--ink);font:500 13px Inter,sans-serif;padding:5px 11px;cursor:pointer}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.houses{display:flex;flex-wrap:wrap;gap:6px}
+.houses button{border:1px solid var(--line);background:var(--field);color:var(--ink);border-radius:7px;padding:5px 10px;font:500 13px Inter,sans-serif;cursor:pointer}
+.houses button[aria-pressed="true"]{border-color:var(--blue);box-shadow:0 0 0 1px var(--blue)}
+.houses button small{color:var(--muted);font-weight:400}
+.checks{display:grid;gap:2px}
+.chk{display:grid;grid-template-columns:16px 1fr auto;gap:8px;padding:5px 0;border-bottom:1px solid var(--line);font-size:13px}
+.chk:last-child{border-bottom:0}
+.chk .v{font:12px "JetBrains Mono",monospace;color:var(--muted);text-align:right}
+.chk .i.ok{color:var(--ok)}.chk .i.warn{color:var(--warn)}.chk .i.bad{color:var(--bad)}
+.toggles{display:grid;grid-template-columns:1fr 1fr;gap:4px 10px}
+.toggles label{display:flex;gap:6px;align-items:center;font-size:13px;cursor:pointer}
+.big{font:600 30px "Cormorant Garamond",serif;line-height:1}
+.types{width:100%;border-collapse:collapse;font-size:12.5px}
+.types td,.types th{padding:5px 4px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+.types th{font:500 11px "JetBrains Mono",monospace;color:var(--muted);text-transform:uppercase}
+.mono{font-family:"JetBrains Mono",monospace;font-size:12px}
+/* candles */
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line);background:var(--field);color:var(--ink);border-radius:99px;padding:4px 10px;font:500 12.5px Inter,sans-serif;cursor:pointer;display:inline-flex;gap:6px;align-items:center}
+.chip .dot{width:9px;height:9px;border-radius:50%;border:1.5px solid var(--flame);background:transparent}
+.chip[data-state="on"] .dot{background:var(--flame)}
+.chip[data-state="some"] .dot{background:linear-gradient(90deg,var(--flame) 50%,transparent 50%)}
+.plan{display:grid;gap:4px;justify-content:start}
+.plan button{width:38px;height:38px;border:1px solid var(--line);border-radius:6px;background:var(--field);cursor:pointer;font-size:16px;line-height:1;color:var(--muted)}
+.plan button[aria-pressed="true"]{background:#3a2a17;border-color:var(--flame);color:var(--flame)}
+.street{font:500 10px "JetBrains Mono",monospace;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-top:2px}
+.viewer{position:sticky;top:14px}
+.stage{position:relative;height:calc(100vh - 110px);min-height:420px;border-radius:12px;overflow:hidden;background:#141a2a;border:1px solid var(--line)}
+@media (max-width:900px){.stage{height:62vh}.viewer{position:relative;top:0}}
+.stage canvas{display:block;width:100%;height:100%;touch-action:none}
+.hud{position:absolute;left:10px;bottom:10px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;max-width:calc(100% - 20px)}
+.hud .box{background:rgba(20,20,24,.72);color:#eee;border-radius:8px;padding:6px 10px;display:flex;gap:8px;align-items:center;font:12px "JetBrains Mono",monospace;backdrop-filter:blur(6px)}
+.hud .box button{background:transparent;color:#eee;border:1px solid rgba(255,255,255,.25);border-radius:6px;padding:3px 8px;font:12px "JetBrains Mono",monospace;cursor:pointer}
+.hud .box button[aria-pressed="true"]{background:#f0a33a;color:#1a1a1a;border-color:#f0a33a}
+.hud input[type=range]{width:90px;accent-color:#f0a33a}
+.readout{position:absolute;right:10px;top:10px;background:rgba(20,20,24,.72);color:#eee;border-radius:8px;padding:6px 10px;font:12px "JetBrains Mono",monospace;max-width:62%}
+.foot{font-size:12px;color:var(--muted);padding:6px 2px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Beit Lantern Studio</h1>
+  <span class="sub">Modular porcelain lantern houses · all sizes fired mm · 1:75</span>
+  <a href="./">← Proposals</a>
+  <button class="btn" id="themeBtn" type="button" aria-label="Toggle colour theme">◐</button>
+</header>
+
+<div class="layout">
+<aside>
+  <details class="panel" open>
+    <summary>Houses <span class="meta" id="houseMeta"></span></summary>
+    <div class="pbody">
+      <div class="houses" id="houseList"></div>
+      <div class="row">
+        <select id="newEra" aria-label="Era of the new house">
+          <option value="ottoman" selected>Late Ottoman</option><option value="modern">Modern</option></select>
+        <button class="btn primary" id="addHouse" type="button">+ Add house</button>
+      </div>
+      <p class="hint">Tap a house in the 3D view to select it. Double-tap a room to switch its candle.</p>
+    </div>
+  </details>
+
+  <details class="panel" open>
+    <summary>Selected house <span class="meta" id="selMeta"></span></summary>
+    <div class="pbody" id="housePanel">
+      <div class="row">
+        <label class="f">Name<input type="text" id="hName"></label>
+        <label class="f">Era<select id="hEra">
+          <option value="ottoman">Late Ottoman 1860–1925</option><option value="modern">Modern 1945–70</option></select></label>
+      </div>
+      <div class="row3">
+        <div><div class="lbl">Across</div><div class="seg" id="hCols"><button type="button" data-v="1">1</button><button type="button" data-v="2">2</button><button type="button" data-v="3">3</button></div></div>
+        <div><div class="lbl">Deep</div><div class="seg" id="hRows"><button type="button" data-v="1">1</button><button type="button" data-v="2">2</button><button type="button" data-v="3">3</button></div></div>
+        <div><div class="lbl">Floors</div><select id="hFloors" aria-label="Floors"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select></div>
+      </div>
+      <p class="hint" id="planHint"></p>
+      <label class="f">Roof<select id="hRoof">
+        <option value="hip-terra">Hipped, terracotta colour</option><option value="hip-wood">Hipped, wood</option>
+        <option value="flat">Flat, porcelain parapet</option></select></label>
+      <div>
+        <div class="lbl">Front bays, left to right (seen from the street)</div>
+        <div class="row3" id="hRoles"></div>
+      </div>
+      <div>
+        <div class="lbl">Porcelain elements</div>
+        <div class="toggles">
+          <label><input type="checkbox" data-k="balcony"> Balconies</label>
+          <label><input type="checkbox" data-k="kiosk"> Bay window</label>
+          <label><input type="checkbox" data-k="panes"> Translucent panes</label>
+          <label><input type="checkbox" data-k="relief"> Relief frames</label>
+          <label><input type="checkbox" data-k="parapetOpen"> Openwork parapet</label>
+        </div>
+      </div>
+      <div class="row">
+        <label class="f">Balustrade<select id="hBal"><option value="bars">Bars</option><option value="waisted">Waisted</option><option value="lozenge">Lozenge</option><option value="circles">Circles</option></select></label>
+        <label class="f">Claustra<select id="hCla"><option value="circle">Circles</option><option value="cross">Crosses</option><option value="square">Squares</option><option value="offset">Offset</option></select></label>
+      </div>
+      <div class="row">
+        <button class="btn" id="eraDefaults" type="button">Apply era defaults</button>
+        <button class="btn danger" id="delHouse" type="button">Delete house</button>
+      </div>
+    </div>
+  </details>
+
+  <details class="panel" open>
+    <summary>Candles <span class="meta" id="candleMeta"></span></summary>
+    <div class="pbody">
+      <div>
+        <div class="lbl">Whole village</div>
+        <div class="chips" id="candlePresets">
+          <button class="chip" type="button" data-p="all">All on</button>
+          <button class="chip" type="button" data-p="none">All off</button>
+          <button class="chip" type="button" data-p="sel">Selected house only</button>
+          <button class="chip" type="button" data-p="ground">Ground floors</button>
+          <button class="chip" type="button" data-p="top">Top floors</button>
+          <button class="chip" type="button" data-p="front">Street rooms</button>
+          <button class="chip" type="button" data-p="lived">Lived-in (random)</button>
+        </div>
+      </div>
+      <div><div class="lbl">Each house</div><div class="chips" id="candleHouses"></div></div>
+      <div><div class="lbl">Each floor of the selected house</div><div class="chips" id="candleFloors"></div></div>
+      <div>
+        <div class="lbl">Each room on <span id="candleFloorName"></span> (plan view)</div>
+        <div class="seg" id="candleFloorSeg" style="margin-bottom:6px"></div>
+        <div class="plan" id="candlePlan"></div>
+        <div class="street">▲ back · street ▼</div>
+      </div>
+    </div>
+  </details>
+
+  <details class="panel" open>
+    <summary>Project <span class="meta">same for every house</span></summary>
+    <div class="pbody">
+      <div class="row">
+        <label class="f">Floor height mm<input type="number" id="pFloorH" min="30" max="70" step="1"></label>
+        <label class="f">Low balcony mm<input type="number" id="pBalH" min="10" max="20" step="1"></label>
+      </div>
+      <p class="hint" id="floorHint"></p>
+      <div class="row3">
+        <label class="f">Shrink %<input type="number" id="pShrink" min="5" max="20" step="0.5"></label>
+        <label class="f">Cast wall<input type="number" id="pWall" min="1.5" max="4" step="0.1"></label>
+        <label class="f">Roof pitch °<input type="number" id="pPitch" min="12" max="40" step="1"></label>
+      </div>
+    </div>
+  </details>
+
+  <details class="panel" open>
+    <summary>Production <span class="meta" id="prodMeta"></span></summary>
+    <div class="pbody">
+      <div style="display:flex;gap:18px;align-items:flex-end">
+        <div><div class="big" id="moldCount">–</div><div class="hint">plaster molds</div></div>
+        <div><div class="big" id="extraCount">–</div><div class="hint">accessory molds</div></div>
+        <div><div class="big" id="moduleCount">–</div><div class="hint">modules to cast</div></div>
+      </div>
+      <div class="checks" id="checks"></div>
+      <table class="types" id="typesTbl"></table>
+      <div id="extrasList" class="hint"></div>
+    </div>
+  </details>
+
+  <details class="panel">
+    <summary>Design file</summary>
+    <div class="pbody">
+      <div class="row3">
+        <button class="btn" id="exportBtn" type="button">Export JSON</button>
+        <label class="btn" style="text-align:center">Import<input type="file" id="importFile" accept="application/json,.json" hidden></label>
+        <button class="btn danger" id="resetBtn" type="button">Reset</button>
+      </div>
+      <p class="hint">Saved automatically in this browser.</p>
+    </div>
+  </details>
+</aside>
+
+<main class="viewer">
+  <div class="stage" id="stage">
+    <div class="readout" id="readout"></div>
+    <div class="hud">
+      <div class="box"><button type="button" id="nightBtn" aria-pressed="true">Night</button><span>Candle</span><input type="range" id="lightR" min="0" max="2" step="0.05" aria-label="Candle strength"></div>
+      <div class="box"><span>Explode</span><input type="range" id="explR" min="0" max="40" step="1" aria-label="Explode floors"></div>
+      <div class="box"><button type="button" id="resetView">Reset view</button></div>
+    </div>
+  </div>
+  <div class="foot">Drag to orbit, right-drag to pan, scroll to zoom. White = porcelain, warm brown = wood slabs and roofs (unchanged from the editor). One candle per module.</div>
+</main>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+(function(){
+"use strict";
+/* ================= theme ================= */
+const root=document.documentElement;
+try{const t=localStorage.getItem("beit-proposals-theme");if(t)root.dataset.theme=t;}catch(e){}
+document.getElementById("themeBtn").onclick=()=>{const dark=root.dataset.theme?root.dataset.theme==="dark":matchMedia("(prefers-color-scheme: dark)").matches;root.dataset.theme=dark?"light":"dark";try{localStorage.setItem("beit-proposals-theme",root.dataset.theme);}catch(e){}};
+
+/* ================= constants ================= */
+/* Plans (manual figs. 11, 287): central-hall houses are ~square, 3 bays across and ~3 deep, the hall running front to back.
+   Elevations (figs. 10, 285): facade width ≈ 3.2–3.7 × floor height; hipped roofs ≈ 21–22° pitch. */
+const MOD=60, GAP=40, RELIEF_D=0.8, MIN_OPEN=1.6, MIN_BAR=1.6, MIN_PIN=1.4, MAX_PINS=40, MAX_CANTI=6, BAL_D=6;
+const ERA={
+  ottoman:{name:"Late Ottoman",floors:2,rows:3,roof:"hip-terra",balcony:true,kiosk:false,panes:true,relief:true,parapetOpen:false,bal:"waisted",cla:"circle",floorH:56},
+  modern:{name:"Modern",floors:4,rows:2,roof:"flat",balcony:true,kiosk:false,panes:false,relief:true,parapetOpen:true,bal:"bars",cla:"circle",floorH:40}
+};
+const ROLES={auto:"Auto",bay:"Central bay",side:"Side room",stair:"Stair tower",ribbon:"Ribbon",claustra:"Claustra",plain:"Plain"};
+const ROWN=["street","middle","back"];
+
+/* ================= state ================= */
+const KEY="beit-lantern-studio-v2";
+function newHouse(era,idx){const d=ERA[era];return {name:d.name+" "+(idx+1),era,cols:3,rows:d.rows,floors:d.floors,roof:d.roof,roles:["auto","auto","auto"],
+  balcony:d.balcony,kiosk:d.kiosk,panes:d.panes,relief:d.relief,parapetOpen:d.parapetOpen,bal:d.bal,cla:d.cla,off:[]};}
+function defaults(){return {floorH:50,balH:14,shrink:14,wall:2.5,slabT:3,pitch:22,night:true,light:1,explode:0,sel:0,candleFloor:0,
+  houses:[newHouse("ottoman",0),Object.assign(newHouse("ottoman",1),{floors:3}),Object.assign(newHouse("modern",2),{cols:2})]};}
+/* older designs: the Interwar and Art Deco eras were removed */
+const OLD_ERA={interwar:["ottoman",/^Interwar/],deco:["modern",/^(Beirut )?Art Deco/]};
+function fixHouses(){S.houses.forEach(H=>{if(!Array.isArray(H.off))H.off=[];if(!H.rows)H.rows=3;
+  if(!ERA[H.era]){const [e,re]=OLD_ERA[H.era]||["ottoman",/^$/];H.era=e;H.name=H.name.replace(re,ERA[e].name);}});}
+let S=defaults();
+try{const raw=localStorage.getItem(KEY);if(raw){const v=JSON.parse(raw);if(v&&Array.isArray(v.houses)&&v.houses.length)S=Object.assign(defaults(),v);}}catch(e){}
+fixHouses();
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
+const ck=(i,c,r)=>i+":"+c+":"+r;
+const isLit=(H,i,c,r)=>!H.off.includes(ck(i,c,r));
+
+/* ================= 2D outlines (face mm: x from the left seen from outside, y up from the floor) ================= */
+const PI=Math.PI;
+const R=(x,s,w,h)=>[[x,s],[x+w,s],[x+w,s+h],[x,s+h]];
+function ARC(cx,cy,r,a0,a1,n){const o=[];for(let k=0;k<=n;k++){const a=a0+(a1-a0)*k/n;o.push([cx+r*Math.cos(a),cy+r*Math.sin(a)]);}return o;}
+const ARCH=(x,s,w,h)=>{const r=w/2,st=Math.max(0.01,h-r);return [[x,s],[x+w,s],...ARC(x+r,s+st,r,0,PI,16)];};
+const POINTED=(x,s,w,h)=>{const st=Math.max(0.01,h-0.866*w);return [[x,s],[x+w,s],...ARC(x,s+st,w,0,PI/3,8),...ARC(x+w,s+st,w,2*PI/3,PI,8).slice(1)];};
+const SEGM=(x,s,w,h)=>{const r0=w/6,Rr=(w*w/4+r0*r0)/(2*r0),st=Math.max(0.01,h-r0),cy=s+st+r0-Rr,a=Math.asin((w/2)/Rr);return [[x,s],[x+w,s],...ARC(x+w/2,cy,Rr,PI/2-a,PI/2+a,14)];};
+const CIRC=(cx,cy,r)=>ARC(cx,cy,r,0,2*PI,24).slice(0,-1);
+const DIAM=(cx,cy,rx,ry)=>[[cx,cy-ry],[cx+rx,cy],[cx,cy+ry],[cx-rx,cy]];
+const CROSS=(cx,cy,a,t)=>{const h=t/2;return [[cx-h,cy-a],[cx+h,cy-a],[cx+h,cy-h],[cx+a,cy-h],[cx+a,cy+h],[cx+h,cy+h],[cx+h,cy+a],[cx-h,cy+a],[cx-h,cy+h],[cx-a,cy+h],[cx-a,cy-h],[cx-h,cy-h]];};
+function WAIST(x,s,w,h){const m=(w-MIN_OPEN)/2,L=[],Rt=[];for(let k=0;k<=8;k++){const t=k/8,d=m*Math.sin(PI*t);L.push([x+d,s+h*t]);Rt.push([x+w-d,s+h*t]);}return [...Rt,...L.reverse()];}
+function bbox(p){let a=1e9,b=1e9,c=-1e9,d=-1e9;p.forEach(([x,y])=>{a=Math.min(a,x);b=Math.min(b,y);c=Math.max(c,x);d=Math.max(d,y);});return {x0:a,y0:b,x1:c,y1:d,w:c-a,h:d-b};}
+
+/* ================= facade generators: single clean openings, no transoms, slats or mullions ================= */
+function F(){return {holes:[],relief:[],extras:[],feats:[]};}
+function hole(o,p,pane,set){o.holes.push({p,pane:!!pane,set:set||0});}
+function feat(o,name,open,bar){o.feats.push({name,open,bar});}
+function frame(o,H,fn,x,s,w,h,t){if(H.relief)o.relief.push({o:fn(x-t,s-t,w+2*t,h+2*t),i:fn(x,s,w,h)});}
+function course(o,H,y,hh){if(!H.relief)return;let segs=[[0,MOD]];
+  o.holes.concat(o.relief.filter(r=>r.i).map(r=>({p:r.o}))).forEach(hl=>{const b=bbox(hl.p);if(b.y1<y-0.3||b.y0>y+hh+0.3)return;
+    segs=segs.flatMap(([a,c])=>{if(b.x1<a||b.x0>c)return [[a,c]];const out=[];if(b.x0-0.6>a)out.push([a,b.x0-0.6]);if(b.x1+0.6<c)out.push([b.x1+0.6,c]);return out;});});
+  segs.filter(([a,c])=>c-a>=3).forEach(([a,c])=>o.relief.push({o:R(a,y,c-a,hh)}));}
+function balHoles(o,x,y0,w,h,pattern){
+  const pl=2.2,inner=h-pl-3,margin=3;let pitch,hw;/* 3 mm handrail keeps openings clear of the scrape edge */
+  if(pattern==="waisted"){hw=2.4;pitch=4.2;}else if(pattern==="lozenge"){hw=2.0;pitch=3.6;}else if(pattern==="circles"){hw=2.0;pitch=3.6;}else{hw=1.8;pitch=3.6;}
+  const n=Math.max(1,Math.floor((w-2*margin-hw)/pitch)+1),off=x+(w-((n-1)*pitch+hw))/2;
+  for(let i=0;i<n;i++){const hx=off+i*pitch;
+    if(pattern==="lozenge")hole(o,DIAM(hx+hw/2,y0+pl+inner/2,hw/2,inner/2-0.2));
+    else if(pattern==="circles"){hole(o,CIRC(hx+hw/2,y0+pl+inner*0.29,1));hole(o,CIRC(hx+hw/2,y0+pl+inner*0.71,1));}
+    else if(pattern==="waisted")hole(o,WAIST(hx,y0+pl,hw,inner));
+    else hole(o,R(hx,y0+pl,hw,inner));}
+  feat(o,"Balustrade · "+pattern,pattern==="waisted"?MIN_OPEN:hw,pitch-hw);
+}
+/* claustra: split by columns into as many insert sets as needed, each ≤ 40 pins */
+function claHoles(o,x,y0,w,h,pattern){
+  const c=5,nx=Math.floor(w/c),ny=Math.floor(h/c),ox=x+(w-nx*c)/2,oy=y0+(h-ny*c)/2,per=Math.max(1,Math.floor(MAX_PINS/ny)),sets=Math.ceil(nx/per);
+  for(let j=0;j<ny;j++)for(let i=0;i<nx;i++){const cx=ox+i*c+c/2,cy=oy+j*c+c/2,set=1+Math.min(sets-1,Math.floor(i/Math.ceil(nx/sets)));
+    if(pattern==="cross")hole(o,CROSS(cx,cy,1.7,1.6),false,set);
+    else if(pattern==="square")hole(o,R(cx-1.6,cy-1.6,3.2,3.2),false,set);
+    else if(pattern==="offset")hole(o,CIRC(cx,cy,(i+j)%2?1.0:1.9),false,set);
+    else hole(o,CIRC(cx,cy,1.6),false,set);}
+  const m={cross:[1.6,1.6],square:[3.2,1.8],offset:[2.0,2.1],circle:[3.2,1.8]}[pattern]||[3.2,1.8];
+  feat(o,"Claustra · "+pattern,m[0],m[1]);
+}
+function roleOf(H,c){const r=H.roles[c]||"auto";if(r!=="auto")return r;const n=H.cols;
+  if(H.era==="modern")return (n>1&&c===n-1)?"claustra":"ribbon";
+  if(n===1)return "bay";if(n===2)return c===0?"bay":"side";return c===Math.floor(n/2)?"bay":"side";}
+
+function genFront(H,c,i,h){
+  const o=F(),n=H.floors,gf=i===0,top=i===n-1,role=roleOf(H,c),e=H.era,first=c===0,last=c===H.cols-1;
+  const kioskHere=H.kiosk&&role==="bay"&&i===1&&n>=2;
+  if(role==="bay"){
+    if(kioskHere){hole(o,R(12,h*0.12,36,h*0.72));o.extras.push({t:"kiosk",x:10,w:40,y:h*0.08,h:h*0.84,d:BAL_D});}
+    else if(e==="ottoman"){
+      if(gf){const dh=Math.min(h*0.66,h-8);hole(o,ARCH(22,2,16,dh));frame(o,H,ARCH,22,2,16,dh,1.4);
+        [8,45].forEach(x=>{hole(o,ARCH(x,h*0.3,7,h*0.3));frame(o,H,ARCH,x,h*0.3,7,h*0.3,1);});}
+      else{const g=2,wi=(46-2*g)/3;for(let k=0;k<3;k++)hole(o,POINTED(7+k*(wi+g),h*0.08,wi,h*0.74));feat(o,"Triple arch columns",wi,g);
+        if(H.balcony)o.extras.push({t:"balcony",x:5,w:50,d:BAL_D,par:"open"});}
+    }else{
+      if(gf){const dh=h*0.75;hole(o,SEGM(21,2,18,dh));frame(o,H,SEGM,21,2,18,dh,1.4);if(H.relief)o.relief.push({o:R(25,2+dh+2.5,10,Math.min(3.5,h-2-dh-2.5-1.2))});}
+      else{const s=h*0.14,hh=Math.min(h*0.62,h*0.86-3-40/6);/* one wide segmental opening, ≥ 3 mm below the scrape edge */
+        hole(o,SEGM(10,s,40,hh+40/6),H.panes&&!top);frame(o,H,SEGM,10,s,40,hh+40/6,1.4);
+        if(top&&H.balcony)o.extras.push({t:"balcony",x:3,w:54,d:BAL_D,par:"open"});}
+    }
+  }else if(role==="side"){
+    if(e==="ottoman"){const s=gf?h*0.2:h*0.22;hole(o,ARCH(24,s,12,h*0.5),H.panes&&!gf);frame(o,H,ARCH,24,s,12,h*0.5,1);}
+    else return genFrontRole(H,o,"ribbon",c,i,h,gf,top,first,last);
+  }else return genFrontRole(H,o,role,c,i,h,gf,top,first,last);
+  return finishFront(H,o,i,h);
+}
+function genFrontRole(H,o,role,c,i,h,gf,top,first,last){
+  if(role==="stair"){
+    if(gf){hole(o,R(23,2,14,h*0.72));frame(o,H,R,23,2,14,h*0.72,1.2);}
+    else{const r=Math.min(5,h*0.13);hole(o,CIRC(30,h*0.58,r),H.panes);if(H.relief)o.relief.push({o:CIRC(30,h*0.58,r+1.3),i:CIRC(30,h*0.58,r)});}
+    if(H.relief)[11.5,47.5].forEach(x=>o.relief.push({o:R(x,3,1,h-6)}));
+  }else if(role==="ribbon"){
+    if(gf)hole(o,R(6,2,48,h*0.72));
+    else{hole(o,R(4,h*0.38,52,h*0.32));if(H.balcony)o.extras.push({t:"balcony",x:0,w:MOD,d:BAL_D,par:"solid",retL:first,retR:last});}
+  }else if(role==="claustra"){
+    if(gf){hole(o,R(23,2,14,h*0.72));frame(o,H,R,23,2,14,h*0.72,1.2);}
+    else claHoles(o,4,3,52,h-6,H.cla);
+  }else if(role==="plain"){hole(o,R(25,h*0.35,10,h*0.3));frame(o,H,R,25,h*0.35,10,h*0.3,1);}
+  return finishFront(H,o,i,h);
+}
+function finishFront(H,o,i,h){
+  if(H.roof==="flat"&&i===H.floors-1)course(o,H,h-4.2,1.6);
+  return o;
+}
+/* side and back windows: smaller, as the manual notes for east and west facades */
+function eraWindow(H,o,h,wide){
+  const e=H.era;
+  if(e==="ottoman"){hole(o,ARCH(24,h*0.22,12,h*0.46));frame(o,H,ARCH,24,h*0.22,12,h*0.46,1);}
+  else hole(o,wide?R(8,h*0.4,44,h*0.28):R(12,h*0.4,36,h*0.28));
+}
+function genSide(H,i,h,r){const o=F();if(H.rows<3||r!==1)eraWindow(H,o,h,false);return o;}
+function genBack(H,c,i,h){const o=F();if(i===0&&c===0){hole(o,R(23,2,14,h*0.72));frame(o,H,R,23,2,14,h*0.72,1.2);}else eraWindow(H,o,h,true);return o;}
+function genModule(H,c,r,i,h){
+  return {front:r===0?genFront(H,c,i,h):F(),back:r===H.rows-1?genBack(H,c,i,h):F(),
+    left:c===0?genSide(H,i,h,r):F(),right:c===H.cols-1?genSide(H,i,h,r):F()};
+}
+function genParapet(H,c,r,bh){
+  const mk=()=>{const o=F();if(H.parapetOpen)balHoles(o,0,0,MOD,bh,H.bal);return o;};
+  const P={front:r===0?mk():null,back:r===H.rows-1?mk():null,left:c===0?mk():null,right:c===H.cols-1?mk():null};
+  return (P.front||P.back||P.left||P.right)?P:null;
+}
+
+/* ================= three.js scene ================= */
+const stage=document.getElementById("stage");
+const renderer=new THREE.WebGLRenderer({antialias:true});
+renderer.setPixelRatio(Math.min(2,window.devicePixelRatio||1));
+renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+renderer.outputEncoding=THREE.sRGBEncoding;
+stage.prepend(renderer.domElement);
+const scene=new THREE.Scene();
+const camera=new THREE.PerspectiveCamera(35,1,1,10000);
+camera.position.set(260,240,520);
+const controls=new THREE.OrbitControls(camera,renderer.domElement);
+controls.enableDamping=true;controls.target.set(0,60,0);controls.maxPolarAngle=PI*0.495;
+const hemi=new THREE.HemisphereLight(0xdfe8ff,0x4a5e44,0.6);scene.add(hemi);
+const sun=new THREE.DirectionalLight(0xffffff,0.8);sun.position.set(-400,600,500);sun.castShadow=true;
+sun.shadow.mapSize.set(2048,2048);Object.assign(sun.shadow.camera,{left:-700,right:700,top:700,bottom:-700,near:10,far:2500});sun.shadow.bias=-0.0005;scene.add(sun);
+const ground=new THREE.Mesh(new THREE.PlaneGeometry(8000,8000),new THREE.MeshStandardMaterial({color:0x5d7352,roughness:1}));
+ground.rotation.x=-PI/2;ground.receiveShadow=true;scene.add(ground);
+const MAT={
+  porcOn:new THREE.MeshStandardMaterial({color:0xf6f3ec,roughness:0.72}),
+  porcOff:new THREE.MeshStandardMaterial({color:0xf6f3ec,roughness:0.72}),
+  wood:new THREE.MeshStandardMaterial({color:0xa77b52,roughness:0.9}),
+  terra:new THREE.MeshStandardMaterial({color:0xb5562f,roughness:0.85}),
+  paneOn:new THREE.MeshStandardMaterial({color:0xfff4e2,roughness:0.6}),
+  paneOff:new THREE.MeshStandardMaterial({color:0xece6da,roughness:0.6}),
+  tea:new THREE.MeshStandardMaterial({color:0xfafafa,roughness:0.5}),
+  flame:new THREE.MeshBasicMaterial({color:0xffc46b}),
+  sel:new THREE.LineBasicMaterial({color:0x2f6fd6})
+};
+let world=new THREE.Group();scene.add(world);
+let candles=[],flames=[];
+
+function shapeOf(outer,holes){const sh=new THREE.Shape(outer.map(p=>new THREE.Vector2(p[0],p[1])));(holes||[]).forEach(hp=>sh.holes.push(new THREE.Path(hp.map(p=>new THREE.Vector2(p[0],p[1])))));return sh;}
+function extrude(outer,holes,depth,mat){const g=new THREE.ExtrudeGeometry(shapeOf(outer,holes),{depth,bevelEnabled:false,curveSegments:8});const m=new THREE.Mesh(g,mat);m.castShadow=true;m.receiveShadow=true;return m;}
+function box(w,h,d,x,y,z,mat){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;return m;}
+/* face frame: local x along the face (left seen from outside), y up, z outward; walls occupy z 0..t.
+   mx = module's left x, mz = module's centre z */
+function faceGroup(face,mx,mz,t){const g=new THREE.Group();
+  if(face==="front"){g.position.set(mx,0,mz+MOD/2-t);}
+  else if(face==="right"){g.position.set(mx+MOD-t,0,mz+MOD/2);g.rotation.y=PI/2;}
+  else if(face==="back"){g.position.set(mx+MOD,0,mz-MOD/2+t);g.rotation.y=PI;}
+  else{g.position.set(mx+t,0,mz-MOD/2);g.rotation.y=-PI/2;}
+  return g;}
+function returnWall(g,x,y,len,h,holesF,t,mat){const m=extrude(R(0,0,len,h),holesF.map(hl=>hl.p),2,mat);m.rotation.y=-PI/2;m.position.set(x,y,t);g.add(m);}
+function consoles(g,x,w,y,d,n,t,mat){for(let k=0;k<n;k++){const cx=x+(n===1?w/2:2+k*((w-4)/(n-1)));
+  [[0.8,0],[0.55,1.6],[0.3,3.2]].forEach(([f,dy])=>g.add(box(2.4,1.6,d*f,cx,y-0.8-dy,t+d*f/2,mat)));}}
+function buildExtras(g,o,t,bh,mat){
+  o.extras.forEach(x=>{
+    if(x.t==="balcony"){
+      g.add(box(x.w,2.2,x.d,x.x+x.w/2,-1.1,t+x.d/2,mat));
+      consoles(g,x.x+3,x.w-6,-2.2,x.d,x.w>40?3:2,t,mat);
+      const bo=F();if(x.par==="open")balHoles(bo,0,0,x.w,bh,"bars");
+      const front=extrude(R(0,0,x.w,bh),bo.holes.map(hl=>hl.p),2,mat);front.position.set(x.x,0,t+x.d-2);g.add(front);
+      if(x.retL!==false)returnWall(g,x.x+2,0,x.d-2,bh,[],t,mat);
+      if(x.retR!==false)returnWall(g,x.x+x.w,0,x.d-2,bh,[],t,mat);
+    }else if(x.t==="kiosk"){
+      const kg=new THREE.Group();kg.position.y=x.y;g.add(kg);const kh=x.h,kw=x.w,kd=x.d;
+      const fr=extrude(R(0,0,kw,kh),[R(3,kh*0.25,kw-6,kh*0.6)],2,mat);fr.position.set(x.x,0,t+kd-2);kg.add(fr);
+      const so=F();hole(so,R((kd-2)/2-0.9,kh*0.3,1.8,kh*0.5));
+      returnWall(kg,x.x+2,0,kd-2,kh,so.holes,t,mat);returnWall(kg,x.x+kw,0,kd-2,kh,so.holes,t,mat);
+      kg.add(box(kw+2.4,1.6,kd+1.2,x.x+kw/2,kh+0.8,t+kd/2,mat));
+      kg.add(box(kw+2.4,1.6,kd+1.2,x.x+kw/2,-0.8,t+kd/2,mat));
+      consoles(kg,x.x+4,kw-8,-1.6,kd,2,t,mat);
+    }
+  });
+}
+function buildFace(o,face,mx,mz,yb,h,t,bh,meta,lit){
+  if(!o)return;const g=faceGroup(face,mx,mz,t);g.position.y=yb;const mat=lit?MAT.porcOn:MAT.porcOff;
+  g.add(extrude(R(0,0,MOD,h),o.holes.map(hl=>hl.p),t,mat));
+  o.relief.forEach(r=>{const m=extrude(r.o,r.i?[r.i]:[],RELIEF_D,mat);m.position.z=t;g.add(m);});
+  o.holes.filter(hl=>hl.pane).forEach(hl=>{const b=bbox(hl.p);const m=box(b.w+3,b.h+3,0.8,b.x0+b.w/2,b.y0+b.h/2,-0.45,lit?MAT.paneOn:MAT.paneOff);m.castShadow=false;g.add(m);});
+  buildExtras(g,o,t,bh,mat);
+  g.traverse(m=>{if(m.isMesh)m.userData=meta;});
+  world.add(g);
+}
+function hipRoof(x0,x1,z0,z1,y,pitchDeg,mat){
+  const W=x1-x0,D=z1-z0,rise=Math.tan(pitchDeg*PI/180)*Math.min(W,D)/2,cz=(z0+z1)/2,cx=(x0+x1)/2;
+  const A=[x0,y,z0],B=[x1,y,z0],C=[x1,y,z1],Dd=[x0,y,z1];let tris;
+  if(W>=D){const R1=[x0+D/2,y+rise,cz],R2=[x1-D/2,y+rise,cz];tris=[[Dd,C,R2],[Dd,R2,R1],[B,A,R1],[B,R1,R2],[A,Dd,R1],[C,B,R2]];}
+  else{const R1=[cx,y+rise,z0+W/2],R2=[cx,y+rise,z1-W/2];tris=[[A,R1,B],[C,R2,Dd],[B,R1,R2],[B,R2,C],[Dd,R2,R1],[Dd,R1,A]];}
+  tris.push([A,B,C],[A,C,Dd]);
+  const pos=[];tris.forEach(tr=>tr.forEach(p=>pos.push(...p)));
+  const g=new THREE.BufferGeometry();g.setAttribute("position",new THREE.Float32BufferAttribute(pos,3));g.computeVertexNormals();
+  const m=new THREE.Mesh(g,mat);m.castShadow=true;m.receiveShadow=true;
+  m.material.side=THREE.DoubleSide;return m;}
+
+function layout(){let x=0;const xs=S.houses.map(H=>{const v=x;x+=H.cols*MOD+GAP;return v;});const total=x-GAP;return xs.map(v=>v-total/2);}
+const mzOf=(H,r)=>((H.rows-1)/2-r)*MOD;
+function rebuild(){
+  scene.remove(world);world.traverse(m=>{if(m.geometry)m.geometry.dispose();});
+  candles.forEach(l=>scene.remove(l));candles=[];flames=[];
+  world=new THREE.Group();scene.add(world);
+  const h=S.floorH,t=S.wall,st=S.slabT,e=S.explode,bh=S.balH,xs=layout();
+  const litList=[];
+  S.houses.forEach((H,hi)=>{
+    const x0=xs[hi],W=H.cols*MOD,D=H.rows*MOD;
+    for(let i=0;i<=H.floors;i++){const y=i*(h+st)+i*e;const s=box(W+2,st,D+2,x0+W/2,y+st/2,0,MAT.wood);s.userData={h:hi};world.add(s);}
+    for(let i=0;i<H.floors;i++){
+      const yb=st+i*(h+st)+i*e;
+      for(let r=0;r<H.rows;r++)for(let c=0;c<H.cols;c++){
+        const mx=x0+c*MOD,mz=mzOf(H,r),M=genModule(H,c,r,i,h),lit=isLit(H,i,c,r),meta={h:hi,i,c,r};
+        ["front","right","back","left"].forEach(f=>buildFace(M[f],f,mx,mz,yb,h,t,bh,meta,lit));
+        const tea=new THREE.Mesh(new THREE.CylinderGeometry(19,19,14,28),MAT.tea);tea.position.set(mx+MOD/2,yb+7,mz);tea.userData=meta;world.add(tea);
+        if(lit){const fl=new THREE.Mesh(new THREE.ConeGeometry(2,6,12),MAT.flame);fl.position.set(mx+MOD/2,yb+17,mz);world.add(fl);flames.push(fl);
+          litList.push({hi,i,x:mx+MOD/2,y:yb+h*0.45,z:mz});}
+      }
+    }
+    const ytop=H.floors*(h+st)+st+H.floors*e;
+    if(H.roof==="flat"){for(let r=0;r<H.rows;r++)for(let c=0;c<H.cols;c++){const P=genParapet(H,c,r,bh);if(!P)continue;
+      ["front","right","back","left"].forEach(f=>buildFace(P[f],f,x0+c*MOD,mzOf(H,r),ytop+e*0.5,bh,t,bh,{h:hi},false));}}
+    else{const rf=hipRoof(x0-0.5,x0+W+0.5,-D/2-0.5,D/2+0.5,ytop+e*0.5,S.pitch,H.roof==="hip-terra"?MAT.terra:MAT.wood);rf.userData={h:hi};world.add(rf);}
+    if(hi===S.sel){const pts=[[x0-4,-D/2-4],[x0+W+4,-D/2-4],[x0+W+4,D/2+4],[x0-4,D/2+4],[x0-4,-D/2-4]].map(([a,b])=>new THREE.Vector3(a,0.4,b));
+      world.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),MAT.sel));}
+  });
+  /* lights: one per lit module when few, else one per house-floor at the centre of its lit rooms */
+  if(litList.length<=20)litList.forEach(L=>addCandle(L.x,L.y,L.z,1,62));
+  else{const groups={};litList.forEach(L=>{const k=L.hi+":"+L.i;(groups[k]=groups[k]||[]).push(L);});
+    Object.values(groups).forEach(g=>{const n=g.length,cx=g.reduce((a,b)=>a+b.x,0)/n,cz=g.reduce((a,b)=>a+b.z,0)/n,spread=Math.max(...g.map(b=>Math.hypot(b.x-cx,b.z-cz)));addCandle(cx,g[0].y,cz,Math.sqrt(n),62+spread);});}
+  applyLight();
+}
+function addCandle(x,y,z,base,dist){const L=new THREE.PointLight(0xffa64d,0,dist,2);L.position.set(x,y,z);L.userData.base=base;scene.add(L);candles.push(L);}
+
+function applyLight(){
+  const n=S.night,lv=S.light;
+  scene.background=new THREE.Color(n?0x141a2a:0xdfe8f2);
+  hemi.intensity=n?0.07:0.6;hemi.color.set(n?0x8899cc:0xdfe8ff);
+  sun.intensity=n?0.06:0.85;sun.color.set(n?0x9fb0ff:0xffffff);
+  ground.material.color.set(n?0x26321f:0x5d7352);
+  MAT.porcOn.emissive.set(0xffa050);MAT.porcOn.emissiveIntensity=n?0.04*lv:0;
+  MAT.paneOn.emissive.set(0xffb060);MAT.paneOn.emissiveIntensity=n?0.75*lv:0;
+  MAT.flame.color.set(n&&lv>0?0xffc46b:0xd9cbb3);
+  candles.forEach(L=>L.intensity=n?lv*2.2*L.userData.base:0);
+  stage.style.background=n?"#141a2a":"#dfe8f2";
+}
+function resize(){const w=stage.clientWidth,h=stage.clientHeight;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();}
+new ResizeObserver(resize).observe(stage);resize();
+let tick=0;
+(function loop(){requestAnimationFrame(loop);controls.update();tick+=0.07;
+  if(S.night)candles.forEach((L,k)=>{L.intensity=S.light*2.2*L.userData.base*(0.94+0.06*Math.sin(tick*1.7+k*1.3)*Math.sin(tick*0.9+k));});
+  renderer.render(scene,camera);})();
+function fitView(){const b=new THREE.Box3().setFromObject(world),c=b.getCenter(new THREE.Vector3()),sz=b.getSize(new THREE.Vector3());
+  const r=Math.max(sz.x,sz.y*1.6,220);controls.target.copy(c);camera.position.set(c.x+r*0.35,c.y+r*0.5,c.z+r*1.25);controls.update();}
+
+/* picking: a tap selects a house, a double-tap switches that room's candle; the camera never moves */
+const ray=new THREE.Raycaster(),ndc=new THREE.Vector2();let down=null;
+function pick(ev){const r=renderer.domElement.getBoundingClientRect();ndc.set((ev.clientX-r.left)/r.width*2-1,-((ev.clientY-r.top)/r.height)*2+1);ray.setFromCamera(ndc,camera);
+  const hit=ray.intersectObjects(world.children,true).find(x=>x.object.userData&&x.object.userData.h!==undefined);return hit&&hit.object.userData;}
+renderer.domElement.addEventListener("pointerdown",ev=>{down=[ev.clientX,ev.clientY];});
+renderer.domElement.addEventListener("pointerup",ev=>{if(!down||Math.hypot(ev.clientX-down[0],ev.clientY-down[1])>5)return;down=null;
+  const u=pick(ev);if(u&&u.h!==S.sel){S.sel=u.h;changed();}});
+renderer.domElement.addEventListener("dblclick",ev=>{const u=pick(ev);if(!u||u.i===undefined)return;const H=S.houses[u.h];
+  S.sel=u.h;S.candleFloor=u.i;toggleKeys(H,[ck(u.i,u.c,u.r)]);changed();});
+
+/* ================= candles ================= */
+function keysOf(H,pred){const k=[];for(let i=0;i<H.floors;i++)for(let r=0;r<H.rows;r++)for(let c=0;c<H.cols;c++)if(!pred||pred(i,c,r))k.push(ck(i,c,r));return k;}
+function setKeys(H,keys,on){const set=new Set(H.off);keys.forEach(k=>on?set.delete(k):set.add(k));H.off=[...set];}
+function toggleKeys(H,keys){const anyOn=keys.some(k=>!H.off.includes(k));setKeys(H,keys,!anyOn);}
+function stateOf(H,keys){const on=keys.filter(k=>!H.off.includes(k)).length;return on===0?"off":on===keys.length?"on":"some";}
+function candlePreset(p){
+  S.houses.forEach((H,hi)=>{
+    const all=keysOf(H);setKeys(H,all,false);
+    const on=p==="all"?all:p==="sel"?(hi===S.sel?all:[]):p==="ground"?keysOf(H,i=>i===0):p==="top"?keysOf(H,i=>i===H.floors-1):
+      p==="front"?keysOf(H,(i,c,r)=>r===0):p==="lived"?all.filter(()=>Math.random()<0.55):[];
+    setKeys(H,on,true);});
+  changed();}
+document.getElementById("candlePresets").onclick=e=>{const b=e.target.closest("button");if(b)candlePreset(b.dataset.p);};
+function renderCandles(){
+  const H=Hs();let on=0,tot=0;S.houses.forEach(x=>{const k=keysOf(x);tot+=k.length;on+=k.filter(q=>!x.off.includes(q)).length;});
+  $("candleMeta").textContent=on+" / "+tot+" lit";
+  $("candleHouses").innerHTML=S.houses.map((x,hi)=>`<button class="chip" type="button" data-h="${hi}" data-state="${stateOf(x,keysOf(x))}"><span class="dot"></span>${esc(x.name)}</button>`).join("");
+  $("candleFloors").innerHTML=Array.from({length:H.floors},(_,i)=>`<button class="chip" type="button" data-i="${i}" data-state="${stateOf(H,keysOf(H,f=>f===i))}"><span class="dot"></span>${i?"Floor "+i:"Ground"}</button>`).join("")+
+    `<button class="chip" type="button" data-i="all" data-state="${stateOf(H,keysOf(H))}"><span class="dot"></span>Whole house</button>`;
+  if(S.candleFloor>=H.floors)S.candleFloor=0;
+  $("candleFloorSeg").innerHTML=Array.from({length:H.floors},(_,i)=>`<button type="button" data-i="${i}" aria-pressed="${i===S.candleFloor}">${i?"F"+i:"GF"}</button>`).join("");
+  $("candleFloorName").textContent=S.candleFloor?"floor "+S.candleFloor:"the ground floor";
+  const plan=$("candlePlan");plan.style.gridTemplateColumns=`repeat(${H.cols},38px)`;
+  let cells="";for(let r=H.rows-1;r>=0;r--)for(let c=0;c<H.cols;c++){const lit=isLit(H,S.candleFloor,c,r);
+    cells+=`<button type="button" data-c="${c}" data-r="${r}" aria-pressed="${lit}" title="${ROWN[H.rows===2&&r===1?2:r]} row, bay ${c+1}" aria-label="Candle ${ROWN[r]||""} bay ${c+1}">${lit?"🕯":"·"}</button>`;}
+  plan.innerHTML=cells;
+}
+$("candleHouses").onclick=e=>{const b=e.target.closest("button");if(!b)return;const H=S.houses[+b.dataset.h];toggleKeys(H,keysOf(H));changed();};
+$("candleFloors").onclick=e=>{const b=e.target.closest("button");if(!b)return;const H=Hs();toggleKeys(H,b.dataset.i==="all"?keysOf(H):keysOf(H,i=>i===+b.dataset.i));changed();};
+$("candleFloorSeg").onclick=e=>{const b=e.target.closest("button");if(!b)return;S.candleFloor=+b.dataset.i;save();renderCandles();};
+$("candlePlan").onclick=e=>{const b=e.target.closest("button");if(!b)return;toggleKeys(Hs(),[ck(S.candleFloor,+b.dataset.c,+b.dataset.r)]);changed();};
+
+/* ================= production analysis ================= */
+function sig(M){const r=v=>Math.round(v*10)/10;const f=o=>o?{h:o.holes.map(x=>x.p.map(p=>p.map(r)).join(";")+(x.pane?"P":"")).join("|"),r:o.relief.map(x=>x.o.map(p=>p.map(r)).join(";")).join("|")}:null;
+  return JSON.stringify([f(M.front),f(M.right),f(M.back),f(M.left)]);}
+function setsOf(o){const m={};o.holes.forEach(h=>{m[h.set]=(m[h.set]||0)+1;});return Object.values(m);}
+function analyze(){
+  const h=S.floorH,shr=S.shrink/100,k=1/(1-shr),types=new Map(),extras=new Map(),checks=[];
+  let minOpen={v:1e9,w:""},minBar={v:1e9,w:""},maxPins={v:0,w:""},edge=[],topZone=[],reliefTop=[],panes=0,modules=0;
+  const visit=(M,label,hh)=>{
+    const s=sig(M);if(!types.has(s))types.set(s,{label,count:0,M,h:hh});types.get(s).count++;modules++;
+    ["front","right","back","left"].forEach(f=>{const o=M[f];if(!o)return;
+      setsOf(o).forEach(n=>{if(n>maxPins.v)maxPins={v:n,w:label+" · "+f};});
+      let nearEdge=false,nearTop=false;
+      o.holes.forEach(hl=>{const b=bbox(hl.p),m=Math.min(b.w,b.h);if(m<minOpen.v)minOpen={v:m,w:label+" · "+f};
+        if(b.x0<3-1e-6||b.x1>MOD-3+1e-6)nearEdge=true;if(b.y1>hh-3+1e-6)nearTop=true;if(hl.pane)panes++;});
+      if(nearEdge)edge.push(label+" · "+f);if(nearTop)topZone.push(label+" · "+f);
+      o.feats.forEach(ft=>{if(ft.bar<minBar.v)minBar={v:ft.bar,w:ft.name};if(ft.open<minOpen.v)minOpen={v:ft.open,w:ft.name};});
+      o.relief.forEach(r=>{if(bbox(r.o).y1>hh-1+1e-6)reliefTop.push(label+" · "+f);});
+      o.extras.forEach(x=>{const key=x.t+"|"+x.w+"|"+x.d+"|"+(x.par||"");if(!extras.has(key))extras.set(key,{x,count:0});extras.get(key).count++;});
+    });};
+  S.houses.forEach(H=>{
+    for(let i=0;i<H.floors;i++)for(let r=0;r<H.rows;r++)for(let c=0;c<H.cols;c++){
+      const pos=r===0?ROLES[roleOf(H,c)]:(r===H.rows-1?"back":"middle")+" row, bay "+(c+1);
+      visit(genModule(H,c,r,i,h),H.name+" · "+(i?"F"+i:"GF")+" · "+pos,h);}
+    if(H.roof==="flat")for(let r=0;r<H.rows;r++)for(let c=0;c<H.cols;c++){const P=genParapet(H,c,r,S.balH);if(P)visit(P,H.name+" · roof parapet",S.balH);}});
+  const pinMaster=minOpen.v*k-0.3;
+  const add=(st,txt,v,where)=>checks.push({st,txt,v,where});
+  add(minOpen.v>=MIN_OPEN-1e-6?"ok":"bad","Openings ≥ "+MIN_OPEN+" mm fired",minOpen.v.toFixed(2)+" mm",minOpen.w);
+  add(minBar.v>=MIN_BAR-1e-6?"ok":"bad","Porcelain bars ≥ "+MIN_BAR+" mm fired",minBar.v<1e9?minBar.v.toFixed(2)+" mm":"–",minBar.w);
+  add(pinMaster>=MIN_PIN-1e-6?"ok":"bad","Resin pins ≥ "+MIN_PIN+" mm master",pinMaster.toFixed(2)+" mm","pins 0.15 mm under ports each side");
+  add(edge.length?"bad":"ok","Openings ≥ 3 mm from the 45° corners",edge.length?edge.length+" faces":"all clear",edge[0]||"");
+  add(topZone.length?"bad":"ok","Openings clear of the scrape edge (3 mm)",topZone.length?topZone.length+" faces":"all clear",topZone[0]||"");
+  add(reliefTop.length?"bad":"ok","Relief ≥ 1 mm below the top, "+RELIEF_D+" mm deep, 3° draft",reliefTop.length?reliefTop.length+" faces":"all clear",reliefTop[0]||"");
+  add(maxPins.v>MAX_PINS?"warn":"ok","Pins per insert set ≤ "+MAX_PINS,maxPins.v+" max",maxPins.w);
+  const canti=[...extras.values()].filter(e=>e.x.d>MAX_CANTI);
+  add(canti.length?"warn":"ok","Cantilevers ≤ "+MAX_CANTI+" mm, no firing prop",canti.length?canti.reduce((a,e)=>a+e.count,0)+" need a prop":"all "+BAL_D+" mm","");
+  const inner=MOD-2*S.wall;add(inner>=40&&h>=30?"ok":"bad","LED tealight fits (Ø 38, one per module)","inside "+inner.toFixed(1)+" mm","");
+  add("ok","One floor height and one balcony height",h+" / "+S.balH+" mm","project rule");
+  return {types,extras,checks,panes,modules,k};
+}
+function renderProduction(){
+  const A=analyze();
+  $("moldCount").textContent=A.types.size;
+  $("extraCount").textContent=A.extras.size+(A.panes?1:0);
+  $("moduleCount").textContent=A.modules;
+  const bad=A.checks.filter(c=>c.st==="bad").length,warn=A.checks.filter(c=>c.st==="warn").length;
+  $("prodMeta").textContent=bad?bad+" to fix":warn?warn+" notes":"all green";
+  $("prodMeta").style.color=bad?"var(--bad)":warn?"var(--warn)":"var(--ok)";
+  $("checks").innerHTML=A.checks.map(c=>`<div class="chk"><span class="i ${c.st}">${c.st==="ok"?"✓":c.st==="warn"?"!":"✗"}</span><span>${c.txt}${c.where?`<br><span class="hint">${esc(c.where)}</span>`:""}</span><span class="v">${c.v}</span></div>`).join("");
+  const fmt=v=>(v*A.k).toFixed(1);
+  let rows=`<tr><th>#</th><th>Module type</th><th>×</th><th>Master mm</th><th title="front / right / back / left; + = split insert sets">Pins</th></tr>`;let n=0;
+  A.types.forEach(T=>{n++;const pins=["front","right","back","left"].map(f=>T.M[f]?setsOf(T.M[f]).join("+")||"0":"–");
+    rows+=`<tr><td class="mono">${n}</td><td>${esc(T.label)}</td><td class="mono">${T.count}</td><td class="mono">${fmt(MOD)}×${fmt(MOD)}×${fmt(T.h)}</td><td class="mono">${pins.join("/")}</td></tr>`;});
+  $("typesTbl").innerHTML=rows;
+  const names={balcony:"Balcony slab + consoles + parapet",kiosk:"Bay window box + consoles"};
+  const ex=[...A.extras.values()].map(e=>`${names[e.x.t]} ${e.x.w}×${e.x.d} mm ×${e.count}`);
+  if(A.panes)ex.push("Translucent panes ×"+A.panes+" (one sheet mold, 0.6–1 mm)");
+  $("extrasList").innerHTML=ex.length?"<b>Accessory castings:</b> "+ex.join(" · "):"No accessory castings.";
+}
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+/* ================= UI ================= */
+function $(id){return document.getElementById(id);}
+function Hs(){return S.houses[Math.min(S.sel,S.houses.length-1)];}
+function setSeg(id,v){document.querySelectorAll("#"+id+" button").forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.v===v)));}
+function renderPanel(){
+  if(S.sel>=S.houses.length)S.sel=S.houses.length-1;
+  const h=Hs(),fh=S.floorH;
+  $("houseList").innerHTML=S.houses.map((x,i)=>`<button type="button" data-i="${i}" aria-pressed="${i===S.sel}">${esc(x.name)} <small>${x.cols}×${x.rows}×${x.floors}</small></button>`).join("");
+  $("houseMeta").textContent=S.houses.length+" house"+(S.houses.length>1?"s":"");
+  $("selMeta").textContent=(h.cols*4.5).toFixed(1)+" × "+(h.rows*4.5).toFixed(1)+" m";
+  $("hName").value=h.name;$("hEra").value=h.era;$("hRoof").value=h.roof;$("hBal").value=h.bal;$("hCla").value=h.cla;$("hFloors").value=h.floors;
+  setSeg("hCols",h.cols);setSeg("hRows",h.rows);
+  const ratio=h.rows/h.cols,wr=(h.cols*MOD)/fh;
+  $("planHint").innerHTML=`Plan ${h.cols}×${h.rows} modules · depth / width ${ratio.toFixed(2)} `+(h.rows===h.cols||(ratio>=0.66&&ratio<=1.2)?"✓ close to the square central-hall plans":"· the manual's plans are close to square")+
+    `<br>Facade width = ${wr.toFixed(1)} × floor height `+(wr>=3&&wr<=4?"✓ (elevations: 3.2–3.7)":"· elevations show 3.2–3.7");
+  document.querySelectorAll("#housePanel .toggles input").forEach(cb=>cb.checked=!!h[cb.dataset.k]);
+  $("hRoles").innerHTML=Array.from({length:h.cols},(_,c)=>`<select data-c="${c}" aria-label="Bay ${c+1} role">${Object.entries(ROLES).map(([k,v])=>`<option value="${k}" ${(h.roles[c]||"auto")===k?"selected":""}>${k==="auto"?"Auto · "+ROLES[roleOf(Object.assign({},h,{roles:[]}),c)]:v}</option>`).join("")}</select>`).join("");
+  $("pFloorH").value=fh;$("pBalH").value=S.balH;$("pShrink").value=S.shrink;$("pWall").value=S.wall;$("pPitch").value=S.pitch;
+  const sugg=ERA[h.era].floorH;
+  $("floorHint").innerHTML=`${fh} mm ≈ <b>${(fh*0.075).toFixed(2)} m</b> floor to floor. ${ERA[h.era].name} suggests ${sugg} mm`+(sugg!==fh?` <button class="btn" type="button" id="useEraH" style="padding:2px 7px;font-size:12px">Use ${sugg}</button>`:" ✓")+`<br>Master size ×${(1/(1-S.shrink/100)).toFixed(3)}. Low balcony ${S.balH} mm ≈ ${(S.balH*0.075).toFixed(2)} m.`;
+  const u=$("useEraH");if(u)u.onclick=()=>{S.floorH=sugg;changed();};
+  $("nightBtn").setAttribute("aria-pressed",String(S.night));$("nightBtn").textContent=S.night?"Night":"Day";
+  $("lightR").value=S.light;$("explR").value=S.explode;
+  $("readout").textContent=`${h.name} · ${h.cols*MOD}×${h.rows*MOD} mm ≈ ${(h.cols*4.5).toFixed(1)} × ${(h.rows*4.5).toFixed(1)} m · ${h.floors} floors ≈ ${(h.floors*fh*0.075).toFixed(1)} m`;
+  renderCandles();
+}
+function changed(rebuildScene=true){
+  S.floorH=clamp(+S.floorH||50,30,70);S.balH=clamp(+S.balH||14,10,20);S.shrink=clamp(+S.shrink||14,5,20);S.wall=clamp(+S.wall||2.5,1.5,4);S.pitch=clamp(+S.pitch||22,12,40);
+  S.houses.forEach(H=>{H.off=H.off.filter(k=>{const [i,c,r]=k.split(":").map(Number);return i<H.floors&&c<H.cols&&r<H.rows;});});
+  save();renderPanel();renderProduction();if(rebuildScene)rebuild();}
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+$("houseList").onclick=e=>{const b=e.target.closest("button");if(!b)return;S.sel=+b.dataset.i;changed();};
+$("addHouse").onclick=()=>{S.houses.push(newHouse($("newEra").value,S.houses.length));S.sel=S.houses.length-1;changed();};
+$("delHouse").onclick=()=>{if(S.houses.length<2)return;S.houses.splice(S.sel,1);S.sel=Math.max(0,S.sel-1);changed();};
+$("hName").oninput=e=>{Hs().name=e.target.value||"House";save();renderProduction();renderCandles();const b=document.querySelectorAll("#houseList button")[S.sel];if(b)b.firstChild.textContent=Hs().name+" ";};
+$("hEra").onchange=e=>{Hs().era=e.target.value;Hs().roles=Hs().roles.map(()=>"auto");changed();};
+$("hRoof").onchange=e=>{Hs().roof=e.target.value;changed();};
+$("hBal").onchange=e=>{Hs().bal=e.target.value;changed();};
+$("hCla").onchange=e=>{Hs().cla=e.target.value;changed();};
+$("hFloors").onchange=e=>{Hs().floors=+e.target.value;changed();};
+$("hCols").onclick=e=>{const b=e.target.closest("button");if(!b)return;Hs().cols=+b.dataset.v;while(Hs().roles.length<3)Hs().roles.push("auto");changed();};
+$("hRows").onclick=e=>{const b=e.target.closest("button");if(!b)return;Hs().rows=+b.dataset.v;changed();};
+$("hRoles").onchange=e=>{const s=e.target.closest("select");if(!s)return;Hs().roles[+s.dataset.c]=s.value;changed();};
+document.querySelectorAll("#housePanel .toggles input").forEach(cb=>cb.onchange=()=>{Hs()[cb.dataset.k]=cb.checked;changed();});
+$("eraDefaults").onclick=()=>{const h=Hs(),d=ERA[h.era];Object.assign(h,{floors:d.floors,rows:d.rows,roof:d.roof,balcony:d.balcony,kiosk:d.kiosk,panes:d.panes,relief:d.relief,parapetOpen:d.parapetOpen,bal:d.bal,cla:d.cla,roles:["auto","auto","auto"]});changed();};
+[["pFloorH","floorH"],["pBalH","balH"],["pShrink","shrink"],["pWall","wall"],["pPitch","pitch"]].forEach(([id,k])=>$(id).onchange=e=>{S[k]=+e.target.value;changed();});
+$("nightBtn").onclick=()=>{S.night=!S.night;save();renderPanel();applyLight();};
+$("lightR").oninput=e=>{S.light=+e.target.value;save();applyLight();};
+$("explR").oninput=e=>{S.explode=+e.target.value;save();rebuild();};
+$("resetView").onclick=fitView;
+$("exportBtn").onclick=()=>{const b=new Blob([JSON.stringify(S,null,2)],{type:"application/json"});const a=document.createElement("a");a.href=URL.createObjectURL(b);a.download="beit-lantern-studio.json";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);};
+$("importFile").onchange=e=>{const f=e.target.files[0];if(!f)return;f.text().then(txt=>{try{const v=JSON.parse(txt);if(!Array.isArray(v.houses)||!v.houses.length)throw 0;S=Object.assign(defaults(),v);fixHouses();changed();}catch(err){alert("That file is not a Beit Lantern Studio design.");}});e.target.value="";};
+$("resetBtn").onclick=()=>{if(confirm("Reset to the example village? Your current design in this browser will be replaced.")){S=defaults();changed();fitView();}};
+
+changed();fitView();
+})();
+</script>
+</body>
+</html>
