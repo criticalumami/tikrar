@@ -124,6 +124,9 @@ footer{padding:40px 0 60px;border-top:1px solid var(--line);font-size:13px;color
   <a href="#elements">Porcelain elements</a>
   <a href="#process">Process</a>
   <a href="#roadmap">Roadmap</a>
+  <a href="#openings">Openings</a>
+  <a href="#modern-elements">Modernist elements</a>
+  <a href="module.html" style="color:var(--terra);font-weight:600">Design a module →</a>
   <a href="app.html" style="color:var(--terra);font-weight:600">Open the 3D studio →</a>
   <button class="themebtn" id="themeBtn" type="button" aria-label="Toggle colour theme">◐</button>
 </div></nav>
@@ -148,6 +151,30 @@ footer{padding:40px 0 60px;border-top:1px solid var(--line);font-size:13px;color
     <div class="card"><div class="num">05</div><h3>Era presets</h3><p>Late Ottoman and Modern each have clear rules for openings, symmetry, balconies and roofs: a village with variety that still holds together.</p></div>
     <div class="card"><div class="num">+</div><h3>Translucent panes</h3><p>A 0.6–1 mm porcelain sheet behind some openings glows like the frosted <i>mhajjar</i> glass of Beirut doors, and hides the tealight.</p></div>
   </div>
+</div></section>
+
+<section id="openings"><div class="wrap">
+  <div class="eyebrow">Houses of Beirut 1860–1925</div>
+  <h2>Pick your openings</h2>
+  <p class="lead">The printed piece is one porcelain module: a 60 × 60 mm square with 40 mm walls, 3 mm thick. Base, modules and roof are separate pieces: modules stack on porcelain lips or line up side by side, under a slanted or modern flat roof. Each wall takes typical openings, either three elements side by side or one whole-wall design.</p>
+  <p style="margin-top:18px"><a href="module.html" style="display:inline-block;background:var(--ink);color:var(--paper);text-decoration:none;padding:11px 18px;border-radius:8px;font-weight:600">Open the module designer →</a>
+  <span style="color:var(--muted);font-size:14px;margin-left:10px">3D preview, candlelight, stacking and rows, roof and base, and porcelain checks on every wall.</span></p>
+  <h3 style="margin-top:30px">Typical elements, three to a wall</h3>
+  <div class="grid" id="bayGrid" style="grid-template-columns:repeat(auto-fill,minmax(110px,1fr));margin-top:12px"></div>
+  <h3 style="margin-top:30px">Whole-wall designs from the manual</h3>
+  <div class="grid g3" id="wallGrid" style="margin-top:12px"></div>
+  <p style="font-size:13px;color:var(--muted);margin-top:14px">From <i>Houses of Beirut 1860–1925, Restoration manual</i> (Beirut Heritage Initiative, 2021): typology pp. 20–25, roofs pp. 78–85, doors pp. 162–165, windows pp. 166–169, bays with three arches pp. 170–173. Every design here passes the porcelain checks: openings ≥ 1.6 mm, bars and columns ≥ 2.5 mm, walls ≤ 40 % open, 3 mm from the corners and the scrape edge.</p>
+</div></section>
+
+<section id="modern-elements"><div class="wrap">
+  <div class="eyebrow">Beirut 1945–1970</div>
+  <h2>Modernist patterns and elements</h2>
+  <p class="lead">The same 60 × 40 mm wall, read through Beirut's modernism: ribbon windows under thin sun-shade slabs, claustra screens, vertical brise-soleil fins, egg-crate grids, portholes and buildings lifted on pilotis. All in porcelain, all within the same casting limits.</p>
+  <h3 style="margin-top:26px">Elements, three to a wall</h3>
+  <div class="grid" id="modBayGrid" style="grid-template-columns:repeat(auto-fill,minmax(110px,1fr));margin-top:12px"></div>
+  <h3 style="margin-top:30px">Whole-wall patterns</h3>
+  <div class="grid g3" id="modWallGrid" style="margin-top:12px"></div>
+  <p style="font-size:13px;color:var(--muted);margin-top:14px">From <i>Architectures de Beyrouth 1925–1970, Manuel de restauration</i> (Beirut Heritage Initiative, 2022): typologies PDF pp. 16–20, cantilevers p. 38, brise-soleil and claustras pp. 52–53, windows pp. 78–93. Claustra cells are 3.4 mm at a 6 mm pitch, leaving 2.6 mm of porcelain between them; every screen fits one 40-pin insert set. Try them in the <a href="module.html">module designer</a> under Style → Modernist.</p>
 </div></section>
 
 <section id="explorer"><div class="wrap">
@@ -204,7 +231,7 @@ footer{padding:40px 0 60px;border-top:1px solid var(--line);font-size:13px;color
     <tbody>
       <tr><td>Central-hall house plan (figs. 11, 287)</td><td>≈ 13.5 × 13.5 m, 3 bays × 3 deep</td><td><b>180 × 180 mm</b> (3 × 3 modules)</td><td>studio default; the editor's houses are often 1 module deep</td></tr>
       <tr><td>Facade width ÷ floor height (figs. 10, 285)</td><td>3.2–3.7</td><td>180 mm front → <b>50–56 mm</b> floors</td><td>default 40–50</td></tr>
-      <tr><td>Hipped roof pitch (fig. 10)</td><td>≈ 21–22°</td><td>pyramid over the square plan</td><td>studio: pitch 22°</td></tr>
+      <tr><td>Roof pitch (fig. 10; <i>Houses of Beirut</i> p. 80)</td><td>≈ 21–22° in the elevations, “soft slopes of about 30°” in the roof chapter</td><td>hipped or gable lid</td><td>studio and module designer: 30°</td></tr>
       <tr><td>Grid step</td><td>2.25 m</td><td><b>30 mm</b></td><td class="ok">30 mm grid ✓</td></tr>
       <tr><td>Room bay / full module</td><td>4.5 m</td><td><b>60 mm</b></td><td class="ok">full 60 × 60 ✓</td></tr>
       <tr><td>Floor height before 1954</td><td>3.30 m</td><td><b>44 mm</b></td><td class="ok">default 40–50 ✓</td></tr>
@@ -333,6 +360,21 @@ footer{padding:40px 0 60px;border-top:1px solid var(--line);font-size:13px;color
   <p>Full written proposals live in the repository's <span class="mono">crit_proposals/</span> folder. Drawings on this page are schematic.</p>
 </div></footer>
 
+<script src="openings.js"></script>
+<script>
+/* ---------- opening catalogue (shared with the module designer) ---------- */
+(function(){
+const B=window.BeitOpenings;if(!B)return;
+const cell=(svg,title,sub,body)=>`<div class="card el">${svg}<div class="body"><h3 style="font-size:19px">${title}</h3>${sub?`<p class="mono" style="font-size:11.5px">${sub}</p>`:""}${body?`<p>${body}</p>`:""}</div></div>`;
+const bayCards=set=>B.BAYS.filter(b=>b.set===set).map(b=>{const o=B.build({mode:"bays",bays:["none",b.id,"none"]});o.holes.forEach(h=>h.p=h.p.map(([x,y])=>[x-18,y]));
+  const svg=B.faceSVG(o,{night:true,label:b.name}).replace(/viewBox="[^"]+"/,'viewBox="-1 -1 26 42"');
+  return `<div class="card el" style="padding:0">${svg}<div class="body" style="padding:8px 10px"><b style="font-size:13px">${b.name}</b><p class="mono" style="font-size:11px;margin:2px 0 0">${b.ref?(set==="modern"?b.ref.replace("Architectures de Beyrouth","AdB"):"manual "+b.ref):""}</p></div></div>`;}).join("");
+const wallCards=set=>B.CAT.filter(c=>c.set===set&&c.id!=="blank").map(c=>{const o=B.build({type:c.id,frame:true,cornice:true,canopy:true}),r=B.checkFace(o,14);
+  return cell(B.faceSVG(o,{night:true,dims:true,label:c.name}),c.name,(c.ref?(set==="modern"?c.ref.replace("Architectures de Beyrouth","AdB"):"manual "+c.ref)+" · ":"")+r.open.toFixed(0)+" % open · "+r.pins+" pin"+(r.pins===1?"":"s"),c.desc);}).join("");
+document.getElementById("bayGrid").innerHTML=bayCards("ottoman");document.getElementById("wallGrid").innerHTML=wallCards("ottoman");
+document.getElementById("modBayGrid").innerHTML=bayCards("modern");document.getElementById("modWallGrid").innerHTML=wallCards("modern");
+})();
+</script>
 <script>
 (function(){
 /* ---------- theme ---------- */

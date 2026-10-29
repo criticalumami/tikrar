@@ -86,6 +86,7 @@ input[type=number],input[type=text],select{width:100%;font:14px Inter,sans-serif
 <header>
   <h1>Beit Lantern Studio</h1>
   <span class="sub">Modular porcelain lantern houses · all sizes fired mm · 1:75</span>
+  <a href="module.html">Module designer</a>
   <a href="./">← Proposals</a>
   <button class="btn" id="themeBtn" type="button" aria-label="Toggle colour theme">◐</button>
 </header>
@@ -246,7 +247,7 @@ const MOD=60, GAP=40, RELIEF_D=0.8, MIN_OPEN=1.6, MIN_BAR=1.6, MIN_PIN=1.4, MAX_
 /* porcelain-safe limits: sections fired on their own, walls that stay solid enough to fire without slumping */
 const MAX_OPEN=40, MAX_SECTION=60, STACK_WALL=3, MIN_FIN=2.5;
 const ERA={
-  ottoman:{name:"Late Ottoman",floors:2,rows:3,roof:"hip-terra",balcony:true,kiosk:false,panes:true,relief:true,parapetOpen:false,bal:"waisted",cla:"circle",floorH:56},
+  ottoman:{name:"Late Ottoman",floors:2,rows:3,roof:"hip-terra",balcony:true,kiosk:false,panes:true,relief:true,parapetOpen:false,bal:"waisted",cla:"circle",floorH:40},
   modern:{name:"Modern",floors:4,rows:2,roof:"flat",balcony:true,kiosk:false,panes:false,relief:true,parapetOpen:true,bal:"bars",cla:"circle",floorH:40}
 };
 const ROLES={auto:"Auto",bay:"Central bay",side:"Side room",stair:"Stair tower",ribbon:"Ribbon",claustra:"Claustra",plain:"Plain"};
@@ -256,7 +257,7 @@ const ROWN=["street","middle","back"];
 const KEY="beit-lantern-studio-v2";
 function newHouse(era,idx){const d=ERA[era];return {name:d.name+" "+(idx+1),era,cols:3,rows:d.rows,floors:d.floors,roof:d.roof,roles:["auto","auto","auto"],
   balcony:d.balcony,kiosk:d.kiosk,panes:d.panes,relief:d.relief,parapetOpen:d.parapetOpen,bal:d.bal,cla:d.cla,off:[]};}
-function defaults(){return {floorH:50,balH:14,shrink:14,wall:3,slabT:3,pitch:22,night:true,light:1,explode:0,sel:0,candleFloor:0,
+function defaults(){return {floorH:40,balH:14,shrink:14,wall:3,slabT:3,pitch:30,night:true,light:1,explode:0,sel:0,candleFloor:0,
   houses:[newHouse("ottoman",0),Object.assign(newHouse("ottoman",1),{floors:3}),Object.assign(newHouse("modern",2),{cols:2})]};}
 /* older designs: the Interwar and Art Deco eras were removed */
 const OLD_ERA={interwar:["ottoman",/^Interwar/],deco:["modern",/^(Beirut )?Art Deco/]};
@@ -649,7 +650,7 @@ function renderPanel(){
   setSeg("hCols",h.cols);setSeg("hRows",h.rows);
   const ratio=h.rows/h.cols,wr=(h.cols*MOD)/fh;
   $("planHint").innerHTML=`Plan ${h.cols}×${h.rows} modules · depth / width ${ratio.toFixed(2)} `+(h.rows===h.cols||(ratio>=0.66&&ratio<=1.2)?"✓ close to the square central-hall plans":"· the manual's plans are close to square")+
-    `<br>Facade width = ${wr.toFixed(1)} × floor height `+(wr>=3&&wr<=4?"✓ (elevations: 3.2–3.7)":"· elevations show 3.2–3.7");
+    `<br>Facade width = ${wr.toFixed(1)} × floor height `+(wr>=3&&wr<=4?"✓ (elevations: 3.2–3.7)":"· elevations show 3.2–3.7; the printed module fixes walls at 40 mm");
   document.querySelectorAll("#housePanel .toggles input").forEach(cb=>cb.checked=!!h[cb.dataset.k]);
   $("hRoles").innerHTML=Array.from({length:h.cols},(_,c)=>`<select data-c="${c}" aria-label="Bay ${c+1} role">${Object.entries(ROLES).map(([k,v])=>`<option value="${k}" ${(h.roles[c]||"auto")===k?"selected":""}>${k==="auto"?"Auto · "+ROLES[roleOf(Object.assign({},h,{roles:[]}),c)]:v}</option>`).join("")}</select>`).join("");
   $("pFloorH").value=fh;$("pBalH").value=S.balH;$("pShrink").value=S.shrink;$("pWall").value=S.wall;$("pPitch").value=S.pitch;

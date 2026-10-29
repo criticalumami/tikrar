@@ -17,10 +17,12 @@ These are proposals only. Nothing in `index.html` has been changed.
 | [03-porcelain-elements.md](03-porcelain-elements.md) | New porcelain elements (openwork balustrades, claustra screens, translucent panes, relief, cast balconies, bay windows) and how each one is molded |
 | [04-app-roadmap.md](04-app-roadmap.md) | Concrete changes to the editor, Mold making and 3D print tabs, in priority order |
 | [05-beirut-modernism.md](05-beirut-modernism.md) | Porcelain-safe landmark lanterns from photos: the Egg, EDL, Gefinor, Saroulla, Holiday Inn and the National Museum, with true proportions, sections ≤ 60 mm and walls ≤ 40 % open |
+| [06-module-openings.md](06-module-openings.md) | The printed module (60 × 60 mm, 40 mm walls, separate base and roof, stackable or side by side) and its opening catalogue: 1860–1925 openings from *Houses of Beirut* and modernist patterns, all porcelain-checked |
 
 ## Website and 3D studio
 
 - `docs/index.html`: the proposals as a website, with an interactive facade explorer and a Beirut modernism section
+- `docs/module.html`: the **module designer**: pick typical 1860–1925 or modernist openings for every wall of every module, stack or line up modules, choose a slanted or modern roof and a base, with porcelain checks on every wall
 - `docs/app.html`: **Beit Lantern Studio**, a modular 3D editor (three.js r128) that applies these proposals:
   - houses of 1–3 modules across, 1–3 deep (square central-hall plans by default) and 1–5 floors, each set to an era
   - a role for each front bay

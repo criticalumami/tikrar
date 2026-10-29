@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lantern Module Designer</title>
+<meta name="description" content="Design porcelain lantern modules (60 × 60 mm, 40 mm walls): pick typical Beirut openings from 1860–1925 or modernist patterns for each wall, stack modules or line them up, add a slanted or modern roof and a separate base.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f4f2ed;--paper:#fffefb;--ink:#23201c;--muted:#6d665c;--line:#e3ded4;--terra:#b5562f;--terra-soft:#f3e2d8;--ok:#2f8a4a;--bad:#c2412d;--field:#f7f5f0}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#16140f;--paper:#1f1c17;--ink:#efe9df;--muted:#a59d90;--line:#36312a;--terra:#e07a4f;--terra-soft:#3a2519;--field:#26221c;--ok:#5cc17c;--bad:#ef7a64}}
+:root[data-theme="dark"]{--bg:#16140f;--paper:#1f1c17;--ink:#efe9df;--muted:#a59d90;--line:#36312a;--terra:#e07a4f;--terra-soft:#3a2519;--field:#26221c;--ok:#5cc17c;--bad:#ef7a64}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+header{display:flex;align-items:center;gap:14px;padding:12px 16px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+header h1{font:600 26px "Cormorant Garamond",Georgia,serif;margin:0}
+header .sub{color:var(--muted);font-size:13px}
+header nav{margin-left:auto;display:flex;gap:14px;align-items:center}
+header nav a{color:var(--terra);font-size:13px}
+.btn{border:1px solid var(--line);background:var(--paper);color:var(--ink);font:500 13px Inter,sans-serif;padding:6px 10px;border-radius:7px;cursor:pointer}
+.btn:hover{border-color:var(--muted)}
+.btn.primary{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 430px;gap:14px;padding:14px 16px;align-items:start}
+@media (max-width:960px){.layout{grid-template-columns:1fr}}
+.viewer{position:sticky;top:12px;background:#141a2a;border-radius:12px;overflow:hidden;aspect-ratio:1/1;max-height:calc(100vh - 90px);width:100%}
+@media (max-width:960px){.viewer{position:relative;top:0;aspect-ratio:4/3}}
+.viewer canvas{display:block;width:100%!important;height:100%!important;touch-action:none}
+.vbar{position:absolute;left:10px;right:10px;bottom:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.vbar .grp{display:flex;gap:6px;align-items:center;background:rgba(20,22,30,.78);color:#e8e2d6;border-radius:8px;padding:5px 8px;font:500 12px "JetBrains Mono",monospace}
+.vbar button{background:transparent;border:1px solid rgba(255,255,255,.25);color:#e8e2d6;border-radius:6px;font:500 12px "JetBrains Mono",monospace;padding:4px 8px;cursor:pointer}
+.vbar button[aria-pressed="true"]{background:#f0a33a;border-color:#f0a33a;color:#1b1b1b}
+.vbar input[type=range]{width:110px}
+.tag{position:absolute;left:10px;top:10px;background:rgba(20,22,30,.78);color:#e8e2d6;border-radius:8px;padding:6px 9px;font:500 12px "JetBrains Mono",monospace;max-width:calc(100% - 20px)}
+aside{display:grid;gap:12px}
+.panel{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:grid;gap:10px}
+.panel h2{font:600 15px Inter,sans-serif;margin:0;display:flex;align-items:center;gap:8px}
+.panel h2 .meta{margin-left:auto;font:500 12px "JetBrains Mono",monospace;color:var(--muted)}
+.lbl{font:500 11px "JetBrains Mono",monospace;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;flex-wrap:wrap}
+.seg button{border:0;background:transparent;color:var(--ink);font:500 13px Inter,sans-serif;padding:6px 11px;cursor:pointer}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+select,input[type=range]{font:14px Inter,sans-serif;color:var(--ink)}
+select{background:var(--field);border:1px solid var(--line);border-radius:6px;padding:5px 8px}
+.hint{font-size:12px;color:var(--muted);margin:0}
+.chips{display:grid;grid-template-columns:repeat(auto-fill,minmax(66px,1fr));gap:6px}
+.chip{border:1px solid var(--line);background:var(--field);border-radius:8px;padding:4px;cursor:pointer;display:grid;gap:2px;justify-items:center;color:var(--ink);font:500 10.5px Inter,sans-serif;text-align:center;line-height:1.15}
+.chip svg{width:100%;height:auto;display:block;border-radius:4px}
+.chip[aria-pressed="true"]{border-color:var(--terra);box-shadow:0 0 0 1px var(--terra) inset;background:var(--terra-soft)}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:8px}
+.card{border:1px solid var(--line);background:var(--field);border-radius:8px;padding:6px;cursor:pointer;text-align:left;color:var(--ink);font:500 12px Inter,sans-serif;display:grid;gap:4px}
+.card svg{width:100%;height:auto;display:block;border-radius:4px}
+.card .ref{font:500 10.5px "JetBrains Mono",monospace;color:var(--muted)}
+.card[aria-pressed="true"]{border-color:var(--terra);box-shadow:0 0 0 1px var(--terra) inset;background:var(--terra-soft)}
+.bay{display:grid;gap:4px}
+.big{background:var(--field);border:1px solid var(--line);border-radius:8px;padding:6px}
+.big svg{width:100%;height:auto;display:block}
+.faces{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.faces button{border:1px solid var(--line);background:var(--field);border-radius:8px;padding:4px;cursor:pointer;color:var(--ink);font:500 11px "JetBrains Mono",monospace;display:grid;gap:2px}
+.faces button svg{width:100%;height:auto;display:block}
+.faces button[aria-pressed="true"]{border-color:var(--terra);box-shadow:0 0 0 1px var(--terra) inset}
+.faces button.bad{border-color:var(--bad)}
+.opts{display:flex;gap:12px;flex-wrap:wrap}
+.opts label{display:flex;gap:5px;align-items:center;font-size:13px;cursor:pointer}
+.opts label.off{opacity:.45;cursor:not-allowed}
+.checks{display:grid;gap:3px}
+.ck{display:grid;grid-template-columns:18px 1fr auto;gap:6px;font-size:12.5px;align-items:baseline}
+.ck .s{font-weight:700}
+.ck .s.ok{color:var(--ok)}.ck .s.bad{color:var(--bad)}
+.ck .v{font:500 11.5px "JetBrains Mono",monospace;color:var(--muted)}
+.desc{font-size:13px;color:var(--muted);margin:0}
+.desc b{color:var(--ink)}
+</style>
+</head>
+<body>
+<header>
+  <h1>Lantern Module Designer</h1>
+  <span class="sub">porcelain modules · 60 × 60 mm · 40 mm walls · 1860–1925 and modernist openings</span>
+  <nav><a href="index.html">← Proposals</a><a href="app.html">Village studio</a>
+  <button class="btn" id="themeBtn" type="button" aria-label="Toggle colour theme">◐</button></nav>
+</header>
+
+
+<div class="layout">
+  <div class="viewer" id="viewer">
+    <div class="tag" id="tag"></div>
+    <div class="vbar">
+      <div class="grp"><button type="button" id="nightBtn" aria-pressed="true">Night</button></div>
+      <div class="grp"><label for="explode">Explode</label><input type="range" id="explode" min="0" max="30" step="1" value="0"></div>
+      <div class="grp"><button type="button" id="resetView">Reset view</button></div>
+    </div>
+  </div>
+
+  <aside>
+    <div class="panel">
+      <h2>Lantern <span class="meta" id="stackMeta"></span></h2>
+      <div class="row"><span class="lbl">Across</span>
+        <div class="seg" id="colsSeg"><button type="button" data-v="1">1</button><button type="button" data-v="2">2</button><button type="button" data-v="3">3</button></div>
+        <span class="lbl">Up</span>
+        <div class="seg" id="levelsSeg"><button type="button" data-v="1">1</button><button type="button" data-v="2">2</button><button type="button" data-v="3">3</button></div></div>
+      <div class="row"><span class="lbl">Roof</span>
+        <div class="seg" id="roofSeg"><button type="button" data-v="slant">Slanted</button><button type="button" data-v="modern">Modern</button><button type="button" data-v="none">Off</button></div>
+        <span class="lbl">Base</span>
+        <div class="seg" id="baseSeg"><button type="button" data-v="plinth">Plinth</button><button type="button" data-v="stepped">Stepped</button><button type="button" data-v="none">Off</button></div></div>
+      <div class="row" id="pitchRow"><label class="lbl" for="pitch">Pitch</label><input type="range" id="pitch" min="20" max="40" step="1"><span class="lbl" id="pitchV"></span>
+        <label class="lbl" for="glaze">Roof glaze</label><select id="glaze"><option value="white">White porcelain</option><option value="terra">Terracotta glaze</option></select></div>
+      <p class="hint">Every piece is separate: the base, each module and each roof. Modules stack on 3 mm porcelain lips and sit side by side wall to wall. The slanted roof follows the manual's ~30° (p. 80); the modern roof is a thin flat slab. Both have a vent for the candle's heat.</p>
+      <div class="row"><span class="lbl">Start from</span>
+        <button class="btn" type="button" data-preset="photo">Arches &amp; keyholes</button>
+        <button class="btn" type="button" data-preset="central">Central-hall house</button>
+        <button class="btn" type="button" data-preset="liwan">Līwān house</button>
+        <button class="btn" type="button" data-preset="stair">Stair tower</button>
+        <button class="btn" type="button" data-preset="modernRow">Modernist row</button>
+        <button class="btn" type="button" data-preset="modernTower">Modernist tower</button></div>
+    </div>
+
+    <div class="panel">
+      <h2>Walls <span class="meta" id="editMeta"></span></h2>
+      <div class="row" id="modPick"></div>
+      <div class="faces" id="faces"></div>
+      <div class="row"><span class="lbl">Style</span><div class="seg" id="setSeg"><button type="button" data-v="ottoman">1860–1925</button><button type="button" data-v="modern">Modernist</button></div>
+        <div class="seg" id="modeSeg"><button type="button" data-v="bays">Pick elements</button><button type="button" data-v="wall">Whole-wall designs</button></div></div>
+      <div id="editor"></div>
+      <div class="big" id="bigFace"></div>
+      <p class="desc" id="faceDesc"></p>
+      <div class="row"><button class="btn" type="button" id="copyAll">Copy to all 4 walls</button><button class="btn" type="button" id="copyMods">Copy this module to all modules</button></div>
+    </div>
+
+    <div class="panel">
+      <h2>Porcelain checks <span class="meta" id="checkMeta"></span></h2>
+      <div class="checks" id="checks"></div>
+      <p class="hint">Each wall is checked on its own: openings ≥ 1.6 mm, bars and columns ≥ 2.5 mm, ≤ 40 % open, 3 mm from the corners and the scrape edge, ≤ 40 pins per insert set. Tap a wall in the 3D view to edit it.</p>
+      <div class="row"><button class="btn" type="button" id="dlSvg">Download elevations (SVG)</button><button class="btn" type="button" id="reset">Reset design</button></div>
+    </div>
+  </aside>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="openings.js"></script>
+<script>
+(function(){
+const B=window.BeitOpenings,W=B.W,H=B.H,T=3,LIP=3,FACES=["front","right","back","left"],FNAME={front:"Front",right:"Right",back:"Back",left:"Left"};
+const $=id=>document.getElementById(id);
+const root=document.documentElement;
+try{const t=localStorage.getItem("beit-proposals-theme");if(t)root.dataset.theme=t;}catch(e){}
+$("themeBtn").onclick=()=>{const dark=root.dataset.theme?root.dataset.theme==="dark":matchMedia("(prefers-color-scheme: dark)").matches;root.dataset.theme=dark?"light":"dark";try{localStorage.setItem("beit-proposals-theme",root.dataset.theme);}catch(e){}renderUI();};
+
+/* ================= state: a grid of modules, cols across × levels up, each with four walls ================= */
+const KEY="beit-module-v2";
+const bays=(a,b,c)=>({mode:"bays",bays:[a,b,c]});
+const wall=(type,extra)=>Object.assign({mode:"wall",type},extra||{});
+const mod=(f,r,b,l)=>({front:f,right:r,back:b,left:l||JSON.parse(JSON.stringify(r))});
+const grid=(cols,levels,fn)=>{const m={};for(let c=0;c<cols;c++)for(let l=0;l<levels;l++)m[c+":"+l]=fn(c,l);return {cols,levels,mods:m};};
+const PRESETS={
+  photo:()=>Object.assign(grid(1,1,()=>mod(bays("horseshoe","door","horseshoe"),bays("pointed","pointed","pointed"),bays("round","oculus","round"))),{roof:"slant",base:"plinth"}),
+  central:()=>Object.assign(grid(1,1,()=>mod(wall("triple",{style:"pointed",cornice:true}),wall("pair",{frame:true,cornice:true}),wall("closedLiwan",{frame:true,oculus:true}))),{roof:"slant",base:"stepped"}),
+  liwan:()=>Object.assign(grid(1,1,()=>mod(wall("liwan",{style:"round",frame:true,oculus:true}),wall("high"),wall("orientalDoor",{frame:true}),wall("high",{style:"pointed"}))),{roof:"slant",base:"plinth"}),
+  stair:()=>Object.assign(grid(1,3,(c,l)=>l===0?mod(wall("westernDoor",{frame:true}),bays("none","window","none"),bays("none","small","none")):
+      l===1?mod(wall("coupled",{cornice:true}),bays("none","small","none"),bays("none","oculus","none")):mod(wall("arched",{style:"round",frame:true,oculus:true}),bays("none","high","none"),bays("none","oculus","none"))),{roof:"slant",base:"stepped"}),
+  modernRow:()=>Object.assign(grid(3,1,c=>c===0?mod(wall("ribbon",{canopy:true}),wall("portholes",{style:"tower"}),wall("ribbon",{style:"two"}),wall("glassblock")):
+      c===1?mod(wall("claustra",{style:"squares",frame:true}),wall("blank"),wall("claustra",{style:"circles"}),wall("blank")):mod(wall("fins",{frame:true}),wall("eggcrate"),wall("picture",{canopy:true}),wall("blank"))),{roof:"modern",base:"plinth"}),
+  modernTower:()=>Object.assign(grid(1,3,(c,l)=>l===0?mod(wall("pilotis",{canopy:true}),wall("glassblock"),wall("picture"),wall("glassblock")):
+      mod(l===1?wall("eggcrate"):wall("ribbon",{canopy:true}),wall("fins",{frame:true}),wall("claustra",{style:l===1?"crosses":"lozenges"}),wall("portholes",{style:"tower"}))),{roof:"modern",base:"none"})};
+function defaults(){return Object.assign({pitch:30,glaze:"white",night:true,explode:0,sel:"0:0",selFace:"front",set:"ottoman"},PRESETS.photo());}
+let S=defaults();
+try{const v=JSON.parse(localStorage.getItem(KEY)||"null");if(v&&v.mods&&v.cols&&v.levels)S=Object.assign(defaults(),v);}catch(e){}
+if(!S.mods[S.sel])S.sel="0:0";
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}};
+const face=()=>S.mods[S.sel][S.selFace];
+const clone=o=>JSON.parse(JSON.stringify(o));
+function setGrid(cols,levels){const m={};for(let c=0;c<cols;c++)for(let l=0;l<levels;l++){const k=c+":"+l;
+    m[k]=S.mods[k]||clone(S.mods[Math.min(c,S.cols-1)+":"+Math.min(l,S.levels-1)]);}
+  S.cols=cols;S.levels=levels;S.mods=m;if(!S.mods[S.sel])S.sel="0:0";}
+/* a wall that touches a neighbour sits inside the lantern */
+function sharedWith(k,fn){const [c,l]=k.split(":").map(Number);if(fn==="right"&&c<S.cols-1)return (c+1)+":"+l;if(fn==="left"&&c>0)return (c-1)+":"+l;return null;}
+const modName=k=>{const [c,l]=k.split(":").map(Number);return (S.cols>1?["Left","Middle","Right"][S.cols===2?(c?2:0):c]+" ":"")+(S.levels>1?(l?"level "+l:"ground"):"")||"Module";};
+
+/* ================= 3D ================= */
+const view=$("viewer");
+const renderer=new THREE.WebGLRenderer({antialias:true});renderer.setPixelRatio(Math.min(2,window.devicePixelRatio||1));
+renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;view.prepend(renderer.domElement);
+const scene=new THREE.Scene();
+const camera=new THREE.PerspectiveCamera(35,1,1,4000);
+const controls=new THREE.OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.minDistance=60;controls.maxDistance=900;controls.maxPolarAngle=Math.PI*0.495;
+function fitView(){const h=S.levels*H+30,w=S.cols*W;const d=Math.max(h,w)*1.6+120;camera.position.set(d*0.62,h*0.55+d*0.42,d*0.78);controls.target.set(0,h*0.42,0);controls.update();}
+const hemi=new THREE.HemisphereLight(0xffffff,0x444444,0.6);scene.add(hemi);
+const sun=new THREE.DirectionalLight(0xffffff,0.8);sun.position.set(140,240,180);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);
+Object.assign(sun.shadow.camera,{left:-160,right:160,top:160,bottom:-160,near:10,far:700});scene.add(sun);
+const ground=new THREE.Mesh(new THREE.PlaneGeometry(1600,1600),new THREE.MeshStandardMaterial({color:0x8a8478,roughness:1}));ground.rotation.x=-Math.PI/2;ground.receiveShadow=true;scene.add(ground);
+const MAT={glaze:new THREE.MeshStandardMaterial({color:0xf6f1e8,roughness:0.22,metalness:0}),
+  bisque:new THREE.MeshStandardMaterial({color:0xc9bfae,roughness:0.95}),
+  terra:new THREE.MeshStandardMaterial({color:0xb8603c,roughness:0.35}),
+  tea:new THREE.MeshStandardMaterial({color:0xd9d6cf,roughness:0.6}),flame:new THREE.MeshBasicMaterial({color:0xffd27a})};
+let built=new THREE.Group();scene.add(built);const pickable=[],candles=[];
+
+function shapeOf(p){const s=new THREE.Shape();p.forEach(([x,y],i)=>i?s.lineTo(x,y):s.moveTo(x,y));return s;}
+function extrude(outer,holes,depth,mat){const s=shapeOf(outer);holes.forEach(h=>s.holes.push(new THREE.Path(h.map(([x,y])=>new THREE.Vector2(x,y)))));
+  const m=new THREE.Mesh(new THREE.ExtrudeGeometry(s,{depth,bevelEnabled:false,curveSegments:8}),mat);m.castShadow=true;m.receiveShadow=true;return m;}
+const ANG={front:0,right:Math.PI/2,back:Math.PI,left:-Math.PI/2};
+const ring=(b,inner)=>[[[-b,-b],[b,-b],[b,b],[-b,b]],[[[-inner,-inner],[inner,-inner],[inner,inner],[-inner,inner]]]];
+const circle=(r,n)=>Array.from({length:n||24},(_,k)=>[r*Math.cos(k/(n||24)*2*Math.PI),r*Math.sin(k/(n||24)*2*Math.PI)]);
+function flat(outer,holes,depth,mat,y){const m=extrude(outer,holes,depth,mat);m.rotation.x=-Math.PI/2;m.position.y=y;return m;}
+function buildWall(k,fname){
+  const o=B.build(S.mods[k][fname]),g=new THREE.Group();g.rotation.y=ANG[fname];
+  const w=extrude([[0,0],[W,0],[W,H],[0,H]],o.holes.map(h=>h.p),T,MAT.glaze);w.position.set(-W/2,0,W/2-T);w.userData={k,fname};pickable.push(w);g.add(w);
+  o.relief.forEach(r=>{const m=extrude(r.o,r.i?[r.i]:[],0.8,MAT.glaze);m.position.set(-W/2,0,W/2);g.add(m);});
+  o.extras.forEach(x=>{const d=6;
+    if(x.t==="canopy"){const sl=new THREE.Mesh(new THREE.BoxGeometry(x.w,2,d),MAT.glaze);sl.position.set(-W/2+x.x+x.w/2,x.y+1,W/2+d/2);sl.castShadow=true;g.add(sl);}
+    if(x.t==="balcony"){const slab=new THREE.Mesh(new THREE.BoxGeometry(x.w,2.2,d),MAT.glaze);slab.position.set(-W/2+x.x+x.w/2,x.y-1.1,W/2+d/2);slab.castShadow=true;g.add(slab);
+      const bars=[];for(let bx=1.2;bx<x.w-1.5;bx+=4.3)bars.push([[bx,1],[bx+1.8,1],[bx+1.8,8],[bx,8]]);
+      const par=extrude([[0,0],[x.w,0],[x.w,9.4],[0,9.4]],bars,1.6,MAT.glaze);par.position.set(-W/2+x.x,x.y,W/2+d-1.6);g.add(par);}});
+  return g;}
+function baseH(){return S.base==="none"?0:6;}
+function buildBase(){const g=new THREE.Group(),w=S.cols*W/2;
+  if(S.base==="plinth"){const b=new THREE.Mesh(new THREE.BoxGeometry(S.cols*W+4,6,W+4),MAT.glaze);b.position.y=3;b.castShadow=b.receiveShadow=true;g.add(b);}
+  if(S.base==="stepped"){[[8,0,3],[4,3,3]].forEach(([e,y,h])=>{const b=new THREE.Mesh(new THREE.BoxGeometry(S.cols*W+e,h,W+e),MAT.glaze);b.position.y=y+h/2;b.castShadow=b.receiveShadow=true;g.add(b);});}
+  if(S.base!=="none"){const f=new THREE.Mesh(new THREE.BoxGeometry(S.cols*W+(S.base==="stepped"?8.2:4.2),1.2,W+(S.base==="stepped"?8.2:4.2)),MAT.bisque);f.position.y=0.6;g.add(f);}
+  return g;}
+function roofH(){return S.roof==="none"?0:S.roof==="modern"?4:2.5+(W/2+2-9)*Math.tan(S.pitch*Math.PI/180);}
+function slantRoof(){const g=new THREE.Group(),e=2,b=W/2+e,t=9,rise=(b-t)*Math.tan(S.pitch*Math.PI/180),fas=2.5,mat=S.glaze==="terra"?MAT.terra:MAT.glaze;
+  const [o,i]=ring(b,W/2-T-0.2);g.add(flat(o,i,fas,mat,0));
+  const v=[],y1=fas,y2=y1+rise,C=[[-b,-b],[b,-b],[b,b],[-b,b]],Ct=[[-t,-t],[t,-t],[t,t],[-t,t]];
+  for(let k=0;k<4;k++){const a=C[k],c=C[(k+1)%4],at=Ct[k],ct=Ct[(k+1)%4];v.push(a[0],y1,a[1],c[0],y1,c[1],ct[0],y2,ct[1], a[0],y1,a[1],ct[0],y2,ct[1],at[0],y2,at[1]);}
+  const geo=new THREE.BufferGeometry();geo.setAttribute("position",new THREE.Float32BufferAttribute(v,3));geo.computeVertexNormals();
+  const m=new THREE.Mesh(geo,mat.clone());m.material.side=THREE.DoubleSide;m.castShadow=true;g.add(m);
+  g.add(flat([[-t,-t],[t,-t],[t,t],[-t,t]],[circle(4)],1.5,mat,y2-1.5));return g;}
+function modernRoof(){const g=new THREE.Group(),b=W/2+3,mat=S.glaze==="terra"?MAT.terra:MAT.glaze;
+  g.add(flat([[-b,-b],[b,-b],[b,b],[-b,b]],[circle(4)],2.5,mat,1.5));
+  const [o,i]=ring(W/2-T-0.2,W/2-T-1.8);g.add(flat(o,i,1.5,mat,0));return g;}   /* thin overhanging slab, a lip below locates it */
+function rebuild(){
+  scene.remove(built);built.traverse(o=>{if(o.geometry)o.geometry.dispose();});built=new THREE.Group();pickable.length=0;
+  candles.forEach(c=>{scene.remove(c.light);});candles.length=0;
+  const gap=+S.explode,bh=baseH(),xOf=c=>(c-(S.cols-1)/2)*(W+gap*0.6);
+  if(bh){const b=buildBase();built.add(b);}
+  for(let c=0;c<S.cols;c++){
+    let y=bh+(bh?gap:0);
+    for(let l=0;l<S.levels;l++){const g=new THREE.Group();g.position.set(xOf(c),y,0);FACES.forEach(f=>g.add(buildWall(c+":"+l,f)));
+      built.add(g);y+=H+gap;}
+    if(S.roof!=="none"){const r=S.roof==="modern"?modernRoof():slantRoof();r.position.set(xOf(c),y-gap+gap*1.4,0);built.add(r);}
+    /* one tealight per column, on the base */
+    const tea=new THREE.Mesh(new THREE.CylinderGeometry(19,19,8,32),MAT.tea);tea.position.set(xOf(c),bh+4,0);built.add(tea);
+    const fl=new THREE.Mesh(new THREE.SphereGeometry(2,12,10),MAT.flame);fl.scale.set(0.8,1.6,0.8);fl.position.set(xOf(c),bh+11,0);built.add(fl);
+    const L=new THREE.PointLight(0xffb35c,0,500,1.6);L.position.set(xOf(c),bh+14,0);L.castShadow=c===0||S.cols<3;L.shadow.mapSize.set(512,512);L.shadow.bias=-0.002;scene.add(L);candles.push({light:L,flame:fl});}
+  scene.add(built);applyNight();}
+function applyNight(){const n=S.night;scene.background=new THREE.Color(n?0x141a2a:0xdfe6ee);hemi.intensity=n?0.42:0.75;hemi.color.set(n?0x8a7f9a:0xffffff);sun.intensity=n?0.12:0.85;
+  candles.forEach(c=>{c.light.intensity=n?3.2:0;c.flame.visible=n;});ground.material.color.set(n?0x2a2824:0x9a9486);$("nightBtn").setAttribute("aria-pressed",n);}
+function resize(){const r=view.getBoundingClientRect();renderer.setSize(r.width,r.height,false);camera.aspect=r.width/r.height;camera.updateProjectionMatrix();}
+new ResizeObserver(resize).observe(view);
+let tick=0;(function loop(){requestAnimationFrame(loop);controls.update();tick+=0.08;if(S.night)candles.forEach((c,i)=>{c.light.intensity=3.1+Math.sin(tick*1.7+i)*0.12+Math.sin(tick*4.1+i*2)*0.06;c.flame.scale.y=1.6+Math.sin(tick*3+i)*0.12;});renderer.render(scene,camera);})();
+const ray=new THREE.Raycaster(),ptr=new THREE.Vector2();let down=null;
+renderer.domElement.addEventListener("pointerdown",e=>down=[e.clientX,e.clientY]);
+renderer.domElement.addEventListener("pointerup",e=>{if(!down||Math.hypot(e.clientX-down[0],e.clientY-down[1])>5)return;const r=renderer.domElement.getBoundingClientRect();
+  ptr.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);ray.setFromCamera(ptr,camera);const hit=ray.intersectObjects(pickable,false)[0];
+  if(hit){S.sel=hit.object.userData.k;S.selFace=hit.object.userData.fname;renderUI();}});
+
+/* ================= UI ================= */
+const mini=(spec,label,dims)=>B.faceSVG(B.build(spec),{night:true,dims,label});
+const bayIcon=id=>{const o=B.build({mode:"bays",bays:["none",id,"none"]});o.holes.forEach(h=>h.p=h.p.map(([x,y])=>[x-18,y]));
+  return B.faceSVG(o,{night:true,label:B.BAY[id].name}).replace(/viewBox="[^"]+"/,'viewBox="-1 -1 26 42"');};
+function seg(el,val){el.querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.v===String(val)));}
+const inSet=x=>x.set===S.set||x.set==="both";
+function renderEditor(){
+  const f=face(),ed=$("editor");seg($("modeSeg"),f.mode);seg($("setSeg"),S.set);
+  if(f.mode==="bays"){
+    ed.innerHTML=["Left bay","Centre bay","Right bay"].map((n,i)=>`<div class="bay"><span class="lbl">${n}</span><div class="chips" data-bay="${i}">${B.BAYS.filter(b=>inSet(b)||b.id===f.bays[i]).map(b=>`<button type="button" class="chip" data-el="${b.id}" aria-pressed="${f.bays[i]===b.id}" title="${b.name}${b.ref?" · "+b.ref:""}">${bayIcon(b.id)}<span>${b.name}</span></button>`).join("")}</div></div>`).join("");
+  }else{
+    const c=B.BY[f.type]||B.CAT[0];
+    let h=`<div class="cards">${B.CAT.filter(k=>inSet(k)||k.id===f.type).map(k=>`<button type="button" class="card" data-type="${k.id}" aria-pressed="${k.id===f.type}">${mini({type:k.id},k.name)}<span>${k.name}</span><span class="ref">${k.ref?(k.set==="modern"?k.ref.replace("Architectures de Beyrouth","AdB"):"manual "+k.ref):"&nbsp;"}</span></button>`).join("")}</div>`;
+    if(c.styles)h+=`<div class="row"><label class="lbl" for="styleSel">${c.styles.label}</label><select id="styleSel">${Object.entries(c.styles.options).map(([k,v])=>`<option value="${k}"${(f.style||Object.keys(c.styles.options)[0])===k?" selected":""}>${v}</option>`).join("")}</select></div>`;
+    const opts=c.opts||[];if(opts.length)h+=`<div class="opts">${opts.map(k=>{const dis=k==="oculus"&&!B.canOculus(f);return `<label class="${dis?"off":""}" title="${dis?"No room above this opening for an oculus":""}"><input type="checkbox" data-opt="${k}"${f[k]&&!dis?" checked":""}${dis?" disabled":""}> ${B.optLabel(c,k)}</label>`;}).join("")}</div>`;
+    ed.innerHTML=h;}
+}
+const faceChecks=(k,fn)=>B.checkFace(B.build(S.mods[k][fn]),14);
+function renderUI(){
+  seg($("colsSeg"),S.cols);seg($("levelsSeg"),S.levels);seg($("roofSeg"),S.roof);seg($("baseSeg"),S.base);
+  $("pitch").value=S.pitch;$("pitchV").textContent=S.pitch+"°";$("glaze").value=S.glaze;$("pitch").disabled=S.roof!=="slant";$("pitchRow").style.opacity=S.roof==="none"?0.45:1;
+  /* module picker laid out like the lantern: top level first */
+  let mp="";if(S.cols*S.levels>1){mp=`<span class="lbl">Module</span><div style="display:grid;grid-template-columns:repeat(${S.cols},auto);gap:4px">`;
+    for(let l=S.levels-1;l>=0;l--)for(let c=0;c<S.cols;c++){const k=c+":"+l,ok=FACES.every(fn=>faceChecks(k,fn).ok);mp+=`<button type="button" class="btn" data-k="${k}" style="${k===S.sel?"background:var(--ink);color:var(--paper);border-color:var(--ink)":""}${ok?"":";border-color:var(--bad)"}">${modName(k)}</button>`;}
+    mp+="</div>";}
+  $("modPick").innerHTML=mp;
+  $("faces").innerHTML=FACES.map(fn=>{const r=faceChecks(S.sel,fn),sh=sharedWith(S.sel,fn);return `<button type="button" data-face="${fn}" aria-pressed="${fn===S.selFace}" class="${r.ok?"":"bad"}" title="${sh?"Faces the next module: light passes between them":""}">${mini(S.mods[S.sel][fn],FNAME[fn]+" wall")}${FNAME[fn]}${sh?" ·in":""}</button>`;}).join("");
+  renderEditor();
+  const f=face(),o=B.build(f);$("bigFace").innerHTML=B.faceSVG(o,{night:true,dims:true,label:FNAME[S.selFace]+" wall elevation"});
+  const sh=sharedWith(S.sel,S.selFace);
+  if(f.mode==="bays")$("faceDesc").innerHTML=`<b>${f.bays.map(id=>B.BAY[id].name).join(" · ")}</b>. Three bays, each picked from the typical elements.`+(sh?" This wall faces the next module, so its openings light the neighbour.":"");
+  else{const c=B.BY[f.type];$("faceDesc").innerHTML=`<b>${c.name}</b>${c.ref?` (${c.set==="modern"?c.ref:"manual "+c.ref})`:""}. ${c.desc}`+(sh?" This wall faces the next module.":"");}
+  $("editMeta").textContent=(S.cols*S.levels>1?modName(S.sel).toLowerCase()+" · ":"")+FNAME[S.selFace].toLowerCase()+" wall";
+  const rh=roofH(),tot=baseH()+S.levels*H+rh,wid=S.cols*W;
+  $("stackMeta").textContent=`${wid} × 60 × ${tot.toFixed(0)} mm`;
+  $("tag").textContent=`${S.cols*S.levels} module${S.cols*S.levels>1?"s":""} (${S.cols} across × ${S.levels} up) · ${S.roof==="none"?"no roof":S.roof==="slant"?"slanted roof "+S.pitch+"°":"modern flat roof"} · ${S.base==="none"?"no base":S.base+" base"} · ${wid} × 60 × ${tot.toFixed(0)} mm · 1:75 ≈ ${(wid*0.075).toFixed(1)} × ${(tot*0.075).toFixed(1)} m`;
+  /* checks */
+  const sel=faceChecks(S.sel,S.selFace);let bad=sel.list.filter(c=>!c.ok).length;const rows=[];
+  const failing=[];Object.keys(S.mods).forEach(k=>FACES.forEach(fn=>{if(!faceChecks(k,fn).ok)failing.push(modName(k)+" "+FNAME[fn].toLowerCase());}));
+  const add=(ok,label,v)=>{rows.push({ok,label,v});if(!ok)bad++;};
+  const n=S.cols*S.levels;
+  add(!failing.length,"All "+n*4+" walls pass",failing.length?failing.join(", "):"✓");
+  add(H<=B.LIM.section,"Fired sections ≤ "+B.LIM.section+" mm","module "+H+" · roof "+rh.toFixed(1)+" · base "+baseH());
+  add(true,"Walls "+B.LIM.wall+" mm, modules stack on "+LIP+" mm lips",S.levels>1?S.levels+" high":"single level");
+  add(true,"Separate pieces",`${S.base==="none"?0:1} base · ${n} module${n>1?"s":""} · ${S.roof==="none"?0:S.cols} roof${S.cols>1&&S.roof!=="none"?"s":""}`);
+  add(W-2*T>=B.LIM.tealight,"Tealight fits (Ø "+B.LIM.tealight+"), one per column","inside "+(W-2*T)+" mm");
+  add(true,"Heat vent for a wax tealight",S.roof==="none"?"open top":"Ø 8 mm in each roof");
+  add(true,"Balconies and sun-shades ≤ "+B.LIM.canti+" mm cantilever","6 mm, no prop");
+  $("checks").innerHTML=`<span class="lbl">${modName(S.sel)} · ${FNAME[S.selFace].toLowerCase()} wall</span>`+sel.list.map(ck).join("")+`<span class="lbl" style="margin-top:6px">Whole lantern</span>`+rows.map(ck).join("");
+  $("checkMeta").textContent=bad?bad+" to fix":"all green";$("checkMeta").style.color=bad?"var(--bad)":"var(--ok)";
+  rebuild();save();}
+const ck=c=>`<div class="ck"><span class="s ${c.ok?"ok":"bad"}">${c.ok?"✓":"✗"}</span><span>${c.label}</span><span class="v">${c.v}</span></div>`;
+
+/* ================= events ================= */
+$("colsSeg").onclick=e=>{const b=e.target.closest("button");if(!b)return;setGrid(+b.dataset.v,S.levels);renderUI();};
+$("levelsSeg").onclick=e=>{const b=e.target.closest("button");if(!b)return;setGrid(S.cols,+b.dataset.v);renderUI();};
+$("roofSeg").onclick=e=>{const b=e.target.closest("button");if(!b)return;S.roof=b.dataset.v;renderUI();};
+$("baseSeg").onclick=e=>{const b=e.target.closest("button");if(!b)return;S.base=b.dataset.v;renderUI();};
+$("pitch").oninput=e=>{S.pitch=+e.target.value;renderUI();};
+$("glaze").onchange=e=>{S.glaze=e.target.value;renderUI();};
+$("modPick").onclick=e=>{const b=e.target.closest("button");if(!b)return;S.sel=b.dataset.k;renderUI();};
+$("faces").onclick=e=>{const b=e.target.closest("button");if(!b)return;S.selFace=b.dataset.face;renderUI();};
+$("setSeg").onclick=e=>{const b=e.target.closest("button");if(!b)return;S.set=b.dataset.v;renderUI();};
+$("modeSeg").onclick=e=>{const b=e.target.closest("button");if(!b)return;const f=face();if(f.mode===b.dataset.v)return;const m=S.set==="modern";
+  S.mods[S.sel][S.selFace]=b.dataset.v==="bays"?(m?bays("slot","square","slot"):bays("none","window","none")):(m?wall("ribbon",{canopy:true}):wall("tallWindow",{frame:true,cornice:true}));renderUI();};
+$("editor").onclick=e=>{const chip=e.target.closest(".chip"),card=e.target.closest(".card");const f=face();
+  if(chip){f.bays[+chip.parentElement.dataset.bay]=chip.dataset.el;renderUI();}
+  if(card){S.mods[S.sel][S.selFace]=wall(card.dataset.type);renderUI();}};
+$("editor").onchange=e=>{const f=face();if(e.target.id==="styleSel")f.style=e.target.value;if(e.target.dataset.opt)f[e.target.dataset.opt]=e.target.checked;renderUI();};
+$("copyAll").onclick=()=>{const f=JSON.stringify(face());FACES.forEach(fn=>S.mods[S.sel][fn]=JSON.parse(f));renderUI();};
+$("copyMods").onclick=()=>{const m=JSON.stringify(S.mods[S.sel]);Object.keys(S.mods).forEach(k=>S.mods[k]=JSON.parse(m));renderUI();};
+document.querySelectorAll("[data-preset]").forEach(b=>b.onclick=()=>{Object.assign(S,PRESETS[b.dataset.preset]());S.sel="0:0";S.selFace="front";S.set=b.dataset.preset.startsWith("modern")?"modern":"ottoman";renderUI();});
+$("nightBtn").onclick=()=>{S.night=!S.night;save();applyNight();};
+$("explode").oninput=e=>{S.explode=+e.target.value;rebuild();};
+$("resetView").onclick=fitView;
+$("reset").onclick=()=>{if(confirm("Reset the lantern to the starting design?")){S=defaults();renderUI();fitView();}};
+$("dlSvg").onclick=()=>{const cells=[],keys=[];for(let l=S.levels-1;l>=0;l--)for(let c=0;c<S.cols;c++)keys.push(c+":"+l);
+  keys.forEach((k,row)=>FACES.forEach((fn,j)=>{const svg=B.faceSVG(B.build(S.mods[k][fn]),{dims:true}).replace("<svg ",`<svg x="${j*80}" y="${row*62}" width="74" height="54" `);
+    cells.push(svg+`<text x="${j*80+37}" y="${row*62+60}" font-size="3.4" text-anchor="middle" font-family="sans-serif">${modName(k)} · ${FNAME[fn]}</text>`);}));
+  const doc=`<svg xmlns="http://www.w3.org/2000/svg" width="320mm" height="${keys.length*62}mm" viewBox="0 0 320 ${keys.length*62}">${cells.join("")}</svg>`;
+  const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([doc],{type:"image/svg+xml"}));a.download="lantern-elevations.svg";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);};
+
+$("explode").value=S.explode;
+resize();renderUI();fitView();
+})();
+</script>
+</body>
+</html>
