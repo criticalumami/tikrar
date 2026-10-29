@@ -3,6 +3,8 @@
    (60 mm = a 4.5 m bay, 40 mm = a 3.0 m wall). Face coordinates: x from the wall's left edge seen from outside, y up from the floor. */
 (function(G){
 const W=60,H=40,PI=Math.PI;
+/* for now everything is flush with the wall: no relief mouldings, balconies or sun-shades */
+const FLUSH=true;
 const LIM={edge:3,top:3,base:2,minOpen:1.6,minBar:2.5,maxOpen:40,reliefTop:1,maxPins:40,section:60,wall:3,minPin:1.4,canti:6,tealight:38};
 
 /* ---------- outlines ---------- */
@@ -161,6 +163,8 @@ const BAYS=[
 BAYS.forEach(b=>b.set=b.set||(b.id==="none"?"both":"ottoman"));
 const BAY=Object.fromEntries(BAYS.map(b=>[b.id,b]));
 const OPT_LABEL={frame:"Frame (relief)",cornice:"Cornice (relief)",balcony:"Porcelain balcony",oculus:"Oculus above",canopy:"Sun-shade slab (6 mm)"};
+const optsOf=c=>(c.opts||[]).filter(k=>!FLUSH||k==="oculus");
+const stylesOf=c=>{if(!c.styles)return null;const o=Object.assign({},c.styles.options);if(FLUSH&&c.id==="westernDoor")delete o.blind;return {label:c.styles.label,options:o};};
 const optLabel=(c,k)=>k==="frame"?(c.frameName||OPT_LABEL.frame):k==="cornice"?(c.cornice||OPT_LABEL.cornice):OPT_LABEL[k];
 
 /* oculus above: only where the main opening leaves room under the scrape edge */
@@ -169,10 +173,11 @@ function gap(a,b){const A=bbox(a),B=bbox(b),dx=Math.max(B.x0-A.x1,A.x0-B.x1,0),d
 function oculusFits(o){return o.holes.every(h=>gap(h.p,OCULUS())>=LIM.minBar);}
 
 function build(spec){
-  if(spec.mode==="bays"){const o=F();(spec.bays||[]).forEach((b,i)=>(BAY[b]||BAY.none).build(o,BAY_X[i],i));return o;}
+  if(spec.mode==="bays"){const o=F();(spec.bays||[]).forEach((b,i)=>(BAY[b]||BAY.none).build(o,BAY_X[i],i));if(FLUSH){o.relief=[];o.extras=[];}return o;}
   const c=BY[spec.type]||BY.blank,o=F(),q=Object.assign({style:c.styles?Object.keys(c.styles.options)[0]:""},spec);
   c.build(o,q);
   if(q.oculus&&(c.opts||[]).includes("oculus")&&oculusFits(o))hole(o,OCULUS());
+  if(FLUSH){o.relief=[];o.extras=[];}
   return o;}
 function canOculus(spec){if(spec.mode==="bays")return false;const o=F(),c=BY[spec.type]||BY.blank;c.build(o,Object.assign({},spec,{oculus:false}));return (c.opts||[]).includes("oculus")&&oculusFits(o);}
 
@@ -212,5 +217,5 @@ function faceSVG(o,opt){opt=opt||{};const night=!!opt.night;
     s+=`<line x1="-2.2" y1="0" x2="-2.2" y2="${H}" stroke="${edge}" stroke-width=".3"/>`+`<text x="-3.6" y="20" font-size="2.6" fill="${night?"#c9bfae":"#6d665c"}" text-anchor="middle" font-family="JetBrains Mono,monospace" transform="rotate(-90 -3.6 20)">40 mm</text>`;}
   return s+"</svg>";}
 
-G.BeitOpenings={W,H,LIM,CAT,BY,BAYS,BAY,build,canOculus,checkFace,faceSVG,bbox,area,optLabel};
+G.BeitOpenings={W,H,LIM,FLUSH,CAT,BY,BAYS,BAY,optsOf,stylesOf,build,canOculus,checkFace,faceSVG,bbox,area,optLabel};
 })(window);

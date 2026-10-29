@@ -8,14 +8,14 @@ On the website: the **Pick your openings** and **Modernist patterns and elements
 
 ## The pieces
 
-Every piece is a separate casting.
+Every piece is a separate casting. **For now everything is flush with the walls:** openings only. The relief mouldings, porcelain balconies and sun-shade slabs listed below as options are switched off (`FLUSH` in `docs/openings.js`), and the roof and base sit exactly on the 60 mm footprint.
 
 | Piece | Spec (fired mm) |
 |---|---|
 | **Module** | 60 × 60 mm square, 40 mm walls, 3 mm thick, glazed white porcelain, open top and bottom |
-| **Base** | independent. A 6 mm plinth or a stepped plinth (two 3 mm steps) under the whole row, carrying the tealight; or none |
-| **Roof** | lifts off. **Slanted**: a truncated hipped lid at about 30° (manual p. 80) with an Ø 8 mm heat vent at the top. **Modern**: a thin overhanging flat slab, also vented. White or terracotta glaze |
-| **Layout** | modules **stack** up to 3 high on 3 mm porcelain lips, and **line up** to 3 across, wall to wall. Each module keeps its own four walls, so a wall between neighbours passes light from one to the next. Each column gets its own roof |
+| **Base** | independent. A flush 6 mm plinth under the whole row, carrying the tealight; or none |
+| **Roof** | lifts off. **Slanted**: a truncated hipped lid at about 30° (manual p. 80) with an Ø 8 mm heat vent at the top. **Modern**: a thin flat slab, also vented. Both flush with the walls. White or terracotta glaze |
+| **Layout** | modules **stack** up to 8 high on 3 mm porcelain lips, and **line up** to 3 across, wall to wall. Each module keeps its own four walls, so a wall between neighbours passes light from one to the next. Each column gets its own roof |
 | **Light** | one Ø 38 mm tealight per column, on the base (54 mm clear inside) |
 | **Scale** | 1:75: 60 mm is a 4.5 m bay and 40 mm a 3.0 m wall |
 
@@ -105,7 +105,8 @@ All mouldings are 0.8 mm relief cast with the wall. Balconies and sun-shades are
 
 ## In the module designer
 
-- **Layout:** 1–3 modules across and 1–3 up, a slanted or modern roof (or none) and a plinth, stepped base (or none).
+- **Layout:** 1–3 modules across and 1–8 up (+ / − levels), a slanted or modern roof (or none) and a base (or none).
+- **Randomize:** the whole lantern or just the selected wall, within the current style. Side walls come out matching, and every draw passes the checks, because every combination does.
 - **Walls:** for each wall of each module, switch the style between 1860–1925 and Modernist. Then pick three elements or a whole-wall design with its options. Tap a wall in the 3D view to edit it.
 - **Copying:** copy a wall to all four sides, or a module to all modules.
 - **Checks:** each wall has its own checks, plus whole-lantern checks (sections, lips, separate pieces, tealight, vent, cantilevers).

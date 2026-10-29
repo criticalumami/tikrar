@@ -100,21 +100,22 @@ select{background:var(--field);border:1px solid var(--line);border-radius:6px;pa
       <div class="row"><span class="lbl">Across</span>
         <div class="seg" id="colsSeg"><button type="button" data-v="1">1</button><button type="button" data-v="2">2</button><button type="button" data-v="3">3</button></div>
         <span class="lbl">Up</span>
-        <div class="seg" id="levelsSeg"><button type="button" data-v="1">1</button><button type="button" data-v="2">2</button><button type="button" data-v="3">3</button></div></div>
+        <div class="seg" id="levelsSeg"><button type="button" data-d="-1" aria-label="Remove a level">−</button><button type="button" id="levelsV" disabled style="min-width:34px;cursor:default">1</button><button type="button" data-d="1" aria-label="Add a level">+</button></div></div>
       <div class="row"><span class="lbl">Roof</span>
         <div class="seg" id="roofSeg"><button type="button" data-v="slant">Slanted</button><button type="button" data-v="modern">Modern</button><button type="button" data-v="none">Off</button></div>
         <span class="lbl">Base</span>
-        <div class="seg" id="baseSeg"><button type="button" data-v="plinth">Plinth</button><button type="button" data-v="stepped">Stepped</button><button type="button" data-v="none">Off</button></div></div>
+        <div class="seg" id="baseSeg"><button type="button" data-v="plinth">On</button><button type="button" data-v="none">Off</button></div></div>
       <div class="row" id="pitchRow"><label class="lbl" for="pitch">Pitch</label><input type="range" id="pitch" min="20" max="40" step="1"><span class="lbl" id="pitchV"></span>
         <label class="lbl" for="glaze">Roof glaze</label><select id="glaze"><option value="white">White porcelain</option><option value="terra">Terracotta glaze</option></select></div>
-      <p class="hint">Every piece is separate: the base, each module and each roof. Modules stack on 3 mm porcelain lips and sit side by side wall to wall. The slanted roof follows the manual's ~30° (p. 80); the modern roof is a thin flat slab. Both have a vent for the candle's heat.</p>
+      <p class="hint">Every piece is separate: the base, each module and each roof. Modules stack on 3 mm porcelain lips (up to 8 high) and sit side by side wall to wall. For now everything is flush with the walls: no mouldings, balconies or overhangs. The slanted roof follows the manual's ~30° (p. 80); the modern roof is a thin flat slab. Both have a vent for the candle's heat.</p>
       <div class="row"><span class="lbl">Start from</span>
         <button class="btn" type="button" data-preset="photo">Arches &amp; keyholes</button>
         <button class="btn" type="button" data-preset="central">Central-hall house</button>
         <button class="btn" type="button" data-preset="liwan">Līwān house</button>
         <button class="btn" type="button" data-preset="stair">Stair tower</button>
         <button class="btn" type="button" data-preset="modernRow">Modernist row</button>
-        <button class="btn" type="button" data-preset="modernTower">Modernist tower</button></div>
+        <button class="btn" type="button" data-preset="modernTower">Modernist tower</button>
+        <button class="btn primary" type="button" id="randAll">Randomize lantern</button></div>
     </div>
 
     <div class="panel">
@@ -126,7 +127,7 @@ select{background:var(--field);border:1px solid var(--line);border-radius:6px;pa
       <div id="editor"></div>
       <div class="big" id="bigFace"></div>
       <p class="desc" id="faceDesc"></p>
-      <div class="row"><button class="btn" type="button" id="copyAll">Copy to all 4 walls</button><button class="btn" type="button" id="copyMods">Copy this module to all modules</button></div>
+      <div class="row"><button class="btn" type="button" id="randWall">Randomize this wall</button><button class="btn" type="button" id="copyAll">Copy to all 4 walls</button><button class="btn" type="button" id="copyMods">Copy this module to all modules</button></div>
     </div>
 
     <div class="panel">
@@ -143,7 +144,7 @@ select{background:var(--field);border:1px solid var(--line);border-radius:6px;pa
 <script src="openings.js"></script>
 <script>
 (function(){
-const B=window.BeitOpenings,W=B.W,H=B.H,T=3,LIP=3,FACES=["front","right","back","left"],FNAME={front:"Front",right:"Right",back:"Back",left:"Left"};
+const B=window.BeitOpenings,W=B.W,H=B.H,T=3,LIP=3,MAX_LEVELS=8,FACES=["front","right","back","left"],FNAME={front:"Front",right:"Right",back:"Back",left:"Left"};
 const $=id=>document.getElementById(id);
 const root=document.documentElement;
 try{const t=localStorage.getItem("beit-proposals-theme");if(t)root.dataset.theme=t;}catch(e){}
@@ -157,10 +158,10 @@ const mod=(f,r,b,l)=>({front:f,right:r,back:b,left:l||JSON.parse(JSON.stringify(
 const grid=(cols,levels,fn)=>{const m={};for(let c=0;c<cols;c++)for(let l=0;l<levels;l++)m[c+":"+l]=fn(c,l);return {cols,levels,mods:m};};
 const PRESETS={
   photo:()=>Object.assign(grid(1,1,()=>mod(bays("horseshoe","door","horseshoe"),bays("pointed","pointed","pointed"),bays("round","oculus","round"))),{roof:"slant",base:"plinth"}),
-  central:()=>Object.assign(grid(1,1,()=>mod(wall("triple",{style:"pointed",cornice:true}),wall("pair",{frame:true,cornice:true}),wall("closedLiwan",{frame:true,oculus:true}))),{roof:"slant",base:"stepped"}),
+  central:()=>Object.assign(grid(1,1,()=>mod(wall("triple",{style:"pointed",cornice:true}),wall("pair",{frame:true,cornice:true}),wall("closedLiwan",{frame:true,oculus:true}))),{roof:"slant",base:"plinth"}),
   liwan:()=>Object.assign(grid(1,1,()=>mod(wall("liwan",{style:"round",frame:true,oculus:true}),wall("high"),wall("orientalDoor",{frame:true}),wall("high",{style:"pointed"}))),{roof:"slant",base:"plinth"}),
   stair:()=>Object.assign(grid(1,3,(c,l)=>l===0?mod(wall("westernDoor",{frame:true}),bays("none","window","none"),bays("none","small","none")):
-      l===1?mod(wall("coupled",{cornice:true}),bays("none","small","none"),bays("none","oculus","none")):mod(wall("arched",{style:"round",frame:true,oculus:true}),bays("none","high","none"),bays("none","oculus","none"))),{roof:"slant",base:"stepped"}),
+      l===1?mod(wall("coupled",{cornice:true}),bays("none","small","none"),bays("none","oculus","none")):mod(wall("arched",{style:"round",frame:true,oculus:true}),bays("none","high","none"),bays("none","oculus","none"))),{roof:"slant",base:"plinth"}),
   modernRow:()=>Object.assign(grid(3,1,c=>c===0?mod(wall("ribbon",{canopy:true}),wall("portholes",{style:"tower"}),wall("ribbon",{style:"two"}),wall("glassblock")):
       c===1?mod(wall("claustra",{style:"squares",frame:true}),wall("blank"),wall("claustra",{style:"circles"}),wall("blank")):mod(wall("fins",{frame:true}),wall("eggcrate"),wall("picture",{canopy:true}),wall("blank"))),{roof:"modern",base:"plinth"}),
   modernTower:()=>Object.assign(grid(1,3,(c,l)=>l===0?mod(wall("pilotis",{canopy:true}),wall("glassblock"),wall("picture"),wall("glassblock")):
@@ -169,6 +170,7 @@ function defaults(){return Object.assign({pitch:30,glaze:"white",night:true,expl
 let S=defaults();
 try{const v=JSON.parse(localStorage.getItem(KEY)||"null");if(v&&v.mods&&v.cols&&v.levels)S=Object.assign(defaults(),v);}catch(e){}
 if(!S.mods[S.sel])S.sel="0:0";
+if(S.base==="stepped")S.base="plinth";S.levels=Math.min(S.levels,MAX_LEVELS);
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}};
 const face=()=>S.mods[S.sel][S.selFace];
 const clone=o=>JSON.parse(JSON.stringify(o));
@@ -177,7 +179,7 @@ function setGrid(cols,levels){const m={};for(let c=0;c<cols;c++)for(let l=0;l<le
   S.cols=cols;S.levels=levels;S.mods=m;if(!S.mods[S.sel])S.sel="0:0";}
 /* a wall that touches a neighbour sits inside the lantern */
 function sharedWith(k,fn){const [c,l]=k.split(":").map(Number);if(fn==="right"&&c<S.cols-1)return (c+1)+":"+l;if(fn==="left"&&c>0)return (c-1)+":"+l;return null;}
-const modName=k=>{const [c,l]=k.split(":").map(Number);return (S.cols>1?["Left","Middle","Right"][S.cols===2?(c?2:0):c]+" ":"")+(S.levels>1?(l?"level "+l:"ground"):"")||"Module";};
+const modName=k=>{const [c,l]=k.split(":").map(Number);return ((S.cols>1?["Left","Middle","Right"][S.cols===2?(c?2:0):c]+" ":"")+(S.levels>1?(l?"level "+l:"ground"):"")).trim()||"Module";};
 
 /* ================= 3D ================= */
 const view=$("viewer");
@@ -215,22 +217,22 @@ function buildWall(k,fname){
       const par=extrude([[0,0],[x.w,0],[x.w,9.4],[0,9.4]],bars,1.6,MAT.glaze);par.position.set(-W/2+x.x,x.y,W/2+d-1.6);g.add(par);}});
   return g;}
 function baseH(){return S.base==="none"?0:6;}
-function buildBase(){const g=new THREE.Group(),w=S.cols*W/2;
-  if(S.base==="plinth"){const b=new THREE.Mesh(new THREE.BoxGeometry(S.cols*W+4,6,W+4),MAT.glaze);b.position.y=3;b.castShadow=b.receiveShadow=true;g.add(b);}
-  if(S.base==="stepped"){[[8,0,3],[4,3,3]].forEach(([e,y,h])=>{const b=new THREE.Mesh(new THREE.BoxGeometry(S.cols*W+e,h,W+e),MAT.glaze);b.position.y=y+h/2;b.castShadow=b.receiveShadow=true;g.add(b);});}
-  if(S.base!=="none"){const f=new THREE.Mesh(new THREE.BoxGeometry(S.cols*W+(S.base==="stepped"?8.2:4.2),1.2,W+(S.base==="stepped"?8.2:4.2)),MAT.bisque);f.position.y=0.6;g.add(f);}
+/* separate base, flush with the walls: 6 mm plinth with an unglazed foot */
+function buildBase(){const g=new THREE.Group();
+  const b=new THREE.Mesh(new THREE.BoxGeometry(S.cols*W,6,W),MAT.glaze);b.position.y=3;b.castShadow=b.receiveShadow=true;g.add(b);
+  const f=new THREE.Mesh(new THREE.BoxGeometry(S.cols*W+0.1,1.2,W+0.1),MAT.bisque);f.position.y=0.6;g.add(f);
   return g;}
-function roofH(){return S.roof==="none"?0:S.roof==="modern"?4:2.5+(W/2+2-9)*Math.tan(S.pitch*Math.PI/180);}
-function slantRoof(){const g=new THREE.Group(),e=2,b=W/2+e,t=9,rise=(b-t)*Math.tan(S.pitch*Math.PI/180),fas=2.5,mat=S.glaze==="terra"?MAT.terra:MAT.glaze;
+function roofH(){return S.roof==="none"?0:S.roof==="modern"?4:2.5+(W/2-9)*Math.tan(S.pitch*Math.PI/180);}
+function slantRoof(){const g=new THREE.Group(),b=W/2,t=9,rise=(b-t)*Math.tan(S.pitch*Math.PI/180),fas=2.5,mat=S.glaze==="terra"?MAT.terra:MAT.glaze;
   const [o,i]=ring(b,W/2-T-0.2);g.add(flat(o,i,fas,mat,0));
   const v=[],y1=fas,y2=y1+rise,C=[[-b,-b],[b,-b],[b,b],[-b,b]],Ct=[[-t,-t],[t,-t],[t,t],[-t,t]];
   for(let k=0;k<4;k++){const a=C[k],c=C[(k+1)%4],at=Ct[k],ct=Ct[(k+1)%4];v.push(a[0],y1,a[1],c[0],y1,c[1],ct[0],y2,ct[1], a[0],y1,a[1],ct[0],y2,ct[1],at[0],y2,at[1]);}
   const geo=new THREE.BufferGeometry();geo.setAttribute("position",new THREE.Float32BufferAttribute(v,3));geo.computeVertexNormals();
   const m=new THREE.Mesh(geo,mat.clone());m.material.side=THREE.DoubleSide;m.castShadow=true;g.add(m);
   g.add(flat([[-t,-t],[t,-t],[t,t],[-t,t]],[circle(4)],1.5,mat,y2-1.5));return g;}
-function modernRoof(){const g=new THREE.Group(),b=W/2+3,mat=S.glaze==="terra"?MAT.terra:MAT.glaze;
+function modernRoof(){const g=new THREE.Group(),b=W/2,mat=S.glaze==="terra"?MAT.terra:MAT.glaze;
   g.add(flat([[-b,-b],[b,-b],[b,b],[-b,b]],[circle(4)],2.5,mat,1.5));
-  const [o,i]=ring(W/2-T-0.2,W/2-T-1.8);g.add(flat(o,i,1.5,mat,0));return g;}   /* thin overhanging slab, a lip below locates it */
+  const [o,i]=ring(W/2-T-0.2,W/2-T-1.8);g.add(flat(o,i,1.5,mat,0));return g;}   /* thin flat slab, flush with the walls; a lip below locates it */
 function rebuild(){
   scene.remove(built);built.traverse(o=>{if(o.geometry)o.geometry.dispose();});built=new THREE.Group();pickable.length=0;
   candles.forEach(c=>{scene.remove(c.light);});candles.length=0;
@@ -270,13 +272,14 @@ function renderEditor(){
   }else{
     const c=B.BY[f.type]||B.CAT[0];
     let h=`<div class="cards">${B.CAT.filter(k=>inSet(k)||k.id===f.type).map(k=>`<button type="button" class="card" data-type="${k.id}" aria-pressed="${k.id===f.type}">${mini({type:k.id},k.name)}<span>${k.name}</span><span class="ref">${k.ref?(k.set==="modern"?k.ref.replace("Architectures de Beyrouth","AdB"):"manual "+k.ref):"&nbsp;"}</span></button>`).join("")}</div>`;
-    if(c.styles)h+=`<div class="row"><label class="lbl" for="styleSel">${c.styles.label}</label><select id="styleSel">${Object.entries(c.styles.options).map(([k,v])=>`<option value="${k}"${(f.style||Object.keys(c.styles.options)[0])===k?" selected":""}>${v}</option>`).join("")}</select></div>`;
-    const opts=c.opts||[];if(opts.length)h+=`<div class="opts">${opts.map(k=>{const dis=k==="oculus"&&!B.canOculus(f);return `<label class="${dis?"off":""}" title="${dis?"No room above this opening for an oculus":""}"><input type="checkbox" data-opt="${k}"${f[k]&&!dis?" checked":""}${dis?" disabled":""}> ${B.optLabel(c,k)}</label>`;}).join("")}</div>`;
+    const st=B.stylesOf(c);
+    if(st)h+=`<div class="row"><label class="lbl" for="styleSel">${st.label}</label><select id="styleSel">${Object.entries(st.options).map(([k,v])=>`<option value="${k}"${(f.style||Object.keys(st.options)[0])===k?" selected":""}>${v}</option>`).join("")}</select></div>`;
+    const opts=B.optsOf(c);if(opts.length)h+=`<div class="opts">${opts.map(k=>{const dis=k==="oculus"&&!B.canOculus(f);return `<label class="${dis?"off":""}" title="${dis?"No room above this opening for an oculus":""}"><input type="checkbox" data-opt="${k}"${f[k]&&!dis?" checked":""}${dis?" disabled":""}> ${B.optLabel(c,k)}</label>`;}).join("")}</div>`;
     ed.innerHTML=h;}
 }
 const faceChecks=(k,fn)=>B.checkFace(B.build(S.mods[k][fn]),14);
 function renderUI(){
-  seg($("colsSeg"),S.cols);seg($("levelsSeg"),S.levels);seg($("roofSeg"),S.roof);seg($("baseSeg"),S.base);
+  seg($("colsSeg"),S.cols);$("levelsV").textContent=S.levels;seg($("roofSeg"),S.roof);seg($("baseSeg"),S.base);
   $("pitch").value=S.pitch;$("pitchV").textContent=S.pitch+"°";$("glaze").value=S.glaze;$("pitch").disabled=S.roof!=="slant";$("pitchRow").style.opacity=S.roof==="none"?0.45:1;
   /* module picker laid out like the lantern: top level first */
   let mp="";if(S.cols*S.levels>1){mp=`<span class="lbl">Module</span><div style="display:grid;grid-template-columns:repeat(${S.cols},auto);gap:4px">`;
@@ -304,7 +307,7 @@ function renderUI(){
   add(true,"Separate pieces",`${S.base==="none"?0:1} base · ${n} module${n>1?"s":""} · ${S.roof==="none"?0:S.cols} roof${S.cols>1&&S.roof!=="none"?"s":""}`);
   add(W-2*T>=B.LIM.tealight,"Tealight fits (Ø "+B.LIM.tealight+"), one per column","inside "+(W-2*T)+" mm");
   add(true,"Heat vent for a wax tealight",S.roof==="none"?"open top":"Ø 8 mm in each roof");
-  add(true,"Balconies and sun-shades ≤ "+B.LIM.canti+" mm cantilever","6 mm, no prop");
+  add(true,"Everything flush with the walls","no relief, balconies or overhangs");
   $("checks").innerHTML=`<span class="lbl">${modName(S.sel)} · ${FNAME[S.selFace].toLowerCase()} wall</span>`+sel.list.map(ck).join("")+`<span class="lbl" style="margin-top:6px">Whole lantern</span>`+rows.map(ck).join("");
   $("checkMeta").textContent=bad?bad+" to fix":"all green";$("checkMeta").style.color=bad?"var(--bad)":"var(--ok)";
   rebuild();save();}
@@ -312,7 +315,7 @@ const ck=c=>`<div class="ck"><span class="s ${c.ok?"ok":"bad"}">${c.ok?"✓":"�
 
 /* ================= events ================= */
 $("colsSeg").onclick=e=>{const b=e.target.closest("button");if(!b)return;setGrid(+b.dataset.v,S.levels);renderUI();};
-$("levelsSeg").onclick=e=>{const b=e.target.closest("button");if(!b)return;setGrid(S.cols,+b.dataset.v);renderUI();};
+$("levelsSeg").onclick=e=>{const b=e.target.closest("button");if(!b||!b.dataset.d)return;const n=Math.max(1,Math.min(MAX_LEVELS,S.levels+ +b.dataset.d));if(n!==S.levels){setGrid(S.cols,n);renderUI();}};
 $("roofSeg").onclick=e=>{const b=e.target.closest("button");if(!b)return;S.roof=b.dataset.v;renderUI();};
 $("baseSeg").onclick=e=>{const b=e.target.closest("button");if(!b)return;S.base=b.dataset.v;renderUI();};
 $("pitch").oninput=e=>{S.pitch=+e.target.value;renderUI();};
@@ -326,6 +329,16 @@ $("editor").onclick=e=>{const chip=e.target.closest(".chip"),card=e.target.close
   if(chip){f.bays[+chip.parentElement.dataset.bay]=chip.dataset.el;renderUI();}
   if(card){S.mods[S.sel][S.selFace]=wall(card.dataset.type);renderUI();}};
 $("editor").onchange=e=>{const f=face();if(e.target.id==="styleSel")f.style=e.target.value;if(e.target.dataset.opt)f[e.target.dataset.opt]=e.target.checked;renderUI();};
+/* randomize within the current style; every combination already passes the porcelain checks */
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+function randomWall(){const set=S.set;
+  if(Math.random()<0.5){const els=B.BAYS.filter(b=>b.set===set).map(b=>b.id);let bs;
+    do{bs=[0,1,2].map(()=>Math.random()<0.2?"none":pick(els));if(Math.random()<0.6)bs[2]=bs[0];}while(bs.every(x=>x==="none"));
+    return bays(...bs);}
+  const c=pick(B.CAT.filter(k=>k.set===set&&k.id!=="blank")),w=wall(c.id),st=B.stylesOf(c);
+  if(st)w.style=pick(Object.keys(st.options));if(B.optsOf(c).includes("oculus")&&Math.random()<0.4&&B.canOculus(w))w.oculus=true;return w;}
+$("randWall").onclick=()=>{S.mods[S.sel][S.selFace]=randomWall();renderUI();};
+$("randAll").onclick=()=>{Object.keys(S.mods).forEach(k=>{const side=randomWall();S.mods[k]=mod(randomWall(),side,randomWall(),clone(side));});renderUI();};
 $("copyAll").onclick=()=>{const f=JSON.stringify(face());FACES.forEach(fn=>S.mods[S.sel][fn]=JSON.parse(f));renderUI();};
 $("copyMods").onclick=()=>{const m=JSON.stringify(S.mods[S.sel]);Object.keys(S.mods).forEach(k=>S.mods[k]=JSON.parse(m));renderUI();};
 document.querySelectorAll("[data-preset]").forEach(b=>b.onclick=()=>{Object.assign(S,PRESETS[b.dataset.preset]());S.sel="0:0";S.selFace="front";S.set=b.dataset.preset.startsWith("modern")?"modern":"ottoman";renderUI();});
