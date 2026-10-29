@@ -89,7 +89,7 @@ select{background:var(--field);border:1px solid var(--line);border-radius:6px;pa
   <div class="viewer" id="viewer">
     <div class="tag" id="tag"></div>
     <div class="vbar">
-      <div class="grp"><button type="button" id="nightBtn" aria-pressed="true">Night</button></div>
+      <div class="grp"><button type="button" id="nightBtn" aria-pressed="true">Night</button><button type="button" id="renderBtn" aria-pressed="false" title="Realistic render: ceramic textures, ambient occlusion, bloom, filmic tone">Render</button></div>
       <div class="grp"><label for="explode">Explode</label><input type="range" id="explode" min="0" max="30" step="1" value="0"></div>
       <div class="grp"><button type="button" id="resetView">Reset view</button></div>
     </div>
@@ -266,11 +266,11 @@ const levelName=l=>l?"Level "+l:"Ground";
 const view=$("viewer");
 const renderer=new THREE.WebGLRenderer({antialias:true});renderer.setPixelRatio(Math.min(2,window.devicePixelRatio||1));
 renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;view.prepend(renderer.domElement);
-const scene=new THREE.Scene();
+const scene=new THREE.Scene();let envBasic=null,envRoom=null;
 /* a soft-box studio, prefiltered, so glazes reflect and biscuit stays matte */
 {const env=new THREE.Scene(),room=new THREE.Mesh(new THREE.BoxGeometry(100,60,100),new THREE.MeshBasicMaterial({color:0x3a3632,side:THREE.BackSide}));env.add(room);
   [[0,29,0,50,1,34,1.4],[-49,10,-10,1,26,44,0.9],[30,10,49,36,20,1,0.6]].forEach(([x,y,z,w,h,d,i])=>{const box=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),new THREE.MeshBasicMaterial({color:new THREE.Color(1,0.96,0.9).multiplyScalar(i)}));box.position.set(x,y,z);env.add(box);});
-  const pm=new THREE.PMREMGenerator(renderer);scene.environment=pm.fromScene(env,0.03).texture;pm.dispose();}
+  const pm=new THREE.PMREMGenerator(renderer);envBasic=scene.environment=pm.fromScene(env,0.03).texture;pm.dispose();}
 const camera=new THREE.PerspectiveCamera(35,1,1,8000);
 const controls=new THREE.OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.minDistance=60;controls.maxDistance=3000;controls.maxPolarAngle=Math.PI*0.495;
 function bounds(){let x0=1e9,x1=-1e9,z0=1e9,z1=-1e9,h=0;S.buildings.forEach(b=>{const f=fp(b);x0=Math.min(x0,b.x-f.w/2);x1=Math.max(x1,b.x+f.w/2);z0=Math.min(z0,b.z-f.d/2);z1=Math.max(z1,b.z+f.d/2);h=Math.max(h,b.levels*H+40);});return {x0,x1,z0,z1,h};}
@@ -300,7 +300,35 @@ const MATS={};
 let grain=null;function grainTex(){if(grain)return grain;const c=document.createElement("canvas");c.width=c.height=256;const g=c.getContext("2d"),im=g.createImageData(256,256);
   for(let i=0;i<im.data.length;i+=4){const v=118+Math.random()*20;im.data[i]=im.data[i+1]=im.data[i+2]=v;im.data[i+3]=255;}g.putImageData(im,0,0);
   grain=new THREE.CanvasTexture(c);grain.wrapS=grain.wrapT=THREE.RepeatWrapping;grain.repeat.set(0.08,0.08);return grain;}
-function matOf(body,glaze){const k=body+"|"+glaze;if(MATS[k])return MATS[k];const bd=BODY[body]||BODY.porcelain;
+/* ================= realistic render: generated ceramic textures (UVs are in mm, one tile ≈ 24 mm) ================= */
+const RT={};
+function heightField(n,cells,seed){const f=new Float32Array(n*n);let s1=seed||1;const rnd=()=>(s1=(s1*16807)%2147483647)/2147483647;
+  cells.forEach(([c,amp])=>{const g=Array.from({length:c*c},rnd),at=(i,j)=>g[((j+c)%c)*c+((i+c)%c)];
+    for(let y=0;y<n;y++)for(let x=0;x<n;x++){const u=x/n*c,v=y/n*c,i=Math.floor(u),j=Math.floor(v),fu=u-i,fv=v-j,su=fu*fu*(3-2*fu),sv=fv*fv*(3-2*fv);
+      f[y*n+x]+=amp*((at(i,j)*(1-su)+at(i+1,j)*su)*(1-sv)+(at(i,j+1)*(1-su)+at(i+1,j+1)*su)*sv);}});return f;}
+function texFrom(n,fill,srgb){const c=document.createElement("canvas");c.width=c.height=n;const g=c.getContext("2d"),im=g.createImageData(n,n);fill(im.data);g.putImageData(im,0,0);
+  const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(1/24,1/24);t.anisotropy=8;if(srgb)t.encoding=THREE.sRGBEncoding;return t;}
+function normalTex(key,cells,strength){if(RT[key])return RT[key];const n=256,h=heightField(n,cells,key.length*977);
+  return RT[key]=texFrom(n,d=>{for(let y=0;y<n;y++)for(let x=0;x<n;x++){const L=h[y*n+(x+n-1)%n],Rr=h[y*n+(x+1)%n],U=h[((y+n-1)%n)*n+x],D=h[((y+1)%n)*n+x];
+    let nx=(L-Rr)*strength,ny=(U-D)*strength,nz=1,l=Math.hypot(nx,ny,nz);const i=4*(y*n+x);d[i]=(nx/l*0.5+0.5)*255;d[i+1]=(ny/l*0.5+0.5)*255;d[i+2]=(nz/l*0.5+0.5)*255;d[i+3]=255;}});}
+const glazeN=()=>normalTex("glaze",[[6,1],[12,0.5]],6);                 /* orange-peel ripple of a fired glaze */
+const biscuitN=()=>normalTex("biscuit",[[48,1],[128,0.7],[256,0.5]],10);  /* fine grain of unglazed clay */
+function roughTex(){if(RT.rough)return RT.rough;const n=256,h=heightField(n,[[32,1],[96,0.6]],7);return RT.rough=texFrom(n,d=>{for(let i=0;i<n*n;i++){const v=200+h[i]/1.6*55;d[4*i]=d[4*i+1]=d[4*i+2]=Math.min(255,v);d[4*i+3]=255;}});}
+/* iron speckles: dense and dark in stoneware, warm and sandy in terracotta, none in porcelain */
+function speckleTex(body,faint){const key="sp"+body+(faint?"f":"");if(RT[key])return RT[key];const n=512;let s1=body.length*31+(faint?7:1);const rnd=()=>(s1=(s1*16807)%2147483647)/2147483647;
+  const c=document.createElement("canvas");c.width=c.height=n;const g=c.getContext("2d");g.fillStyle="#fff";g.fillRect(0,0,n,n);
+  const cnt=body==="stoneware"?1400:900,col=body==="stoneware"?"58,44,32":"120,62,36",a=faint?0.35:0.75;
+  for(let i=0;i<cnt;i++){const r=rnd()<0.92?0.6+rnd()*1.1:1.6+rnd()*2;g.fillStyle=`rgba(${col},${a*(0.4+rnd()*0.6)})`;g.beginPath();g.arc(rnd()*n,rnd()*n,r,0,7);g.fill();}
+  if(body==="terracotta")for(let i=0;i<500;i++){g.fillStyle=`rgba(255,236,210,${0.25*rnd()})`;g.beginPath();g.arc(rnd()*n,rnd()*n,0.8+rnd(),0,7);g.fill();}
+  const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(1/30,1/30);t.anisotropy=8;t.encoding=THREE.sRGBEncoding;return RT[key]=t;}
+function hqMatOf(body,glaze,col,bd){const lin=new THREE.Color(col).convertSRGBToLinear();
+  const m=glaze==="unglazed"
+    ?new THREE.MeshStandardMaterial({color:lin,map:body==="porcelain"?null:speckleTex(body),roughness:1,roughnessMap:roughTex(),normalMap:biscuitN(),normalScale:new THREE.Vector2(0.9,0.9),metalness:0,envMapIntensity:0.08})
+    :new THREE.MeshPhysicalMaterial({color:lin,map:body==="porcelain"?null:speckleTex(body,true),roughness:0.2,metalness:0,normalMap:biscuitN(),normalScale:new THREE.Vector2(0.1,0.1),
+       clearcoat:1,clearcoatRoughness:0.03,clearcoatNormalMap:glazeN(),clearcoatNormalScale:new THREE.Vector2(0.3,0.3),envMapIntensity:0.22,reflectivity:0.5});
+  m.userData.translucent=bd.glow;m.emissive=new THREE.Color(0xff9a3c).convertSRGBToLinear();m.emissiveIntensity=0;return m;}
+function matOf(body,glaze){const k=(S.render?"R|":"")+body+"|"+glaze;if(MATS[k])return MATS[k];const bd=BODY[body]||BODY.porcelain;
+  if(S.render){const col0=glaze==="unglazed"?bd.col:(GLAZE[glaze]&&GLAZE[glaze].col!==null?GLAZE[glaze].col:new THREE.Color(bd.col).lerp(new THREE.Color(0xffffff),0.12).getHex());return MATS[k]=hqMatOf(body,glaze,col0,bd);}
   const col=glaze==="unglazed"?bd.col:(GLAZE[glaze]&&GLAZE[glaze].col!==null?GLAZE[glaze].col:new THREE.Color(bd.col).lerp(new THREE.Color(0xffffff),0.12).getHex());
   const m=glaze==="unglazed"
     ?new THREE.MeshStandardMaterial({color:col,roughness:0.92,metalness:0,envMapIntensity:0.2,bumpMap:grainTex(),bumpScale:0.035})        /* matte biscuit, fine grain */
@@ -321,8 +349,9 @@ const MAT={glaze:new THREE.MeshStandardMaterial({color:0xf6f1e8,roughness:0.22,m
 
 /* ---------- ground ---------- */
 let room=new THREE.Group();scene.add(room);
+const lc=h=>S.render?new THREE.Color(h).convertSRGBToLinear():new THREE.Color(h);
 function buildRoom(){scene.remove(room);room.traverse(o=>{if(o.geometry)o.geometry.dispose();});room=new THREE.Group();
-  const g=new THREE.Mesh(new THREE.PlaneGeometry(8000,8000),new THREE.MeshStandardMaterial({color:S.night?0x5c4c3f:0xefebe4,roughness:1}));g.rotation.x=-Math.PI/2;g.receiveShadow=true;room.add(g);scene.add(room);}
+  const g=new THREE.Mesh(new THREE.PlaneGeometry(8000,8000),new THREE.MeshStandardMaterial({color:lc(S.render?(S.night?0x3a3029:0xc4bcb0):(S.night?0x5c4c3f:0xefebe4)),roughness:1,envMapIntensity:0.2}));g.rotation.x=-Math.PI/2;g.receiveShadow=true;room.add(g);scene.add(room);}
 
 let built=new THREE.Group();scene.add(built);const pickable=[],lights=[];
 function shapeOf(p){const s=new THREE.Shape();p.forEach(([x,y],i)=>i?s.lineTo(x,y):s.moveTo(x,y));return s;}
@@ -343,12 +372,17 @@ const perMod=b=>b.span==="module";
 const topComplete=b=>{for(let c=0;c<b.cols;c++)for(let r=0;r<b.deep;r++)if(!alive(b,c+":"+r+":"+(b.levels-1)))return false;return true;};
 const roofRun=b=>(perMod(b)?1:Math.min(b.cols,b.deep))*W/2-9;
 function roofH(b){return b.roof==="none"?0:b.roof==="modern"?4:2.5+roofRun(b)*Math.tan(b.pitch*Math.PI/180);}
+/* flip any triangle whose normal points down, so the roof faces the sky */
+function outward(geo){const p=geo.attributes.position.array,u=geo.attributes.uv&&geo.attributes.uv.array;
+  for(let t=0;t<p.length;t+=9){const ax=p[t+3]-p[t],ay=p[t+4]-p[t+1],az=p[t+5]-p[t+2],bx=p[t+6]-p[t],by=p[t+7]-p[t+1],bz=p[t+8]-p[t+2];
+    if(az*bx-ax*bz<0){for(let k=0;k<3;k++){const q=p[t+3+k];p[t+3+k]=p[t+6+k];p[t+6+k]=q;}if(u){const i=t/3*2;for(let k=0;k<2;k++){const q=u[i+2+k];u[i+2+k]=u[i+4+k];u[i+4+k]=q;}}}}
+  geo.attributes.position.needsUpdate=true;geo.computeVertexNormals();}
 function slantRoof(b){const g=new THREE.Group(),hw=(perMod(b)?1:b.cols)*W/2,hd=(perMod(b)?1:b.deep)*W/2,a=roofRun(b),rise=a*Math.tan(b.pitch*Math.PI/180),fas=2.5,mat=roofMat(b);
   g.add(flat(sq(-hw,-hd,hw,hd),[sq(-hw+T+0.2,-hd+T+0.2,hw-T-0.2,hd-T-0.2)],fas,mat,0));
   const tw=hw-a,td=hd-a,v=[],y1=fas,y2=y1+rise,C=sq(-hw,-hd,hw,hd),Ct=sq(-tw,-td,tw,td);
   for(let k=0;k<4;k++){const a=C[k],c=C[(k+1)%4],at=Ct[k],ct=Ct[(k+1)%4];v.push(a[0],y1,a[1],c[0],y1,c[1],ct[0],y2,ct[1], a[0],y1,a[1],ct[0],y2,ct[1],at[0],y2,at[1]);}
-  const geo=new THREE.BufferGeometry();geo.setAttribute("position",new THREE.Float32BufferAttribute(v,3));geo.computeVertexNormals();
-  const m=new THREE.Mesh(geo,mat.clone());m.material.side=THREE.DoubleSide;m.castShadow=true;g.add(m);
+  const geo=new THREE.BufferGeometry();geo.setAttribute("position",new THREE.Float32BufferAttribute(v,3));geo.setAttribute("uv",new THREE.Float32BufferAttribute(v.filter((_,i)=>i%3!==1),2));geo.computeVertexNormals();
+  outward(geo);const m=new THREE.Mesh(geo,mat);m.castShadow=true;m.receiveShadow=true;g.add(m);
   g.add(flat(sq(-tw,-td,tw,td),[circle(4)],1.5,mat,y2-1.5));return g;}
 function modernRoof(b){const g=new THREE.Group(),hw=(perMod(b)?1:b.cols)*W/2,hd=(perMod(b)?1:b.deep)*W/2,mat=roofMat(b);
   g.add(flat(sq(-hw,-hd,hw,hd),[circle(4)],2.5,mat,1.5));g.add(flat(sq(-hw+T+0.2,-hd+T+0.2,hw-T-0.2,hd-T-0.2),[sq(-hw+T+1.8,-hd+T+1.8,hw-T-1.8,hd-T-1.8)],1.5,mat,0));return g;}
@@ -365,7 +399,7 @@ function buildBuilding(bi,gap,lightBudget){
       if(b.candles[l]&&b.plates[l]){const tea=new THREE.Mesh(new THREE.CylinderGeometry(19,19,8,24),MAT.tea);tea.position.set(mx(c),ys[l]+4,mz(r));g.add(tea);
         const fl=new THREE.Mesh(new THREE.SphereGeometry(2,10,8),MAT.flame);fl.scale.set(0.8,1.6,0.8);fl.position.set(mx(c),ys[l]+11,mz(r));g.add(fl);flames.push(fl);}}
     if(b.candles[l]&&b.plates[l]&&lightBudget.n<MAX_LIGHTS){lightBudget.n++;
-      const L=new THREE.PointLight(0xffa85a,0,520,2);L.position.set(0,ys[l]+14,0);L.userData.base=0.95*Math.sqrt(b.cols*b.deep);L.shadow.radius=4;L.castShadow=lightBudget.n<=4;L.shadow.mapSize.set(512,512);L.shadow.bias=-0.002;g.add(L);lights.push(L);}}
+      const L=new THREE.PointLight(0xffa85a,0,520,2);L.position.set(0,ys[l]+14,0);L.userData.base=0.95*Math.sqrt(b.cols*b.deep);L.shadow.radius=4;L.castShadow=S.render||lightBudget.n<=4;L.shadow.mapSize.set(S.render?384:512,S.render?384:512);L.shadow.bias=-0.002;g.add(L);lights.push(L);}}
   if(b.roof!=="none"){const one=()=>b.roof==="modern"?modernRoof(b):slantRoof(b);
     /* a one-piece roof needs a complete top level; otherwise every column gets its own lid on its highest module */
     if(perMod(b)||!topComplete(b)){const sb=Object.assign({},b,{span:"module"});
@@ -379,14 +413,40 @@ function rebuild(){
   scene.remove(built);built.traverse(o=>{if(o.geometry)o.geometry.dispose();});built=new THREE.Group();pickable.length=0;lights.length=0;flames.length=0;
   const gap=+S.explode,budget={n:0};S.buildings.forEach((_,bi)=>built.add(buildBuilding(bi,gap,budget)));
   scene.add(built);buildRoom();applyNight();}
-function applyNight(){const n=S.night;scene.background=new THREE.Color(n?0x5e4e42:0xf6f3ee);   /* abstract: a seamless warm-white backdrop by day, a warm dusk at night */
-  hemi.intensity=n?0.5:0.55;hemi.color.set(n?0xc09a7c:0xfff7ee);hemi.groundColor.set(n?0x5a4636:0xdcd0c0);sun.intensity=n?0.1:0.78;
-  const b=bounds(),cx=(b.x0+b.x1)/2,cz=(b.z0+b.z1)/2;sun.position.set(cx+300,700,cz+500);sun.target.position.set(cx,0,cz);
+function applyNight(){const n=S.night,rd=S.render;scene.background=lc(rd?(n?0x2a221c:0xb9b0a3):(n?0x5e4e42:0xf6f3ee));   /* abstract: a seamless warm-white backdrop by day, a warm dusk at night */
+  hemi.intensity=n?0.28:0.55;hemi.color.set(n?0x9a7c66:0xfff7ee);hemi.groundColor.set(n?0x3a2d24:0xdcd0c0);sun.intensity=n?0:0.78;   /* day: the sun; night: the candles */
+  const b=bounds(),cx=(b.x0+b.x1)/2,cz=(b.z0+b.z1)/2;sun.position.set(cx-480,640,cz+320);   /* low from the front left: shadows fall into view */sun.target.position.set(cx,0,cz);
   lights.forEach(L=>L.intensity=n?L.userData.base:0);flames.forEach(f=>f.visible=n);$("nightBtn").setAttribute("aria-pressed",n);
-  Object.values(MATS).forEach(m=>{m.emissiveIntensity=n&&m.userData.translucent?0.07:0;});}   /* thin porcelain glows a little when lit from inside */
-function resize(){const r=view.getBoundingClientRect();renderer.setSize(r.width,r.height,false);camera.aspect=r.width/r.height;camera.updateProjectionMatrix();}
+  Object.values(MATS).forEach(m=>{m.emissiveIntensity=n&&m.userData.translucent?(S.render?0.012:0.07):0;});   /* thin porcelain glows a little when lit from inside */
+  if(S.render){scene.environment=n?null:(envRoom||envBasic);   /* night: nothing but the candles */hemi.intensity=n?0.035:0.38;sun.intensity=n?0:1.1;sun.shadow.mapSize.set(4096,4096);sun.shadow.normalBias=0.4;
+    lights.forEach(L=>L.intensity=n?L.userData.base*1.25:0);
+    if(bloom){bloom.strength=n?0.45:0.1;bloom.threshold=n?0.78:0.95;bloom.radius=0.45;}}
+  else{scene.environment=envBasic;sun.shadow.normalBias=0;}
+  if(sun.shadow.map&&sun.shadow.map.width!==sun.shadow.mapSize.x){sun.shadow.map.dispose();sun.shadow.map=null;}}
+let composer=null,ssao=null,bloom=null,finalPass=null,fxaa=null;
+const LIBS=["shaders/CopyShader.js","shaders/LuminosityHighPassShader.js","shaders/SSAOShader.js","shaders/FXAAShader.js","math/SimplexNoise.js",
+  "postprocessing/EffectComposer.js","postprocessing/MaskPass.js","postprocessing/RenderPass.js","postprocessing/ShaderPass.js","postprocessing/SSAOPass.js","postprocessing/UnrealBloomPass.js","environments/RoomEnvironment.js"];
+const loadLibs=()=>LIBS.reduce((p,f)=>p.then(()=>new Promise((res,rej)=>{const s=document.createElement("script");s.src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/"+f;s.onload=res;s.onerror=()=>rej(new Error(f));document.head.appendChild(s);})),Promise.resolve());
+const FINAL={uniforms:{tDiffuse:{value:null},exposure:{value:0.8},time:{value:0}},
+  vertexShader:"varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}",
+  fragmentShader:`uniform sampler2D tDiffuse;uniform float exposure;uniform float time;varying vec2 vUv;
+    vec3 aces(vec3 x){return clamp((x*(2.51*x+0.03))/(x*(2.43*x+0.59)+0.14),0.0,1.0);}
+    void main(){vec3 c=texture2D(tDiffuse,vUv).rgb*exposure;c=aces(c);c=pow(c,vec3(1.0/2.2));
+      float v=smoothstep(0.92,0.3,length(vUv-0.5));c*=mix(0.9,1.0,v);
+      float n=fract(sin(dot(vUv,vec2(12.9898,78.233))+time)*43758.5453);c+=(n-0.5)*0.01;gl_FragColor=vec4(c,1.0);}`};
+function setupComposer(){const r=view.getBoundingClientRect(),w=Math.max(1,r.width),h=Math.max(1,r.height),pr=renderer.getPixelRatio();
+  composer=new THREE.EffectComposer(renderer);composer.addPass(new THREE.RenderPass(scene,camera));
+  ssao=new THREE.SSAOPass(scene,camera,w,h);ssao.kernelRadius=6;ssao.minDistance=0.0004;ssao.maxDistance=0.02;composer.addPass(ssao);
+  bloom=new THREE.UnrealBloomPass(new THREE.Vector2(w,h),0.12,0.55,0.92);composer.addPass(bloom);
+  finalPass=new THREE.ShaderPass(FINAL);composer.addPass(finalPass);
+  fxaa=new THREE.ShaderPass(THREE.FXAAShader);fxaa.uniforms.resolution.value.set(1/(w*pr),1/(h*pr));composer.addPass(fxaa);
+  const pm=new THREE.PMREMGenerator(renderer);envRoom=pm.fromScene(new THREE.RoomEnvironment(),0.04).texture;pm.dispose();}
+function setRender(on){S.render=on;$("renderBtn").setAttribute("aria-pressed",on);Object.keys(MATS).forEach(k=>delete MATS[k]);save();rebuild();}
+function resize(){const r=view.getBoundingClientRect();renderer.setSize(r.width,r.height,false);camera.aspect=r.width/r.height;camera.updateProjectionMatrix();
+  if(composer){composer.setSize(r.width,r.height);const pr=renderer.getPixelRatio();fxaa.uniforms.resolution.value.set(1/(r.width*pr),1/(r.height*pr));}}
+const draw=()=>{if(S.render&&composer){finalPass.uniforms.time.value=tick%100;composer.render();}else renderer.render(scene,camera);};
 new ResizeObserver(resize).observe(view);
-let tick=0;(function loop(){requestAnimationFrame(loop);controls.update();tick+=0.08;if(S.night){lights.forEach((L,i)=>L.intensity=L.userData.base*(0.96+Math.sin(tick*1.7+i)*0.04+Math.sin(tick*4.1+i*2)*0.02));flames.forEach((f,i)=>f.scale.y=1.6+Math.sin(tick*3+i)*0.12);}renderer.render(scene,camera);})();
+let tick=0;(function loop(){requestAnimationFrame(loop);controls.update();tick+=0.08;if(S.night){lights.forEach((L,i)=>L.intensity=L.userData.base*(S.render?1.25:1)*(0.96+Math.sin(tick*1.7+i)*0.04+Math.sin(tick*4.1+i*2)*0.02));flames.forEach((f,i)=>f.scale.y=1.6+Math.sin(tick*3+i)*0.12);}draw();})();
 const ray=new THREE.Raycaster(),ptr=new THREE.Vector2();let down=null;
 renderer.domElement.addEventListener("pointerdown",e=>down=[e.clientX,e.clientY]);
 renderer.domElement.addEventListener("pointerup",e=>{if(!down||Math.hypot(e.clientX-down[0],e.clientY-down[1])>5)return;const r=renderer.domElement.getBoundingClientRect();
@@ -533,6 +593,8 @@ on("modTools","click",e=>{const x=e.target.closest("button");if(!x)return;const 
   if(x.dataset.mc!==undefined){if(x.dataset.mc)m.col=x.dataset.mc;else delete m.col;renderUI();}});
 on("randWall","click",()=>{Bs().mods[S.sel][S.selFace]=randomWall(S.editSet);renderUI();});
 on("nightBtn","click",()=>{S.night=!S.night;save();rebuild();});
+on("renderBtn","click",()=>{const b=$("renderBtn");if(S.render){setRender(false);return;}
+  if(composer){setRender(true);return;}b.textContent="Loading…";loadLibs().then(()=>{setupComposer();setRender(true);}).catch(e=>alert("Render mode could not load: "+e.message)).finally(()=>b.textContent="Render");});
 on("explode","input",e=>{S.explode=+e.target.value;rebuild();});
 on("resetView","click",fitView);
 on("reset","click",()=>{if(confirm("Reset to the starting village?")){S=defaults();renderUI();fitView();}});
@@ -600,7 +662,7 @@ function makeSheet(jspdf){
 
   /* ================= sheet 1: general arrangement ================= */
   frame("GENERAL ARRANGEMENT","NTS (photo)");
-  renderer.render(scene,camera);const img=renderer.domElement.toDataURL("image/jpeg",0.92),cw=renderer.domElement.width,ch=renderer.domElement.height;
+  draw();const img=renderer.domElement.toDataURL("image/jpeg",0.92),cw=renderer.domElement.width,ch=renderer.domElement.height;
   const ih=Math.min(118,150*ch/cw),iw=ih*cw/ch;doc.addImage(img,"JPEG",12,12,iw,ih);lw(0.2);doc.rect(12,12,iw,ih);grey();TT("Viewport, as designed. Not to scale.",12,ih+15,5.2);ink();
   let y=14;const X=iw+20,row=(kk,v)=>{grey();TT(kk,X,y,5.6);ink();TT(String(v),X+30,y,6.4);y+=4.3;};
   TT(b.name,X,y,11);y+=6.5;
@@ -744,6 +806,7 @@ on("pdfBtn","click",()=>{const btn=$("pdfBtn"),t=btn.textContent;btn.textContent
   loadJsPDF().then(makeSheet).catch(e=>alert("The PDF could not be made: "+e.message)).finally(()=>{btn.textContent=t;btn.disabled=false;});});
 
 $("explode").value=S.explode;S.editSet=S.editSet||Bs().set;
+if(S.render){S.render=false;setTimeout(()=>$("renderBtn").click(),0);}
 resize();renderUI();fitView();
 })();
 </script>
