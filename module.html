@@ -127,6 +127,7 @@ select{background:var(--field);border:1px solid var(--line);border-radius:6px;pa
       <div class="row"><span class="lbl">Roof</span>
         <div class="seg" id="roofSeg"><button type="button" data-v="slant">Slanted</button><button type="button" data-v="modern">Modern</button><button type="button" data-v="none">Off</button></div>
         <label class="lbl" for="pitch">Pitch</label><input type="range" id="pitch" min="20" max="40" step="1" style="width:90px"><span class="lbl" id="pitchV"></span>
+        <label class="lbl" for="radius">Corners</label><input type="range" id="radius" min="0" max="4" step="0.5" title="Corner radius: up to 4 mm every opening design still clears the curve" style="width:80px"><span class="lbl" id="radiusV"></span>
         <div class="seg" id="spanSeg" title="One roof piece over the whole building, or a small lid on every top module"><button type="button" data-v="whole">Whole</button><button type="button" data-v="module">Per module</button></div>
         <label class="lbl" for="roofCol">Roof</label><select id="roofCol" aria-label="Roof finish"></select>
         <label class="lbl" for="plateCol">Plates</label><select id="plateCol" aria-label="Plate finish"></select></div>
@@ -361,9 +362,22 @@ const ANG={front:0,right:Math.PI/2,back:Math.PI,left:-Math.PI/2};
 const circle=(r,cx,cy,n)=>Array.from({length:n||20},(_,k)=>[(cx||0)+r*Math.cos(k/(n||20)*2*Math.PI),(cy||0)+r*Math.sin(k/(n||20)*2*Math.PI)]);
 function flat(outer,holes,depth,mat,y){const m=extrude(outer,holes,depth,mat);m.rotation.x=-Math.PI/2;m.position.y=y;return m;}
 const sq=(x0,z0,x1,z1)=>[[x0,z0],[x1,z0],[x1,z1],[x0,z1]];
+/* rectangle with rounded corners (radius r), as a polygon */
+function rsq(x0,z0,x1,z1,r){if(r<=0.01)return sq(x0,z0,x1,z1);const o=[],arc=(cx,cz,a0)=>{for(let k=0;k<=6;k++){const a=a0+k/6*Math.PI/2;o.push([cx+r*Math.cos(a),cz+r*Math.sin(a)]);}};
+  arc(x1-r,z0+r,-Math.PI/2);arc(x1-r,z1-r,0);arc(x0+r,z1-r,Math.PI/2);arc(x0+r,z0+r,Math.PI);return o;}
+const radOf=b=>b.radius===undefined?3:b.radius;
+/* the four rounded vertical edges of a module: a quarter ring of outer radius R (solid where R ≤ wall thickness) */
+function cornerPieces(b,k){const g=new THREE.Group(),R=Math.min(radOf(b),W/2-1);if(R<=0.01)return g;const h=W/2,mat=modMat(b,k);
+  [[1,1],[1,-1],[-1,-1],[-1,1]].forEach(([sx,sz])=>{const pts=[],cx=h-R,cz=h-R;
+    for(let i=0;i<=10;i++){const a=i/10*Math.PI/2;pts.push([cx+R*Math.cos(a),cz+R*Math.sin(a)]);}
+    if(R>T+0.01)for(let i=10;i>=0;i--){const a=i/10*Math.PI/2;pts.push([cx+(R-T)*Math.cos(a),cz+(R-T)*Math.sin(a)]);}
+    else{pts.push([h-R,h-T],[h-T,h-T],[h-T,h-R]);}
+    const m=flat(pts.map(([x,z])=>[x*sx,-z*sz]),[],H,mat,0);g.add(m);});
+  return g;}
 function buildWall(bi,k,fname){
   const o=B.build(S.buildings[bi].mods[k][fname]),g=new THREE.Group();g.rotation.y=ANG[fname];
-  const w=extrude([[0,0],[W,0],[W,H],[0,H]],o.holes.map(h=>h.p),T,modMat(S.buildings[bi],k));w.position.set(-W/2,0,W/2-T);w.userData={bi,k,fname};pickable.push(w);g.add(w);
+  const Rr=Math.min(radOf(S.buildings[bi]),W/2-1);
+  const w=extrude([[Rr,0],[W-Rr,0],[W-Rr,H],[Rr,H]],o.holes.map(h=>h.p),T,modMat(S.buildings[bi],k));w.position.set(-W/2,0,W/2-T);w.userData={bi,k,fname};pickable.push(w);g.add(w);
   return g;}
 const plateT=l=>l===0?BASE_T:PLATE_T;
 function levelY(b,gap){const ys=[];let y=0;for(let l=0;l<b.levels;l++){if(b.plates[l])y+=plateT(l)+gap*0.5;ys.push(y);y+=H+gap;}return {ys,top:y-gap};}
@@ -378,14 +392,14 @@ function outward(geo){const p=geo.attributes.position.array,u=geo.attributes.uv&
     if(az*bx-ax*bz<0){for(let k=0;k<3;k++){const q=p[t+3+k];p[t+3+k]=p[t+6+k];p[t+6+k]=q;}if(u){const i=t/3*2;for(let k=0;k<2;k++){const q=u[i+2+k];u[i+2+k]=u[i+4+k];u[i+4+k]=q;}}}}
   geo.attributes.position.needsUpdate=true;geo.computeVertexNormals();}
 function slantRoof(b){const g=new THREE.Group(),hw=(perMod(b)?1:b.cols)*W/2,hd=(perMod(b)?1:b.deep)*W/2,a=roofRun(b),rise=a*Math.tan(b.pitch*Math.PI/180),fas=2.5,mat=roofMat(b);
-  g.add(flat(sq(-hw,-hd,hw,hd),[sq(-hw+T+0.2,-hd+T+0.2,hw-T-0.2,hd-T-0.2)],fas,mat,0));
+  g.add(flat(rsq(-hw,-hd,hw,hd,radOf(b)),[sq(-hw+T+0.2,-hd+T+0.2,hw-T-0.2,hd-T-0.2)],fas,mat,0));
   const tw=hw-a,td=hd-a,v=[],y1=fas,y2=y1+rise,C=sq(-hw,-hd,hw,hd),Ct=sq(-tw,-td,tw,td);
   for(let k=0;k<4;k++){const a=C[k],c=C[(k+1)%4],at=Ct[k],ct=Ct[(k+1)%4];v.push(a[0],y1,a[1],c[0],y1,c[1],ct[0],y2,ct[1], a[0],y1,a[1],ct[0],y2,ct[1],at[0],y2,at[1]);}
   const geo=new THREE.BufferGeometry();geo.setAttribute("position",new THREE.Float32BufferAttribute(v,3));geo.setAttribute("uv",new THREE.Float32BufferAttribute(v.filter((_,i)=>i%3!==1),2));geo.computeVertexNormals();
   outward(geo);const m=new THREE.Mesh(geo,mat);m.castShadow=true;m.receiveShadow=true;g.add(m);
   g.add(flat(sq(-tw,-td,tw,td),[circle(4)],1.5,mat,y2-1.5));return g;}
 function modernRoof(b){const g=new THREE.Group(),hw=(perMod(b)?1:b.cols)*W/2,hd=(perMod(b)?1:b.deep)*W/2,mat=roofMat(b);
-  g.add(flat(sq(-hw,-hd,hw,hd),[circle(4)],2.5,mat,1.5));g.add(flat(sq(-hw+T+0.2,-hd+T+0.2,hw-T-0.2,hd-T-0.2),[sq(-hw+T+1.8,-hd+T+1.8,hw-T-1.8,hd-T-1.8)],1.5,mat,0));return g;}
+  g.add(flat(rsq(-hw,-hd,hw,hd,radOf(b)),[circle(4)],2.5,mat,1.5));g.add(flat(sq(-hw+T+0.2,-hd+T+0.2,hw-T-0.2,hd-T-0.2),[sq(-hw+T+1.8,-hd+T+1.8,hw-T-1.8,hd-T-1.8)],1.5,mat,0));return g;}
 function buildBuilding(bi,gap,lightBudget){
   const b=S.buildings[bi],g=new THREE.Group(),{ys,top}=levelY(b,gap),hw=b.cols*W/2,hd=b.deep*W/2;
   g.position.set(b.x,0,b.z);g.rotation.y=-b.rot*Math.PI/2;
@@ -393,9 +407,9 @@ function buildBuilding(bi,gap,lightBudget){
   for(let l=0;l<b.levels;l++){
     /* plate (or base) under the level: one piece for the whole floor, a vent over every module */
     if(b.plates[l]){const vents=[];for(let c=0;c<b.cols;c++)for(let r=0;r<b.deep;r++)vents.push(circle(4,mx(c),-mz(r)));
-      const p=flat(sq(-hw,-hd,hw,hd),l===0?[]:vents,plateT(l),plateMat(b),ys[l]-plateT(l)-gap*0.5);g.add(p);
-      if(l===0){const f=new THREE.Mesh(new THREE.BoxGeometry(b.cols*W+0.1,1.2,b.deep*W+0.1),footMat(b));f.position.y=ys[0]-plateT(0)-gap*0.5+0.6;g.add(f);}}
-    for(let c=0;c<b.cols;c++)for(let r=0;r<b.deep;r++){const k=c+":"+r+":"+l;if(!alive(b,k))continue;const mg=new THREE.Group();mg.position.set(mx(c),ys[l],mz(r));FACES.forEach(f=>mg.add(buildWall(bi,k,f)));g.add(mg);
+      const p=flat(rsq(-hw,-hd,hw,hd,radOf(b)),l===0?[]:vents,plateT(l),plateMat(b),ys[l]-plateT(l)-gap*0.5);g.add(p);
+      if(l===0){const f=flat(rsq(-hw-0.05,-hd-0.05,hw+0.05,hd+0.05,radOf(b)),[],1.2,footMat(b),ys[0]-plateT(0)-gap*0.5);g.add(f);}}
+    for(let c=0;c<b.cols;c++)for(let r=0;r<b.deep;r++){const k=c+":"+r+":"+l;if(!alive(b,k))continue;const mg=new THREE.Group();mg.position.set(mx(c),ys[l],mz(r));FACES.forEach(f=>mg.add(buildWall(bi,k,f)));mg.add(cornerPieces(b,k));g.add(mg);
       if(b.candles[l]&&b.plates[l]){const tea=new THREE.Mesh(new THREE.CylinderGeometry(19,19,8,24),MAT.tea);tea.position.set(mx(c),ys[l]+4,mz(r));g.add(tea);
         const fl=new THREE.Mesh(new THREE.SphereGeometry(2,10,8),MAT.flame);fl.scale.set(0.8,1.6,0.8);fl.position.set(mx(c),ys[l]+11,mz(r));g.add(fl);flames.push(fl);}}
     if(b.candles[l]&&b.plates[l]&&lightBudget.n<MAX_LIGHTS){lightBudget.n++;
@@ -460,7 +474,7 @@ renderer.domElement.addEventListener("pointerup",e=>{if(!down||Math.hypot(e.clie
   if(hit){const u=hit.object.userData;S.selB=u.bi;S.sel=u.k;S.selFace=u.fname;renderUI();}});
 
 /* ================= checks ================= */
-const faceChecks=(b,k,fn)=>B.checkFace(B.build(b.mods[k][fn]),shrinkOf(b));
+const faceChecks=(b,k,fn)=>B.checkFace(B.build(b.mods[k][fn]),shrinkOf(b),radOf(b));
 function wallSym(w){return w.mode!=="bays"||w.bays[0]===w.bays[2];}
 function sameMirror(a,b){return JSON.stringify(a)===JSON.stringify(mirror(b));}
 function buildingChecks(b){const hard=[],notes=[];const H_=(ok,label,v)=>hard.push({ok,label,v}),N=(ok,label,v)=>notes.push({ok,label,v,note:true});
@@ -515,7 +529,7 @@ function renderUI(){
   fixSel();const b=Bs(),[sc,sr,sl]=keyParts(S.sel);
   $("bList").innerHTML=S.buildings.map((x,i)=>`<button type="button" class="btn" data-b="${i}" style="${i===S.selB?"background:var(--ink);color:var(--paper);border-color:var(--ink)":""}">${x.name} <span style="opacity:.6;font-size:11px">${x.cols}×${x.deep}×${x.levels}</span></button>`).join("");
   $("villageMeta").textContent=S.buildings.length+" building"+(S.buildings.length>1?"s":"")+" · "+S.buildings.reduce((a,x)=>a+x.cols*x.deep*x.levels,0)+" modules";
-  seg($("setSeg"),b.set);seg($("colsSeg"),b.cols);seg($("deepSeg"),b.deep);$("levelsV").textContent=b.levels;seg($("roofSeg"),b.roof);seg($("spanSeg"),b.span||"whole");
+  seg($("setSeg"),b.set);seg($("colsSeg"),b.cols);seg($("deepSeg"),b.deep);$("levelsV").textContent=b.levels;seg($("roofSeg"),b.roof);seg($("spanSeg"),b.span||"whole");$("radius").value=radOf(b);$("radiusV").textContent="R "+radOf(b)+" mm";
   $("pitch").value=b.pitch;$("pitchV").textContent=b.pitch+"°";$("pitch").disabled=b.roof!=="slant";$("bodySel").value=b.body||"porcelain";seg($("finishSeg"),b.finish||"glazed");
   $("glazeSw").innerHTML=(b.finish||"glazed")==="glazed"?Object.entries(GLAZE).map(([k,g])=>{const c=g.col===null?BODY[b.body||"porcelain"].col:g.col;return `<button type="button" data-g="${k}" title="${g.name} glaze" aria-label="${g.name} glaze" aria-pressed="${(b.glazeCol||"white")===k}" style="width:22px;height:22px;border-radius:50%;cursor:pointer;background:${hex(c)};border:2px solid ${(b.glazeCol||"white")===k?"var(--terra)":"var(--line)"}${g.col===null?";background-image:linear-gradient(135deg,transparent 45%,rgba(0,0,0,.25) 50%,transparent 55%)":""}"></button>`;}).join(""):"";
   $("roofCol").innerHTML=`<option value="same">same as walls</option><option value="unglazed">unglazed ${BODY[b.body||"porcelain"].name.toLowerCase()}</option>`+Object.entries(GLAZE).map(([k,g])=>`<option value="${k}">${g.name} glaze</option>`).join("");$("roofCol").value=b.roofCol||"same";
@@ -568,6 +582,7 @@ on("deepSeg","click",e=>{const x=e.target.closest("button");if(!x)return;const b
 on("levelsSeg","click",e=>{const x=e.target.closest("button");if(!x||!x.dataset.d)return;const b=Bs(),n=Math.max(1,Math.min(MAX_LEVELS,b.levels+ +x.dataset.d));if(n!==b.levels){resize3(b,b.cols,b.deep,n);renderUI();}});
 on("roofSeg","click",e=>{const x=e.target.closest("button");if(!x)return;Bs().roof=x.dataset.v;renderUI();});
 on("pitch","input",e=>{Bs().pitch=+e.target.value;renderUI();});
+on("radius","input",e=>{Bs().radius=+e.target.value;renderUI();});
 on("spanSeg","click",e=>{const x=e.target.closest("button");if(!x)return;Bs().span=x.dataset.v;renderUI();});
 on("roofCol","change",e=>{Bs().roofCol=e.target.value;renderUI();});
 on("plateCol","change",e=>{Bs().plateCol=e.target.value;renderUI();});
@@ -690,7 +705,7 @@ function makeSheet(jspdf){
   y+=6;TT("CHECKS",X,y,6.5);y+=1;
   bc.hard.concat(bc.notes).forEach(c=>{y+=3.6;if(c.ok)doc.setTextColor(47,138,74);else if(c.note)doc.setTextColor(183,121,31);else doc.setTextColor(194,65,45);TT(c.ok?"OK":c.note?"NOTE":"FIX",X,y,5.4);ink();const t=doc.splitTextToSize(tx(c.label+": "+c.v),PW-14-X-12);TT(t,X+11,y,5.4);y+=2.4*(t.length-1);});
   notes(12,ih+22,iw-4,[`All dimensions in mm at the fired size. Mould and resin-print sizes = fired × ${k.toFixed(3)} (${shrinkOf(b)} % shrinkage, ${BODY[b.body||"porcelain"].name.toLowerCase()}).`,
-    "Walls 3.0 thick. Openings cut through, ≥ 3.0 from the 45° corners and from the scrape edge, ≥ 2.0 above the base lip; bars and columns ≥ 2.5; each wall ≤ 40 % open.",
+    `Walls 3.0 thick, vertical corners rounded R ${radOf(b)} (plates and roofs too). Openings cut through, ≥ ${Math.max(3,radOf(b))} from the corners`+" (mitre and radius) and from the scrape edge, ≥ 2.0 above the base lip; bars and columns ≥ 2.5; each wall ≤ 40 % open.",
     "Pieces are fired separately and stacked dry on 3 mm porcelain locating lips. No glue, no metal, no glass.",
     "Every candle stands on a plate. Plates and roofs carry Ø 8 vents over each module.",
     "Opening types from Houses of Beirut 1860–1925 (HoB) and Architectures de Beyrouth 1925–1970 (AdB); page references on the wall-type sheets."]);
@@ -725,7 +740,7 @@ function makeSheet(jspdf){
   const sp=Math.min(118/(b.cols*W+20),78/(b.deep*W+20),1.2),ss=Math.min(118/(b.cols*W+24),(96)/(fh+12),1.2);
   frame("PLAN · SECTION A–A · DETAIL 1",`plan ${sp.toFixed(2)}:1 · section ${ss.toFixed(2)}:1 · detail 3:1`);
   {const ox=24,oy=18+b.deep*W*sp+6,hw=b.cols*W,hd=b.deep*W;TT("PLAN AT GROUND LEVEL",ox-8,14,6.5);
-    for(let c=0;c<b.cols;c++)for(let r=0;r<b.deep;r++){const x0=ox+c*W*sp,y0=oy-(r+1)*W*sp;if(!alive(b,c+":"+r+":0")){dash("hidden");lw(0.12);doc.rect(x0,y0,W*sp,W*sp,"S");dash();continue;}doc.setFillColor(214,206,192);lw(0.3);doc.rect(x0,y0,W*sp,W*sp,"FD");doc.setFillColor(255,255,255);lw(0.15);doc.rect(x0+T*sp,y0+T*sp,(W-2*T)*sp,(W-2*T)*sp,"FD");
+    for(let c=0;c<b.cols;c++)for(let r=0;r<b.deep;r++){const x0=ox+c*W*sp,y0=oy-(r+1)*W*sp;if(!alive(b,c+":"+r+":0")){dash("hidden");lw(0.12);doc.rect(x0,y0,W*sp,W*sp,"S");dash();continue;}doc.setFillColor(214,206,192);lw(0.3);const rr=radOf(b)*sp;if(rr>0.05)doc.roundedRect(x0,y0,W*sp,W*sp,rr,rr,"FD");else doc.rect(x0,y0,W*sp,W*sp,"FD");doc.setFillColor(255,255,255);lw(0.15);const ri=Math.max(0,radOf(b)-T)*sp;if(ri>0.05)doc.roundedRect(x0+T*sp,y0+T*sp,(W-2*T)*sp,(W-2*T)*sp,ri,ri,"FD");else doc.rect(x0+T*sp,y0+T*sp,(W-2*T)*sp,(W-2*T)*sp,"FD");
       const cxm=x0+W*sp/2,cym=y0+W*sp/2;if(b.candles[0]){dash("hidden");lw(0.12);doc.circle(cxm,cym,19*sp,"S");dash();}
       if(b.levels>1&&b.plates.slice(1).some(Boolean)){lw(0.12);doc.circle(cxm,cym,4*sp,"S");}}
     for(let c=0;c<b.cols;c++){const x=ox+(c+0.5)*W*sp;dash("center");lw(0.08);doc.line(x,oy+2,x,oy-hd*sp-2);dash();bubble(x,oy-hd*sp-5,String(c+1));}
@@ -776,7 +791,7 @@ function makeSheet(jspdf){
   /* ================= sheets 4+: wall types ================= */
   const ws=1.7;
   types.forEach(([j,uses],ti)=>{if(ti%2===0)frame("WALL TYPES",ws.toFixed(2)+" : 1");
-    const spec=JSON.parse(j),o=B.build(spec),r=B.checkFace(o,shrinkOf(b)),ox=26+(ti%2)*140,oy=20+H*ws;
+    const spec=JSON.parse(j),o=B.build(spec),r=B.checkFace(o,shrinkOf(b),radOf(b)),ox=26+(ti%2)*140,oy=20+H*ws;
     const name=spec.mode==="bays"?spec.bays.map(id=>B.BAY[id].name).join(" · "):B.BY[spec.type].name+(spec.style?" ("+spec.style+")":"")+(spec.oculus?" + oculus":"");
     const ref=spec.mode==="bays"?[...new Set(spec.bays.map(id=>B.BAY[id].ref).filter(Boolean))].join("; "):B.BY[spec.type].ref;
     TT("WT"+(ti+1),ox-14,15,9);TT(doc.splitTextToSize(tx(name),112),ox+2,14,6);

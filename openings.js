@@ -184,7 +184,7 @@ function build(spec){
 function canOculus(spec){if(spec.mode==="bays")return false;const o=F(),c=BY[spec.type]||BY.blank;c.build(o,Object.assign({},spec,{oculus:false}));return (c.opts||[]).includes("oculus")&&oculusFits(o);}
 
 /* ---------- checks for one face ---------- */
-function checkFace(o,shrink){
+function checkFace(o,shrink,radius){const edge=Math.max(LIM.edge,radius||0);   /* openings stay off the rounded corner as well as the mitre */
   const k=1/(1-(shrink||14)/100),hs=o.holes.map(h=>({p:h.p,b:bbox(h.p)}));
   const minOpen=hs.length?Math.min(...hs.map(h=>Math.min(h.b.w,h.b.h))):null;
   let minGap=1e9;for(let i=0;i<hs.length;i++)for(let j=i+1;j<hs.length;j++)minGap=Math.min(minGap,gap(hs[i].p,hs[j].p));
@@ -194,7 +194,7 @@ function checkFace(o,shrink){
   add(minOpen===null||minOpen>=LIM.minOpen-1e-6,"Openings ≥ "+LIM.minOpen+" mm",minOpen===null?"none":minOpen.toFixed(1)+" mm");
   add(minOpen===null||minOpen*k-0.3>=LIM.minPin-1e-6,"Resin pins ≥ "+LIM.minPin+" mm master",minOpen===null?"–":(minOpen*k-0.3).toFixed(2)+" mm");
   add(open<=LIM.maxOpen+1e-6,"Wall ≤ "+LIM.maxOpen+" % open",open.toFixed(0)+" %");
-  add(hs.every(h=>h.b.x0>=LIM.edge-1e-6&&h.b.x1<=W-LIM.edge+1e-6),"≥ "+LIM.edge+" mm from the 45° corners",hs.length?Math.min(...hs.map(h=>Math.min(h.b.x0,W-h.b.x1))).toFixed(1)+" mm":"–");
+  add(hs.every(h=>h.b.x0>=edge-1e-6&&h.b.x1<=W-edge+1e-6),"≥ "+edge+" mm from the corners",hs.length?Math.min(...hs.map(h=>Math.min(h.b.x0,W-h.b.x1))).toFixed(1)+" mm":"–");
   add(hs.every(h=>h.b.y1<=H-LIM.top+1e-6),"Clear of the scrape edge ("+LIM.top+" mm)",hs.length?(H-Math.max(...hs.map(h=>h.b.y1))).toFixed(1)+" mm":"–");
   add(hs.every(h=>h.b.y0>=LIM.base-1e-6),"≥ "+LIM.base+" mm above the base lip",hs.length?Math.min(...hs.map(h=>h.b.y0)).toFixed(1)+" mm":"–");
   add(minGap>=LIM.minBar-1e-6&&(finMin===null||finMin>=LIM.minBar-1e-6),"Bars and columns ≥ "+LIM.minBar+" mm",(Math.min(minGap,finMin===null?1e9:finMin)<1e8?Math.min(minGap,finMin===null?1e9:finMin).toFixed(1)+" mm":"–"));
