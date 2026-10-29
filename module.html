@@ -151,7 +151,7 @@ body.showgrid #gridOverlay{background:repeating-linear-gradient(to bottom,transp
       <h2>Village <span class="meta" id="villageMeta"></span></h2>
       <div class="blist" id="bList"></div>
       <div class="f"><span class="lbl">Select</span><div class="v"><div class="seg"><button type="button" id="selAll">All</button><button type="button" id="selNone">Clear</button></div><span class="hint">shift or ⌘ click to pick several</span></div></div>
-      <div class="f"><span class="lbl">Add</span><div class="v"><select id="addKind" aria-label="Building to add"><option value="central">Central-hall house</option><option value="liwan">Līwān house</option><option value="photo">Arches &amp; keyholes</option><option value="stair">Stair tower</option><option value="modernRow">Modernist block</option><option value="modernTower">Modernist tower</option><option value="random">Random</option></select><button class="btn" type="button" id="addBtn">Add</button></div></div>
+      <div class="f"><span class="lbl">Add</span><div class="v"><select id="addKind" aria-label="Building to add"><option value="central">Central-hall house</option><option value="liwan">Līwān house</option><option value="photo">Arches &amp; keyholes</option><option value="stair">Stair tower</option><option value="modernRow">Modernist block</option><option value="modernTower">Modernist tower</option><option value="gridHouse">Grid house</option><option value="random">Random</option></select><button class="btn" type="button" id="addBtn">Add</button></div></div>
       <div class="f"><span class="lbl">Move</span><div class="v"><div class="seg" id="moveSeg"><button type="button" data-mv="-1,0" aria-label="Move left">←</button><button type="button" data-mv="1,0" aria-label="Move right">→</button><button type="button" data-mv="0,-1" aria-label="Move back">↑</button><button type="button" data-mv="0,1" aria-label="Move forward">↓</button><button type="button" id="rotBtn" aria-label="Turn 90°">⟳</button></div></div></div>
       <div class="f"><span class="lbl">Edit</span><div class="v"><div class="seg"><button type="button" id="dupB">Duplicate</button><button type="button" id="delB">Remove</button></div></div></div>
       <div class="f"><span class="lbl">Layout</span><div class="v"><div class="seg"><button type="button" id="gridVillage">Arrange on grid</button><button type="button" id="randVillage">Randomize village</button></div></div></div>
@@ -160,7 +160,7 @@ body.showgrid #gridOverlay{background:repeating-linear-gradient(to bottom,transp
 
     <div class="panel">
       <h2>Building <span class="meta" id="stackMeta"></span></h2>
-      <div class="f"><span class="lbl">Book</span><div class="v"><div class="seg" id="setSeg"><button type="button" data-v="ottoman">1860–1925</button><button type="button" data-v="modern">Modernist</button></div><button class="btn" type="button" id="randB">Randomize</button></div></div>
+      <div class="f"><span class="lbl">Book</span><div class="v"><div class="seg" id="setSeg"><button type="button" data-v="ottoman">1860–1925</button><button type="button" data-v="modern">Modernist</button><button type="button" data-v="grid">Grid</button></div><button class="btn" type="button" id="randB">Randomize</button></div></div>
       <div class="f"><span class="lbl">Size</span><div class="v trio">
         <div class="seg" id="colsSeg" title="Modules across"><button type="button" data-v="1">1</button><button type="button" data-v="2">2</button><button type="button" data-v="3">3</button></div>
         <div class="seg" id="deepSeg" title="Modules deep"><button type="button" data-v="1">1</button><button type="button" data-v="2">2</button><button type="button" data-v="3">3</button></div>
@@ -189,7 +189,7 @@ body.showgrid #gridOverlay{background:repeating-linear-gradient(to bottom,transp
       <div class="f" id="planPick"></div>
       <div class="f" id="modTools"></div>
       <div class="faces" id="faces"></div>
-      <div class="f"><span class="lbl">Style</span><div class="v"><div class="seg" id="editSetSeg"><button type="button" data-v="ottoman">1860–1925</button><button type="button" data-v="modern">Modernist</button></div></div></div>
+      <div class="f"><span class="lbl">Style</span><div class="v"><div class="seg" id="editSetSeg"><button type="button" data-v="ottoman">1860–1925</button><button type="button" data-v="modern">Modernist</button><button type="button" data-v="grid">Grid</button></div></div></div>
       <div class="f"><span class="lbl">Mode</span><div class="v"><div class="seg" id="modeSeg"><button type="button" data-v="bays">Three elements</button><button type="button" data-v="wall">Whole wall</button></div></div></div>
       <div id="editor"></div>
       <div class="big" id="bigFace"></div>
@@ -252,6 +252,12 @@ const KINDS={
       return r===1?wall("arched",{style:"pointed"}):wall("tallWindow");},{candles:[true,true],plates:[true,true]}),
   liwan:()=>make("Līwān house","ottoman",1,1,1,"slant",(c,r,l,f)=>f==="front"?wall("liwan",{style:"round",oculus:true}):f==="back"?wall("orientalDoor"):wall("high",{style:f==="left"?"pointed":"rect"})),
   stair:()=>make("Stair tower","ottoman",1,1,3,"slant",(c,r,l,f)=>f==="front"?[wall("westernDoor"),wall("coupled"),wall("arched",{style:"round",oculus:true})][l]:f==="back"?bays("none",l?"oculus":"small","none"):bays("none",["window","small","high"][l],"none")),
+  /* a Swiss-grid house: every wall composed on the 6 × 4 cell grid, so the openings line up across modules and levels */
+  gridHouse:()=>make("Grid house","grid",2,2,3,"modern",(c,r,l,f,ext)=>{
+      if(!ext)return bays("none","gTwo","none");
+      if(f==="front")return l===0?(c===0?wall("gDoor"):wall("gCounter")):[wall("gRhythm"),wall("gBand")][(l+c)%2];
+      if(f==="back")return wall(l%2?"gLadder":"gField");
+      return wall(l===2?"gChecker":l?"gColumn":"gStep");},{candles:[true,true,true],plates:[true,true,true]}),
   modernRow:()=>make("Modernist block","modern",3,1,2,"modern",(c,r,l,f,ext)=>{
       if(!ext)return bays("none","square","none");
       if(f==="front")return [wall("ribbon",{style:"two"}),wall("claustra",{style:"squares"}),wall("fins")][c];
@@ -282,9 +288,9 @@ const mirror=w=>w.mode==="bays"?bays(w.bays[2],w.bays[1],w.bays[0]):clone(w);
 function randomizeLight(b){
   b.candles=Array.from({length:b.levels},(_,l)=>Math.random()<(l===0?0.7:0.4));if(!b.candles.some(Boolean))b.candles[Math.floor(Math.random()*b.levels)]=true;
   b.plates=b.candles.map((c,l)=>c||Math.random()<(l===0?0.6:0.2));}
-function randomBuilding(){const tower=Math.random()<0.45,set=tower?(Math.random()<0.75?"modern":"ottoman"):(Math.random()<0.6?"ottoman":"modern");
+function randomBuilding(){const tower=Math.random()<0.45,set=Math.random()<0.2?"grid":tower?(Math.random()<0.75?"modern":"ottoman"):(Math.random()<0.6?"ottoman":"modern");
   const cols=tower?1:pick([1,2,3]),deep=tower?1:Math.min(cols,pick([1,2,3])),levels=tower?pick([3,4,5,6]):pick([1,2,3]);
-  const b=make(set==="modern"?(tower?"Modernist tower":"Modernist block"):(tower?"Stair tower":"House"),set,cols,deep,levels,set==="modern"?"modern":"slant",()=>wall("blank"));
+  const b=make(set==="grid"?(tower?"Grid tower":"Grid house"):set==="modern"?(tower?"Modernist tower":"Modernist block"):(tower?"Stair tower":"House"),set,cols,deep,levels,set==="ottoman"?"slant":"modern",()=>wall("blank"));
   randomizeLight(b);randomizeBuilding(b);return b;}
 const fp=b=>b.rot%2?{w:b.deep*W,d:b.cols*W}:{w:b.cols*W,d:b.deep*W};
 /* the village is a Swiss grid: square fields of 4 modules (240 mm), one module of each kept as the gutter, so the
@@ -636,7 +642,7 @@ function renderEditor(){
     ed.innerHTML=["Left bay","Centre bay","Right bay"].map((n,i)=>`<div class="bay"><span class="lbl">${n}</span><div class="chips" data-bay="${i}">${B.BAYS.filter(b=>inSet(b)||b.id===f.bays[i]).map(b=>`<button type="button" class="chip" data-el="${b.id}" aria-pressed="${f.bays[i]===b.id}" title="${b.name}${b.ref?" · "+b.ref:""}">${bayIcon(b.id)}<span>${b.name}</span></button>`).join("")}</div></div>`).join("");
   }else{
     const c=B.BY[f.type]||B.CAT[0];
-    let h=`<div class="cards">${B.CAT.filter(k=>inSet(k)||k.id===f.type).map(k=>`<button type="button" class="card" data-type="${k.id}" aria-pressed="${k.id===f.type}">${mini({type:k.id},k.name)}<span>${k.name}</span><span class="ref">${k.ref?(k.set==="modern"?k.ref.replace("Architectures de Beyrouth","AdB"):"HoB "+k.ref):"&nbsp;"}</span></button>`).join("")}</div>`;
+    let h=`<div class="cards">${B.CAT.filter(k=>inSet(k)||k.id===f.type).map(k=>`<button type="button" class="card" data-type="${k.id}" aria-pressed="${k.id===f.type}">${mini({type:k.id},k.name)}<span>${k.name}</span><span class="ref">${k.ref?(k.set==="modern"?k.ref.replace("Architectures de Beyrouth","AdB"):k.set==="grid"?"6 × 4 grid":"HoB "+k.ref):"&nbsp;"}</span></button>`).join("")}</div>`;
     const st=B.stylesOf(c);
     if(st)h+=`<div class="row"><label class="lbl" for="styleSel">${st.label}</label><select id="styleSel">${Object.entries(st.options).map(([k,v])=>`<option value="${k}"${(f.style||Object.keys(st.options)[0])===k?" selected":""}>${v}</option>`).join("")}</select></div>`;
     const opts=B.optsOf(c);if(opts.length)h+=`<div class="opts">${opts.map(k=>{const dis=k==="oculus"&&!B.canOculus(f);return `<label class="${dis?"off":""}" title="${dis?"No room above this opening for an oculus":""}"><input type="checkbox" data-opt="${k}"${f[k]&&!dis?" checked":""}${dis?" disabled":""}> ${B.optLabel(c,k)}</label>`;}).join("")}</div>`;
@@ -671,7 +677,7 @@ function renderUI(){
   const f=face(),o=B.build(f);if(!gone)$("bigFace").innerHTML=B.faceSVG(o,{night:true,dims:true,label:FNAME[S.selFace]+" wall elevation"});
   const sh=sharedOf(b,sc,sr,S.selFace,sl);
   if(f.mode==="bays")$("faceDesc").innerHTML=`<b>${f.bays.map(id=>B.BAY[id].name).join(" · ")}</b>. Three bays, each picked from the typical elements.`+(sh?" An inner wall: its openings pass light to the next room.":"");
-  else{const c=B.BY[f.type];$("faceDesc").innerHTML=`<b>${c.name}</b>${c.ref?` (${c.set==="modern"?c.ref:"Houses of Beirut "+c.ref})`:""}. ${c.desc}`+(sh?" An inner wall: its openings pass light to the next room.":"");}
+  else{const c=B.BY[f.type];$("faceDesc").innerHTML=`<b>${c.name}</b>${c.ref?` (${c.set!=="ottoman"?c.ref:"Houses of Beirut "+c.ref})`:""}. ${c.desc}`+(sh?" An inner wall: its openings pass light to the next room.":"");}
   $("editMeta").textContent=b.name.toLowerCase()+" · "+(b.levels>1?levelName(sl).toLowerCase()+" · ":"")+FNAME[S.selFace].toLowerCase()+" wall";
   const {top}=levelY(b,0),tot=top+roofH(b);{const n=selIdx().length;$("stackMeta").textContent=n>1?`${n} buildings selected: changes apply to all`:`${b.cols*W} × ${b.deep*W} × ${tot.toFixed(0)} mm`;}
   const vb=bounds();$("tag").textContent=`${S.buildings.length} buildings · ${(vb.x1-vb.x0).toFixed(0)} × ${(vb.z1-vb.z0).toFixed(0)} mm · selected: ${b.name}, ${b.cols}×${b.deep}×${b.levels}, ${tot.toFixed(0)} mm tall ≈ ${(tot*0.075).toFixed(1)} m at 1:75`;
@@ -695,7 +701,7 @@ on("delB","click",()=>{const del=selIdx();if(S.buildings.length-del.length<1)ret
 on("randVillage","click",()=>{const n=3+Math.floor(Math.random()*4),list=[],pal=pick(Object.keys(PALETTES));for(let i=0;i<n;i++){const b=randomBuilding();applyPalette(b,Math.random()<0.7?pal:pick(Object.keys(PALETTES)));autoPlace(b,list);list.push(b);}
   S.buildings=gridLayout(list);S.selB=0;S.multi=[];S.sel="0:0:0";renderUI();fitView();});
 on("gridVillage","click",()=>{gridLayout(S.buildings);renderUI();fitView();});
-on("setSeg","click",e=>{const x=e.target.closest("button");if(!x)return;each(b=>{b.set=x.dataset.v;if(b.set==="modern"&&b.roof==="slant")b.roof="modern";if(b.set==="ottoman"&&b.roof==="modern")b.roof="slant";});S.editSet=x.dataset.v;renderUI();});
+on("setSeg","click",e=>{const x=e.target.closest("button");if(!x)return;each(b=>{b.set=x.dataset.v;if(b.set!=="ottoman"&&b.roof==="slant")b.roof="modern";if(b.set==="ottoman"&&b.roof==="modern")b.roof="slant";});S.editSet=x.dataset.v;renderUI();});
 on("randB","click",()=>{each(b=>{randomizeBuilding(b);randomizeLight(b);applyPalette(b,pick(Object.keys(PALETTES)));});renderUI();});
 on("randLight","click",()=>{each(randomizeLight);renderUI();});
 on("colsSeg","click",e=>{const x=e.target.closest("button");if(!x)return;each(b=>resize3(b,+x.dataset.v,b.deep,b.levels));renderUI();});
@@ -721,8 +727,8 @@ on("levelPick","click",e=>{const x=e.target.closest("button");if(!x)return;const
 on("planPick","click",e=>{const x=e.target.closest("button");if(!x||!x.dataset.k)return;S.sel=x.dataset.k;renderUI();});
 on("faces","click",e=>{const x=e.target.closest("button");if(!x)return;S.selFace=x.dataset.face;renderUI();});
 on("editSetSeg","click",e=>{const x=e.target.closest("button");if(!x)return;S.editSet=x.dataset.v;renderUI();});
-on("modeSeg","click",e=>{const x=e.target.closest("button");if(!x)return;const f=face();if(f.mode===x.dataset.v)return;const m=S.editSet==="modern";
-  Bs().mods[S.sel][S.selFace]=x.dataset.v==="bays"?(m?bays("slot","square","slot"):bays("none","window","none")):(m?wall("ribbon"):wall("tallWindow"));renderUI();});
+on("modeSeg","click",e=>{const x=e.target.closest("button");if(!x)return;const f=face();if(f.mode===x.dataset.v)return;const m=S.editSet==="modern",gr=S.editSet==="grid";
+  Bs().mods[S.sel][S.selFace]=x.dataset.v==="bays"?(gr?bays("gSlot","gSquare","gSlot"):m?bays("slot","square","slot"):bays("none","window","none")):(gr?wall("gField"):m?wall("ribbon"):wall("tallWindow"));renderUI();});
 on("editor","click",e=>{const chip=e.target.closest(".chip"),card=e.target.closest(".card");const f=face();
   if(chip){f.bays[+chip.parentElement.dataset.bay]=chip.dataset.el;renderUI();}
   if(card){Bs().mods[S.sel][S.selFace]=wall(card.dataset.type);renderUI();}});
@@ -810,7 +816,7 @@ function makeSheet(jspdf){
   const ih=Math.min(118,150*ch/cw),iw=ih*cw/ch;doc.addImage(img,"JPEG",12,12,iw,ih);lw(0.2);doc.rect(12,12,iw,ih);grey();TT("Viewport, as designed. Not to scale.",12,ih+15,5.2);ink();
   let y=14;const X=iw+20,row=(kk,v)=>{grey();TT(kk,X,y,5.6);ink();TT(String(v),X+30,y,6.4);y+=4.3;};
   TT(b.name,X,y,11);y+=6.5;
-  row("Source",b.set==="ottoman"?"Houses of Beirut 1860–1925 (HoB)":"Architectures de Beyrouth 1925–1970 (AdB)");
+  row("Source",b.set==="ottoman"?"Houses of Beirut 1860–1925 (HoB)":b.set==="grid"?"Swiss grid, after Josef Müller-Brockmann":"Architectures de Beyrouth 1925–1970 (AdB)");
   row("Overall, fired",`${b.cols*W} × ${b.deep*W} × ${tot.toFixed(1)} mm`);
   row("Overall, mould",`${(b.cols*W*k).toFixed(1)} × ${(b.deep*W*k).toFixed(1)} × ${(tot*k).toFixed(1)} mm`);
   row("At 1:75",`${(b.cols*W*0.075).toFixed(1)} × ${(b.deep*W*0.075).toFixed(1)} × ${(tot*0.075).toFixed(1)} m`);
@@ -942,7 +948,7 @@ function makeSheet(jspdf){
     yy+=5;const sets={};o.holes.forEach(h=>sets[h.set||0]=(sets[h.set||0]||0)+1);
     yy=notes(ox-14,yy,122,[`${o.holes.length} openings, ${r.open.toFixed(1)} % of the wall open; ${Object.keys(sets).length} insert set${Object.keys(sets).length>1?"s":""} of ${Object.values(sets).join(" + ")} pins. ${r.ok?"Porcelain checks pass.":"FIX: "+r.list.filter(c=>!c.ok).map(c=>c.label).join("; ")}`,
       "Dashed box: 3.0 keep-out from the 45° corners and the scrape edge, 2.0 above the base lip. Pins 0.15 under the port, 1–2° draft.",
-      "Source: "+(ref?(spec.mode!=="bays"&&B.BY[spec.type].set!=="modern"?"Houses of Beirut "+ref:ref):"—"),
+      "Source: "+(ref?(spec.mode!=="bays"&&B.BY[spec.type].set==="ottoman"?"Houses of Beirut "+ref:ref):"—"),
       `Used on ${uses.length} wall${uses.length>1?"s":""}: `+uses.slice(0,14).map(([kk,f])=>{const [c,rr,l]=keyParts(kk);return `${levelName(l)} ${c+1}${"ABC"[rr]} ${f}`;}).join("; ")+(uses.length>14?"; …":"")],"NOTES");});
   doc.save(b.name.replace(/\W+/g,"-").toLowerCase()+"-technical-sheet.pdf");}
 

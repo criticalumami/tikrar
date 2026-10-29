@@ -140,6 +140,34 @@ CAT.push(
   desc:"A tall strip of small square lights, as the cast glass blocks that lit modernist stairwells.",
   build(o,q){for(let j=0;j<5;j++)for(let i=0;i<3;i++)hole(o,R(23+i*5.6,6+j*6,3,3));}}
 );
+/* ---------- Swiss grid (after Josef Müller-Brockmann): the 60 × 40 wall as a field of 6 × 4 cells ----------
+   4 mm side margins (clear of a 4 mm corner radius), 3 mm top and bottom, 2.8 mm gutters (over the 2.5 mm bar limit).
+   An opening is a run of whole cells, so openings line up from wall to wall, module to module and level to level. */
+const GM={x:4,y:3,g:2.8,cols:6,rows:4},GCW=(W-2*GM.x-(GM.cols-1)*GM.g)/GM.cols,GRH=(H-2*GM.y-(GM.rows-1)*GM.g)/GM.rows;
+/* cells c0..c0+cw-1 across, r0..r0+rh-1 up (row 0 at the bottom) */
+const CELL=(c0,r0,cw,rh)=>tag(R(GM.x+c0*(GCW+GM.g),GM.y+r0*(GRH+GM.g),cw*GCW+(cw-1)*GM.g,rh*GRH+(rh-1)*GM.g),"grid cell",{cells:[c0,r0,cw,rh]});
+const cells=(o,list)=>list.forEach(a=>hole(o,CELL(...a)));
+const GR="Swiss grid, after J. Müller-Brockmann";
+CAT.push(
+ {set:"grid",id:"gField",name:"Field",ref:GR,desc:"One block of 3 × 2 cells set off-centre, low on the wall: the asymmetric balance of a grid poster.",
+  build(o){cells(o,[[0,1,3,2]]);}},
+ {set:"grid",id:"gColumn",name:"Column and point",ref:GR,desc:"A full-height column of light on the fifth line, answered by a single cell at the opposite corner.",
+  build(o){cells(o,[[4,0,1,4],[1,3,1,1]]);}},
+ {set:"grid",id:"gBand",name:"Band",ref:GR,desc:"A ribbon five cells long on the second row, and one cell set apart above it.",
+  build(o){cells(o,[[0,1,5,1],[5,3,1,1]]);}},
+ {set:"grid",id:"gStep",name:"Steps",ref:GR,desc:"Four cells climbing the diagonal of the grid, one per row.",
+  build(o){cells(o,[[0,0,1,1],[1,1,1,1],[2,2,1,1],[3,3,1,1]]);}},
+ {set:"grid",id:"gRhythm",name:"Rhythm",ref:GR,desc:"Every cell of one row open: a regular beat across the wall that carries on into the next module.",
+  build(o){cells(o,[[0,2,1,1],[1,2,1,1],[2,2,1,1],[3,2,1,1],[4,2,1,1],[5,2,1,1]]);}},
+ {set:"grid",id:"gChecker",name:"Checker",ref:GR,desc:"Alternate cells, row by row: the most even light the grid allows.",
+  build(o){for(let r=0;r<4;r++)for(let c=r%2;c<6;c+=2)hole(o,CELL(c,r,1,1));}},
+ {set:"grid",id:"gCounter",name:"Counterpoint",ref:GR,desc:"A wide field of 4 × 2 cells on the ground, a single cell high at the far edge.",
+  build(o){cells(o,[[0,0,4,2],[5,3,1,1]]);}},
+ {set:"grid",id:"gLadder",name:"Ladder",ref:GR,desc:"One column of four separate cells, and a two-cell slot on the far side.",
+  build(o){cells(o,[[1,0,1,1],[1,1,1,1],[1,2,1,1],[1,3,1,1],[4,2,1,2]]);}},
+ {set:"grid",id:"gDoor",name:"Door and lights",ref:GR,desc:"A two-cell-wide door three rows high, with a row of three lights at the top.",
+  build(o){cells(o,[[1,0,2,3],[3,3,1,1],[4,3,1,1],[5,3,1,1]]);}}
+);
 const BY=Object.fromEntries(CAT.map(c=>[c.id,c]));
 
 /* ---------- typical elements, composed three to a wall (bay centres at 12, 30 and 48 mm) ---------- */
@@ -161,6 +189,12 @@ const BAYS=[
  {set:"modern",id:"porthole",name:"Porthole",ref:AB+" pp. 78–93",build:(o,c)=>hole(o,ELL(c,22,5,5))},
  {set:"modern",id:"portholes3",name:"Porthole column",ref:AB+" pp. 78–93",build:(o,c)=>[9,20,31].forEach(y=>hole(o,ELL(c,y,3,3)))},
  {set:"modern",id:"claustraCol",name:"Claustra column",ref:AB+" pp. 52–53",build:(o,c,i)=>{for(let j=0;j<5;j++)for(let k=0;k<3;k++)hole(o,R(c-6.1+k*4.9,8+j*4.9,2.4,2.4),1+i);}}
+ ,{set:"grid",id:"gTall",name:"Low pair",ref:GR,build:(o,c,i)=>hole(o,CELL(2*i,0,2,2))}
+ ,{set:"grid",id:"gSlot",name:"Slot",ref:GR,build:(o,c,i)=>hole(o,CELL(2*i,0,1,4))}
+ ,{set:"grid",id:"gSquare",name:"High square",ref:GR,build:(o,c,i)=>hole(o,CELL(2*i,2,2,2))}
+ ,{set:"grid",id:"gTwo",name:"Two cells",ref:GR,build:(o,c,i)=>{hole(o,CELL(2*i,1,1,1));hole(o,CELL(2*i+1,1,1,1));}}
+ ,{set:"grid",id:"gStack",name:"Stacked cells",ref:GR,build:(o,c,i)=>{hole(o,CELL(2*i+1,0,1,1));hole(o,CELL(2*i+1,2,1,1));}}
+ ,{set:"grid",id:"gTop",name:"Top light",ref:GR,build:(o,c,i)=>hole(o,CELL(2*i,3,2,1))}
 ];
 BAYS.forEach(b=>b.set=b.set||(b.id==="none"?"both":"ottoman"));
 const BAY=Object.fromEntries(BAYS.map(b=>[b.id,b]));
