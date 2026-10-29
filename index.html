@@ -5,112 +5,105 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Beit Lantern Proposals</title>
 <meta name="description" content="Proposals for Beit Lantern: slip-cast porcelain Lebanese lantern houses. Design language from Beirut architecture 1925–1970, an all-porcelain element library, the making process, and the app roadmap.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-:root{
-  --bg:#f6f4ef; --paper:#fffefb; --ink:#23201c; --muted:#6d665c; --line:#e3ded4;
-  --terra:#b5562f; --terra-soft:#f3e2d8; --night:#141a2a; --glow:#ffbf66;
-  --radius:10px;
-}
-@media (prefers-color-scheme: dark){
-  :root:not([data-theme="light"]){
-    --bg:#16140f; --paper:#1f1c17; --ink:#efe9df; --muted:#a59d90; --line:#36312a;
-    --terra:#e07a4f; --terra-soft:#3a2519;
-  }
-}
-:root[data-theme="dark"]{
-  --bg:#16140f; --paper:#1f1c17; --ink:#efe9df; --muted:#a59d90; --line:#36312a;
-  --terra:#e07a4f; --terra-soft:#3a2519;
-}
+/* Swiss grid, after Josef Müller-Brockmann: 12 columns, 24 px margins, 16 px gutters, an 8 px baseline.
+   Each section hangs its number and title in columns 1–3 and sets its content in columns 4–12.
+   One grotesque (no web fonts), flush left, black and white with one red. */
+:root{--bg:#fff;--paper:#fff;--ink:#111;--muted:#6b6b6b;--line:#dcdcdc;--rule:#111;--terra:#e2231a;--terra-soft:#fde9e8;--night:#141a2a;--glow:#ffbf66;--radius:0;
+  --m:24px;--g:16px;--sans:"Helvetica Neue",Helvetica,Inter,Arial,system-ui,sans-serif}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#0e0e0e;--paper:#0e0e0e;--ink:#f2f2f2;--muted:#9a9a9a;--line:#2c2c2c;--rule:#f2f2f2;--terra:#ff4436;--terra-soft:#3a1412}}
+:root[data-theme="dark"]{--bg:#0e0e0e;--paper:#0e0e0e;--ink:#f2f2f2;--muted:#9a9a9a;--line:#2c2c2c;--rule:#f2f2f2;--terra:#ff4436;--terra-soft:#3a1412}
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
-body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
-.wrap{max-width:1080px;margin:0 auto;padding:0 16px}
-h1,h2,h3{font-family:"Cormorant Garamond",Georgia,serif;font-weight:600;line-height:1.15;margin:0}
-h1{font-size:clamp(40px,7vw,72px)}
-h2{font-size:clamp(30px,4.5vw,42px);margin-bottom:12px}
-h3{font-size:24px;margin-bottom:6px}
-p{margin:0 0 12px}
-a{color:var(--terra)}
-.mono{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:13px}
-.eyebrow{font:500 12px/1 "JetBrains Mono",monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--terra);margin-bottom:14px}
-.lead{font-size:19px;color:var(--muted);max-width:720px}
-nav.top{position:sticky;top:0;z-index:10;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
-nav.top .wrap{display:flex;gap:18px;align-items:center;height:52px;overflow-x:auto;white-space:nowrap}
-nav.top a{color:var(--muted);text-decoration:none;font-size:14px}
-nav.top a:hover{color:var(--ink)}
-nav.top .brand{font-family:"Cormorant Garamond",serif;font-size:21px;font-weight:600;color:var(--ink);margin-right:auto}
-header.hero{padding:72px 0 40px}
-header.hero .note{margin-top:22px;display:inline-block;padding:10px 14px;border:1px solid var(--line);border-left:3px solid var(--terra);background:var(--paper);border-radius:6px;font-size:14px}
-section{padding:56px 0;border-top:1px solid var(--line)}
-.grid{display:grid;gap:16px}
-.g2{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
-.g3{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
-.card{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);padding:20px}
-.card h3{font-size:22px}
-.num{font:600 13px "JetBrains Mono",monospace;color:var(--terra)}
-.ideas .card p{font-size:15px;color:var(--muted);margin:0}
-/* explorer */
-.explorer{background:var(--paper);border:1px solid var(--line);border-radius:14px;overflow:hidden}
-.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:14px;border-bottom:1px solid var(--line)}
-.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;flex-wrap:wrap}
-.seg button{border:0;background:transparent;color:var(--ink);font:500 14px Inter,sans-serif;padding:8px 12px;cursor:pointer}
-.seg button+button{border-left:1px solid var(--line)}
-.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
-.toggle{display:inline-flex;align-items:center;gap:6px;font-size:14px;color:var(--muted);padding:0 6px;cursor:pointer}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/24px var(--sans);-webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums}
+.wrap{max-width:1440px;margin:0 auto;padding:0 var(--m)}
+h1,h2,h3{font-family:var(--sans);font-weight:700;margin:0;letter-spacing:-.02em}
+h1{font-size:clamp(40px,7vw,96px);line-height:.96;letter-spacing:-.04em}
+h2{font-size:32px;line-height:32px;margin-bottom:16px}
+h3{font-size:16px;line-height:24px;margin-bottom:8px}
+p{margin:0 0 16px}
+a{color:var(--ink);text-decoration-thickness:1px;text-underline-offset:3px}
+a:hover{color:var(--terra)}
+.mono{font-family:var(--sans);font-size:13px}
+.eyebrow{font:500 11px/16px var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--terra);margin-bottom:8px}
+.lead{font-size:18px;line-height:24px;color:var(--ink);max-width:none}
+nav.top{position:sticky;top:0;z-index:10;background:var(--bg);border-bottom:2px solid var(--rule)}
+nav.top .wrap{display:flex;gap:24px;align-items:center;height:48px;overflow-x:auto;white-space:nowrap}
+nav.top a{color:var(--ink);text-decoration:none;font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.06em}
+nav.top a:hover{color:var(--terra)}
+nav.top .brand{font:700 15px var(--sans);letter-spacing:-.01em;color:var(--ink);margin-right:auto}
+header.hero{padding:64px 0 48px}
+header.hero .wrap{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:var(--g)}
+header.hero .wrap>*{grid-column:1/-1}
+header.hero h1{grid-column:1/11}
+header.hero .lead,header.hero .note,header.hero p{grid-column:4/11}
+header.hero .note{margin-top:24px;display:block;padding:16px 0 0;border-top:2px solid var(--rule);font-size:13px;line-height:20px}
+section{padding:48px 0;border-top:2px solid var(--rule)}
+section>.wrap{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:var(--g);grid-auto-flow:row dense}
+section>.wrap>*{grid-column:4/-1;min-width:0}
+section>.wrap>.eyebrow,section>.wrap>h2{grid-column:1/4;grid-row:1;align-self:start}
+section>.wrap>h2{margin-top:24px}
+@media (max-width:860px){section>.wrap>*,section>.wrap>.eyebrow,section>.wrap>h2,header.hero .wrap>*{grid-column:1/-1!important}}
+.grid{display:grid;gap:var(--g)}
+.g2{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+.card{background:transparent;border:0;border-top:1px solid var(--rule);padding:8px 0 16px}
+.card h3{font-size:16px}
+.num{font:700 11px var(--sans);color:var(--terra);letter-spacing:.06em}
+.ideas .card p{font-size:14px;color:var(--muted);margin:0}
+.explorer{border-top:1px solid var(--rule)}
+.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:16px 0;border-bottom:1px solid var(--line)}
+.seg{display:inline-flex;border:1px solid var(--ink);flex-wrap:wrap}
+.seg button{height:32px;border:0;background:transparent;color:var(--ink);font:500 13px var(--sans);padding:0 12px;cursor:pointer}
+.seg button+button{border-left:1px solid var(--ink)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.toggle{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);padding:0 6px;cursor:pointer}
 .spacer{flex:1}
-.stage{transition:background .5s;display:block;width:100%;height:auto;max-height:600px}
+.stage{display:block;width:100%;height:auto;max-height:600px}
 .stage-wrap{position:relative}
-.era-info{display:grid;grid-template-columns:1.2fr 1fr;gap:20px;padding:18px 20px;border-top:1px solid var(--line)}
+.era-info{display:grid;grid-template-columns:1.2fr 1fr;gap:var(--g);padding:16px 0;border-top:1px solid var(--line)}
 .era-info h3{margin-bottom:4px}
-.era-info ul{margin:0;padding-left:18px;font-size:14px;color:var(--muted)}
-.era-info .tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
-.tag{font:500 12px "JetBrains Mono",monospace;padding:3px 8px;border-radius:99px;background:var(--terra-soft);color:var(--terra)}
+.era-info ul{margin:0;padding-left:16px;font-size:14px;color:var(--muted)}
+.era-info .tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.tag{font:500 11px var(--sans);padding:0 8px;line-height:24px;border:1px solid var(--terra);color:var(--terra)}
 @media (max-width:720px){.era-info{grid-template-columns:1fr}}
-/* tables */
-.tbl{width:100%;border-collapse:collapse;font-size:14px}
-.tbl th,.tbl td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
-.tbl th{font:500 12px "JetBrains Mono",monospace;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
-.tbl td.ok{color:#3c8a4f}
-.tbl-scroll{overflow-x:auto;background:var(--paper);border:1px solid var(--line);border-radius:var(--radius)}
-/* elements */
-.el{padding:0;overflow:hidden;display:flex;flex-direction:column}
+.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th,.tbl td{text-align:left;padding:8px 8px 7px 0;border-bottom:1px solid var(--line);vertical-align:top}
+.tbl th{font:500 11px var(--sans);text-transform:uppercase;letter-spacing:.06em;color:var(--muted);border-bottom:1px solid var(--rule)}
+.tbl td.ok{color:#1d7a3a}
+.tbl-scroll{overflow-x:auto;border-top:1px solid var(--rule)}
+.el{padding:0;overflow:hidden;display:flex;flex-direction:column;border-top:0}
 .el svg{display:block;width:100%;height:auto;background:var(--night)}
-.el .body{padding:16px 18px 18px}
+.el .body{padding:16px 0}
 .el .body p{font-size:14px;color:var(--muted);margin-bottom:8px}
-.el .how{font-size:13px;border-top:1px dashed var(--line);padding-top:8px;margin-top:4px;color:var(--ink)}
-.badge{display:inline-block;font:600 11px "JetBrains Mono",monospace;padding:2px 7px;border-radius:4px;margin-right:6px;vertical-align:2px}
-.badge.a{background:#dceee0;color:#24683a}
-.badge.b{background:#e5e1f5;color:#4a3d8c}
-.pattern-row{display:flex;gap:6px;padding:10px 14px 0}
-.pattern-row button{font:500 12px Inter,sans-serif;border:1px solid var(--line);background:transparent;color:var(--muted);padding:4px 9px;border-radius:99px;cursor:pointer}
+.el .how{font-size:13px;border-top:1px solid var(--line);padding-top:8px;margin-top:8px;color:var(--ink)}
+.badge{display:inline-block;font:700 11px var(--sans);padding:0 6px;margin-right:8px;vertical-align:1px;border:1px solid currentColor}
+.badge.a{color:#1d7a3a}.badge.b{color:#3d3d9e}
+.pattern-row{display:flex;gap:8px;padding:8px 0 0}
+.pattern-row button{font:500 12px var(--sans);border:1px solid var(--line);background:transparent;color:var(--muted);padding:4px 8px;cursor:pointer}
 .pattern-row button[aria-pressed="true"]{border-color:var(--terra);color:var(--terra)}
-/* process */
-.steps{counter-reset:s;list-style:none;margin:0;padding:0;display:grid;gap:12px}
-.steps li{display:grid;grid-template-columns:52px 1fr;gap:14px;background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);padding:16px}
-.steps li::before{counter-increment:s;content:counter(s,decimal-leading-zero);font:600 22px "Cormorant Garamond",serif;color:var(--terra)}
-.steps h3{font-size:21px}
-.steps p{font-size:14.5px;color:var(--muted);margin-bottom:6px}
-.imp{font-size:14px;margin:6px 0 0;padding-left:18px}
-.imp li{display:list-item;background:none;border:0;padding:0;margin:2px 0}
+.steps{counter-reset:s;list-style:none;margin:0;padding:0;display:grid;gap:0}
+.steps li{display:grid;grid-template-columns:64px 1fr;gap:var(--g);border-top:1px solid var(--rule);padding:16px 0}
+.steps li::before{counter-increment:s;content:counter(s,decimal-leading-zero);font:700 32px/32px var(--sans);color:var(--terra);letter-spacing:-.03em}
+.steps h3{font-size:16px}
+.steps p{font-size:14px;color:var(--muted);margin-bottom:8px}
+.imp{font-size:13px;margin:8px 0 0;padding-left:16px}
+.imp li{display:list-item;border:0;padding:0;margin:4px 0}
 .imp li::before{content:none}
-.imp li::marker{content:"▶  ";color:var(--terra);font-size:10px}
-.flow{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:18px 0 26px;font:500 13px "JetBrains Mono",monospace}
-.flow span{padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--paper)}
+.imp li::marker{content:"→  ";color:var(--terra)}
+.flow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:16px 0 24px;font:500 12px var(--sans)}
+.flow span{padding:4px 8px;border:1px solid var(--ink)}
 .flow i{color:var(--terra);font-style:normal}
-.diagram{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);padding:12px;margin-bottom:22px}
-.diagram svg{width:100%;height:auto;display:block;background:#fbfaf6;border-radius:6px}
-.diagram figcaption{font-size:13px;color:var(--muted);padding:6px 4px 0}
-/* roadmap */
+.diagram{border-top:1px solid var(--rule);padding:16px 0;margin-bottom:24px}
+.diagram svg{width:100%;height:auto;display:block;background:#fbfbfb}
+.diagram figcaption{font-size:12px;color:var(--muted);padding:8px 0 0}
 .road .card h3{display:flex;justify-content:space-between;align-items:baseline}
-.road ol{margin:0;padding-left:20px;font-size:14.5px}
-.road li{margin:6px 0}
-.road li b{font-weight:600}
+.road ol{margin:0;padding-left:20px;font-size:14px}
+.road li{margin:8px 0}
+.road li b{font-weight:700}
 .road li span{color:var(--muted)}
-footer{padding:40px 0 60px;border-top:1px solid var(--line);font-size:13px;color:var(--muted)}
-.themebtn{border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:6px;font-size:13px;padding:4px 9px;cursor:pointer}
+footer{padding:48px 0 64px;border-top:2px solid var(--rule);font-size:12px;color:var(--muted)}
+.themebtn{border:1px solid var(--ink);background:transparent;color:var(--ink);font-size:13px;width:32px;height:32px;cursor:pointer}
 </style>
 </head>
 <body>
@@ -133,7 +126,7 @@ footer{padding:40px 0 60px;border-top:1px solid var(--line);font-size:13px;color
   <h1>One module, a whole Beirut street</h1>
   <p class="lead" style="margin-top:18px">Every lantern is built from one porcelain module: a 60 × 60 mm square with 40 mm walls, 1:75 of a Beirut room. Its four walls take openings from the 1860–1925 houses or from Beirut's modernism; modules stack into houses and towers, and houses and towers line up into a village, all within the proportions of the two restoration manuals.</p>
   <div class="note"><b>Rules used throughout:</b> no non-porcelain accessories; for now everything is flush with the walls; every wall passes the porcelain limits (openings ≥ 1.6 mm, bars ≥ 2.5 mm, ≤ 40 % open, 3 mm from corners and edges); every fired piece ≤ 60 mm tall.</div>
-  <p style="margin-top:22px"><a href="module.html" style="display:inline-block;background:var(--ink);color:var(--paper);text-decoration:none;padding:11px 18px;border-radius:8px;font-weight:600">Open the Beit Lantern Designer →</a>
+  <p style="margin-top:22px"><a href="module.html" style="display:inline-block;background:var(--ink);color:var(--bg);text-decoration:none;padding:0 16px;line-height:40px;font-weight:700">Open the Beit Lantern Designer →</a>
   <span style="color:var(--muted);font-size:14px;margin-left:10px">Village and building editor in 3D: pick openings for every wall, candles and plates per level, roof, clay and glaze, checks, and a CAD technical sheet as PDF.</span></p>
 </div></header>
 
@@ -154,7 +147,7 @@ footer{padding:40px 0 60px;border-top:1px solid var(--line);font-size:13px;color
   <div class="eyebrow">Houses of Beirut 1860–1925</div>
   <h2>Pick your openings</h2>
   <p class="lead">The printed piece is one porcelain module: a 60 × 60 mm square with 40 mm walls, 3 mm thick. Base, modules and roof are separate pieces: modules stack on porcelain lips (as many levels as you like) or line up side by side, under a slanted or modern flat roof. For now everything is flush with the walls: openings only, no mouldings, balconies or overhangs. Each wall takes typical openings, three elements side by side or one whole-wall design, or a random draw.</p>
-  <p style="margin-top:18px"><a href="module.html" style="display:inline-block;background:var(--ink);color:var(--paper);text-decoration:none;padding:11px 18px;border-radius:8px;font-weight:600">Open the module designer →</a>
+  <p style="margin-top:18px"><a href="module.html" style="display:inline-block;background:var(--ink);color:var(--bg);text-decoration:none;padding:0 16px;line-height:40px;font-weight:700">Open the module designer →</a>
   <span style="color:var(--muted);font-size:14px;margin-left:10px">3D preview, candlelight, stacking and rows, roof and base, randomize, and porcelain checks on every wall.</span></p>
   <h3 style="margin-top:30px">Typical elements, three to a wall</h3>
   <div class="grid" id="bayGrid" style="grid-template-columns:repeat(auto-fill,minmax(110px,1fr));margin-top:12px"></div>
@@ -179,7 +172,7 @@ footer{padding:40px 0 60px;border-top:1px solid var(--line);font-size:13px;color
   <h2>Iconic modernist Beirut, as lanterns</h2>
   <p class="lead">Proposed landmark lanterns, after studying photographs of each building. Each keeps the building's signature elements and its proportions (storey counts, height-to-width ratios, bay rhythm, measured from photos to about ±10 %) and is designed to survive casting and firing.</p>
   <p class="mono" style="color:var(--muted);margin-top:10px">All six are drawn at the same scale, 1 unit = 1 mm fired, so their sizes compare directly. A village house is 180 mm wide. Each landmark gets its own scale (1:200–1:400): at the village's 1:75 a 14-storey tower would be 0.6 m.</p>
-  <div class="note" style="margin-top:14px;padding:12px 14px;border:1px solid var(--line);border-left:3px solid var(--terra);background:var(--paper);border-radius:6px;font-size:14px"><b>Porcelain-safe rules.</b> Porcelain softens at top temperature, so tall thin walls lean and lattice-like walls crack or slump. Every landmark follows four rules:
+  <div class="note" style="margin-top:16px;padding:8px 0 0;border-top:1px solid var(--rule);font-size:13px;line-height:20px"><b>Porcelain-safe rules.</b> Porcelain softens at top temperature, so tall thin walls lean and lattice-like walls crack or slump. Every landmark follows four rules:
   <ul style="margin:6px 0 0;padding-left:18px">
     <li><b>Fired sections ≤ 60 mm</b>, each fired on its own, then stacked dry on 3 mm porcelain locating lips, with no glue. The tealight sits in the base section.</li>
     <li><b>Each wall ≤ 40 % open.</b> The rest of a facade pattern (fins, slab edges, deep cells) is relief: raised 0.8–1 mm or recessed 1 mm. The card's figure is computed from the drawing.</li>
@@ -251,7 +244,7 @@ footer{padding:40px 0 60px;border-top:1px solid var(--line);font-size:13px;color
       <!-- cavity -->
       <rect x="418" y="20" width="140" height="230" fill="none" stroke="#cfc8bb" stroke-dasharray="4 4"/>
       <!-- labels -->
-      <g font-family="Inter,sans-serif" font-size="13" fill="#3a352e">
+      <g font-family="Helvetica Neue,Helvetica,Arial,sans-serif" font-size="13" fill="#3a352e">
         <text x="300" y="240">plaster wall piece</text>
         <text x="440" y="36">relief: a recess in the plaster,</text>
         <text x="440" y="52">3° draft, ≤ 1.2 mm deep</text>
@@ -448,7 +441,7 @@ const DRAW={
     c.joint(x,W,y0+48);}
   for(let j=0;j<=12;j++)c.rel(x-2,Y-25-j*16-1.2,W+4,2.4);
   c.mass(x+18,Y-29,96,2.5);[34,98].forEach(o=>c.mass(x+o,Y-26.5,4,26.5));
-  c.r(x+46,Y-37,40,6,"#2a2a2a");c.s+=`<text x="${x+66}" y="${Y-32.4}" fill="${G}" font-size="4.6" text-anchor="middle" font-family="Inter,sans-serif">CINEMA</text>`;
+  c.r(x+46,Y-37,40,6,"#2a2a2a");c.s+=`<text x="${x+66}" y="${Y-32.4}" fill="${G}" font-size="4.6" text-anchor="middle" font-family="Helvetica Neue,Helvetica,Arial,sans-serif">CINEMA</text>`;
   return {w:W,h:217};},
  holiday(c){const px=(VW-150)/2,x=px+25,W=110,T=20,fh=7.75;
   const P=c.wall(px,Y-22,150,22);for(let i=0;i<9;i++)c.hole(P,px+7+i*16,Y-16,10,9);c.mass(px-2,Y-24,154,3);
