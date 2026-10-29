@@ -8,14 +8,16 @@ const FLUSH=true;
 const LIM={edge:3,top:3,base:2,minOpen:1.6,minBar:2.5,maxOpen:40,reliefTop:1,maxPins:40,section:60,wall:3,minPin:1.4,canti:6,tealight:38};
 
 /* ---------- outlines ---------- */
-const R=(x,y,w,h)=>[[x,y],[x+w,y],[x+w,y+h],[x,y+h]];
+/* every outline remembers its kind and radius, for the technical sheet's annotations */
+const tag=(p,kind,o)=>Object.assign(p,{kind},o||{});
+const R=(x,y,w,h)=>tag([[x,y],[x+w,y],[x+w,y+h],[x,y+h]],"rect");
 function ARC(cx,cy,r,a0,a1,n){const o=[];for(let k=0;k<=n;k++){const a=a0+(a1-a0)*k/n;o.push([cx+r*Math.cos(a),cy+r*Math.sin(a)]);}return o;}
-const ROUND=(x,s,w,h)=>{const r=w/2,st=Math.max(0.01,h-r);return [[x,s],[x+w,s],...ARC(x+r,s+st,r,0,PI,20)];};
-const POINTED=(x,s,w,h)=>{const st=Math.max(0.01,h-0.866*w);return [[x,s],[x+w,s],...ARC(x,s+st,w,0,PI/3,10),...ARC(x+w,s+st,w,2*PI/3,PI,10).slice(1)];};
-const SEGM=(x,s,w,h)=>{const r0=w/6,Rr=(w*w/4+r0*r0)/(2*r0),st=Math.max(0.01,h-r0),cy=s+st+r0-Rr,a=Math.asin((w/2)/Rr);return [[x,s],[x+w,s],...ARC(x+w/2,cy,Rr,PI/2-a,PI/2+a,16)];};
-const ELL=(cx,cy,rx,ry)=>{const o=[];for(let k=0;k<32;k++){const a=2*PI*k/32;o.push([cx+rx*Math.cos(a),cy+ry*Math.sin(a)]);}return o;};
+const ROUND=(x,s,w,h)=>{const r=w/2,st=Math.max(0.01,h-r);return tag([[x,s],[x+w,s],...ARC(x+r,s+st,r,0,PI,20)],"round arch",{r,cx:x+r,cy:s+st});};
+const POINTED=(x,s,w,h)=>{const st=Math.max(0.01,h-0.866*w);return tag([[x,s],[x+w,s],...ARC(x,s+st,w,0,PI/3,10),...ARC(x+w,s+st,w,2*PI/3,PI,10).slice(1)],"pointed arch",{r:w,cx:x,cy:s+st});};
+const SEGM=(x,s,w,h)=>{const r0=w/6,Rr=(w*w/4+r0*r0)/(2*r0),st=Math.max(0.01,h-r0),cy=s+st+r0-Rr,a=Math.asin((w/2)/Rr);return tag([[x,s],[x+w,s],...ARC(x+w/2,cy,Rr,PI/2-a,PI/2+a,16)],"segmental arch",{r:Rr,cx:x+w/2,cy});};
+const ELL=(cx,cy,rx,ry)=>{const o=[];for(let k=0;k<32;k++){const a=2*PI*k/32;o.push([cx+rx*Math.cos(a),cy+ry*Math.sin(a)]);}return tag(o,Math.abs(rx-ry)<1e-6?"circle":"oval",{r:rx,ry,cx,cy});};
 /* horseshoe ("keyhole") arch: the circle is wider than the shaft below it */
-const HORSESHOE=(x,s,w,h)=>{const r=w*0.6,cx=x+w/2,cy=s+h-r,a0=Math.atan2(-Math.sqrt(r*r-w*w/4),w/2);return [[x,s],[x+w,s],...ARC(cx,cy,r,a0,PI-a0,24)];};
+const HORSESHOE=(x,s,w,h)=>{const r=w*0.6,cx=x+w/2,cy=s+h-r,a0=Math.atan2(-Math.sqrt(r*r-w*w/4),w/2);return tag([[x,s],[x+w,s],...ARC(cx,cy,r,a0,PI-a0,24)],"horseshoe arch",{r,cx,cy});};
 const ARCHES={pointed:POINTED,round:ROUND,horseshoe:HORSESHOE};
 function bbox(p){let a=1e9,b=1e9,c=-1e9,d=-1e9;p.forEach(([x,y])=>{a=Math.min(a,x);b=Math.min(b,y);c=Math.max(c,x);d=Math.max(d,y);});return {x0:a,y0:b,x1:c,y1:d,w:c-a,h:d-b};}
 function area(p){let s=0;for(let i=0;i<p.length;i++){const [x0,y0]=p[i],[x1,y1]=p[(i+1)%p.length];s+=x0*y1-x1*y0;}return Math.abs(s)/2;}

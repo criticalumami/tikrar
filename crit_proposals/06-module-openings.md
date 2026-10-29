@@ -103,13 +103,35 @@ All 4,096 three-bay combinations and all 134 whole-wall variants were checked: t
 
 All mouldings are 0.8 mm relief cast with the wall. Balconies and sun-shades are porcelain, with a 6 mm cantilever and no prop. No iron, glass or wood is added.
 
-## In the module designer
+## The Beit Lantern Designer (`docs/module.html`)
 
-- **Layout:** 1–3 modules across and 1–8 up (+ / − levels), a slanted or modern roof (or none) and a base (or none).
-- **Randomize:** the whole lantern or just the selected wall, within the current style. Side walls come out matching, and every draw passes the checks, because every combination does.
-- **Walls:** for each wall of each module, switch the style between 1860–1925 and Modernist. Then pick three elements or a whole-wall design with its options. Tap a wall in the 3D view to edit it.
-- **Copying:** copy a wall to all four sides, or a module to all modules.
-- **Checks:** each wall has its own checks, plus whole-lantern checks (sections, lips, separate pieces, tealight, vent, cantilevers).
-- **Views and export:** day, night and explode views, and a download of every elevation as SVG at 1 unit = 1 mm.
+The designer is the site's one design tool. Everything happens in one 3D scene, kept abstract and white: a warm off-white ground by day, a warm dusk at night.
 
-The village studio now defaults to 40 mm floors and a 30° roof, to match the printed module.
+### Village and buildings
+- A **village** is a set of buildings on a 30 mm grid. Add central-hall houses, līwān houses, stair towers, modernist blocks and towers, or a random one. Buildings move, turn 90°, duplicate and may touch wall to wall, as in Beirut's dense blocks.
+- A **building** is 1–3 modules across × 1–3 deep × 1–8 up. Walls between modules stay inside the building, and their openings pass light from room to room.
+- **Each level** has its own switches for a porcelain **plate** (the 6 mm base at ground level, 4 mm above, Ø 8 vent per module) and **candles** (one Ø 38 tealight per module). A candle always gets a plate under it.
+- **Roof**: slanted (hipped, ~30°, HoB p. 80) or modern (a flat slab), as **one piece** over the whole building or **one per module**. Both are vented and flush with the walls.
+- **Material**: clay body (porcelain 14 %, stoneware 12 %, terracotta 8 % shrinkage), glazed or unglazed, and a glaze colour (clear, white, celadon, turquoise, cobalt, honey, terracotta red, oxblood, black). The roof follows the walls or takes its own finish. The checks and the sheets use the chosen clay's shrinkage.
+
+### Walls
+- Choose a level and a module on the plan grid, then a wall (or tap it in 3D). Pick three elements or a whole-wall design from either book.
+- **Use this pattern on**: this module's four walls, a whole side over every level, every outside wall of a level, or every outside wall of the building.
+- **Randomize** a wall, a building (the street front stays symmetric for 1860–1925 houses, and the side walls match) or the whole village.
+
+### Checks
+- **Porcelain (must pass):** every wall's limits, fired pieces ≤ 60 mm, every candle on a plate, no overlapping buildings.
+- **Proportions (advice, from the two manuals):**
+  - 1860–1925 houses: one to three levels (HoB p. 24), a plan close to square for the central-hall type (HoB pp. 22–23), a slanted ~30° roof (HoB p. 80), a symmetric street front (HoB p. 22).
+  - Modernist buildings: a flat roof, and they may rise as towers (AdB pp. 16–20).
+  - Every level should get candlelight. A level with a plate below it and no candle of its own stays dark.
+
+### Technical sheet (PDF, A4 landscape, CAD style)
+Every sheet has a border with zone references and a title block: building, material, scale, units with mould factor, shrinkage, ±0.2 mm tolerance, date, sheet number and the first-angle symbol.
+1. **General arrangement**: the viewport image, overall sizes (fired, mould and at 1:75), a bill of pieces (modules, plates, roofs, wall types), checks and general notes.
+2. **Elevations**: all four, at one scale, with grid-axis bubbles, centre lines, level datums, wall-type tags, chained and overall dimensions.
+3. **Plan, section A–A and Detail 1**: the plan with wall thickness, tealights, vents, grid axes and the cut line; a hatched section through walls, plates and roof; and the stacking joint at 3:1, with leader notes (3.0 walls, plate with Ø 8 vent, 1.6 × 1.5 locating lip, 0.2 clearance).
+4. **Wall types**, two per sheet:
+   - each distinct wall drawn at 1.7:1 with the 3 mm keep-out zone, opening centre lines, tags O1… with leaders, and Ø or R annotations
+   - chained x and y dimensions and an opening schedule (kind, W, H, sill, centres, mould W × H)
+   - pins and insert sets, the source page, and where the wall is used

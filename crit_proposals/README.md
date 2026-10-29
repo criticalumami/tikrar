@@ -22,15 +22,12 @@ These are proposals only. Nothing in `index.html` has been changed.
 ## Website and 3D studio
 
 - `docs/index.html`: the proposals as a website, with an interactive facade explorer and a Beirut modernism section
-- `docs/module.html`: the **module designer**: pick typical 1860–1925 or modernist openings for every wall of every module, stack or line up modules, choose a slanted or modern roof and a base, with porcelain checks on every wall
-- `docs/app.html`: **Beit Lantern Studio**, a modular 3D editor (three.js r128) that applies these proposals:
-  - houses of 1–3 modules across, 1–3 deep (square central-hall plans by default) and 1–5 floors, each set to an era
-  - a role for each front bay
-  - all-porcelain elements: balconies with openwork, bay window, translucent panes, relief, openwork parapet; every window is one clean opening, with no bars
-  - a day/night candle view with candle controls for the whole village, each house, each floor and each room, plus an explode slider
-  - a production panel that counts plaster and accessory molds and runs the new feature checks (opening, bar and pin sizes, corner and scrape-edge clearance, relief, pins per set, cantilever props, tealight fit) and the porcelain-safe checks: each wall ≤ 40 % open, fired sections ≤ 60 mm, 3 mm walls where sections stack, long fins and bars ≥ 2.5 mm
-
-  It keeps the editor's project rules: one floor height and one low-balcony height, fired sizes, master = fired ÷ (1 − shrink).
+- `docs/module.html`: the **Beit Lantern Designer**, the one design tool of the site (three.js r128):
+  - a village of houses and towers on a 30 mm grid, each building 1–3 modules across, 1–3 deep and 1–8 up
+  - every wall of every module picks typical openings from *Houses of Beirut 1860–1925* or modernist patterns, as three elements or a whole-wall design; apply one pattern to a module, a side, a level or the whole building; randomize a wall, a building or the village
+  - per level: a porcelain plate (the base at ground level) and candles; the roof slanted (~30°) or modern, one piece or per module; clay, finish and glaze colour
+  - porcelain checks per wall and building, proportion notes from both manuals, and a CAD technical sheet per building (general arrangement, elevations, plan, section A–A, stacking detail, every wall type dimensioned, mould sizes)
+- `docs/app.html`: forwards to the designer (the earlier Beit Lantern Studio was folded into it)
 
 Both are served from `docs/` once GitHub Pages is turned on (Settings → Pages → `main` / `/docs`).
 
