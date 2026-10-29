@@ -8,100 +8,140 @@
 <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <style>
-/* Swiss grid (after Josef Müller-Brockmann): one grotesque, flush left, a 12-column grid with a 16 px gutter,
-   8 px baseline steps, black hairlines, square corners, white and black with one red. No web fonts to load. */
-:root{--bg:#fff;--paper:#fff;--ink:#111;--muted:#6b6b6b;--line:#d9d9d9;--rule:#111;--terra:#e2231a;--terra-soft:#fde9e8;--ok:#1d7a3a;--bad:#e2231a;--field:#f5f5f5;--u:8px;
-  --sans:"Helvetica Neue",Helvetica,Inter,Arial,system-ui,sans-serif}
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#0e0e0e;--paper:#0e0e0e;--ink:#f2f2f2;--muted:#9a9a9a;--line:#2e2e2e;--rule:#f2f2f2;--terra:#ff4436;--terra-soft:#3a1412;--field:#1a1a1a;--ok:#4cc072;--bad:#ff4436}}
-:root[data-theme="dark"]{--bg:#0e0e0e;--paper:#0e0e0e;--ink:#f2f2f2;--muted:#9a9a9a;--line:#2e2e2e;--rule:#f2f2f2;--terra:#ff4436;--terra-soft:#3a1412;--field:#1a1a1a;--ok:#4cc072;--bad:#ff4436}
+/* Swiss grid, after Josef Müller-Brockmann.
+   Page: 12 columns, 24 px margins, 16 px gutters, an 8 px baseline (every height is a multiple of 8).
+   The 3D view takes columns 1–8, the controls 9–12; inside, each panel is its own 4-column grid that lands on
+   the page columns: a label column, then three value columns. Type: 11 / 13 / 20 / 40 px on a 16 px line.
+   One grotesque, flush left, black and white with one red. No web fonts. */
+:root{--bg:#fff;--paper:#fff;--ink:#111;--muted:#6b6b6b;--line:#dcdcdc;--rule:#111;--terra:#e2231a;--terra-soft:#fde9e8;--ok:#1d7a3a;--bad:#e2231a;--field:#f4f4f4;
+  --u:8px;--m:24px;--g:16px;--ctl:32px;--sans:"Helvetica Neue",Helvetica,Inter,Arial,system-ui,sans-serif}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#0e0e0e;--paper:#0e0e0e;--ink:#f2f2f2;--muted:#9a9a9a;--line:#2c2c2c;--rule:#f2f2f2;--terra:#ff4436;--terra-soft:#3a1412;--field:#1a1a1a;--ok:#4cc072;--bad:#ff4436}}
+:root[data-theme="dark"]{--bg:#0e0e0e;--paper:#0e0e0e;--ink:#f2f2f2;--muted:#9a9a9a;--line:#2c2c2c;--rule:#f2f2f2;--terra:#ff4436;--terra-soft:#3a1412;--field:#1a1a1a;--ok:#4cc072;--bad:#ff4436}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.43 var(--sans);-webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums}
-header{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:16px;align-items:end;padding:24px 16px 16px;border-bottom:2px solid var(--rule)}
-header h1{grid-column:1/8;font:700 40px/1 var(--sans);letter-spacing:-.025em;margin:0}
-header .sub{grid-column:8/12;color:var(--ink);font-size:12px;line-height:16px}
-header nav{grid-column:12/13;justify-self:end;display:flex;gap:16px;align-items:center}
-header nav a{color:var(--ink);font-size:12px;font-weight:700;text-decoration:none}
+body{margin:0;background:var(--bg);color:var(--ink);font:13px/16px var(--sans);-webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums}
+.grid12{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:var(--g);padding:0 var(--m)}
+header.grid12{align-items:end;padding-top:var(--m);padding-bottom:var(--g);border-bottom:2px solid var(--rule);row-gap:var(--u)}
+header h1{grid-column:1/8;font:700 40px/40px var(--sans);letter-spacing:-.03em;margin:0}
+header .sub{grid-column:8/11;font-size:11px;line-height:16px;color:var(--ink)}
+header nav{grid-column:11/13;justify-self:end;display:flex;gap:var(--u);align-items:center}
+header nav a{color:var(--ink);font-size:11px;font-weight:700;text-decoration:none;text-transform:uppercase;letter-spacing:.06em}
 header nav a:hover{color:var(--terra)}
-@media (max-width:960px){header h1{grid-column:1/-1;font-size:32px;margin-bottom:8px}header .sub{grid-column:1/10}header nav{grid-column:10/13}}
-.btn{border:1px solid var(--ink);background:transparent;color:var(--ink);font:500 12px/16px var(--sans);padding:7px 11px;border-radius:0;cursor:pointer}
+.btn{height:var(--ctl);border:1px solid var(--ink);background:transparent;color:var(--ink);font:500 13px/16px var(--sans);padding:0 12px;border-radius:0;cursor:pointer;white-space:nowrap}
 .btn:hover{background:var(--ink);color:var(--bg)}
 .btn.primary{background:var(--ink);color:var(--bg)}
-.btn.primary:hover{background:var(--terra);border-color:var(--terra)}
-.layout{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:16px;row-gap:16px;padding:16px;align-items:start}
-.layout>.viewer{grid-column:1/8}.layout>aside{grid-column:8/13}
-@media (max-width:960px){.layout>.viewer,.layout>aside{grid-column:1/-1}}
-.viewer{position:sticky;top:16px;background:#f2f2f2;border-radius:0;overflow:hidden;aspect-ratio:1/1;max-height:calc(100vh - 32px);width:100%}
-@media (max-width:960px){.viewer{position:relative;top:0;aspect-ratio:4/3}}
+.btn.icon{width:var(--ctl);padding:0}
+.btn[aria-pressed="true"]{background:var(--terra);border-color:var(--terra);color:#fff}
+/* app shell: the page is exactly the window; the 3D view fills its columns top to bottom, the panel scrolls on its own */
+@media (min-width:761px){html,body{height:100%}body{display:flex;flex-direction:column;overflow:hidden}
+  .layout.grid12{flex:1;min-height:0;align-items:stretch;grid-template-rows:minmax(0,1fr)}header{flex:none}.layout>.viewer{height:100%;max-height:none;aspect-ratio:auto;position:relative;top:0}
+  .layout>aside{height:100%;min-height:0;overflow-y:auto;padding-right:4px;padding-bottom:var(--m);align-content:start}}
+.layout{row-gap:var(--g);padding-top:var(--m);padding-bottom:var(--m);align-items:start}
+.layout>.viewer{grid-column:1/9}.layout>aside{grid-column:9/13}
+@media (max-width:1100px){.layout>.viewer{grid-column:1/8}.layout>aside{grid-column:8/13}header h1{font-size:32px;line-height:40px}}
+@media (max-width:760px){.grid12{--m:16px}.layout>.viewer,.layout>aside{grid-column:1/-1}header h1{grid-column:1/-1;font-size:32px;line-height:32px}header .sub{grid-column:1/10}header nav{grid-column:10/13}}
+.viewer{position:sticky;top:var(--m);background:#f2f2f2;overflow:hidden;aspect-ratio:1/1;max-height:calc(100vh - 2*var(--m));width:100%}
+@media (max-width:760px){.viewer{position:relative;top:0;aspect-ratio:4/3}}
 .viewer canvas{display:block;width:100%!important;height:100%!important;touch-action:none}
-.vbar{position:absolute;left:0;right:0;bottom:0;display:flex;gap:0;flex-wrap:wrap;align-items:stretch;background:rgba(17,17,17,.86)}
-.vbar .grp{display:flex;gap:0;align-items:center;color:#f2f2f2;padding:0 8px;font:500 11px var(--sans);text-transform:uppercase;letter-spacing:.06em;border-right:1px solid rgba(255,255,255,.18)}
-.vbar .grp label{margin-right:8px}
-.vbar button{background:transparent;border:0;color:#f2f2f2;border-radius:0;font:500 11px var(--sans);text-transform:uppercase;letter-spacing:.06em;padding:12px 10px;cursor:pointer}
-.vbar button:hover{color:#fff;background:rgba(255,255,255,.08)}
+.vbar{position:absolute;left:0;right:0;bottom:0;display:flex;flex-wrap:wrap;background:rgba(17,17,17,.88)}
+.vbar .grp{display:flex;align-items:center;color:#f2f2f2;font:500 11px/16px var(--sans);text-transform:uppercase;letter-spacing:.06em;border-right:1px solid rgba(255,255,255,.16)}
+.vbar .grp label{padding:0 8px 0 12px}
+.vbar button{height:var(--ctl);background:transparent;border:0;color:#f2f2f2;border-radius:0;font:500 11px/16px var(--sans);text-transform:uppercase;letter-spacing:.06em;padding:0 12px;cursor:pointer}
+.vbar button:hover{background:rgba(255,255,255,.1)}
 .vbar button[aria-pressed="true"]{background:var(--terra);color:#fff}
-.vbar input[type=range]{width:110px;accent-color:var(--terra)}
-.tag{position:absolute;left:0;top:0;background:transparent;color:#111;padding:12px 16px;font:500 11px/16px var(--sans);letter-spacing:.02em;max-width:100%}
+.vbar input[type=range]{width:96px;margin-right:12px;accent-color:#fff}
+.tag{position:absolute;left:0;top:0;color:#111;padding:var(--g);font:500 11px/16px var(--sans);max-width:100%;pointer-events:none}
 .viewer.dark .tag{color:#f2f2f2}
-aside{display:grid;gap:32px}
-.panel{background:transparent;border:0;border-top:2px solid var(--rule);border-radius:0;padding:8px 0 0;display:grid;gap:12px}
-.panel h2{font:700 20px/24px var(--sans);letter-spacing:-.01em;margin:0;display:flex;align-items:baseline;gap:8px}
-.panel h2 .meta{margin-left:auto;font:400 11px var(--sans);color:var(--muted);letter-spacing:.02em}
-.lbl{font:500 10.5px/16px var(--sans);text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
-.seg{display:inline-flex;border:1px solid var(--ink);border-radius:0;overflow:hidden;flex-wrap:wrap}
-.seg button{border:0;background:transparent;color:var(--ink);font:500 12px/16px var(--sans);padding:7px 11px;cursor:pointer}
+aside{display:grid;gap:calc(4*var(--u))}
+/* a panel is a 4-column grid: label | value | value | value */
+.panel{border-top:2px solid var(--rule);padding-top:var(--u);display:grid;grid-template-columns:repeat(4,minmax(0,1fr));column-gap:var(--g);row-gap:var(--u)}
+.panel>*{grid-column:1/-1}
+.panel h2{font:700 20px/24px var(--sans);letter-spacing:-.01em;margin:0 0 var(--u);display:flex;align-items:baseline;gap:var(--u)}
+.panel h2 .meta{margin-left:auto;font:400 11px/16px var(--sans);color:var(--muted)}
+.f{display:grid;grid-template-columns:subgrid;align-items:center;min-height:var(--ctl)}
+.f>.lbl{grid-column:1}
+.f>.v{grid-column:2/-1;display:flex;gap:var(--u);align-items:center;min-width:0}
+.f>.v>.seg{flex:1}
+.v.trio{display:grid;grid-template-columns:subgrid}.v.trio>*{min-width:0}
+.v.two{display:grid;grid-template-columns:1fr 1fr;gap:var(--u)}
+.v.cap{min-height:0;color:var(--muted);font-size:11px;margin-top:calc(-1*var(--u))}
+.f:has(>.v.cap){min-height:0}
+.v.rng input{flex:1}
+.num{min-width:48px;text-align:right;font-size:11px;color:var(--muted)}
+.lbl{font:500 11px/16px var(--sans);text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);border:1px solid var(--ink);min-width:0}
+.seg button{height:calc(var(--ctl) - 2px);border:0;background:transparent;color:var(--ink);font:500 13px/16px var(--sans);padding:0 8px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .seg button+button{border-left:1px solid var(--ink)}
+.seg button:hover{background:var(--field)}
 .seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
-.row{display:flex;gap:8px 12px;flex-wrap:wrap;align-items:center}
-select,input[type=range]{font:13px var(--sans);color:var(--ink);accent-color:var(--terra)}
-select{background:var(--field);border:1px solid var(--line);border-radius:0;padding:6px 8px}
-.hint{font-size:12px;line-height:16px;color:var(--muted);margin:0;max-width:60ch}
-.chips{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:8px}
-.chip{border:1px solid var(--line);background:var(--field);border-radius:0;padding:4px;cursor:pointer;display:grid;gap:4px;justify-items:start;color:var(--ink);font:500 10.5px/1.2 var(--sans);text-align:left}
-.chip svg{width:100%;height:auto;display:block}
-.chip[aria-pressed="true"]{border-color:var(--terra);box-shadow:0 0 0 1px var(--terra) inset;background:var(--paper)}
-.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:8px}
-.card{border:1px solid var(--line);background:var(--field);border-radius:0;padding:6px;cursor:pointer;text-align:left;color:var(--ink);font:500 12px/16px var(--sans);display:grid;gap:4px}
-.card svg{width:100%;height:auto;display:block}
-.card .ref{font:400 10.5px var(--sans);color:var(--muted)}
-.card[aria-pressed="true"]{border-color:var(--terra);box-shadow:0 0 0 1px var(--terra) inset;background:var(--paper)}
+.seg button:disabled{color:var(--ink);opacity:1}
+.row{display:flex;gap:var(--u);flex-wrap:wrap;align-items:center}
+select,input[type=range]{font:13px var(--sans);color:var(--ink);accent-color:var(--ink)}
+select{height:var(--ctl);background:var(--field);border:0;border-radius:0;padding:0 8px;min-width:0;flex:1}
+.hint{font-size:11px;line-height:16px;color:var(--muted);margin:0}
+.blist{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line)}
+.blist button{height:var(--ctl);border:0;background:var(--bg);color:var(--ink);font:500 12px/16px var(--sans);text-align:left;padding:0 8px;cursor:pointer;display:flex;justify-content:space-between;gap:var(--u);white-space:nowrap;overflow:hidden}
+.blist button span{color:var(--muted);font-size:11px}
+.blist button:hover{background:var(--field)}
+.blist button.on{background:var(--ink);color:var(--bg)}.blist button.on span{color:inherit;opacity:.7}
+.blist button.also{box-shadow:inset 3px 0 0 var(--terra);background:var(--terra-soft)}
+.sw{display:flex;flex-wrap:wrap;gap:4px}
+.sw button{width:24px!important;height:24px!important;border-radius:0!important}
+.pals{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line)}
+.pals button{height:var(--ctl);border:0;background:var(--bg);color:var(--ink);font:500 12px var(--sans);display:flex;align-items:center;gap:2px;padding:0 8px;cursor:pointer;text-align:left}
+.pals button:hover{background:var(--field)}
+.pals button.on{box-shadow:inset 3px 0 0 var(--terra)}
+.pals i{width:8px;height:16px;display:inline-block}
+.pals b{font-weight:500;margin-left:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chips{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:var(--u)}
+.chip{border:1px solid var(--line);background:var(--field);padding:4px;cursor:pointer;display:grid;gap:4px;justify-items:start;color:var(--ink);font:500 11px/1.2 var(--sans);text-align:left}
+.chip svg,.card svg,.faces button svg,.big svg{width:100%;height:auto;display:block}
+.chip[aria-pressed="true"],.card[aria-pressed="true"],.faces button[aria-pressed="true"]{border-color:var(--terra);box-shadow:0 0 0 1px var(--terra) inset;background:var(--bg)}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:var(--u)}
+.card{border:1px solid var(--line);background:var(--field);padding:6px;cursor:pointer;text-align:left;color:var(--ink);font:500 12px/16px var(--sans);display:grid;gap:4px}
+.card .ref{font:400 11px var(--sans);color:var(--muted)}
 .chip:hover,.card:hover,.faces button:hover{border-color:var(--ink)}
 .bay{display:grid;gap:4px}
-.big{background:var(--field);border:0;border-radius:0;padding:8px}
-.big svg{width:100%;height:auto;display:block}
-.faces{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
-.faces button{border:1px solid var(--line);background:var(--field);border-radius:0;padding:4px;cursor:pointer;color:var(--ink);font:500 10.5px var(--sans);text-transform:uppercase;letter-spacing:.06em;display:grid;gap:4px;text-align:left}
-.faces button svg{width:100%;height:auto;display:block}
-.faces button[aria-pressed="true"]{border-color:var(--terra);box-shadow:0 0 0 1px var(--terra) inset}
+.big{background:var(--field);padding:var(--u)}
+.faces{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--u)}
+.faces button{border:1px solid var(--line);background:var(--field);padding:4px;cursor:pointer;color:var(--ink);font:500 11px var(--sans);text-transform:uppercase;letter-spacing:.06em;display:grid;gap:4px;text-align:left}
 .faces button.bad{border-color:var(--bad)}
-.opts{display:flex;gap:12px;flex-wrap:wrap}
+.opts{display:flex;gap:var(--g);flex-wrap:wrap}
 .opts label{display:flex;gap:6px;align-items:center;font-size:13px;cursor:pointer}
 .opts label.off{opacity:.45;cursor:not-allowed}
 .checks{display:grid;gap:0}
-.ck{display:grid;grid-template-columns:16px 1fr auto;gap:8px;font-size:12px;line-height:16px;align-items:baseline;padding:4px 0;border-bottom:1px solid var(--line)}
+.ck{display:grid;grid-template-columns:16px 1fr auto;gap:var(--u);font-size:12px;line-height:16px;align-items:baseline;padding:4px 0;border-bottom:1px solid var(--line)}
+.ck.lv{grid-template-columns:repeat(4,minmax(0,1fr));column-gap:var(--g);align-items:center;min-height:var(--ctl);padding:0}
+.ck.lv label{display:flex;gap:6px;align-items:center;font-size:12px;grid-column:span 1}
 .ck .s{font-weight:700}
-.ck .s.ok{color:var(--ok)}.ck .s.bad{color:var(--bad)}
+.ck .s.ok{color:var(--ok)}.ck .s.bad{color:var(--bad)}.ck .s.note{color:#b7791f}
 .ck .v{font:400 11px var(--sans);color:var(--muted)}
-.desc{font-size:13px;color:var(--muted);margin:0;max-width:60ch}
+.desc{font-size:13px;color:var(--muted);margin:0}
 .desc b{color:var(--ink)}
-.ck .s.note{color:#b7791f}
 .grp select option{color:#1b1b1b}
 :focus-visible{outline:2px solid var(--terra);outline-offset:2px}
+/* the construction lines: columns and the 8 px baseline over the whole page (Grid button or the G key) */
+#gridOverlay{position:fixed;inset:0;pointer-events:none;z-index:50;display:none}
+body.showgrid #gridOverlay{display:grid}
+#gridOverlay i{background:rgba(226,35,26,.07);border-left:1px solid rgba(226,35,26,.25);border-right:1px solid rgba(226,35,26,.25)}
+body.showgrid #gridOverlay{background:repeating-linear-gradient(to bottom,transparent 0 7px,rgba(0,140,255,.12) 7px 8px)}
 </style>
 </head>
 <body>
-<header>
+<div id="gridOverlay" class="grid12" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+<header class="grid12">
   <h1>Beit Lantern Designer</h1>
   <span class="sub">porcelain modules 60 × 60 mm · 40 mm walls · houses, towers and villages · 1860–1925 and modernist openings</span>
-  <nav><a href="index.html">← Proposals</a>
-  <button class="btn" id="themeBtn" type="button" aria-label="Toggle colour theme">◐</button></nav>
+  <nav><a href="index.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
+  <button class="btn icon" id="themeBtn" type="button" aria-label="Toggle colour theme">◐</button></nav>
 </header>
 
-<div class="layout">
+<div class="layout grid12">
   <div class="viewer" id="viewer">
     <div class="tag" id="tag"></div>
     <div class="vbar">
       <div class="grp"><button type="button" id="nightBtn" aria-pressed="true">Night</button><button type="button" id="renderBtn" aria-pressed="false" title="Realistic render: ceramic textures, ambient occlusion, bloom, filmic tone">Render</button></div>
       <div class="grp"><label for="explode">Explode</label><input type="range" id="explode" min="0" max="30" step="1" value="0"></div>
+      <div class="grp"><button type="button" id="orthoBtn" aria-pressed="false" title="Orthographic: parallel lines, no perspective">Ortho</button><button type="button" data-view="axo" title="Axonometric view">Axo</button><button type="button" data-view="plan" title="Plan, from above">Plan</button><button type="button" data-view="front" title="Front elevation">Front</button></div>
       <div class="grp"><button type="button" id="resetView">Reset view</button></div>
     </div>
   </div>
@@ -109,72 +149,62 @@ select{background:var(--field);border:1px solid var(--line);border-radius:0;padd
   <aside>
     <div class="panel">
       <h2>Village <span class="meta" id="villageMeta"></span></h2>
-      <div class="row" id="bList"></div>
-      <div class="row"><span class="lbl">Add</span>
-        <button class="btn" type="button" data-add="central">Central-hall house</button>
-        <button class="btn" type="button" data-add="liwan">Līwān house</button>
-        <button class="btn" type="button" data-add="photo">Arches &amp; keyholes</button>
-        <button class="btn" type="button" data-add="stair">Stair tower</button>
-        <button class="btn" type="button" data-add="modernRow">Modernist block</button>
-        <button class="btn" type="button" data-add="modernTower">Modernist tower</button>
-        <button class="btn" type="button" data-add="random">Random</button></div>
-      <div class="row"><span class="lbl">Selected</span>
-        <div class="seg" id="moveSeg"><button type="button" data-mv="-1,0" aria-label="Move left">←</button><button type="button" data-mv="1,0" aria-label="Move right">→</button><button type="button" data-mv="0,-1" aria-label="Move back">↑</button><button type="button" data-mv="0,1" aria-label="Move forward">↓</button><button type="button" id="rotBtn" aria-label="Turn 90°">⟳</button></div>
-        <button class="btn" type="button" id="dupB">Duplicate</button><button class="btn" type="button" id="delB">Remove</button>
-        <button class="btn" type="button" id="gridVillage">Arrange on grid</button><button class="btn primary" type="button" id="randVillage">Randomize village</button></div>
-      <p class="hint">The village is a grid of square fields, 4 modules (240 mm) each with a one-module gutter, drawn on the ground. New buildings take the next free field, flush to its back-left corner. Move them on the 30 mm half-module grid to break the rhythm or join them wall to wall.</p>
+      <div class="blist" id="bList"></div>
+      <div class="f"><span class="lbl">Select</span><div class="v"><div class="seg"><button type="button" id="selAll">All</button><button type="button" id="selNone">Clear</button></div><span class="hint">shift or ⌘ click to pick several</span></div></div>
+      <div class="f"><span class="lbl">Add</span><div class="v"><select id="addKind" aria-label="Building to add"><option value="central">Central-hall house</option><option value="liwan">Līwān house</option><option value="photo">Arches &amp; keyholes</option><option value="stair">Stair tower</option><option value="modernRow">Modernist block</option><option value="modernTower">Modernist tower</option><option value="random">Random</option></select><button class="btn" type="button" id="addBtn">Add</button></div></div>
+      <div class="f"><span class="lbl">Move</span><div class="v"><div class="seg" id="moveSeg"><button type="button" data-mv="-1,0" aria-label="Move left">←</button><button type="button" data-mv="1,0" aria-label="Move right">→</button><button type="button" data-mv="0,-1" aria-label="Move back">↑</button><button type="button" data-mv="0,1" aria-label="Move forward">↓</button><button type="button" id="rotBtn" aria-label="Turn 90°">⟳</button></div></div></div>
+      <div class="f"><span class="lbl">Edit</span><div class="v"><div class="seg"><button type="button" id="dupB">Duplicate</button><button type="button" id="delB">Remove</button></div></div></div>
+      <div class="f"><span class="lbl">Layout</span><div class="v"><div class="seg"><button type="button" id="gridVillage">Arrange on grid</button><button type="button" id="randVillage">Randomize village</button></div></div></div>
+      <p class="hint">Buildings sit on a grid of 240 mm fields (4 modules, one as the gutter), flush to each field's back-left corner. Arrows move them in 30 mm steps.</p>
     </div>
 
     <div class="panel">
       <h2>Building <span class="meta" id="stackMeta"></span></h2>
-      <div class="row"><span class="lbl">Book</span><div class="seg" id="setSeg"><button type="button" data-v="ottoman">1860–1925</button><button type="button" data-v="modern">Modernist</button></div>
-        <button class="btn" type="button" id="randB">Randomize building</button></div>
-      <div class="row"><span class="lbl">Across</span>
-        <div class="seg" id="colsSeg"><button type="button" data-v="1">1</button><button type="button" data-v="2">2</button><button type="button" data-v="3">3</button></div>
-        <span class="lbl">Deep</span>
-        <div class="seg" id="deepSeg"><button type="button" data-v="1">1</button><button type="button" data-v="2">2</button><button type="button" data-v="3">3</button></div>
-        <span class="lbl">Up</span>
-        <div class="seg" id="levelsSeg"><button type="button" data-d="-1" aria-label="Remove a level">−</button><button type="button" id="levelsV" disabled style="min-width:34px;cursor:default">1</button><button type="button" data-d="1" aria-label="Add a level">+</button></div></div>
-      <div class="row"><span class="lbl">Roof</span>
-        <div class="seg" id="roofSeg"><button type="button" data-v="slant">Slanted</button><button type="button" data-v="modern">Modern</button><button type="button" data-v="none">Off</button></div>
-        <label class="lbl" for="pitch">Pitch</label><input type="range" id="pitch" min="20" max="40" step="1" style="width:90px"><span class="lbl" id="pitchV"></span>
-        <label class="lbl" for="radius">Corners</label><input type="range" id="radius" min="0" max="4" step="0.5" title="Corner radius: up to 4 mm every opening design still clears the curve" style="width:80px"><span class="lbl" id="radiusV"></span>
-        <div class="seg" id="spanSeg" title="One roof piece over the whole building, or a small lid on every top module"><button type="button" data-v="whole">Whole</button><button type="button" data-v="module">Per module</button></div>
-        <label class="lbl" for="roofCol">Roof</label><select id="roofCol" aria-label="Roof finish"></select>
-        <label class="lbl" for="plateCol">Plates</label><select id="plateCol" aria-label="Plate finish"></select></div>
-      <div class="row"><label class="lbl" for="bodySel">Clay</label><select id="bodySel"><option value="porcelain">Porcelain</option><option value="stoneware">Stoneware</option><option value="terracotta">Terracotta</option></select>
-        <div class="seg" id="finishSeg"><button type="button" data-v="glazed">Glazed</button><button type="button" data-v="unglazed">Unglazed</button></div>
-        <div class="row" id="glazeSw" style="gap:5px"></div></div>
+      <div class="f"><span class="lbl">Book</span><div class="v"><div class="seg" id="setSeg"><button type="button" data-v="ottoman">1860–1925</button><button type="button" data-v="modern">Modernist</button></div><button class="btn" type="button" id="randB">Randomize</button></div></div>
+      <div class="f"><span class="lbl">Size</span><div class="v trio">
+        <div class="seg" id="colsSeg" title="Modules across"><button type="button" data-v="1">1</button><button type="button" data-v="2">2</button><button type="button" data-v="3">3</button></div>
+        <div class="seg" id="deepSeg" title="Modules deep"><button type="button" data-v="1">1</button><button type="button" data-v="2">2</button><button type="button" data-v="3">3</button></div>
+        <div class="seg" id="levelsSeg" title="Levels"><button type="button" data-d="-1" aria-label="Remove a level">−</button><button type="button" id="levelsV" disabled style="cursor:default">1</button><button type="button" data-d="1" aria-label="Add a level">+</button></div></div></div>
+      <div class="f"><span class="lbl"></span><div class="v trio cap"><span>across</span><span>deep</span><span>levels</span></div></div>
+      <div class="f"><span class="lbl">Roof</span><div class="v"><div class="seg" id="roofSeg"><button type="button" data-v="slant">Slanted</button><button type="button" data-v="modern">Flat</button><button type="button" data-v="none">Off</button></div></div></div>
+      <div class="f"><span class="lbl">Roof piece</span><div class="v"><div class="seg" id="spanSeg" title="One roof piece over the whole building, or a small lid on every top module"><button type="button" data-v="whole">Whole</button><button type="button" data-v="module">Per module</button></div></div></div>
+      <div class="f"><label class="lbl" for="pitch">Pitch</label><div class="v rng"><input type="range" id="pitch" min="20" max="40" step="1"><span class="num" id="pitchV"></span></div></div>
+      <div class="f"><label class="lbl" for="radius">Corners</label><div class="v rng"><input type="range" id="radius" min="0" max="4" step="0.5" title="Corner radius: up to 4 mm every opening design still clears the curve"><span class="num" id="radiusV"></span></div></div>
+      <div class="f"><label class="lbl" for="bodySel">Clay</label><div class="v"><select id="bodySel"><option value="porcelain">Porcelain</option><option value="stoneware">Stoneware</option><option value="terracotta">Terracotta</option></select>
+        <div class="seg" id="finishSeg"><button type="button" data-v="glazed">Glazed</button><button type="button" data-v="unglazed">Unglazed</button></div></div></div>
+      <div class="f"><span class="lbl">Glaze</span><div class="v sw" id="glazeSw"></div></div>
+      <div class="f"><label class="lbl" for="roofCol">Roof col.</label><div class="v two"><select id="roofCol" aria-label="Roof finish"></select><select id="plateCol" aria-label="Plate finish"></select></div></div>
+      <div class="f"><span class="lbl"></span><div class="v two cap"><span>roof</span><span>plates</span></div></div>
       <p class="hint" id="matHint"></p>
-      <div class="row"><span class="lbl">Palette for</span><div class="seg" id="palScopeSeg" role="group" aria-label="Apply palette to"><button type="button" data-v="b" aria-pressed="true">This building</button><button type="button" data-v="v" aria-pressed="false">Whole village</button></div></div>
-      <div class="row"><div class="row" id="palettes" style="gap:6px"></div></div>
-      <div class="row">
-        <button class="btn" type="button" id="randCol">Randomize colours</button></div>
-      <div><span class="lbl">Levels: plate and candle</span> <button class="btn" type="button" id="randLight" style="padding:3px 8px;font-size:12px">Randomize plates &amp; candles</button><div class="checks" id="levelRows" style="margin-top:4px"></div></div>
-      <p class="hint">Each level can sit on its own porcelain plate (the base at ground level) and carry its own candles, one tealight per module. A candle needs a plate under it. The roof covers the whole building in one piece (like the manual's red-tiled hip) or sits as a small lid on every top module. Plates and roofs have Ø 8 mm vents so the heat rises out.</p>
+      <div class="f"><span class="lbl">Palette</span><div class="v"><div class="seg" id="palScopeSeg" role="group" aria-label="Apply palette to"><button type="button" data-v="b" aria-pressed="true">Selected</button><button type="button" data-v="v" aria-pressed="false">Whole village</button></div><button class="btn" type="button" id="randCol">Random</button></div></div>
+      <div class="pals" id="palettes"></div>
+      <div class="f"><span class="lbl">Levels</span><div class="v"><button class="btn" type="button" id="randLight">Randomize plates &amp; candles</button></div></div>
+      <div class="checks" id="levelRows"></div>
+      <p class="hint">Each level can sit on its own porcelain plate (the base at ground level) and carry its own candles, one tealight per module; a candle needs a plate under it. The roof is one piece over the whole building or a small lid on every top module. Plates and roofs have Ø 8 mm vents.</p>
     </div>
 
     <div class="panel">
       <h2>Walls <span class="meta" id="editMeta"></span></h2>
-      <div class="row" id="levelPick"></div>
-      <div class="row" id="planPick"></div>
-      <div class="row" id="modTools"></div>
+      <div class="f" id="levelPick"></div>
+      <div class="f" id="planPick"></div>
+      <div class="f" id="modTools"></div>
       <div class="faces" id="faces"></div>
-      <div class="row"><span class="lbl">Style</span><div class="seg" id="editSetSeg"><button type="button" data-v="ottoman">1860–1925</button><button type="button" data-v="modern">Modernist</button></div>
-        <div class="seg" id="modeSeg"><button type="button" data-v="bays">Pick elements</button><button type="button" data-v="wall">Whole-wall designs</button></div></div>
+      <div class="f"><span class="lbl">Style</span><div class="v"><div class="seg" id="editSetSeg"><button type="button" data-v="ottoman">1860–1925</button><button type="button" data-v="modern">Modernist</button></div></div></div>
+      <div class="f"><span class="lbl">Mode</span><div class="v"><div class="seg" id="modeSeg"><button type="button" data-v="bays">Three elements</button><button type="button" data-v="wall">Whole wall</button></div></div></div>
       <div id="editor"></div>
       <div class="big" id="bigFace"></div>
       <p class="desc" id="faceDesc"></p>
-      <div class="row"><button class="btn" type="button" id="randWall">Randomize this wall</button>
-        <label class="lbl" for="applyScope">Use this pattern on</label><select id="applyScope"><option value="module">this module's 4 walls</option><option value="side" selected>this whole side, every level</option><option value="level">every outside wall of this level</option><option value="building">every outside wall of the building</option></select>
-        <button class="btn" type="button" id="applyBtn">Apply</button></div>
+      <div class="f"><span class="lbl">Wall</span><div class="v"><button class="btn" type="button" id="randWall" style="flex:1">Randomize this wall</button></div></div>
+      <div class="f"><label class="lbl" for="applyScope">Copy to</label><div class="v"><select id="applyScope"><option value="module">this module's 4 walls</option><option value="side" selected>this whole side, every level</option><option value="level">every outside wall of this level</option><option value="building">every outside wall of the building</option></select>
+        <button class="btn" type="button" id="applyBtn">Apply</button></div></div>
     </div>
 
     <div class="panel">
       <h2>Checks <span class="meta" id="checkMeta"></span></h2>
       <div class="checks" id="checks"></div>
       <p class="hint"><b style="color:var(--bad)">✗</b> porcelain limits, to fix before casting. <b style="color:#b7791f">●</b> proportions from the two manuals: advice, not a rule.</p>
-      <div class="row"><button class="btn primary" type="button" id="pdfBtn">Technical sheet (PDF)</button><button class="btn" type="button" id="dlSvg">Elevations (SVG)</button><button class="btn" type="button" id="reset">Reset village</button></div>
+      <div class="f"><span class="lbl">Export</span><div class="v"><div class="seg"><button type="button" id="pdfBtn">Sheet (PDF)</button><button type="button" id="dlSvg">Elevations (SVG)</button></div></div></div>
+      <div class="f"><span class="lbl">Start over</span><div class="v"><button class="btn" type="button" id="reset" style="flex:1">Reset village</button></div></div>
     </div>
   </aside>
 </div>
@@ -189,6 +219,8 @@ const FACES=["front","right","back","left"],FNAME={front:"Front",right:"Right",b
 const $=id=>document.getElementById(id);
 const root=document.documentElement;
 try{const t=localStorage.getItem("beit-proposals-theme");if(t)root.dataset.theme=t;}catch(e){}
+{const g=on=>{document.body.classList.toggle("showgrid",on);$("gridBtn").setAttribute("aria-pressed",on);};$("gridBtn").onclick=()=>g(!document.body.classList.contains("showgrid"));
+  addEventListener("keydown",e=>{if((e.key==="g"||e.key==="G")&&!/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName)&&!e.metaKey&&!e.ctrlKey)g(!document.body.classList.contains("showgrid"));});}
 $("themeBtn").onclick=()=>{const dark=root.dataset.theme?root.dataset.theme==="dark":matchMedia("(prefers-color-scheme: dark)").matches;root.dataset.theme=dark?"light":"dark";try{localStorage.setItem("beit-proposals-theme",root.dataset.theme);}catch(e){}renderUI();};
 
 /* ================= model =================
@@ -268,7 +300,7 @@ function autoPlace(b,list){const cols=fieldCols(list.length+1),x0=list.length?Ma
 function gridLayout(list){const cols=fieldCols(list.length),rows=Math.ceil(list.length/cols);
   list.forEach((b,i)=>{const p=fieldXZ(i,cols,b);b.x=p.x-(cols*FIELD-W)/2;b.z=p.z-(rows*FIELD-W)/2;});return list;}
 function defaultVillage(){return gridLayout(["central","photo","stair","modernTower","liwan","modernRow"].map(k=>KINDS[k]()));}
-function defaults(){return {buildings:defaultVillage(),selB:0,sel:"0:0:0",selFace:"front",editSet:"ottoman",night:false,explode:0,gridded:1};}
+function defaults(){return {buildings:defaultVillage(),selB:0,sel:"0:0:0",selFace:"front",editSet:"ottoman",night:false,explode:0,gridded:1,multi:[]};}
 let S=defaults();
 try{const v=JSON.parse(localStorage.getItem(KEY)||"null");if(v&&Array.isArray(v.buildings)&&v.buildings.length)S=Object.assign(defaults(),v);}catch(e){}
 if(!S.gridded){gridLayout(S.buildings);S.gridded=1;}   /* designs saved before the village grid are laid out on it once */
@@ -277,6 +309,12 @@ const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}};
 const Bs=()=>S.buildings[S.selB];
 function fixSel(){if(!S.buildings[S.selB])S.selB=0;const b=Bs();if(!b.mods[S.sel])S.sel="0:0:0";}
 fixSel();
+/* multi-select: the selected building (S.selB, whose walls the Walls panel edits) plus any others picked with shift/⌘ */
+const selIdx=()=>{const set=new Set([S.selB,...(S.multi||[])]);return [...set].filter(i=>S.buildings[i]).sort((a,b)=>a-b);};
+const SELB=()=>selIdx().map(i=>S.buildings[i]);const each=fn=>SELB().forEach(fn);
+const isSel=i=>selIdx().includes(i);
+function toggleSel(i){if(i===S.selB){const m=(S.multi||[]).filter(j=>j!==i);if(m.length){S.selB=m[0];S.multi=m.slice(1);}return;}
+  S.multi=(S.multi||[]).includes(i)?S.multi.filter(j=>j!==i):[...(S.multi||[]),i];}
 const face=()=>Bs().mods[S.sel][S.selFace];
 function resize3(b,cols,deep,levels){const old=b,m={};
   for(let c=0;c<cols;c++)for(let r=0;r<deep;r++)for(let l=0;l<levels;l++){const k=c+":"+r+":"+l;
@@ -296,11 +334,25 @@ const scene=new THREE.Scene();let envBasic=null,envRoom=null;
 {const env=new THREE.Scene(),room=new THREE.Mesh(new THREE.BoxGeometry(100,60,100),new THREE.MeshBasicMaterial({color:0x3a3632,side:THREE.BackSide}));env.add(room);
   [[0,29,0,50,1,34,1.4],[-49,10,-10,1,26,44,0.9],[30,10,49,36,20,1,0.6]].forEach(([x,y,z,w,h,d,i])=>{const box=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),new THREE.MeshBasicMaterial({color:new THREE.Color(1,0.96,0.9).multiplyScalar(i)}));box.position.set(x,y,z);env.add(box);});
   const pm=new THREE.PMREMGenerator(renderer);envBasic=scene.environment=pm.fromScene(env,0.03).texture;pm.dispose();}
-const camera=new THREE.PerspectiveCamera(35,1,1,8000);
-const controls=new THREE.OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.minDistance=60;controls.maxDistance=3000;controls.maxPolarAngle=Math.PI*0.495;
+const persp=new THREE.PerspectiveCamera(35,1,1,8000),ortho=new THREE.OrthographicCamera(-1,1,1,-1,-6000,12000);let camera=persp;
+/* orthographic: parallel projection, the drawing-board view (axonometric, plan, elevation); the frustum follows the village size */
+let orthoH=400;function orthoFrustum(){const r=view.getBoundingClientRect(),a=r.width/Math.max(1,r.height);Object.assign(ortho,{left:-orthoH*a,right:orthoH*a,top:orthoH,bottom:-orthoH});ortho.updateProjectionMatrix();}
+const controls=new THREE.OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.minDistance=60;controls.maxDistance=3000;controls.minPolarAngle=0;controls.maxPolarAngle=Math.PI*0.495;
 function bounds(){let x0=1e9,x1=-1e9,z0=1e9,z1=-1e9,h=0;S.buildings.forEach(b=>{const f=fp(b);x0=Math.min(x0,b.x-f.w/2);x1=Math.max(x1,b.x+f.w/2);z0=Math.min(z0,b.z-f.d/2);z1=Math.max(z1,b.z+f.d/2);h=Math.max(h,b.levels*H+40);});return {x0,x1,z0,z1,h};}
 function fitView(){const b=bounds(),cx=(b.x0+b.x1)/2,cz=(b.z0+b.z1)/2,s=Math.max(b.x1-b.x0,b.z1-b.z0,b.h)*1.45+120;
-  camera.position.set(cx+s*0.45,b.h*0.5+s*0.5,cz+s*0.95);controls.target.set(cx,b.h*0.3,cz);controls.update();}
+  camera.position.set(cx+s*0.45,b.h*0.5+s*0.5,cz+s*0.95);controls.target.set(cx,b.h*0.3,cz);
+  if(camera===ortho){orthoH=s*0.42;ortho.zoom=1;orthoFrustum();}controls.update();need();}
+/* view presets: axonometric (isometric angles), plan from above, front elevation */
+function viewPreset(v){const b=bounds(),cx=(b.x0+b.x1)/2,cz=(b.z0+b.z1)/2,s=Math.max(b.x1-b.x0,b.z1-b.z0,b.h)*1.45+120,ty=v==="plan"?0:b.h*0.35;
+  const dir=v==="plan"?[0,1,0.0001]:v==="front"?[0,0.0001,1]:[1,0.8165,1];   /* isometric: 35.26° above the ground, 45° to the walls */
+  const d=new THREE.Vector3(...dir).normalize().multiplyScalar(s*1.2);controls.target.set(cx,ty,cz);camera.position.set(cx+d.x,ty+d.y,cz+d.z);
+  if(camera===ortho){orthoH=v==="axo"?s*0.5:(v==="plan"?Math.max(b.z1-b.z0,(b.x1-b.x0)*0.75):Math.max(b.h,(b.x1-b.x0)*0.75))*0.62+40;ortho.zoom=1;orthoFrustum();}
+  controls.update();need();}
+function setOrtho(on){const from=camera,to=on?ortho:persp;if(from===to)return;to.position.copy(from.position);to.quaternion.copy(from.quaternion);
+  if(on){orthoH=from.position.distanceTo(controls.target)*Math.tan(persp.fov*Math.PI/360);ortho.zoom=1;orthoFrustum();}
+  camera=to;controls.object=to;S.ortho=on;$("orthoBtn").setAttribute("aria-pressed",on);
+  if(composer){composer.passes.forEach(p=>{if(p.camera)p.camera=to;});if(ssao){ssao.enabled=!on;}}   /* ambient occlusion here works in perspective only */
+  lastD=0;controls.update();save();need();}
 const hemi=new THREE.HemisphereLight(0xfff7ee,0xdcd0c0,0.62);scene.add(hemi);
 const sun=new THREE.DirectionalLight(0xfff0de,0.62);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.shadow.radius=8;sun.shadow.bias=-0.0004;
 Object.assign(sun.shadow.camera,{left:-600,right:600,top:600,bottom:-600,near:10,far:3000});scene.add(sun);scene.add(sun.target);
@@ -377,13 +429,6 @@ let room=new THREE.Group();scene.add(room);
 const lc=h=>S.render?new THREE.Color(h).convertSRGBToLinear():new THREE.Color(h);
 function buildRoom(){scene.remove(room);room.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.isLine)o.material.dispose();});room=new THREE.Group();
   const g=new THREE.Mesh(new THREE.PlaneGeometry(8000,8000),new THREE.MeshStandardMaterial({color:lc(S.render?(S.night?0x1c1f27:0xc4bcb0):(S.night?0x2a2f3b:0xebebeb)),roughness:1,envMapIntensity:0.2}));g.rotation.x=-Math.PI/2;g.receiveShadow=true;room.add(g);
-  /* the ground grid: thin lines every module (60 mm), stronger ones on the 240 mm fields */
-  const b=bounds(),pad=FIELD,x0=Math.floor((b.x0-pad)/W)*W,x1=Math.ceil((b.x1+pad)/W)*W,z0=Math.floor((b.z0-pad)/W)*W,z1=Math.ceil((b.z1+pad)/W)*W,thin=[],bold=[];
-  const fx=(S.buildings.length?Math.min(...S.buildings.map(o=>o.x-fp(o).w/2)):0),fz=(S.buildings.length?Math.min(...S.buildings.map(o=>o.z-fp(o).d/2)):0);
-  for(let x=x0;x<=x1;x+=W){(Math.round((x-fx)/W)%4===0?bold:thin).push(x,0.3,z0,x,0.3,z1);}
-  for(let z=z0;z<=z1;z+=W){(Math.round((z-fz)/W)%4===0?bold:thin).push(x0,0.3,z,x1,0.3,z);}
-  const night=S.night,lineCol=(a)=>new THREE.LineBasicMaterial({color:night?(a?0x3c4456:0x2f3543):(a?0xb4b4b4:0xdadada),transparent:true,opacity:1});
-  [[thin,0],[bold,1]].forEach(([v,a])=>{const gg=new THREE.BufferGeometry();gg.setAttribute("position",new THREE.Float32BufferAttribute(v,3));room.add(new THREE.LineSegments(gg,lineCol(a)));});
   scene.add(room);}
 
 let built=new THREE.Group();scene.add(built);const pickable=[],lights=[];
@@ -451,7 +496,7 @@ function buildBuilding(bi,gap,lightBudget){
       for(let c=0;c<b.cols;c++)for(let r=0;r<b.deep;r++){let lm=-1;for(let l=b.levels-1;l>=0;l--)if(alive(b,c+":"+r+":"+l)){lm=l;break;}if(lm<0)continue;
         const rf=b.roof==="modern"?modernRoof(sb):slantRoof(sb);rf.position.set(mx(c),ys[lm]+H+gap*0.4,mz(r));g.add(rf);}}
     else{const rf=one();rf.position.set(0,top+gap*0.4,0);g.add(rf);}}
-  if(bi===S.selB){const pts=[[-hw-4,-hd-4],[hw+4,-hd-4],[hw+4,hd+4],[-hw-4,hd+4]].map(([x,z])=>new THREE.Vector3(x,0.6,z));const ln=new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(pts),MAT.sel);g.add(ln);}
+  if(isSel(bi)){const pts=[[-hw-4,-hd-4],[hw+4,-hd-4],[hw+4,hd+4],[-hw-4,hd+4]].map(([x,z])=>new THREE.Vector3(x,0.6,z));const ln=new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(pts),MAT.sel);g.add(ln);}
   return g;}
 const flames=[];
 /* a fixed pool of candle lights, so editing never changes the light count (which would recompile every shader and stutter) */
@@ -485,7 +530,7 @@ function rebuildNow(){
   built=new THREE.Group();pickable.length=0;flames.length=0;
   const gap=+S.explode,budget={anchors:[]};S.buildings.forEach((_,bi)=>built.add(buildBuilding(bi,gap,budget)));
   merged=mergeGroup(built);scene.add(merged);placeLights(budget.anchors);buildRoom();applyNight();}
-function applyNight(){const n=S.night,rd=S.render;scene.background=lc(rd?(n?0x12151c:0xb9b0a3):(n?0x1e2330:0xf2f2f2));view.classList.toggle("dark",n||rd);   /* abstract: a seamless warm-white backdrop by day, a warm dusk at night */
+function applyNight(){const n=S.night,rd=S.render;scene.background=lc(rd?(n?0x12151c:0xb9b0a3):(n?0x1e2330:0xf2f2f2));view.classList.toggle("dark",!!(n||rd));   /* abstract: a seamless warm-white backdrop by day, a warm dusk at night */
   hemi.intensity=n?0.42:0.6;hemi.color.set(n?0x8fa3cc:0xfff4e6);hemi.groundColor.set(n?0x2b2622:0xc9bba8);   /* night: a blue dusk sky */
   sun.intensity=n?0:1.5;   /* day: a soft warm sky and one gentle key light; night: the candles */
   /* filmic tone mapping keeps white porcelain from blowing out (Render mode does its own in the final pass) */
@@ -520,7 +565,7 @@ function setupComposer(){lastD=0;const r=view.getBoundingClientRect(),w=Math.max
   fxaa=new THREE.ShaderPass(THREE.FXAAShader);fxaa.uniforms.resolution.value.set(1/(w*pr),1/(h*pr));composer.addPass(fxaa);
   const pm=new THREE.PMREMGenerator(renderer);envRoom=pm.fromScene(new THREE.RoomEnvironment(),0.04).texture;pm.dispose();}
 function setRender(on){S.render=on;$("renderBtn").setAttribute("aria-pressed",on);Object.keys(MATS).forEach(k=>delete MATS[k]);Object.keys(LIT).forEach(k=>delete LIT[k]);save();rebuild();}
-function resize(){const r=view.getBoundingClientRect();renderer.setSize(r.width,r.height,false);camera.aspect=r.width/r.height;camera.updateProjectionMatrix();
+function resize(){const r=view.getBoundingClientRect();renderer.setSize(r.width,r.height,false);persp.aspect=r.width/r.height;persp.updateProjectionMatrix();orthoFrustum();
   if(composer){composer.setSize(r.width,r.height);const pr=renderer.getPixelRatio();fxaa.uniforms.resolution.value.set(1/(r.width*pr),1/(r.height*pr));}}
 const draw=()=>{if(S.render&&composer){finalPass.uniforms.time.value=tick%100;composer.render();}else renderer.render(scene,camera);};
 /* draw only when something changed: an edit, the camera moving (and settling), or the candles flickering at night */
@@ -528,7 +573,7 @@ let dirty=2,lastMove=0,hqDue=false;const need=()=>{dirty=Math.max(dirty,1);};
 controls.addEventListener("change",()=>{need();lastMove=performance.now();hqDue=true;});
 new ResizeObserver(()=>{resize();need();}).observe(view);
 /* keep the depth range tight around the view, so far-off buildings keep their depth precision (and SSAO reads it right) */
-let lastD=0;function fitDepth(){const d=camera.position.distanceTo(controls.target);if(Math.abs(d-lastD)<d*0.01)return;lastD=d;
+let lastD=0;function fitDepth(){if(camera===ortho)return;const d=camera.position.distanceTo(controls.target);if(Math.abs(d-lastD)<d*0.01)return;lastD=d;
   camera.near=Math.max(2,d*0.04);camera.far=d*4+2500;camera.updateProjectionMatrix();
   if(ssao){[ssao.ssaoMaterial,ssao.depthRenderMaterial].forEach(m=>{if(m&&m.uniforms.cameraNear){m.uniforms.cameraNear.value=camera.near;m.uniforms.cameraFar.value=camera.far;}});
     const span=camera.far-camera.near;ssao.minDistance=0.4/span;ssao.maxDistance=Math.min(0.1,40/span);ssao.kernelRadius=Math.max(4,d*0.012);}}
@@ -538,13 +583,13 @@ let tick=0,lastFlick=0;(function loop(now){requestAnimationFrame(loop);controls.
     lights.forEach((L,i)=>L.intensity=L.userData.base*(S.render?1.6:1)*(0.96+Math.sin(tick*1.7+i)*0.04+Math.sin(tick*4.1+i*2)*0.02));flames.forEach((f,i)=>f.scale.y=1.6+Math.sin(tick*3+i)*0.12);need();}
   const moving=now-lastMove<160;
   /* Render mode: ambient occlusion only once the view settles, so orbiting stays smooth */
-  if(ssao){if(moving&&ssao.enabled){ssao.enabled=false;}else if(!moving&&hqDue&&!ssao.enabled){ssao.enabled=true;hqDue=false;need();}}
+  if(ssao&&camera===persp){if(moving&&ssao.enabled){ssao.enabled=false;}else if(!moving&&hqDue&&!ssao.enabled){ssao.enabled=true;hqDue=false;need();}}
   if(dirty>0){dirty--;draw();}})(0);
 const ray=new THREE.Raycaster(),ptr=new THREE.Vector2();let down=null;
 renderer.domElement.addEventListener("pointerdown",e=>down=[e.clientX,e.clientY]);
 renderer.domElement.addEventListener("pointerup",e=>{if(!down||Math.hypot(e.clientX-down[0],e.clientY-down[1])>5)return;const r=renderer.domElement.getBoundingClientRect();
   ptr.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);ray.setFromCamera(ptr,camera);const hit=ray.intersectObjects(pickable,false)[0];
-  if(hit){const u=hit.object.userData;S.selB=u.bi;S.sel=u.k;S.selFace=u.fname;renderUI();}});
+  if(hit){const u=hit.object.userData;if(e.shiftKey||e.metaKey||e.ctrlKey){toggleSel(u.bi);renderUI();return;}S.selB=u.bi;S.multi=[];S.sel=u.k;S.selFace=u.fname;renderUI();}});
 
 /* ================= checks ================= */
 const faceChecks=(b,k,fn)=>B.checkFace(B.build(b.mods[k][fn]),shrinkOf(b),radOf(b));
@@ -600,27 +645,27 @@ function renderEditor(){
 const ck=c=>`<div class="ck"><span class="s ${c.ok?"ok":c.note?"note":"bad"}">${c.ok?"✓":c.note?"●":"✗"}</span><span>${c.label}</span><span class="v">${c.v}</span></div>`;
 function renderUI(){
   fixSel();const b=Bs(),[sc,sr,sl]=keyParts(S.sel);
-  $("bList").innerHTML=S.buildings.map((x,i)=>`<button type="button" class="btn" data-b="${i}" style="${i===S.selB?"background:var(--ink);color:var(--paper);border-color:var(--ink)":""}">${x.name} <span style="opacity:.6;font-size:11px">${x.cols}×${x.deep}×${x.levels}</span></button>`).join("");
+  $("bList").innerHTML=S.buildings.map((x,i)=>`<button type="button" class="${i===S.selB?"on":isSel(i)?"also":""}" data-b="${i}" aria-pressed="${isSel(i)}" title="Shift- or ⌘-click to add to the selection">${x.name}<span>${x.cols}×${x.deep}×${x.levels}</span></button>`).join("");
   $("villageMeta").textContent=S.buildings.length+" building"+(S.buildings.length>1?"s":"")+" · "+S.buildings.reduce((a,x)=>a+x.cols*x.deep*x.levels,0)+" modules";
-  seg($("setSeg"),b.set);seg($("colsSeg"),b.cols);seg($("deepSeg"),b.deep);$("levelsV").textContent=b.levels;seg($("roofSeg"),b.roof);seg($("spanSeg"),b.span||"whole");$("radius").value=radOf(b);$("radiusV").textContent="R "+radOf(b)+" mm";
+  seg($("setSeg"),b.set);seg($("colsSeg"),b.cols);seg($("deepSeg"),b.deep);$("levelsV").textContent=b.levels;seg($("roofSeg"),b.roof);seg($("spanSeg"),b.span||"whole");$("radius").value=radOf(b);$("radiusV").textContent="R "+radOf(b)+" mm";$("levelsV").textContent=b.levels;
   $("pitch").value=b.pitch;$("pitchV").textContent=b.pitch+"°";$("pitch").disabled=b.roof!=="slant";$("bodySel").value=b.body||"porcelain";seg($("finishSeg"),b.finish||"glazed");
   $("glazeSw").innerHTML=(b.finish||"glazed")==="glazed"?Object.entries(GLAZE).map(([k,g])=>{const c=g.col===null?BODY[b.body||"porcelain"].col:g.col;return `<button type="button" data-g="${k}" title="${g.name} glaze" aria-label="${g.name} glaze" aria-pressed="${(b.glazeCol||"white")===k}" style="width:22px;height:22px;border-radius:50%;cursor:pointer;background:${hex(c)};border:2px solid ${(b.glazeCol||"white")===k?"var(--terra)":"var(--line)"}${g.col===null?";background-image:linear-gradient(135deg,transparent 45%,rgba(0,0,0,.25) 50%,transparent 55%)":""}"></button>`;}).join(""):"";
   $("roofCol").innerHTML=`<option value="same">same as walls</option><option value="unglazed">unglazed ${BODY[b.body||"porcelain"].name.toLowerCase()}</option>`+Object.entries(GLAZE).map(([k,g])=>`<option value="${k}">${g.name} glaze</option>`).join("");$("roofCol").value=b.roofCol||"same";
   $("plateCol").innerHTML=$("roofCol").innerHTML;$("plateCol").value=b.plateCol||"same";
-  $("palettes").innerHTML=Object.entries(PALETTES).map(([kk,p])=>`<button type="button" class="btn" data-pal="${kk}" title="${p.name}" style="padding:3px 6px;display:inline-flex;gap:2px;align-items:center;${b.palette===kk?"border-color:var(--terra)":""}">${[p.walls,...p.accents,p.plates,p.roof].map(g=>`<span style="width:10px;height:10px;border-radius:50%;background:${hex(GLAZE[g].col)};border:1px solid rgba(0,0,0,.15)"></span>`).join("")}<span style="font-size:11px;margin-left:3px">${p.name}</span></button>`).join("");
+  $("palettes").innerHTML=Object.entries(PALETTES).map(([kk,p])=>`<button type="button" data-pal="${kk}" title="${p.name}" class="${b.palette===kk?"on":""}">${[p.walls,...p.accents,p.plates,p.roof].map(g=>`<i style="background:${hex(GLAZE[g].col)}"></i>`).join("")}<b>${p.name}</b></button>`).join("");
   const bd=BODY[b.body||"porcelain"];$("matHint").textContent=`${bd.name}, ${b.finish==="unglazed"?"unglazed":(GLAZE[b.glazeCol||"white"].name.toLowerCase()+" glaze")}: shrinks about ${bd.shrink} % in firing, so moulds are ×${(1/(1-bd.shrink/100)).toFixed(3)} the fired size. `+(bd.glow?(b.finish==="unglazed"?"Unglazed porcelain stays matte and still glows through thin walls.":"Porcelain glows through thin walls."):"Not translucent: the light comes only through the openings.");
-  $("levelRows").innerHTML=Array.from({length:b.levels},(_,i)=>b.levels-1-i).map(l=>`<div class="ck" style="grid-template-columns:70px 1fr 1fr"><span class="lbl">${levelName(l)}</span>
-    <label style="font-size:12.5px;display:flex;gap:5px;align-items:center"><input type="checkbox" data-plate="${l}"${b.plates[l]?" checked":""}> ${l?"plate "+PLATE_T+" mm":"base "+BASE_T+" mm"}</label>
-    <label style="font-size:12.5px;display:flex;gap:5px;align-items:center"><input type="checkbox" data-candle="${l}"${b.candles[l]?" checked":""}> candle${b.cols*b.deep>1?"s ×"+b.cols*b.deep:""}</label></div>`).join("");
-  $("levelPick").innerHTML=b.levels>1?`<span class="lbl">Level</span><div class="seg" id="lvSeg">${Array.from({length:b.levels},(_,l)=>`<button type="button" data-lv="${l}" aria-pressed="${l===sl}">${l?l:"G"}</button>`).join("")}</div>`:"";
-  if(b.cols*b.deep>1){let pp=`<span class="lbl">Module</span><div style="display:grid;grid-template-columns:repeat(${b.cols},auto);gap:4px">`;
-    for(let r=b.deep-1;r>=0;r--)for(let c=0;c<b.cols;c++){const k=c+":"+r+":"+sl,gn=!alive(b,k),ok=gn||FACES.every(fn=>faceChecks(b,k,fn).ok);pp+=`<button type="button" class="btn" data-k="${k}" title="${gn?"removed · ":""}${r===0?"street row":r===b.deep-1?"back row":"middle row"}" style="min-width:44px;${k===S.sel?"background:var(--ink);color:var(--paper);border-color:var(--ink)":""}${ok?"":";border-color:var(--bad)"}${gn?";border-style:dashed;opacity:.55":""}">${gn?"×":c+1+"·"+(r===0?"st":r===b.deep-1?"bk":"mid")}</button>`;}
-    $("planPick").innerHTML=pp+`</div><span class="hint">street at the bottom · × removed</span>`;}else $("planPick").innerHTML="";
+  $("levelRows").innerHTML=Array.from({length:b.levels},(_,i)=>b.levels-1-i).map(l=>`<div class="ck lv"><span class="lbl">${levelName(l)}</span>
+    <label><input type="checkbox" data-plate="${l}"${b.plates[l]?" checked":""}> ${l?"plate "+PLATE_T+" mm":"base "+BASE_T+" mm"}</label>
+    <label><input type="checkbox" data-candle="${l}"${b.candles[l]?" checked":""}> candle${b.cols*b.deep>1?"s ×"+b.cols*b.deep:""}</label></div>`).join("");
+  $("levelPick").innerHTML=b.levels>1?`<span class="lbl">Level</span><div class="v"><div class="seg" id="lvSeg">${Array.from({length:b.levels},(_,l)=>`<button type="button" data-lv="${l}" aria-pressed="${l===sl}">${l?l:"G"}</button>`).join("")}</div></div>`:"";
+  if(b.cols*b.deep>1){let pp=`<span class="lbl">Module</span><div class="v" style="display:grid;grid-template-columns:repeat(${b.cols},minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line)">`;
+    for(let r=b.deep-1;r>=0;r--)for(let c=0;c<b.cols;c++){const k=c+":"+r+":"+sl,gn=!alive(b,k),ok=gn||FACES.every(fn=>faceChecks(b,k,fn).ok);pp+=`<button type="button" class="btn" data-k="${k}" title="${gn?"removed · ":""}${r===0?"street row":r===b.deep-1?"back row":"middle row"}" style="border:0;${k===S.sel?"background:var(--ink);color:var(--paper)":"background:var(--bg)"}${ok?"":";border-color:var(--bad)"}${gn?";border-style:dashed;opacity:.55":""}">${gn?"×":c+1+"·"+(r===0?"st":r===b.deep-1?"bk":"mid")}</button>`;}
+    $("planPick").innerHTML=pp+`</div><span></span><span class="hint v">street at the bottom · × removed</span>`;}else $("planPick").innerHTML="";
   const gone=!alive(b,S.sel),mc=b.mods[S.sel].col||"";
-  $("modTools").innerHTML=`<span class="lbl">Module colour</span><button type="button" class="btn" data-mc="" style="padding:2px 7px;font-size:12px;${!mc?"border-color:var(--terra)":""}">as building</button>`+
-    `<button type="button" class="btn" data-mc="unglazed" style="padding:2px 7px;font-size:12px;${mc==="unglazed"?"border-color:var(--terra)":""}">unglazed</button>`+
-    Object.entries(GLAZE).map(([kk,g])=>{const c=g.col===null?BODY[b.body||"porcelain"].col:g.col;return `<button type="button" data-mc="${kk}" title="${g.name} glaze on this module" aria-label="${g.name} glaze on this module" style="width:20px;height:20px;border-radius:50%;cursor:pointer;background:${hex(c)};border:2px solid ${mc===kk?"var(--terra)":"var(--line)"}"></button>`;}).join("")+
-    `<button type="button" class="btn" id="modRemove" style="margin-left:auto">${gone?"Restore this module":"Remove this module"}</button>`;
+  $("modTools").innerHTML=`<span class="lbl">Colour</span><div class="v sw"><button type="button" class="btn" data-mc="" style="width:auto!important;height:24px;padding:0 8px;font-size:11px;${!mc?"border-color:var(--terra)":""}">as building</button>`+
+    `<button type="button" class="btn" data-mc="unglazed" style="width:auto!important;height:24px;padding:0 8px;font-size:11px;${mc==="unglazed"?"border-color:var(--terra)":""}">unglazed</button>`+
+    Object.entries(GLAZE).map(([kk,g])=>{const c=g.col===null?BODY[b.body||"porcelain"].col:g.col;return `<button type="button" data-mc="${kk}" title="${g.name} glaze on this module" aria-label="${g.name} glaze on this module" style="cursor:pointer;background:${hex(c)};border:2px solid ${mc===kk?"var(--terra)":"var(--line)"}"></button>`;}).join("")+`</div>`+
+    `<span class="lbl"></span><div class="v"><button type="button" class="btn" id="modRemove" style="flex:1">${gone?"Restore this module":"Remove this module"}</button></div>`;
   $("faces").innerHTML=gone?"":FACES.map(fn=>{const r=faceChecks(b,S.sel,fn),sh=sharedOf(b,sc,sr,fn,sl);return `<button type="button" data-face="${fn}" aria-pressed="${fn===S.selFace}" class="${r.ok?"":"bad"}" title="${sh?"Inside the building, between two modules":""}">${mini(b.mods[S.sel][fn],FNAME[fn]+" wall")}${FNAME[fn]}${sh?" ·in":""}</button>`;}).join("");
   if(gone){$("editor").innerHTML=`<p class="hint">This module is removed. Restore it to edit its walls.</p>`;$("bigFace").innerHTML="";}else renderEditor();
   const f=face(),o=B.build(f);if(!gone)$("bigFace").innerHTML=B.faceSVG(o,{night:true,dims:true,label:FNAME[S.selFace]+" wall elevation"});
@@ -628,7 +673,7 @@ function renderUI(){
   if(f.mode==="bays")$("faceDesc").innerHTML=`<b>${f.bays.map(id=>B.BAY[id].name).join(" · ")}</b>. Three bays, each picked from the typical elements.`+(sh?" An inner wall: its openings pass light to the next room.":"");
   else{const c=B.BY[f.type];$("faceDesc").innerHTML=`<b>${c.name}</b>${c.ref?` (${c.set==="modern"?c.ref:"Houses of Beirut "+c.ref})`:""}. ${c.desc}`+(sh?" An inner wall: its openings pass light to the next room.":"");}
   $("editMeta").textContent=b.name.toLowerCase()+" · "+(b.levels>1?levelName(sl).toLowerCase()+" · ":"")+FNAME[S.selFace].toLowerCase()+" wall";
-  const {top}=levelY(b,0),tot=top+roofH(b);$("stackMeta").textContent=`${b.cols*W} × ${b.deep*W} × ${tot.toFixed(0)} mm`;
+  const {top}=levelY(b,0),tot=top+roofH(b);{const n=selIdx().length;$("stackMeta").textContent=n>1?`${n} buildings selected: changes apply to all`:`${b.cols*W} × ${b.deep*W} × ${tot.toFixed(0)} mm`;}
   const vb=bounds();$("tag").textContent=`${S.buildings.length} buildings · ${(vb.x1-vb.x0).toFixed(0)} × ${(vb.z1-vb.z0).toFixed(0)} mm · selected: ${b.name}, ${b.cols}×${b.deep}×${b.levels}, ${tot.toFixed(0)} mm tall ≈ ${(tot*0.075).toFixed(1)} m at 1:75`;
   /* checks */
   const sel=faceChecks(b,S.sel,S.selFace),bc=buildingChecks(b),vc=villageChecks();
@@ -640,35 +685,37 @@ function renderUI(){
 
 /* ================= events ================= */
 const on=(id,ev,fn)=>$(id).addEventListener(ev,fn);
-on("bList","click",e=>{const x=e.target.closest("button");if(!x)return;S.selB=+x.dataset.b;S.sel="0:0:0";S.editSet=Bs().set;renderUI();});
-document.querySelectorAll("[data-add]").forEach(x=>x.onclick=()=>{const b=x.dataset.add==="random"?randomBuilding():KINDS[x.dataset.add]();autoPlace(b,S.buildings);S.buildings.push(b);S.selB=S.buildings.length-1;S.sel="0:0:0";S.editSet=b.set;renderUI();});
-on("moveSeg","click",e=>{const x=e.target.closest("button");if(!x)return;const b=Bs();if(x.id==="rotBtn")b.rot=(b.rot+1)%4;else{const [dx,dz]=x.dataset.mv.split(",").map(Number);b.x+=dx*GRID;b.z+=dz*GRID;}renderUI();});
-on("dupB","click",()=>{const b=clone(Bs());b.name=b.name.replace(/( \d+)?$/,"")+" "+(S.buildings.length+1);autoPlace(b,S.buildings);S.buildings.push(b);S.selB=S.buildings.length-1;renderUI();});
-on("delB","click",()=>{if(S.buildings.length<2)return;S.buildings.splice(S.selB,1);S.selB=Math.max(0,S.selB-1);S.sel="0:0:0";renderUI();});
+on("bList","click",e=>{const x=e.target.closest("button");if(!x)return;const i=+x.dataset.b;if(e.shiftKey||e.metaKey||e.ctrlKey){toggleSel(i);renderUI();return;}S.selB=i;S.multi=[];S.sel="0:0:0";S.editSet=Bs().set;renderUI();});
+on("selAll","click",()=>{S.multi=S.buildings.map((_,i)=>i).filter(i=>i!==S.selB);renderUI();});
+on("selNone","click",()=>{S.multi=[];renderUI();});
+on("addBtn","click",()=>{const k=$("addKind").value,b=k==="random"?randomBuilding():KINDS[k]();autoPlace(b,S.buildings);S.buildings.push(b);S.selB=S.buildings.length-1;S.multi=[];S.sel="0:0:0";S.editSet=b.set;renderUI();});
+on("moveSeg","click",e=>{const x=e.target.closest("button");if(!x)return;each(b=>{if(x.id==="rotBtn")b.rot=(b.rot+1)%4;else{const [dx,dz]=x.dataset.mv.split(",").map(Number);b.x+=dx*GRID;b.z+=dz*GRID;}});renderUI();});
+on("dupB","click",()=>{const add=[];SELB().forEach(o=>{const b=clone(o);b.name=b.name.replace(/( \d+)?$/,"")+" "+(S.buildings.length+1);autoPlace(b,S.buildings);S.buildings.push(b);add.push(S.buildings.length-1);});S.selB=add[0];S.multi=add.slice(1);renderUI();});
+on("delB","click",()=>{const del=selIdx();if(S.buildings.length-del.length<1)return;S.buildings=S.buildings.filter((_,i)=>!del.includes(i));S.selB=Math.max(0,Math.min(del[0],S.buildings.length-1));S.multi=[];S.sel="0:0:0";renderUI();});
 on("randVillage","click",()=>{const n=3+Math.floor(Math.random()*4),list=[],pal=pick(Object.keys(PALETTES));for(let i=0;i<n;i++){const b=randomBuilding();applyPalette(b,Math.random()<0.7?pal:pick(Object.keys(PALETTES)));autoPlace(b,list);list.push(b);}
-  S.buildings=gridLayout(list);S.selB=0;S.sel="0:0:0";renderUI();fitView();});
+  S.buildings=gridLayout(list);S.selB=0;S.multi=[];S.sel="0:0:0";renderUI();fitView();});
 on("gridVillage","click",()=>{gridLayout(S.buildings);renderUI();fitView();});
-on("setSeg","click",e=>{const x=e.target.closest("button");if(!x)return;const b=Bs();b.set=x.dataset.v;S.editSet=b.set;if(b.set==="modern"&&b.roof==="slant")b.roof="modern";if(b.set==="ottoman"&&b.roof==="modern")b.roof="slant";renderUI();});
-on("randB","click",()=>{randomizeBuilding(Bs());randomizeLight(Bs());applyPalette(Bs(),pick(Object.keys(PALETTES)));renderUI();});
-on("randLight","click",()=>{randomizeLight(Bs());renderUI();});
-on("colsSeg","click",e=>{const x=e.target.closest("button");if(!x)return;const b=Bs();resize3(b,+x.dataset.v,b.deep,b.levels);renderUI();});
-on("deepSeg","click",e=>{const x=e.target.closest("button");if(!x)return;const b=Bs();resize3(b,b.cols,+x.dataset.v,b.levels);renderUI();});
-on("levelsSeg","click",e=>{const x=e.target.closest("button");if(!x||!x.dataset.d)return;const b=Bs(),n=Math.max(1,Math.min(MAX_LEVELS,b.levels+ +x.dataset.d));if(n!==b.levels){resize3(b,b.cols,b.deep,n);renderUI();}});
-on("roofSeg","click",e=>{const x=e.target.closest("button");if(!x)return;Bs().roof=x.dataset.v;renderUI();});
-on("pitch","input",e=>{Bs().pitch=+e.target.value;renderUI();});
-on("radius","input",e=>{Bs().radius=+e.target.value;renderUI();});
-on("spanSeg","click",e=>{const x=e.target.closest("button");if(!x)return;Bs().span=x.dataset.v;renderUI();});
-on("roofCol","change",e=>{Bs().roofCol=e.target.value;renderUI();});
-on("plateCol","change",e=>{Bs().plateCol=e.target.value;renderUI();});
+on("setSeg","click",e=>{const x=e.target.closest("button");if(!x)return;each(b=>{b.set=x.dataset.v;if(b.set==="modern"&&b.roof==="slant")b.roof="modern";if(b.set==="ottoman"&&b.roof==="modern")b.roof="slant";});S.editSet=x.dataset.v;renderUI();});
+on("randB","click",()=>{each(b=>{randomizeBuilding(b);randomizeLight(b);applyPalette(b,pick(Object.keys(PALETTES)));});renderUI();});
+on("randLight","click",()=>{each(randomizeLight);renderUI();});
+on("colsSeg","click",e=>{const x=e.target.closest("button");if(!x)return;each(b=>resize3(b,+x.dataset.v,b.deep,b.levels));renderUI();});
+on("deepSeg","click",e=>{const x=e.target.closest("button");if(!x)return;each(b=>resize3(b,b.cols,+x.dataset.v,b.levels));renderUI();});
+on("levelsSeg","click",e=>{const x=e.target.closest("button");if(!x||!x.dataset.d)return;each(b=>{const n=Math.max(1,Math.min(MAX_LEVELS,b.levels+ +x.dataset.d));if(n!==b.levels)resize3(b,b.cols,b.deep,n);});renderUI();});
+on("roofSeg","click",e=>{const x=e.target.closest("button");if(!x)return;each(b=>b.roof=x.dataset.v);renderUI();});
+on("pitch","input",e=>{each(b=>b.pitch=+e.target.value);renderUI();});
+on("radius","input",e=>{each(b=>b.radius=+e.target.value);renderUI();});
+on("spanSeg","click",e=>{const x=e.target.closest("button");if(!x)return;each(b=>b.span=x.dataset.v);renderUI();});
+on("roofCol","change",e=>{each(b=>b.roofCol=e.target.value);renderUI();});
+on("plateCol","change",e=>{each(b=>b.plateCol=e.target.value);renderUI();});
 let palScope="b";on("palScopeSeg","click",e=>{const x=e.target.closest("button");if(!x)return;palScope=x.dataset.v;seg($("palScopeSeg"),palScope);});
-on("palettes","click",e=>{const x=e.target.closest("button");if(!x)return;((palScope==="v")?S.buildings:[Bs()]).forEach(b=>applyPalette(b,x.dataset.pal));renderUI();});
-on("randCol","click",()=>{const keys=Object.keys(PALETTES);if(palScope==="v"){const k=pick(keys);S.buildings.forEach(b=>applyPalette(b,Math.random()<0.7?k:pick(keys)));}else applyPalette(Bs(),pick(keys));renderUI();});
-on("bodySel","change",e=>{Bs().body=e.target.value;renderUI();});
-on("finishSeg","click",e=>{const x=e.target.closest("button");if(!x)return;Bs().finish=x.dataset.v;renderUI();});
-on("glazeSw","click",e=>{const x=e.target.closest("button");if(!x)return;Bs().glazeCol=x.dataset.g;renderUI();});
-on("levelRows","change",e=>{const b=Bs(),t=e.target;
-  if(t.dataset.plate!==undefined){const l=+t.dataset.plate;b.plates[l]=t.checked;if(!t.checked)b.candles[l]=false;}
-  if(t.dataset.candle!==undefined){const l=+t.dataset.candle;b.candles[l]=t.checked;if(t.checked)b.plates[l]=true;}   /* a candle needs a plate to stand on */
+on("palettes","click",e=>{const x=e.target.closest("button");if(!x)return;((palScope==="v")?S.buildings:SELB()).forEach(b=>applyPalette(b,x.dataset.pal));renderUI();});
+on("randCol","click",()=>{const keys=Object.keys(PALETTES);if(palScope==="v"){const k=pick(keys);S.buildings.forEach(b=>applyPalette(b,Math.random()<0.7?k:pick(keys)));}else{const k=pick(keys);each(b=>applyPalette(b,k));}renderUI();});
+on("bodySel","change",e=>{each(b=>b.body=e.target.value);renderUI();});
+on("finishSeg","click",e=>{const x=e.target.closest("button");if(!x)return;each(b=>b.finish=x.dataset.v);renderUI();});
+on("glazeSw","click",e=>{const x=e.target.closest("button");if(!x)return;each(b=>b.glazeCol=x.dataset.g);renderUI();});
+on("levelRows","change",e=>{const t=e.target;each(b=>{
+  if(t.dataset.plate!==undefined){const l=+t.dataset.plate;if(l>=b.levels)return;b.plates[l]=t.checked;if(!t.checked)b.candles[l]=false;}
+  if(t.dataset.candle!==undefined){const l=+t.dataset.candle;if(l>=b.levels)return;b.candles[l]=t.checked;if(t.checked)b.plates[l]=true;}});   /* a candle needs a plate to stand on */
   renderUI();});
 on("levelPick","click",e=>{const x=e.target.closest("button");if(!x)return;const [c,r]=keyParts(S.sel);S.sel=c+":"+r+":"+x.dataset.lv;renderUI();});
 on("planPick","click",e=>{const x=e.target.closest("button");if(!x||!x.dataset.k)return;S.sel=x.dataset.k;renderUI();});
@@ -693,6 +740,7 @@ on("renderBtn","click",()=>{const b=$("renderBtn");if(S.render){setRender(false)
   if(composer){setRender(true);return;}b.textContent="Loading…";loadLibs().then(()=>{setupComposer();setRender(true);}).catch(e=>alert("Render mode could not load: "+e.message)).finally(()=>b.textContent="Render");});
 on("explode","input",e=>{S.explode=+e.target.value;rebuild();});
 on("resetView","click",fitView);
+on("orthoBtn","click",()=>setOrtho(!S.ortho));document.querySelectorAll("[data-view]").forEach(x=>x.onclick=()=>viewPreset(x.dataset.view));
 on("reset","click",()=>{if(confirm("Reset to the starting village?")){S=defaults();renderUI();fitView();}});
 on("dlSvg","click",()=>{const b=Bs(),cells=[],keys=liveKeys(b).sort((a,c)=>keyParts(c)[2]-keyParts(a)[2]);
   keys.forEach((k,row)=>FACES.forEach((fn,j)=>{const svg=B.faceSVG(B.build(b.mods[k][fn]),{dims:true}).replace("<svg ",`<svg x="${j*80}" y="${row*62}" width="74" height="54" `);
@@ -903,7 +951,7 @@ on("pdfBtn","click",()=>{const btn=$("pdfBtn"),t=btn.textContent;btn.textContent
 
 $("explode").value=S.explode;S.editSet=S.editSet||Bs().set;
 if(S.render){S.render=false;setTimeout(()=>$("renderBtn").click(),0);}
-resize();renderUI();fitView();
+resize();if(S.ortho)setOrtho(true);renderUI();fitView();
 })();
 </script>
 </body>
