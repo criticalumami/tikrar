@@ -172,7 +172,7 @@ select{background:var(--field);border:1px solid var(--line);border-radius:6px;pa
 <script src="openings.js"></script>
 <script>
 (function(){
-const B=window.BeitOpenings,W=B.W,H=B.H,T=3,LIP=3,MAX_LEVELS=8,GRID=30,BASE_T=6,PLATE_T=4,MAX_LIGHTS=12;
+const B=window.BeitOpenings,W=B.W,H=B.H,T=3,LIP=3,MAX_LEVELS=8,GRID=30,BASE_T=6,PLATE_T=4,MAX_LIGHTS=6,SHADOW_LIGHTS=4;
 const FACES=["front","right","back","left"],FNAME={front:"Front",right:"Right",back:"Back",left:"Left"};
 const $=id=>document.getElementById(id);
 const root=document.documentElement;
@@ -266,7 +266,8 @@ const levelName=l=>l?"Level "+l:"Ground";
 /* ================= 3D ================= */
 const view=$("viewer");
 const renderer=new THREE.WebGLRenderer({antialias:true});renderer.setPixelRatio(Math.min(2,window.devicePixelRatio||1));
-renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;view.prepend(renderer.domElement);
+renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.shadowMap.autoUpdate=false;   /* the scene is still: shadows are redrawn only when it changes */
+view.prepend(renderer.domElement);
 const scene=new THREE.Scene();let envBasic=null,envRoom=null;
 /* a soft-box studio, prefiltered, so glazes reflect and biscuit stays matte */
 {const env=new THREE.Scene(),room=new THREE.Mesh(new THREE.BoxGeometry(100,60,100),new THREE.MeshBasicMaterial({color:0x3a3632,side:THREE.BackSide}));env.add(room);
@@ -278,7 +279,7 @@ function bounds(){let x0=1e9,x1=-1e9,z0=1e9,z1=-1e9,h=0;S.buildings.forEach(b=>{
 function fitView(){const b=bounds(),cx=(b.x0+b.x1)/2,cz=(b.z0+b.z1)/2,s=Math.max(b.x1-b.x0,b.z1-b.z0,b.h)*1.25+120;
   camera.position.set(cx+s*0.45,b.h*0.5+s*0.5,cz+s*0.95);controls.target.set(cx,b.h*0.3,cz);controls.update();}
 const hemi=new THREE.HemisphereLight(0xfff7ee,0xdcd0c0,0.62);scene.add(hemi);
-const sun=new THREE.DirectionalLight(0xfff0de,0.62);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.shadow.radius=6;
+const sun=new THREE.DirectionalLight(0xfff0de,0.62);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.shadow.radius=8;sun.shadow.bias=-0.0004;
 Object.assign(sun.shadow.camera,{left:-600,right:600,top:600,bottom:-600,near:10,far:3000});scene.add(sun);scene.add(sun.target);
 /* clay bodies (unglazed colour, firing shrinkage) and glaze colours */
 const BODY={porcelain:{name:"Porcelain",col:0xf1eee7,glow:true,shrink:14},stoneware:{name:"Stoneware",col:0xb7ad9f,glow:false,shrink:12},terracotta:{name:"Terracotta",col:0xc0673f,glow:false,shrink:8}};
@@ -412,8 +413,7 @@ function buildBuilding(bi,gap,lightBudget){
     for(let c=0;c<b.cols;c++)for(let r=0;r<b.deep;r++){const k=c+":"+r+":"+l;if(!alive(b,k))continue;const mg=new THREE.Group();mg.position.set(mx(c),ys[l],mz(r));FACES.forEach(f=>mg.add(buildWall(bi,k,f)));mg.add(cornerPieces(b,k));g.add(mg);
       if(b.candles[l]&&b.plates[l]){const tea=new THREE.Mesh(new THREE.CylinderGeometry(19,19,8,24),MAT.tea);tea.position.set(mx(c),ys[l]+4,mz(r));g.add(tea);
         const fl=new THREE.Mesh(new THREE.SphereGeometry(2,10,8),MAT.flame);fl.scale.set(0.8,1.6,0.8);fl.position.set(mx(c),ys[l]+11,mz(r));g.add(fl);flames.push(fl);}}
-    if(b.candles[l]&&b.plates[l]&&lightBudget.n<MAX_LIGHTS){lightBudget.n++;
-      const L=new THREE.PointLight(0xffa85a,0,520,2);L.position.set(0,ys[l]+14,0);L.userData.base=0.95*Math.sqrt(b.cols*b.deep);L.shadow.radius=4;L.castShadow=S.render||lightBudget.n<=4;L.shadow.mapSize.set(S.render?384:512,S.render?384:512);L.shadow.bias=-0.002;g.add(L);lights.push(L);}}
+    if(b.candles[l]&&b.plates[l]){const a=new THREE.Object3D();a.position.set(0,ys[l]+14,0);a.userData={bi,w:Math.sqrt(b.cols*b.deep)};g.add(a);lightBudget.anchors.push(a);}}
   if(b.roof!=="none"){const one=()=>b.roof==="modern"?modernRoof(b):slantRoof(b);
     /* a one-piece roof needs a complete top level; otherwise every column gets its own lid on its highest module */
     if(perMod(b)||!topComplete(b)){const sb=Object.assign({},b,{span:"module"});
@@ -423,21 +423,48 @@ function buildBuilding(bi,gap,lightBudget){
   if(bi===S.selB){const pts=[[-hw-4,-hd-4],[hw+4,-hd-4],[hw+4,hd+4],[-hw-4,hd+4]].map(([x,z])=>new THREE.Vector3(x,0.6,z));const ln=new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(pts),MAT.sel);g.add(ln);}
   return g;}
 const flames=[];
-function rebuild(){
-  scene.remove(built);built.traverse(o=>{if(o.geometry)o.geometry.dispose();});built=new THREE.Group();pickable.length=0;lights.length=0;flames.length=0;
-  const gap=+S.explode,budget={n:0};S.buildings.forEach((_,bi)=>built.add(buildBuilding(bi,gap,budget)));
-  scene.add(built);buildRoom();applyNight();}
+/* a fixed pool of candle lights, so editing never changes the light count (which would recompile every shader and stutter) */
+const LPOOL=Array.from({length:MAX_LIGHTS},(_,i)=>{const L=new THREE.PointLight(0xffa04f,0,420,2);L.castShadow=i<SHADOW_LIGHTS;L.shadow.mapSize.set(256,256);L.shadow.radius=3;L.shadow.bias=-0.003;
+  L.shadow.camera.near=2;L.position.set(0,-500,0);L.userData.base=0;scene.add(L);return L;});
+/* candles share the pool: one light per lit level while they fit, else one per building (at the middle of its lit levels), else the brightest buildings */
+function placeLights(anchors){lights.length=0;LPOOL.forEach(L=>{L.userData.base=0;L.intensity=0;L.position.set(0,-500,0);});
+  let groups=anchors.map(a=>[a]);
+  if(groups.length>MAX_LIGHTS){const by={};anchors.forEach(a=>(by[a.userData.bi]=by[a.userData.bi]||[]).push(a));groups=Object.values(by).sort((x,y)=>y.length-x.length).slice(0,MAX_LIGHTS);}
+  groups.forEach((gr,i)=>{const L=LPOOL[i],v=new THREE.Vector3(),p=new THREE.Vector3();gr.forEach(a=>{a.getWorldPosition(p);v.add(p);});v.divideScalar(gr.length);
+    L.position.copy(v);L.userData.base=0.95*gr[0].userData.w*Math.sqrt(gr.length);lights.push(L);});}
+/* merge everything that shares a material into one mesh: a village goes from hundreds of draw calls to a handful.
+   The separate wall meshes stay in `built` (not in the scene) for picking. */
+let merged=new THREE.Group();scene.add(merged);
+function mergeGroup(root){root.updateMatrixWorld(true);const buckets=new Map(),out=new THREE.Group();
+  root.traverse(o=>{if(!o.isMesh)return;if(o.material===MAT.flame){const f=o.clone();o.getWorldPosition(f.position);out.add(f);flames.push(f);return;}
+    const k=o.material.uuid+(o.castShadow?"c":"")+(o.receiveShadow?"r":"");if(!buckets.has(k))buckets.set(k,{m:o.material,cast:o.castShadow,recv:o.receiveShadow,list:[]});buckets.get(k).list.push(o);});
+  root.traverse(o=>{if(o.isLine){const l=new THREE.LineLoop(o.geometry,o.material);l.matrixAutoUpdate=false;l.matrix.copy(o.matrixWorld);out.add(l);}});
+  buckets.forEach(({m,cast,recv,list})=>{let n=0;const parts=list.map(o=>{const g=o.geometry.index?o.geometry.toNonIndexed():o.geometry.clone();g.applyMatrix4(o.matrixWorld);n+=g.attributes.position.count;return g;});
+    const pos=new Float32Array(n*3),nor=new Float32Array(n*3),uv=new Float32Array(n*2);let i=0;
+    parts.forEach(g=>{const c=g.attributes.position.count;pos.set(g.attributes.position.array,i*3);if(g.attributes.normal)nor.set(g.attributes.normal.array,i*3);if(g.attributes.uv)uv.set(g.attributes.uv.array,i*2);i+=c;g.dispose();});
+    const geo=new THREE.BufferGeometry();geo.setAttribute("position",new THREE.BufferAttribute(pos,3));geo.setAttribute("normal",new THREE.BufferAttribute(nor,3));geo.setAttribute("uv",new THREE.BufferAttribute(uv,2));
+    geo.computeBoundingSphere();const mesh=new THREE.Mesh(geo,m);mesh.castShadow=cast;mesh.receiveShadow=recv;mesh.matrixAutoUpdate=false;out.add(mesh);});
+  return out;}
+let rbq=0;function rebuild(){if(!rbq)rbq=requestAnimationFrame(()=>{rbq=0;rebuildNow();});}   /* a drag on a slider rebuilds once per frame, not once per pixel */
+function rebuildNow(){
+  built.traverse(o=>{if(o.geometry&&!o.isLine)o.geometry.dispose();});merged.traverse(o=>{if(o.geometry&&o.isMesh&&o.material!==MAT.flame)o.geometry.dispose();});scene.remove(merged);
+  built=new THREE.Group();pickable.length=0;flames.length=0;
+  const gap=+S.explode,budget={anchors:[]};S.buildings.forEach((_,bi)=>built.add(buildBuilding(bi,gap,budget)));
+  merged=mergeGroup(built);scene.add(merged);placeLights(budget.anchors);buildRoom();applyNight();}
 function applyNight(){const n=S.night,rd=S.render;scene.background=lc(rd?(n?0x2a221c:0xb9b0a3):(n?0x5e4e42:0xf6f3ee));   /* abstract: a seamless warm-white backdrop by day, a warm dusk at night */
-  hemi.intensity=n?0.28:0.55;hemi.color.set(n?0x9a7c66:0xfff7ee);hemi.groundColor.set(n?0x3a2d24:0xdcd0c0);sun.intensity=n?0:0.78;   /* day: the sun; night: the candles */
-  const b=bounds(),cx=(b.x0+b.x1)/2,cz=(b.z0+b.z1)/2;sun.position.set(cx-480,640,cz+320);   /* low from the front left: shadows fall into view */
-  {const ext=Math.max(b.x1-b.x0,b.z1-b.z0,b.h)*0.75+150;Object.assign(sun.shadow.camera,{left:-ext,right:ext,top:ext,bottom:-ext,near:50,far:2200});sun.shadow.camera.updateProjectionMatrix();}sun.target.position.set(cx,0,cz);
+  hemi.intensity=n?0.28:0.6;hemi.color.set(n?0x9a7c66:0xfff4e6);hemi.groundColor.set(n?0x3a2d24:0xc9bba8);sun.intensity=n?0:1.5;   /* day: a soft warm sky and one gentle key light; night: the candles */
+  /* filmic tone mapping keeps white porcelain from blowing out (Render mode does its own in the final pass) */
+  {const tm=rd?THREE.NoToneMapping:THREE.ACESFilmicToneMapping;if(renderer.toneMapping!==tm){renderer.toneMapping=tm;scene.traverse(o=>{if(o.material)o.material.needsUpdate=true;});}}renderer.toneMappingExposure=n?1.15:1.3;
+  const b=bounds(),cx=(b.x0+b.x1)/2,cz=(b.z0+b.z1)/2;sun.position.set(cx-420,900,cz+560);   /* high from the front left: soft shadows that stay in view */
+  {const ext=Math.max(b.x1-b.x0,b.z1-b.z0,b.h)*0.9+260;Object.assign(sun.shadow.camera,{left:-ext,right:ext,top:ext,bottom:-ext,near:50,far:2200});sun.shadow.camera.updateProjectionMatrix();}sun.target.position.set(cx,0,cz);
   lights.forEach(L=>L.intensity=n?L.userData.base:0);flames.forEach(f=>f.visible=n);$("nightBtn").setAttribute("aria-pressed",n);
-  Object.values(MATS).forEach(m=>{m.emissiveIntensity=n&&m.userData.translucent?(S.render?0.012:0.07):0;});   /* thin porcelain glows a little when lit from inside */
-  if(S.render){scene.environment=n?null:(envRoom||envBasic);   /* night: nothing but the candles */hemi.intensity=n?0.035:0.38;sun.intensity=n?0:1.1;sun.shadow.mapSize.set(4096,4096);sun.shadow.normalBias=0.4;
-    lights.forEach(L=>L.intensity=n?L.userData.base*1.25:0);
+  Object.values(MATS).forEach(m=>{m.emissiveIntensity=n&&m.userData.translucent?(S.render?0.035:0.07):0;});   /* thin porcelain glows a little when lit from inside */
+  if(S.render){scene.environment=n?null:(envRoom||envBasic);   /* night: nothing but the candles */hemi.intensity=n?0.1:0.38;sun.intensity=n?0:1.1;sun.shadow.mapSize.set(2048,2048);sun.shadow.normalBias=0.4;
+    lights.forEach(L=>L.intensity=n?L.userData.base*2.2:0);if(finalPass)finalPass.uniforms.exposure.value=n?1.05:0.8;
     if(bloom){bloom.strength=n?0.45:0.1;bloom.threshold=n?0.78:0.95;bloom.radius=0.45;}}
   else{scene.environment=envBasic;sun.shadow.normalBias=0;}
-  if(sun.shadow.map&&sun.shadow.map.width!==sun.shadow.mapSize.x){sun.shadow.map.dispose();sun.shadow.map=null;}}
+  if(sun.shadow.map&&sun.shadow.map.width!==sun.shadow.mapSize.x){sun.shadow.map.dispose();sun.shadow.map=null;}
+  renderer.shadowMap.needsUpdate=true;need();}
 let composer=null,ssao=null,bloom=null,finalPass=null,fxaa=null;
 const LIBS=["shaders/CopyShader.js","shaders/LuminosityHighPassShader.js","shaders/SSAOShader.js","shaders/FXAAShader.js","math/SimplexNoise.js",
   "postprocessing/EffectComposer.js","postprocessing/MaskPass.js","postprocessing/RenderPass.js","postprocessing/ShaderPass.js","postprocessing/SSAOPass.js","postprocessing/UnrealBloomPass.js","environments/RoomEnvironment.js"];
@@ -460,13 +487,23 @@ function setRender(on){S.render=on;$("renderBtn").setAttribute("aria-pressed",on
 function resize(){const r=view.getBoundingClientRect();renderer.setSize(r.width,r.height,false);camera.aspect=r.width/r.height;camera.updateProjectionMatrix();
   if(composer){composer.setSize(r.width,r.height);const pr=renderer.getPixelRatio();fxaa.uniforms.resolution.value.set(1/(r.width*pr),1/(r.height*pr));}}
 const draw=()=>{if(S.render&&composer){finalPass.uniforms.time.value=tick%100;composer.render();}else renderer.render(scene,camera);};
-new ResizeObserver(resize).observe(view);
+/* draw only when something changed: an edit, the camera moving (and settling), or the candles flickering at night */
+let dirty=2,lastMove=0,hqDue=false;const need=()=>{dirty=Math.max(dirty,1);};
+controls.addEventListener("change",()=>{need();lastMove=performance.now();hqDue=true;});
+new ResizeObserver(()=>{resize();need();}).observe(view);
 /* keep the depth range tight around the view, so far-off buildings keep their depth precision (and SSAO reads it right) */
 let lastD=0;function fitDepth(){const d=camera.position.distanceTo(controls.target);if(Math.abs(d-lastD)<d*0.01)return;lastD=d;
   camera.near=Math.max(2,d*0.04);camera.far=d*4+2500;camera.updateProjectionMatrix();
   if(ssao){[ssao.ssaoMaterial,ssao.depthRenderMaterial].forEach(m=>{if(m&&m.uniforms.cameraNear){m.uniforms.cameraNear.value=camera.near;m.uniforms.cameraFar.value=camera.far;}});
     const span=camera.far-camera.near;ssao.minDistance=0.4/span;ssao.maxDistance=Math.min(0.1,40/span);ssao.kernelRadius=Math.max(4,d*0.012);}}
-let tick=0;(function loop(){requestAnimationFrame(loop);controls.update();fitDepth();tick+=0.08;if(S.night){lights.forEach((L,i)=>L.intensity=L.userData.base*(S.render?1.25:1)*(0.96+Math.sin(tick*1.7+i)*0.04+Math.sin(tick*4.1+i*2)*0.02));flames.forEach((f,i)=>f.scale.y=1.6+Math.sin(tick*3+i)*0.12);}draw();})();
+let tick=0,lastFlick=0;(function loop(now){requestAnimationFrame(loop);controls.update();fitDepth();
+  /* candle flicker: about 15 frames a second (8 in Render mode), never faster than the screen needs */
+  if(S.night&&lights.length&&now-lastFlick>(S.render?120:66)&&!document.hidden){lastFlick=now;tick+=0.4;
+    lights.forEach((L,i)=>L.intensity=L.userData.base*(S.render?2.2:1)*(0.96+Math.sin(tick*1.7+i)*0.04+Math.sin(tick*4.1+i*2)*0.02));flames.forEach((f,i)=>f.scale.y=1.6+Math.sin(tick*3+i)*0.12);need();}
+  const moving=now-lastMove<160;
+  /* Render mode: ambient occlusion only once the view settles, so orbiting stays smooth */
+  if(ssao){if(moving&&ssao.enabled){ssao.enabled=false;}else if(!moving&&hqDue&&!ssao.enabled){ssao.enabled=true;hqDue=false;need();}}
+  if(dirty>0){dirty--;draw();}})(0);
 const ray=new THREE.Raycaster(),ptr=new THREE.Vector2();let down=null;
 renderer.domElement.addEventListener("pointerdown",e=>down=[e.clientX,e.clientY]);
 renderer.domElement.addEventListener("pointerup",e=>{if(!down||Math.hypot(e.clientX-down[0],e.clientY-down[1])>5)return;const r=renderer.domElement.getBoundingClientRect();
