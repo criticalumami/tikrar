@@ -5,76 +5,87 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Beit Lantern Designer</title>
 <meta name="description" content="Design porcelain lanterns from 60 × 60 mm modules with 40 mm walls: houses and towers, a whole village, 1860–1925 and modernist openings, candles and plates per level, with dimensioned PDF sheets.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <style>
-:root{--bg:#f4f2ed;--paper:#fffefb;--ink:#23201c;--muted:#6d665c;--line:#e3ded4;--terra:#b5562f;--terra-soft:#f3e2d8;--ok:#2f8a4a;--bad:#c2412d;--field:#f7f5f0}
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#16140f;--paper:#1f1c17;--ink:#efe9df;--muted:#a59d90;--line:#36312a;--terra:#e07a4f;--terra-soft:#3a2519;--field:#26221c;--ok:#5cc17c;--bad:#ef7a64}}
-:root[data-theme="dark"]{--bg:#16140f;--paper:#1f1c17;--ink:#efe9df;--muted:#a59d90;--line:#36312a;--terra:#e07a4f;--terra-soft:#3a2519;--field:#26221c;--ok:#5cc17c;--bad:#ef7a64}
+/* Swiss grid (after Josef Müller-Brockmann): one grotesque, flush left, a 12-column grid with a 16 px gutter,
+   8 px baseline steps, black hairlines, square corners, white and black with one red. No web fonts to load. */
+:root{--bg:#fff;--paper:#fff;--ink:#111;--muted:#6b6b6b;--line:#d9d9d9;--rule:#111;--terra:#e2231a;--terra-soft:#fde9e8;--ok:#1d7a3a;--bad:#e2231a;--field:#f5f5f5;--u:8px;
+  --sans:"Helvetica Neue",Helvetica,Inter,Arial,system-ui,sans-serif}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#0e0e0e;--paper:#0e0e0e;--ink:#f2f2f2;--muted:#9a9a9a;--line:#2e2e2e;--rule:#f2f2f2;--terra:#ff4436;--terra-soft:#3a1412;--field:#1a1a1a;--ok:#4cc072;--bad:#ff4436}}
+:root[data-theme="dark"]{--bg:#0e0e0e;--paper:#0e0e0e;--ink:#f2f2f2;--muted:#9a9a9a;--line:#2e2e2e;--rule:#f2f2f2;--terra:#ff4436;--terra-soft:#3a1412;--field:#1a1a1a;--ok:#4cc072;--bad:#ff4436}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
-header{display:flex;align-items:center;gap:14px;padding:12px 16px;border-bottom:1px solid var(--line);flex-wrap:wrap}
-header h1{font:600 26px "Cormorant Garamond",Georgia,serif;margin:0}
-header .sub{color:var(--muted);font-size:13px}
-header nav{margin-left:auto;display:flex;gap:14px;align-items:center}
-header nav a{color:var(--terra);font-size:13px}
-.btn{border:1px solid var(--line);background:var(--paper);color:var(--ink);font:500 13px Inter,sans-serif;padding:6px 10px;border-radius:7px;cursor:pointer}
-.btn:hover{border-color:var(--muted)}
-.btn.primary{background:var(--ink);color:var(--paper);border-color:var(--ink)}
-.layout{display:grid;grid-template-columns:minmax(0,1fr) 430px;gap:14px;padding:14px 16px;align-items:start}
-@media (max-width:960px){.layout{grid-template-columns:1fr}}
-.viewer{position:sticky;top:12px;background:#f6f3ee;border-radius:12px;overflow:hidden;aspect-ratio:1/1;max-height:calc(100vh - 90px);width:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.43 var(--sans);-webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums}
+header{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:16px;align-items:end;padding:24px 16px 16px;border-bottom:2px solid var(--rule)}
+header h1{grid-column:1/8;font:700 40px/1 var(--sans);letter-spacing:-.025em;margin:0}
+header .sub{grid-column:8/12;color:var(--ink);font-size:12px;line-height:16px}
+header nav{grid-column:12/13;justify-self:end;display:flex;gap:16px;align-items:center}
+header nav a{color:var(--ink);font-size:12px;font-weight:700;text-decoration:none}
+header nav a:hover{color:var(--terra)}
+@media (max-width:960px){header h1{grid-column:1/-1;font-size:32px;margin-bottom:8px}header .sub{grid-column:1/10}header nav{grid-column:10/13}}
+.btn{border:1px solid var(--ink);background:transparent;color:var(--ink);font:500 12px/16px var(--sans);padding:7px 11px;border-radius:0;cursor:pointer}
+.btn:hover{background:var(--ink);color:var(--bg)}
+.btn.primary{background:var(--ink);color:var(--bg)}
+.btn.primary:hover{background:var(--terra);border-color:var(--terra)}
+.layout{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:16px;row-gap:16px;padding:16px;align-items:start}
+.layout>.viewer{grid-column:1/8}.layout>aside{grid-column:8/13}
+@media (max-width:960px){.layout>.viewer,.layout>aside{grid-column:1/-1}}
+.viewer{position:sticky;top:16px;background:#f2f2f2;border-radius:0;overflow:hidden;aspect-ratio:1/1;max-height:calc(100vh - 32px);width:100%}
 @media (max-width:960px){.viewer{position:relative;top:0;aspect-ratio:4/3}}
 .viewer canvas{display:block;width:100%!important;height:100%!important;touch-action:none}
-.vbar{position:absolute;left:10px;right:10px;bottom:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-.vbar .grp{display:flex;gap:6px;align-items:center;background:rgba(20,22,30,.78);color:#e8e2d6;border-radius:8px;padding:5px 8px;font:500 12px "JetBrains Mono",monospace}
-.vbar button{background:transparent;border:1px solid rgba(255,255,255,.25);color:#e8e2d6;border-radius:6px;font:500 12px "JetBrains Mono",monospace;padding:4px 8px;cursor:pointer}
-.vbar button[aria-pressed="true"]{background:#f0a33a;border-color:#f0a33a;color:#1b1b1b}
-.vbar input[type=range]{width:110px}
-.tag{position:absolute;left:10px;top:10px;background:rgba(20,22,30,.78);color:#e8e2d6;border-radius:8px;padding:6px 9px;font:500 12px "JetBrains Mono",monospace;max-width:calc(100% - 20px)}
-aside{display:grid;gap:12px}
-.panel{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:grid;gap:10px}
-.panel h2{font:600 15px Inter,sans-serif;margin:0;display:flex;align-items:center;gap:8px}
-.panel h2 .meta{margin-left:auto;font:500 12px "JetBrains Mono",monospace;color:var(--muted)}
-.lbl{font:500 11px "JetBrains Mono",monospace;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
-.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;flex-wrap:wrap}
-.seg button{border:0;background:transparent;color:var(--ink);font:500 13px Inter,sans-serif;padding:6px 11px;cursor:pointer}
-.seg button+button{border-left:1px solid var(--line)}
-.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
-.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-select,input[type=range]{font:14px Inter,sans-serif;color:var(--ink)}
-select{background:var(--field);border:1px solid var(--line);border-radius:6px;padding:5px 8px}
-.hint{font-size:12px;color:var(--muted);margin:0}
-.chips{display:grid;grid-template-columns:repeat(auto-fill,minmax(66px,1fr));gap:6px}
-.chip{border:1px solid var(--line);background:var(--field);border-radius:8px;padding:4px;cursor:pointer;display:grid;gap:2px;justify-items:center;color:var(--ink);font:500 10.5px Inter,sans-serif;text-align:center;line-height:1.15}
-.chip svg{width:100%;height:auto;display:block;border-radius:4px}
-.chip[aria-pressed="true"]{border-color:var(--terra);box-shadow:0 0 0 1px var(--terra) inset;background:var(--terra-soft)}
-.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:8px}
-.card{border:1px solid var(--line);background:var(--field);border-radius:8px;padding:6px;cursor:pointer;text-align:left;color:var(--ink);font:500 12px Inter,sans-serif;display:grid;gap:4px}
-.card svg{width:100%;height:auto;display:block;border-radius:4px}
-.card .ref{font:500 10.5px "JetBrains Mono",monospace;color:var(--muted)}
-.card[aria-pressed="true"]{border-color:var(--terra);box-shadow:0 0 0 1px var(--terra) inset;background:var(--terra-soft)}
+.vbar{position:absolute;left:0;right:0;bottom:0;display:flex;gap:0;flex-wrap:wrap;align-items:stretch;background:rgba(17,17,17,.86)}
+.vbar .grp{display:flex;gap:0;align-items:center;color:#f2f2f2;padding:0 8px;font:500 11px var(--sans);text-transform:uppercase;letter-spacing:.06em;border-right:1px solid rgba(255,255,255,.18)}
+.vbar .grp label{margin-right:8px}
+.vbar button{background:transparent;border:0;color:#f2f2f2;border-radius:0;font:500 11px var(--sans);text-transform:uppercase;letter-spacing:.06em;padding:12px 10px;cursor:pointer}
+.vbar button:hover{color:#fff;background:rgba(255,255,255,.08)}
+.vbar button[aria-pressed="true"]{background:var(--terra);color:#fff}
+.vbar input[type=range]{width:110px;accent-color:var(--terra)}
+.tag{position:absolute;left:0;top:0;background:transparent;color:#111;padding:12px 16px;font:500 11px/16px var(--sans);letter-spacing:.02em;max-width:100%}
+.viewer.dark .tag{color:#f2f2f2}
+aside{display:grid;gap:32px}
+.panel{background:transparent;border:0;border-top:2px solid var(--rule);border-radius:0;padding:8px 0 0;display:grid;gap:12px}
+.panel h2{font:700 20px/24px var(--sans);letter-spacing:-.01em;margin:0;display:flex;align-items:baseline;gap:8px}
+.panel h2 .meta{margin-left:auto;font:400 11px var(--sans);color:var(--muted);letter-spacing:.02em}
+.lbl{font:500 10.5px/16px var(--sans);text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.seg{display:inline-flex;border:1px solid var(--ink);border-radius:0;overflow:hidden;flex-wrap:wrap}
+.seg button{border:0;background:transparent;color:var(--ink);font:500 12px/16px var(--sans);padding:7px 11px;cursor:pointer}
+.seg button+button{border-left:1px solid var(--ink)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.row{display:flex;gap:8px 12px;flex-wrap:wrap;align-items:center}
+select,input[type=range]{font:13px var(--sans);color:var(--ink);accent-color:var(--terra)}
+select{background:var(--field);border:1px solid var(--line);border-radius:0;padding:6px 8px}
+.hint{font-size:12px;line-height:16px;color:var(--muted);margin:0;max-width:60ch}
+.chips{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:8px}
+.chip{border:1px solid var(--line);background:var(--field);border-radius:0;padding:4px;cursor:pointer;display:grid;gap:4px;justify-items:start;color:var(--ink);font:500 10.5px/1.2 var(--sans);text-align:left}
+.chip svg{width:100%;height:auto;display:block}
+.chip[aria-pressed="true"]{border-color:var(--terra);box-shadow:0 0 0 1px var(--terra) inset;background:var(--paper)}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:8px}
+.card{border:1px solid var(--line);background:var(--field);border-radius:0;padding:6px;cursor:pointer;text-align:left;color:var(--ink);font:500 12px/16px var(--sans);display:grid;gap:4px}
+.card svg{width:100%;height:auto;display:block}
+.card .ref{font:400 10.5px var(--sans);color:var(--muted)}
+.card[aria-pressed="true"]{border-color:var(--terra);box-shadow:0 0 0 1px var(--terra) inset;background:var(--paper)}
+.chip:hover,.card:hover,.faces button:hover{border-color:var(--ink)}
 .bay{display:grid;gap:4px}
-.big{background:var(--field);border:1px solid var(--line);border-radius:8px;padding:6px}
+.big{background:var(--field);border:0;border-radius:0;padding:8px}
 .big svg{width:100%;height:auto;display:block}
-.faces{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
-.faces button{border:1px solid var(--line);background:var(--field);border-radius:8px;padding:4px;cursor:pointer;color:var(--ink);font:500 11px "JetBrains Mono",monospace;display:grid;gap:2px}
+.faces{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.faces button{border:1px solid var(--line);background:var(--field);border-radius:0;padding:4px;cursor:pointer;color:var(--ink);font:500 10.5px var(--sans);text-transform:uppercase;letter-spacing:.06em;display:grid;gap:4px;text-align:left}
 .faces button svg{width:100%;height:auto;display:block}
 .faces button[aria-pressed="true"]{border-color:var(--terra);box-shadow:0 0 0 1px var(--terra) inset}
 .faces button.bad{border-color:var(--bad)}
 .opts{display:flex;gap:12px;flex-wrap:wrap}
-.opts label{display:flex;gap:5px;align-items:center;font-size:13px;cursor:pointer}
+.opts label{display:flex;gap:6px;align-items:center;font-size:13px;cursor:pointer}
 .opts label.off{opacity:.45;cursor:not-allowed}
-.checks{display:grid;gap:3px}
-.ck{display:grid;grid-template-columns:18px 1fr auto;gap:6px;font-size:12.5px;align-items:baseline}
+.checks{display:grid;gap:0}
+.ck{display:grid;grid-template-columns:16px 1fr auto;gap:8px;font-size:12px;line-height:16px;align-items:baseline;padding:4px 0;border-bottom:1px solid var(--line)}
 .ck .s{font-weight:700}
 .ck .s.ok{color:var(--ok)}.ck .s.bad{color:var(--bad)}
-.ck .v{font:500 11.5px "JetBrains Mono",monospace;color:var(--muted)}
-.desc{font-size:13px;color:var(--muted);margin:0}
+.ck .v{font:400 11px var(--sans);color:var(--muted)}
+.desc{font-size:13px;color:var(--muted);margin:0;max-width:60ch}
 .desc b{color:var(--ink)}
 .ck .s.note{color:#b7791f}
 .grp select option{color:#1b1b1b}
+:focus-visible{outline:2px solid var(--terra);outline-offset:2px}
 </style>
 </head>
 <body>
@@ -110,8 +121,8 @@ select{background:var(--field);border:1px solid var(--line);border-radius:6px;pa
       <div class="row"><span class="lbl">Selected</span>
         <div class="seg" id="moveSeg"><button type="button" data-mv="-1,0" aria-label="Move left">←</button><button type="button" data-mv="1,0" aria-label="Move right">→</button><button type="button" data-mv="0,-1" aria-label="Move back">↑</button><button type="button" data-mv="0,1" aria-label="Move forward">↓</button><button type="button" id="rotBtn" aria-label="Turn 90°">⟳</button></div>
         <button class="btn" type="button" id="dupB">Duplicate</button><button class="btn" type="button" id="delB">Remove</button>
-        <button class="btn primary" type="button" id="randVillage">Randomize village</button></div>
-      <p class="hint">Mix 1860–1925 houses and modernist towers on one street. Buildings move on a 30 mm grid and can touch, wall to wall, as in Beirut's dense blocks.</p>
+        <button class="btn" type="button" id="gridVillage">Arrange on grid</button><button class="btn primary" type="button" id="randVillage">Randomize village</button></div>
+      <p class="hint">The village is a grid of square fields, 4 modules (240 mm) each with a one-module gutter, drawn on the ground. New buildings take the next free field, flush to its back-left corner. Move them on the 30 mm half-module grid to break the rhythm or join them wall to wall.</p>
     </div>
 
     <div class="panel">
@@ -135,8 +146,9 @@ select{background:var(--field);border:1px solid var(--line);border-radius:6px;pa
         <div class="seg" id="finishSeg"><button type="button" data-v="glazed">Glazed</button><button type="button" data-v="unglazed">Unglazed</button></div>
         <div class="row" id="glazeSw" style="gap:5px"></div></div>
       <p class="hint" id="matHint"></p>
-      <div class="row"><span class="lbl">Palette</span><div class="row" id="palettes" style="gap:6px"></div></div>
-      <div class="row"><select id="palScope" aria-label="Apply palette to"><option value="b">to this building</option><option value="v">to the whole village</option></select>
+      <div class="row"><span class="lbl">Palette for</span><div class="seg" id="palScopeSeg" role="group" aria-label="Apply palette to"><button type="button" data-v="b" aria-pressed="true">This building</button><button type="button" data-v="v" aria-pressed="false">Whole village</button></div></div>
+      <div class="row"><div class="row" id="palettes" style="gap:6px"></div></div>
+      <div class="row">
         <button class="btn" type="button" id="randCol">Randomize colours</button></div>
       <div><span class="lbl">Levels: plate and candle</span> <button class="btn" type="button" id="randLight" style="padding:3px 8px;font-size:12px">Randomize plates &amp; candles</button><div class="checks" id="levelRows" style="margin-top:4px"></div></div>
       <p class="hint">Each level can sit on its own porcelain plate (the base at ground level) and carry its own candles, one tealight per module. A candle needs a plate under it. The roof covers the whole building in one piece (like the manual's red-tiled hip) or sits as a small lid on every top module. Plates and roofs have Ø 8 mm vents so the heat rises out.</p>
@@ -243,12 +255,23 @@ function randomBuilding(){const tower=Math.random()<0.45,set=tower?(Math.random(
   const b=make(set==="modern"?(tower?"Modernist tower":"Modernist block"):(tower?"Stair tower":"House"),set,cols,deep,levels,set==="modern"?"modern":"slant",()=>wall("blank"));
   randomizeLight(b);randomizeBuilding(b);return b;}
 const fp=b=>b.rot%2?{w:b.deep*W,d:b.cols*W}:{w:b.cols*W,d:b.deep*W};
-function autoPlace(b,list){let x=0;list.forEach(o=>{x=Math.max(x,o.x+fp(o).w/2);});const f=fp(b);b.x=list.length?Math.ceil((x+GRID+f.w/2)/GRID)*GRID:0;b.z=0;}
-function defaultVillage(){const list=[];["central","photo","stair","modernTower","liwan","modernRow"].forEach(k=>{const b=KINDS[k]();autoPlace(b,list);list.push(b);});
-  const cx=(list[0].x-fp(list[0]).w/2+list[list.length-1].x+fp(list[list.length-1]).w/2)/2;list.forEach(b=>b.x=Math.round((b.x-cx)/GRID)*GRID);return list;}
-function defaults(){return {buildings:defaultVillage(),selB:0,sel:"0:0:0",selFace:"front",editSet:"ottoman",night:false,explode:0};}
+/* the village is a Swiss grid: square fields of 4 modules (240 mm), one module of each kept as the gutter, so the
+   largest building (3 × 3) fills a field and every building sits flush to its field's back-left corner */
+const FIELD=4*W;
+const fieldCols=n=>Math.max(2,Math.ceil(Math.sqrt(n)));
+function fieldXZ(i,cols,b){const f=fp(b),c=i%cols,r=Math.floor(i/cols);return {x:c*FIELD+f.w/2,z:r*FIELD+f.d/2};}
+const overlaps=(b,list)=>list.some(o=>{const fa=fp(b),fb=fp(o);return Math.abs(b.x-o.x)<(fa.w+fb.w)/2-0.1&&Math.abs(b.z-o.z)<(fa.d+fb.d)/2-0.1;});
+/* a new building takes the first free field (fields run left to right, then the next row back) */
+function autoPlace(b,list){const cols=fieldCols(list.length+1),x0=list.length?Math.min(...list.map(o=>o.x-fp(o).w/2)):0,z0=list.length?Math.min(...list.map(o=>o.z-fp(o).d/2)):0;
+  for(let i=0;i<400;i++){const p=fieldXZ(i,cols,b);b.x=p.x+x0;b.z=p.z+z0;if(!overlaps(b,list))return;}}
+/* lay the whole village out on the field grid, centred on the origin */
+function gridLayout(list){const cols=fieldCols(list.length),rows=Math.ceil(list.length/cols);
+  list.forEach((b,i)=>{const p=fieldXZ(i,cols,b);b.x=p.x-(cols*FIELD-W)/2;b.z=p.z-(rows*FIELD-W)/2;});return list;}
+function defaultVillage(){return gridLayout(["central","photo","stair","modernTower","liwan","modernRow"].map(k=>KINDS[k]()));}
+function defaults(){return {buildings:defaultVillage(),selB:0,sel:"0:0:0",selFace:"front",editSet:"ottoman",night:false,explode:0,gridded:1};}
 let S=defaults();
 try{const v=JSON.parse(localStorage.getItem(KEY)||"null");if(v&&Array.isArray(v.buildings)&&v.buildings.length)S=Object.assign(defaults(),v);}catch(e){}
+if(!S.gridded){gridLayout(S.buildings);S.gridded=1;}   /* designs saved before the village grid are laid out on it once */
 S.buildings.forEach(b=>{if(b.glaze){if(!b.roofCol)b.roofCol=b.glaze==="terra"?"terra":"same";delete b.glaze;}});
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}};
 const Bs=()=>S.buildings[S.selB];
@@ -276,7 +299,7 @@ const scene=new THREE.Scene();let envBasic=null,envRoom=null;
 const camera=new THREE.PerspectiveCamera(35,1,1,8000);
 const controls=new THREE.OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.minDistance=60;controls.maxDistance=3000;controls.maxPolarAngle=Math.PI*0.495;
 function bounds(){let x0=1e9,x1=-1e9,z0=1e9,z1=-1e9,h=0;S.buildings.forEach(b=>{const f=fp(b);x0=Math.min(x0,b.x-f.w/2);x1=Math.max(x1,b.x+f.w/2);z0=Math.min(z0,b.z-f.d/2);z1=Math.max(z1,b.z+f.d/2);h=Math.max(h,b.levels*H+40);});return {x0,x1,z0,z1,h};}
-function fitView(){const b=bounds(),cx=(b.x0+b.x1)/2,cz=(b.z0+b.z1)/2,s=Math.max(b.x1-b.x0,b.z1-b.z0,b.h)*1.25+120;
+function fitView(){const b=bounds(),cx=(b.x0+b.x1)/2,cz=(b.z0+b.z1)/2,s=Math.max(b.x1-b.x0,b.z1-b.z0,b.h)*1.45+120;
   camera.position.set(cx+s*0.45,b.h*0.5+s*0.5,cz+s*0.95);controls.target.set(cx,b.h*0.3,cz);controls.update();}
 const hemi=new THREE.HemisphereLight(0xfff7ee,0xdcd0c0,0.62);scene.add(hemi);
 const sun=new THREE.DirectionalLight(0xfff0de,0.62);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.shadow.radius=8;sun.shadow.bias=-0.0004;
@@ -347,13 +370,21 @@ const MAT={glaze:new THREE.MeshStandardMaterial({color:0xf6f1e8,roughness:0.22,m
   bisque:new THREE.MeshStandardMaterial({color:0xc9bfae,roughness:0.95}),
   terra:new THREE.MeshStandardMaterial({color:0xb8603c,roughness:0.35}),
   tea:new THREE.MeshStandardMaterial({color:0xd9d6cf,roughness:0.6}),flame:new THREE.MeshBasicMaterial({color:0xffd27a}),
-  sel:new THREE.LineBasicMaterial({color:0xe07a4f})};
+  sel:new THREE.LineBasicMaterial({color:0xe2231a})};
 
 /* ---------- ground ---------- */
 let room=new THREE.Group();scene.add(room);
 const lc=h=>S.render?new THREE.Color(h).convertSRGBToLinear():new THREE.Color(h);
-function buildRoom(){scene.remove(room);room.traverse(o=>{if(o.geometry)o.geometry.dispose();});room=new THREE.Group();
-  const g=new THREE.Mesh(new THREE.PlaneGeometry(8000,8000),new THREE.MeshStandardMaterial({color:lc(S.render?(S.night?0x3a3029:0xc4bcb0):(S.night?0x5c4c3f:0xefebe4)),roughness:1,envMapIntensity:0.2}));g.rotation.x=-Math.PI/2;g.receiveShadow=true;room.add(g);scene.add(room);}
+function buildRoom(){scene.remove(room);room.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.isLine)o.material.dispose();});room=new THREE.Group();
+  const g=new THREE.Mesh(new THREE.PlaneGeometry(8000,8000),new THREE.MeshStandardMaterial({color:lc(S.render?(S.night?0x1c1f27:0xc4bcb0):(S.night?0x2a2f3b:0xebebeb)),roughness:1,envMapIntensity:0.2}));g.rotation.x=-Math.PI/2;g.receiveShadow=true;room.add(g);
+  /* the ground grid: thin lines every module (60 mm), stronger ones on the 240 mm fields */
+  const b=bounds(),pad=FIELD,x0=Math.floor((b.x0-pad)/W)*W,x1=Math.ceil((b.x1+pad)/W)*W,z0=Math.floor((b.z0-pad)/W)*W,z1=Math.ceil((b.z1+pad)/W)*W,thin=[],bold=[];
+  const fx=(S.buildings.length?Math.min(...S.buildings.map(o=>o.x-fp(o).w/2)):0),fz=(S.buildings.length?Math.min(...S.buildings.map(o=>o.z-fp(o).d/2)):0);
+  for(let x=x0;x<=x1;x+=W){(Math.round((x-fx)/W)%4===0?bold:thin).push(x,0.3,z0,x,0.3,z1);}
+  for(let z=z0;z<=z1;z+=W){(Math.round((z-fz)/W)%4===0?bold:thin).push(x0,0.3,z,x1,0.3,z);}
+  const night=S.night,lineCol=(a)=>new THREE.LineBasicMaterial({color:night?(a?0x3c4456:0x2f3543):(a?0xb4b4b4:0xdadada),transparent:true,opacity:1});
+  [[thin,0],[bold,1]].forEach(([v,a])=>{const gg=new THREE.BufferGeometry();gg.setAttribute("position",new THREE.Float32BufferAttribute(v,3));room.add(new THREE.LineSegments(gg,lineCol(a)));});
+  scene.add(room);}
 
 let built=new THREE.Group();scene.add(built);const pickable=[],lights=[];
 function shapeOf(p){const s=new THREE.Shape();p.forEach(([x,y],i)=>i?s.lineTo(x,y):s.moveTo(x,y));return s;}
@@ -410,7 +441,7 @@ function buildBuilding(bi,gap,lightBudget){
     if(b.plates[l]){const vents=[];for(let c=0;c<b.cols;c++)for(let r=0;r<b.deep;r++)vents.push(circle(4,mx(c),-mz(r)));
       const p=flat(rsq(-hw,-hd,hw,hd,radOf(b)),l===0?[]:vents,plateT(l),plateMat(b),ys[l]-plateT(l)-gap*0.5);g.add(p);
       if(l===0){const f=flat(rsq(-hw-0.05,-hd-0.05,hw+0.05,hd+0.05,radOf(b)),[],1.2,footMat(b),ys[0]-plateT(0)-gap*0.5);g.add(f);}}
-    for(let c=0;c<b.cols;c++)for(let r=0;r<b.deep;r++){const k=c+":"+r+":"+l;if(!alive(b,k))continue;const mg=new THREE.Group();mg.position.set(mx(c),ys[l],mz(r));FACES.forEach(f=>mg.add(buildWall(bi,k,f)));mg.add(cornerPieces(b,k));g.add(mg);
+    for(let c=0;c<b.cols;c++)for(let r=0;r<b.deep;r++){const k=c+":"+r+":"+l;if(!alive(b,k))continue;const mg=new THREE.Group();mg.position.set(mx(c),ys[l],mz(r));FACES.forEach(f=>mg.add(buildWall(bi,k,f)));mg.add(cornerPieces(b,k));if(b.candles[l]&&b.plates[l])mg.traverse(o=>o.userData.lit=true);g.add(mg);
       if(b.candles[l]&&b.plates[l]){const tea=new THREE.Mesh(new THREE.CylinderGeometry(19,19,8,24),MAT.tea);tea.position.set(mx(c),ys[l]+4,mz(r));g.add(tea);
         const fl=new THREE.Mesh(new THREE.SphereGeometry(2,10,8),MAT.flame);fl.scale.set(0.8,1.6,0.8);fl.position.set(mx(c),ys[l]+11,mz(r));g.add(fl);flames.push(fl);}}
     if(b.candles[l]&&b.plates[l]){const a=new THREE.Object3D();a.position.set(0,ys[l]+14,0);a.userData={bi,w:Math.sqrt(b.cols*b.deep)};g.add(a);lightBudget.anchors.push(a);}}
@@ -424,20 +455,23 @@ function buildBuilding(bi,gap,lightBudget){
   return g;}
 const flames=[];
 /* a fixed pool of candle lights, so editing never changes the light count (which would recompile every shader and stutter) */
-const LPOOL=Array.from({length:MAX_LIGHTS},(_,i)=>{const L=new THREE.PointLight(0xffa04f,0,420,2);L.castShadow=i<SHADOW_LIGHTS;L.shadow.mapSize.set(256,256);L.shadow.radius=3;L.shadow.bias=-0.003;
+const LPOOL=Array.from({length:MAX_LIGHTS},(_,i)=>{const L=new THREE.PointLight(0xffa04f,0,280,2);L.castShadow=i<SHADOW_LIGHTS;L.shadow.mapSize.set(256,256);L.shadow.radius=3;L.shadow.bias=-0.003;
   L.shadow.camera.near=2;L.position.set(0,-500,0);L.userData.base=0;scene.add(L);return L;});
 /* candles share the pool: one light per lit level while they fit, else one per building (at the middle of its lit levels), else the brightest buildings */
 function placeLights(anchors){lights.length=0;LPOOL.forEach(L=>{L.userData.base=0;L.intensity=0;L.position.set(0,-500,0);});
   let groups=anchors.map(a=>[a]);
   if(groups.length>MAX_LIGHTS){const by={};anchors.forEach(a=>(by[a.userData.bi]=by[a.userData.bi]||[]).push(a));groups=Object.values(by).sort((x,y)=>y.length-x.length).slice(0,MAX_LIGHTS);}
   groups.forEach((gr,i)=>{const L=LPOOL[i],v=new THREE.Vector3(),p=new THREE.Vector3();gr.forEach(a=>{a.getWorldPosition(p);v.add(p);});v.divideScalar(gr.length);
-    L.position.copy(v);L.userData.base=0.95*gr[0].userData.w*Math.sqrt(gr.length);lights.push(L);});}
+    L.position.copy(v);L.userData.base=0.7*Math.sqrt(gr[0].userData.w*gr.length);lights.push(L);});}
 /* merge everything that shares a material into one mesh: a village goes from hundreds of draw calls to a handful.
    The separate wall meshes stay in `built` (not in the scene) for picking. */
 let merged=new THREE.Group();scene.add(merged);
+/* walls of a lit module get their own copy of the glaze that glows from inside at night, so every lit lantern
+   glows evenly however many point lights there are */
+const LIT={};function litOf(m){if(LIT[m.uuid])return LIT[m.uuid];const c=m.clone();c.userData=Object.assign({},m.userData,{lit:true});return LIT[m.uuid]=c;}
 function mergeGroup(root){root.updateMatrixWorld(true);const buckets=new Map(),out=new THREE.Group();
   root.traverse(o=>{if(!o.isMesh)return;if(o.material===MAT.flame){const f=o.clone();o.getWorldPosition(f.position);out.add(f);flames.push(f);return;}
-    const k=o.material.uuid+(o.castShadow?"c":"")+(o.receiveShadow?"r":"");if(!buckets.has(k))buckets.set(k,{m:o.material,cast:o.castShadow,recv:o.receiveShadow,list:[]});buckets.get(k).list.push(o);});
+    const mat=o.userData.lit?litOf(o.material):o.material,k=mat.uuid+(o.castShadow?"c":"")+(o.receiveShadow?"r":"");if(!buckets.has(k))buckets.set(k,{m:mat,cast:o.castShadow,recv:o.receiveShadow,list:[]});buckets.get(k).list.push(o);});
   root.traverse(o=>{if(o.isLine){const l=new THREE.LineLoop(o.geometry,o.material);l.matrixAutoUpdate=false;l.matrix.copy(o.matrixWorld);out.add(l);}});
   buckets.forEach(({m,cast,recv,list})=>{let n=0;const parts=list.map(o=>{const g=o.geometry.index?o.geometry.toNonIndexed():o.geometry.clone();g.applyMatrix4(o.matrixWorld);n+=g.attributes.position.count;return g;});
     const pos=new Float32Array(n*3),nor=new Float32Array(n*3),uv=new Float32Array(n*2);let i=0;
@@ -451,17 +485,19 @@ function rebuildNow(){
   built=new THREE.Group();pickable.length=0;flames.length=0;
   const gap=+S.explode,budget={anchors:[]};S.buildings.forEach((_,bi)=>built.add(buildBuilding(bi,gap,budget)));
   merged=mergeGroup(built);scene.add(merged);placeLights(budget.anchors);buildRoom();applyNight();}
-function applyNight(){const n=S.night,rd=S.render;scene.background=lc(rd?(n?0x2a221c:0xb9b0a3):(n?0x5e4e42:0xf6f3ee));   /* abstract: a seamless warm-white backdrop by day, a warm dusk at night */
-  hemi.intensity=n?0.28:0.6;hemi.color.set(n?0x9a7c66:0xfff4e6);hemi.groundColor.set(n?0x3a2d24:0xc9bba8);sun.intensity=n?0:1.5;   /* day: a soft warm sky and one gentle key light; night: the candles */
+function applyNight(){const n=S.night,rd=S.render;scene.background=lc(rd?(n?0x12151c:0xb9b0a3):(n?0x1e2330:0xf2f2f2));view.classList.toggle("dark",n||rd);   /* abstract: a seamless warm-white backdrop by day, a warm dusk at night */
+  hemi.intensity=n?0.42:0.6;hemi.color.set(n?0x8fa3cc:0xfff4e6);hemi.groundColor.set(n?0x2b2622:0xc9bba8);   /* night: a blue dusk sky */
+  sun.intensity=n?0:1.5;   /* day: a soft warm sky and one gentle key light; night: the candles */
   /* filmic tone mapping keeps white porcelain from blowing out (Render mode does its own in the final pass) */
   {const tm=rd?THREE.NoToneMapping:THREE.ACESFilmicToneMapping;if(renderer.toneMapping!==tm){renderer.toneMapping=tm;scene.traverse(o=>{if(o.material)o.material.needsUpdate=true;});}}renderer.toneMappingExposure=n?1.15:1.3;
   const b=bounds(),cx=(b.x0+b.x1)/2,cz=(b.z0+b.z1)/2;sun.position.set(cx-420,900,cz+560);   /* high from the front left: soft shadows that stay in view */
   {const ext=Math.max(b.x1-b.x0,b.z1-b.z0,b.h)*0.9+260;Object.assign(sun.shadow.camera,{left:-ext,right:ext,top:ext,bottom:-ext,near:50,far:2200});sun.shadow.camera.updateProjectionMatrix();}sun.target.position.set(cx,0,cz);
   lights.forEach(L=>L.intensity=n?L.userData.base:0);flames.forEach(f=>f.visible=n);$("nightBtn").setAttribute("aria-pressed",n);
-  Object.values(MATS).forEach(m=>{m.emissiveIntensity=n&&m.userData.translucent?(S.render?0.035:0.07):0;});   /* thin porcelain glows a little when lit from inside */
-  if(S.render){scene.environment=n?null:(envRoom||envBasic);   /* night: nothing but the candles */hemi.intensity=n?0.1:0.38;sun.intensity=n?0:1.1;sun.shadow.mapSize.set(2048,2048);sun.shadow.normalBias=0.4;
-    lights.forEach(L=>L.intensity=n?L.userData.base*2.2:0);if(finalPass)finalPass.uniforms.exposure.value=n?1.05:0.8;
-    if(bloom){bloom.strength=n?0.45:0.1;bloom.threshold=n?0.78:0.95;bloom.radius=0.45;}}
+  Object.values(MATS).forEach(m=>{m.emissiveIntensity=0;});
+  Object.values(LIT).forEach(m=>{m.emissiveIntensity=n?(m.userData.translucent?(S.render?0.12:0.2):(S.render?0.05:0.1)):0;});   /* thin porcelain glows through; stoneware and terracotta only a little */   /* thin porcelain glows a little when lit from inside */
+  if(S.render){scene.environment=n?null:(envRoom||envBasic);   /* night: nothing but the candles */hemi.intensity=n?0.16:0.38;sun.intensity=n?0:1.1;sun.shadow.mapSize.set(2048,2048);sun.shadow.normalBias=0.4;
+    lights.forEach(L=>L.intensity=n?L.userData.base*1.6:0);if(finalPass)finalPass.uniforms.exposure.value=n?1.05:0.8;
+    if(bloom){bloom.strength=n?0.3:0.1;bloom.threshold=n?0.85:0.95;bloom.radius=0.45;}}
   else{scene.environment=envBasic;sun.shadow.normalBias=0;}
   if(sun.shadow.map&&sun.shadow.map.width!==sun.shadow.mapSize.x){sun.shadow.map.dispose();sun.shadow.map=null;}
   renderer.shadowMap.needsUpdate=true;need();}
@@ -483,7 +519,7 @@ function setupComposer(){lastD=0;const r=view.getBoundingClientRect(),w=Math.max
   finalPass=new THREE.ShaderPass(FINAL);composer.addPass(finalPass);
   fxaa=new THREE.ShaderPass(THREE.FXAAShader);fxaa.uniforms.resolution.value.set(1/(w*pr),1/(h*pr));composer.addPass(fxaa);
   const pm=new THREE.PMREMGenerator(renderer);envRoom=pm.fromScene(new THREE.RoomEnvironment(),0.04).texture;pm.dispose();}
-function setRender(on){S.render=on;$("renderBtn").setAttribute("aria-pressed",on);Object.keys(MATS).forEach(k=>delete MATS[k]);save();rebuild();}
+function setRender(on){S.render=on;$("renderBtn").setAttribute("aria-pressed",on);Object.keys(MATS).forEach(k=>delete MATS[k]);Object.keys(LIT).forEach(k=>delete LIT[k]);save();rebuild();}
 function resize(){const r=view.getBoundingClientRect();renderer.setSize(r.width,r.height,false);camera.aspect=r.width/r.height;camera.updateProjectionMatrix();
   if(composer){composer.setSize(r.width,r.height);const pr=renderer.getPixelRatio();fxaa.uniforms.resolution.value.set(1/(r.width*pr),1/(r.height*pr));}}
 const draw=()=>{if(S.render&&composer){finalPass.uniforms.time.value=tick%100;composer.render();}else renderer.render(scene,camera);};
@@ -499,7 +535,7 @@ let lastD=0;function fitDepth(){const d=camera.position.distanceTo(controls.targ
 let tick=0,lastFlick=0;(function loop(now){requestAnimationFrame(loop);controls.update();fitDepth();
   /* candle flicker: about 15 frames a second (8 in Render mode), never faster than the screen needs */
   if(S.night&&lights.length&&now-lastFlick>(S.render?120:66)&&!document.hidden){lastFlick=now;tick+=0.4;
-    lights.forEach((L,i)=>L.intensity=L.userData.base*(S.render?2.2:1)*(0.96+Math.sin(tick*1.7+i)*0.04+Math.sin(tick*4.1+i*2)*0.02));flames.forEach((f,i)=>f.scale.y=1.6+Math.sin(tick*3+i)*0.12);need();}
+    lights.forEach((L,i)=>L.intensity=L.userData.base*(S.render?1.6:1)*(0.96+Math.sin(tick*1.7+i)*0.04+Math.sin(tick*4.1+i*2)*0.02));flames.forEach((f,i)=>f.scale.y=1.6+Math.sin(tick*3+i)*0.12);need();}
   const moving=now-lastMove<160;
   /* Render mode: ambient occlusion only once the view settles, so orbiting stays smooth */
   if(ssao){if(moving&&ssao.enabled){ssao.enabled=false;}else if(!moving&&hqDue&&!ssao.enabled){ssao.enabled=true;hqDue=false;need();}}
@@ -610,7 +646,8 @@ on("moveSeg","click",e=>{const x=e.target.closest("button");if(!x)return;const b
 on("dupB","click",()=>{const b=clone(Bs());b.name=b.name.replace(/( \d+)?$/,"")+" "+(S.buildings.length+1);autoPlace(b,S.buildings);S.buildings.push(b);S.selB=S.buildings.length-1;renderUI();});
 on("delB","click",()=>{if(S.buildings.length<2)return;S.buildings.splice(S.selB,1);S.selB=Math.max(0,S.selB-1);S.sel="0:0:0";renderUI();});
 on("randVillage","click",()=>{const n=3+Math.floor(Math.random()*4),list=[],pal=pick(Object.keys(PALETTES));for(let i=0;i<n;i++){const b=randomBuilding();applyPalette(b,Math.random()<0.7?pal:pick(Object.keys(PALETTES)));autoPlace(b,list);list.push(b);}
-  const cx=(list[0].x-fp(list[0]).w/2+list[n-1].x+fp(list[n-1]).w/2)/2;list.forEach(b=>b.x=Math.round((b.x-cx)/GRID)*GRID);S.buildings=list;S.selB=0;S.sel="0:0:0";renderUI();fitView();});
+  S.buildings=gridLayout(list);S.selB=0;S.sel="0:0:0";renderUI();fitView();});
+on("gridVillage","click",()=>{gridLayout(S.buildings);renderUI();fitView();});
 on("setSeg","click",e=>{const x=e.target.closest("button");if(!x)return;const b=Bs();b.set=x.dataset.v;S.editSet=b.set;if(b.set==="modern"&&b.roof==="slant")b.roof="modern";if(b.set==="ottoman"&&b.roof==="modern")b.roof="slant";renderUI();});
 on("randB","click",()=>{randomizeBuilding(Bs());randomizeLight(Bs());applyPalette(Bs(),pick(Object.keys(PALETTES)));renderUI();});
 on("randLight","click",()=>{randomizeLight(Bs());renderUI();});
@@ -623,8 +660,9 @@ on("radius","input",e=>{Bs().radius=+e.target.value;renderUI();});
 on("spanSeg","click",e=>{const x=e.target.closest("button");if(!x)return;Bs().span=x.dataset.v;renderUI();});
 on("roofCol","change",e=>{Bs().roofCol=e.target.value;renderUI();});
 on("plateCol","change",e=>{Bs().plateCol=e.target.value;renderUI();});
-on("palettes","click",e=>{const x=e.target.closest("button");if(!x)return;(($("palScope").value==="v")?S.buildings:[Bs()]).forEach(b=>applyPalette(b,x.dataset.pal));renderUI();});
-on("randCol","click",()=>{const keys=Object.keys(PALETTES);if($("palScope").value==="v"){const k=pick(keys);S.buildings.forEach(b=>applyPalette(b,Math.random()<0.7?k:pick(keys)));}else applyPalette(Bs(),pick(keys));renderUI();});
+let palScope="b";on("palScopeSeg","click",e=>{const x=e.target.closest("button");if(!x)return;palScope=x.dataset.v;seg($("palScopeSeg"),palScope);});
+on("palettes","click",e=>{const x=e.target.closest("button");if(!x)return;((palScope==="v")?S.buildings:[Bs()]).forEach(b=>applyPalette(b,x.dataset.pal));renderUI();});
+on("randCol","click",()=>{const keys=Object.keys(PALETTES);if(palScope==="v"){const k=pick(keys);S.buildings.forEach(b=>applyPalette(b,Math.random()<0.7?k:pick(keys)));}else applyPalette(Bs(),pick(keys));renderUI();});
 on("bodySel","change",e=>{Bs().body=e.target.value;renderUI();});
 on("finishSeg","click",e=>{const x=e.target.closest("button");if(!x)return;Bs().finish=x.dataset.v;renderUI();});
 on("glazeSw","click",e=>{const x=e.target.closest("button");if(!x)return;Bs().glazeCol=x.dataset.g;renderUI();});
