@@ -415,7 +415,8 @@ function rebuild(){
   scene.add(built);buildRoom();applyNight();}
 function applyNight(){const n=S.night,rd=S.render;scene.background=lc(rd?(n?0x2a221c:0xb9b0a3):(n?0x5e4e42:0xf6f3ee));   /* abstract: a seamless warm-white backdrop by day, a warm dusk at night */
   hemi.intensity=n?0.28:0.55;hemi.color.set(n?0x9a7c66:0xfff7ee);hemi.groundColor.set(n?0x3a2d24:0xdcd0c0);sun.intensity=n?0:0.78;   /* day: the sun; night: the candles */
-  const b=bounds(),cx=(b.x0+b.x1)/2,cz=(b.z0+b.z1)/2;sun.position.set(cx-480,640,cz+320);   /* low from the front left: shadows fall into view */sun.target.position.set(cx,0,cz);
+  const b=bounds(),cx=(b.x0+b.x1)/2,cz=(b.z0+b.z1)/2;sun.position.set(cx-480,640,cz+320);   /* low from the front left: shadows fall into view */
+  {const ext=Math.max(b.x1-b.x0,b.z1-b.z0,b.h)*0.75+150;Object.assign(sun.shadow.camera,{left:-ext,right:ext,top:ext,bottom:-ext,near:50,far:2200});sun.shadow.camera.updateProjectionMatrix();}sun.target.position.set(cx,0,cz);
   lights.forEach(L=>L.intensity=n?L.userData.base:0);flames.forEach(f=>f.visible=n);$("nightBtn").setAttribute("aria-pressed",n);
   Object.values(MATS).forEach(m=>{m.emissiveIntensity=n&&m.userData.translucent?(S.render?0.012:0.07):0;});   /* thin porcelain glows a little when lit from inside */
   if(S.render){scene.environment=n?null:(envRoom||envBasic);   /* night: nothing but the candles */hemi.intensity=n?0.035:0.38;sun.intensity=n?0:1.1;sun.shadow.mapSize.set(4096,4096);sun.shadow.normalBias=0.4;
@@ -434,7 +435,7 @@ const FINAL={uniforms:{tDiffuse:{value:null},exposure:{value:0.8},time:{value:0}
     void main(){vec3 c=texture2D(tDiffuse,vUv).rgb*exposure;c=aces(c);c=pow(c,vec3(1.0/2.2));
       float v=smoothstep(0.92,0.3,length(vUv-0.5));c*=mix(0.9,1.0,v);
       float n=fract(sin(dot(vUv,vec2(12.9898,78.233))+time)*43758.5453);c+=(n-0.5)*0.01;gl_FragColor=vec4(c,1.0);}`};
-function setupComposer(){const r=view.getBoundingClientRect(),w=Math.max(1,r.width),h=Math.max(1,r.height),pr=renderer.getPixelRatio();
+function setupComposer(){lastD=0;const r=view.getBoundingClientRect(),w=Math.max(1,r.width),h=Math.max(1,r.height),pr=renderer.getPixelRatio();
   composer=new THREE.EffectComposer(renderer);composer.addPass(new THREE.RenderPass(scene,camera));
   ssao=new THREE.SSAOPass(scene,camera,w,h);ssao.kernelRadius=6;ssao.minDistance=0.0004;ssao.maxDistance=0.02;composer.addPass(ssao);
   bloom=new THREE.UnrealBloomPass(new THREE.Vector2(w,h),0.12,0.55,0.92);composer.addPass(bloom);
@@ -446,7 +447,12 @@ function resize(){const r=view.getBoundingClientRect();renderer.setSize(r.width,
   if(composer){composer.setSize(r.width,r.height);const pr=renderer.getPixelRatio();fxaa.uniforms.resolution.value.set(1/(r.width*pr),1/(r.height*pr));}}
 const draw=()=>{if(S.render&&composer){finalPass.uniforms.time.value=tick%100;composer.render();}else renderer.render(scene,camera);};
 new ResizeObserver(resize).observe(view);
-let tick=0;(function loop(){requestAnimationFrame(loop);controls.update();tick+=0.08;if(S.night){lights.forEach((L,i)=>L.intensity=L.userData.base*(S.render?1.25:1)*(0.96+Math.sin(tick*1.7+i)*0.04+Math.sin(tick*4.1+i*2)*0.02));flames.forEach((f,i)=>f.scale.y=1.6+Math.sin(tick*3+i)*0.12);}draw();})();
+/* keep the depth range tight around the view, so far-off buildings keep their depth precision (and SSAO reads it right) */
+let lastD=0;function fitDepth(){const d=camera.position.distanceTo(controls.target);if(Math.abs(d-lastD)<d*0.01)return;lastD=d;
+  camera.near=Math.max(2,d*0.04);camera.far=d*4+2500;camera.updateProjectionMatrix();
+  if(ssao){[ssao.ssaoMaterial,ssao.depthRenderMaterial].forEach(m=>{if(m&&m.uniforms.cameraNear){m.uniforms.cameraNear.value=camera.near;m.uniforms.cameraFar.value=camera.far;}});
+    const span=camera.far-camera.near;ssao.minDistance=0.4/span;ssao.maxDistance=Math.min(0.1,40/span);ssao.kernelRadius=Math.max(4,d*0.012);}}
+let tick=0;(function loop(){requestAnimationFrame(loop);controls.update();fitDepth();tick+=0.08;if(S.night){lights.forEach((L,i)=>L.intensity=L.userData.base*(S.render?1.25:1)*(0.96+Math.sin(tick*1.7+i)*0.04+Math.sin(tick*4.1+i*2)*0.02));flames.forEach((f,i)=>f.scale.y=1.6+Math.sin(tick*3+i)*0.12);}draw();})();
 const ray=new THREE.Raycaster(),ptr=new THREE.Vector2();let down=null;
 renderer.domElement.addEventListener("pointerdown",e=>down=[e.clientX,e.clientY]);
 renderer.domElement.addEventListener("pointerup",e=>{if(!down||Math.hypot(e.clientX-down[0],e.clientY-down[1])>5)return;const r=renderer.domElement.getBoundingClientRect();
