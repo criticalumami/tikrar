@@ -112,6 +112,9 @@ The designer is the site's one design tool. Everything happens in one 3D scene, 
 - A **building** is 1–3 modules across × 1–3 deep × 1–8 up. Walls between modules stay inside the building, and their openings pass light from room to room.
 - **Each level** has its own switches for a porcelain **plate** (the 6 mm base at ground level, 4 mm above, Ø 8 vent per module) and **candles** (one Ø 38 tealight per module). A candle always gets a plate under it.
 - **Roof**: slanted (hipped, ~30°, HoB p. 80) or modern (a flat slab), as **one piece** over the whole building or **one per module**. Both are vented and flush with the walls.
+- **Single modules** can be removed (and restored) from the plan grid. Walls that now face outside become outside walls. A module must stand on the module below it or on a plate, and a one-piece roof needs a complete top level; otherwise each column gets its own lid.
+- **Colours**: each module can take its own glaze (or stay unglazed). Plates and roofs have their own finishes, and seven palettes (Beirut stone, All white, Mediterranean, Celadon garden, Clay and honey, Modernist, Dusk) set walls, accent modules, plates and roof for one building or the whole village. Randomizing a building or the village also rolls plates, candles and a palette.
+- **Rendering**: glazes are drawn as a glassy clear-coat over the body, with soft studio reflections. Unglazed biscuit is matte with a fine grain. At night, thin porcelain walls glow slightly from inside.
 - **Material**: clay body (porcelain 14 %, stoneware 12 %, terracotta 8 % shrinkage), glazed or unglazed, and a glaze colour (clear, white, celadon, turquoise, cobalt, honey, terracotta red, oxblood, black). The roof follows the walls or takes its own finish. The checks and the sheets use the chosen clay's shrinkage.
 
 ### Walls
