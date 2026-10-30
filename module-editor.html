@@ -184,7 +184,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
 <header class="grid12">
   <h1>TIKRAR<small>Beirut Lantern Generator</small></h1>
   <span class="sub">porcelain modules 60 × 60 mm · 40 mm walls · houses, towers and city blocks · 1860–1925 and modernist openings</span>
-  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 30.10 · 19:20</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
+  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 30.10 · 19:25</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
   <button class="btn icon" id="themeBtn" type="button" aria-label="Toggle colour theme">◐</button></nav>
 </header>
 
@@ -269,7 +269,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
       <div class="checks" id="checks"></div>
       <p class="hint"><b style="color:var(--bad)">✗</b> porcelain limits, to fix before casting. <b style="color:#b7791f">●</b> proportions from the two manuals: advice, not a rule.</p>
       <div class="f"><span class="lbl">Export</span><div class="v"><div class="seg"><button type="button" id="pdfBtn">Sheet (PDF)</button><button type="button" id="dlSvg">Elevations (SVG)</button></div></div></div>
-      <div class="f"><span class="lbl">GIF</span><div class="v"><select id="gifMode" aria-label="Animation"><option value="orbit">Orbit</option><option value="sun">Sun, morning to evening</option><option value="explode">Explode and back</option><option value="rand">Randomize series</option></select><select id="gifN" aria-label="Frames" style="flex:0 0 64px"><option>10</option><option>12</option><option selected>24</option><option>36</option></select><button class="btn" type="button" id="gifBtn">Make</button></div></div>
+      <div class="f"><span class="lbl">GIF</span><div class="v"><select id="gifMode" aria-label="Animation"><option value="orbit">Orbit</option><option value="sun">Sun, morning to evening</option><option value="explode">Explode and back</option><option value="rand">Randomize, same palette</option><option value="randall">Randomize, all palettes</option></select><select id="gifN" aria-label="Frames" style="flex:0 0 64px"><option>10</option><option>12</option><option selected>24</option><option>36</option></select><button class="btn" type="button" id="gifBtn">Make</button></div></div>
       <div class="f"><span class="lbl">Start over</span><div class="v"><button class="btn" type="button" id="reset" style="flex:1">Reset city block</button></div></div>
     </div>
   </aside>
@@ -1100,13 +1100,14 @@ on("gifBtn","click",async()=>{const btn=$("gifBtn");if(btn.disabled)return;btn.d
   /* the frames are the 3D view itself, same framing, light and settings, at up to 1080 px on the long side */
   const cv=renderer.domElement,sc=Math.min(1,1080/Math.max(cv.width,cv.height)),w=Math.round(cv.width*sc),h=Math.round(cv.height*sc),c2=document.createElement("canvas");c2.width=w;c2.height=h;const g2=c2.getContext("2d",{willReadFrequently:true});
   g2.imageSmoothingQuality="high";const hist=new Uint32Array(32768),sum=new Float64Array(32768*3);
-  const pose={p:camera.position.clone(),t:controls.target.clone()},sun0=S.sun,ex0=S.explode,snap=mode==="rand"?JSON.stringify({b:S.buildings,sel:S.selB,m:S.multi,s:S.sel}):null,frames=[];
+  const PK=Object.keys(PALETTES),p0=Math.floor(Math.random()*PK.length),palAt=i=>PK[(p0+i)%PK.length];   /* all palettes: one palette per frame, each frame the next */
+  const pose={p:camera.position.clone(),t:controls.target.clone()},sun0=S.sun,ex0=S.explode,snap=/^rand/.test(mode)?JSON.stringify({b:S.buildings,sel:S.selB,m:S.multi,s:S.sel}):null,frames=[];
   try{for(let i=0;i<N;i++){btn.textContent=(i+1)+"/"+N;
       if(mode==="orbit"){const a=2*Math.PI*i/N,v=pose.p.clone().sub(pose.t);v.applyAxisAngle(new THREE.Vector3(0,1,0),a);camera.position.copy(pose.t).add(v);camera.lookAt(pose.t);}
       else if(mode==="sun"){S.sun=0.04+0.92*i/(N-1);applyNight();}
       else if(mode==="explode"){S.explode=Math.round(24*Math.sin(Math.PI*i/N));rebuildNow();}   /* the modules part and close again, so the GIF loops */
-      else if(MODE==="module"){const b=Bs();randomShape(b);randomizeBuilding(b);if(PALETTES[b.palette])applyPalette(b,b.palette);rebuildNow();}   /* Module editor: new walls on the same module, colours re-dealt from its palette */
-      else{const kp=S.keepPal;S.keepPal=true;randAll();S.keepPal=kp;rebuildNow();}   /* a new city each frame, every colour from the palette in use */
+      else if(MODE==="module"){const b=Bs(),k=mode==="randall"||!PALETTES[b.palette]?palAt(i):b.palette;randomShape(b);randomizeBuilding(b);applyPalette(b,k);rebuildNow();}   /* Module editor: new walls on the same module, colours re-dealt from its palette */
+      else{const kp=S.keepPal;if(mode==="randall")Bs().palette=palAt(i);S.keepPal=true;randAll();S.keepPal=kp;rebuildNow();}   /* a new city each frame, all in one palette: the one in use, or (all palettes) the next palette each frame */
       await nextFrame();draw();g2.drawImage(cv,0,0,w,h);frames.push(gif15(g2.getImageData(0,0,w,h).data,hist,sum));}
     btn.textContent="…";await nextFrame();const {pal,lut}=gifPalette(hist,sum),ixs=frames.map(f=>{const o=new Uint8Array(f.length);for(let i=0;i<f.length;i++)o[i]=lut[f[i]];return o;});
     const blob=new Blob([gifEncode(ixs,w,h,mode==="orbit"?4:mode==="sun"?6:mode==="explode"?5:25,pal)],{type:"image/gif"}),a=document.createElement("a"),d=new Date(),z=n=>String(n).padStart(2,"0");
@@ -1114,8 +1115,8 @@ on("gifBtn","click",async()=>{const btn=$("gifBtn");if(btn.disabled)return;btn.d
   finally{camera.position.copy(pose.p);controls.target.copy(pose.t);controls.update();S.sun=sun0;if(S.explode!==ex0){S.explode=ex0;rebuildNow();}   /* the design and the view come back as they were */
     if(snap){const v=JSON.parse(snap);S.buildings=v.b;S.selB=v.sel;S.multi=v.m;S.sel=v.s;renderUI();}else applyNight();btn.textContent="Make";btn.disabled=false;need();}});
 /* the 3D view as a JPG, drawn fresh at the view's size and pixel density */
-/* the toolbar GIF is always a randomize series from the current view (the panel's GIF settings set the frame count) */
-on("gifQuick","click",()=>{const sel=$("gifMode"),m=sel.value;sel.value="rand";$("gifBtn").click();sel.value=m;});
+/* the toolbar GIF is always a randomize series from the current view: same palette unless the menu says all palettes (the panel's GIF settings set the frame count) */
+on("gifQuick","click",()=>{const sel=$("gifMode"),m=sel.value;if(!/^rand/.test(m))sel.value="rand";$("gifBtn").click();sel.value=m;});
 on("jpgBtn","click",()=>{draw();const url=renderer.domElement.toDataURL("image/jpeg",0.92),a=document.createElement("a"),d=new Date(),z=n=>String(n).padStart(2,"0");
   a.href=url;a.download=`tikrar-${d.getFullYear()}${z(d.getMonth()+1)}${z(d.getDate())}-${z(d.getHours())}${z(d.getMinutes())}.jpg`;document.body.appendChild(a);a.click();a.remove();});
 on("keepPal","click",()=>{S.keepPal=!S.keepPal;$("keepPal").setAttribute("aria-pressed",!!S.keepPal);save();});
