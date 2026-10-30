@@ -969,7 +969,7 @@ function randAll(){const n=Math.max(1,Math.min(MAX_B,S.buildings.length)),list=[
   if(nLM){const ks=LANDMARKS.slice().sort(()=>Math.random()-0.5).slice(0,Math.min(nLM,LANDMARKS.length,list.length));
     ks.forEach(k=>{const b=KINDS[k]();randPal(b,keep||Math.random()<0.7?pal:pick(Object.keys(PALETTES)));list.splice(Math.floor(Math.random()*list.length),1,b);});}
   if(S.vary)varyStreets();S.mix=true;rollBlocks();S.buildings=gridLayout(list);S.selB=0;S.multi=[];S.sel="0:0:0";}
-on("randVillage","click",()=>{randAll();renderUI();fitView();});
+on("randVillage","click",()=>{randAll();renderUI();});   /* the camera stays exactly where it is (Reset view refits) */
 on("gapSeg","click",e=>{const x=e.target.closest("button");if(!x||!x.dataset.d)return;S.gaps=S.gaps||[];
   if(+x.dataset.d>0){const at=(Bs().blk===undefined?0:Bs().blk)+1;S.gaps=S.gaps.map(g=>g>=at?g+1:g);S.gaps.push(at);}else S.gaps.pop();
   gridLayout(S.buildings);renderUI();});
