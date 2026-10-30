@@ -264,7 +264,16 @@ function checkFace(o,shrink,radius){const edge=Math.max(LIM.edge,radius||0);   /
   return {list:out,open,pins:hs.length,ok:out.every(c=>c.ok)};}
 
 /* ---------- 2D elevation ---------- */
-function faceSVG(o,opt){opt=opt||{};const night=!!opt.night;
+/* linework: the wall and its openings as thin lines in the text colour on no fill (Swiss style chips), strokes the same weight at any size */
+function lineSVG(o,opt){const pts=p=>p.map(([x,y])=>x.toFixed(2)+","+(H-y).toFixed(2)).join(" "),ns='vector-effect="non-scaling-stroke"';
+  let s=`<svg viewBox="${opt.dims?"-7 -4 74 54":"-1 -1 62 42"}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${opt.label||"Wall elevation"}" fill="none" stroke="currentColor">`;
+  s+=`<rect x="0" y="0" width="${W}" height="${H}" stroke-width="1.5" ${ns}/>`;
+  o.holes.forEach(h=>s+=`<polygon points="${pts(h.p)}" stroke-width="1" stroke-linejoin="round" ${ns}/>`);
+  if(opt.dims){const t=(x,y,str,tr)=>`<text x="${x}" y="${y}" font-size="2.6" fill="currentColor" stroke="none" text-anchor="middle" font-family="Helvetica Neue,Helvetica,Arial,sans-serif"${tr?` transform="${tr}"`:""}>${str}</text>`;
+    s+=`<line x1="0" y1="${H+2.2}" x2="${W}" y2="${H+2.2}" stroke-width=".75" ${ns}/>`+t(30,H+5.6,"60 mm");
+    s+=`<line x1="-2.2" y1="0" x2="-2.2" y2="${H}" stroke-width=".75" ${ns}/>`+t(-3.6,20,"40 mm","rotate(-90 -3.6 20)");}
+  return s+"</svg>";}
+function faceSVG(o,opt){opt=opt||{};if(opt.line)return lineSVG(o,opt);const night=!!opt.night;
   const wall=night?"#5a4a3d":"#f4efe6",edge=night?"#3b3129":"#b9ae9c",glow=night?"#ffbf66":"#2c2a28",rel=night?"#7a6654":"#e3dacb";
   const pts=p=>p.map(([x,y])=>x.toFixed(2)+","+(H-y).toFixed(2)).join(" ");
   let s=`<svg viewBox="${opt.dims?"-7 -4 74 54":"-1 -1 62 42"}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${opt.label||"Wall elevation"}">`;
