@@ -184,7 +184,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
 <header class="grid12">
   <h1>TIKRAR<small>Beirut Lantern Generator</small></h1>
   <span class="sub">porcelain modules 60 × 60 mm · 40 mm walls · houses, towers and city blocks · 1860–1925 and modernist openings</span>
-  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 30.10 · 19:25</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
+  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 30.10 · 19:30</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
   <button class="btn icon" id="themeBtn" type="button" aria-label="Toggle colour theme">◐</button></nav>
 </header>
 
@@ -225,12 +225,12 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
 
     <div class="panel">
       <h2>Building <span class="meta" id="stackMeta"></span></h2>
-      <div class="f"><span class="lbl">Book</span><div class="v"><div class="seg" id="setSeg"><button type="button" data-v="ottoman">1860–1925</button><button type="button" data-v="modern">Modernist</button></div><button class="btn" type="button" id="randB">Randomize</button></div></div>
+      <div class="f"><span class="lbl">Book</span><div class="v"><div class="seg" id="setSeg"><button type="button" data-v="ottoman">1860–1925</button><button type="button" data-v="modern">Modernist</button></div><button class="btn" type="button" id="randB" title="New walls, colours, roof and size, up to the size last chosen with the Size buttons (shown as max under them)">Randomize</button></div></div>
       <div class="f"><span class="lbl">Size</span><div class="v trio">
         <div class="seg" id="colsSeg" title="Modules across"><button type="button" data-v="1">1</button><button type="button" data-v="2">2</button><button type="button" data-v="3">3</button></div>
         <div class="seg" id="deepSeg" title="Modules deep"><button type="button" data-v="1">1</button><button type="button" data-v="2">2</button><button type="button" data-v="3">3</button></div>
         <div class="seg" id="levelsSeg" title="Levels"><button type="button" data-d="-1" aria-label="Remove a level">−</button><button type="button" id="levelsV" disabled style="cursor:default">1</button><button type="button" data-d="1" aria-label="Add a level">+</button></div></div></div>
-      <div class="f"><span class="lbl"></span><div class="v trio cap"><span>across</span><span>deep</span><span>levels</span></div></div>
+      <div class="f"><span class="lbl"></span><div class="v trio cap" title="Randomize deals up to the size you last chose here"><span id="capC">across</span><span id="capD">deep</span><span id="capL">levels</span></div></div>
       <div class="f"><span class="lbl">Roof</span><div class="v"><div class="seg" id="roofSeg"><button type="button" data-v="slant">Slanted</button><button type="button" data-v="modern">Flat</button><button type="button" data-v="none">Off</button></div></div></div>
       <div class="f"><span class="lbl">Roof piece</span><div class="v"><div class="seg" id="spanSeg" title="One roof piece over the whole building, or a small lid on every top module"><button type="button" data-v="whole">Whole</button><button type="button" data-v="module">Per module</button></div></div></div>
       <div class="f"><label class="lbl" for="pitch">Pitch</label><div class="v rng"><input type="range" id="pitch" min="20" max="40" step="1"><span class="num" id="pitchV"></span></div></div>
@@ -994,7 +994,7 @@ function renderUI(){
   fixSel();applyAccent();const b=Bs(),[sc,sr,sl]=keyParts(S.sel);
   $("bList").innerHTML=S.buildings.map((x,i)=>`<button type="button" class="${i===S.selB?"on":isSel(i)?"also":""}" data-b="${i}" aria-pressed="${isSel(i)}" title="Shift- or ⌘-click to add to the selection">${x.name}<span>${x.cols}×${x.deep}×${x.levels}</span></button>`).join("");
   $("villageMeta").textContent=S.buildings.length+" building"+(S.buildings.length>1?"s":"")+" · "+S.buildings.reduce((a,x)=>a+x.cols*x.deep*x.levels,0)+" modules";
-  seg($("setSeg"),b.set);{const a=document.activeElement;if(a!==$("gutV"))$("gutV").value=gut();if(a!==$("aveV"))$("aveV").value=ave();if(a!==$("bwV"))$("bwV").value=BLOCKM;$("gapV").textContent=(S.gaps||[]).length;$("mixBtn").setAttribute("aria-pressed",!!S.mix);seg($("lmSeg"),S.landmarks?"1":"0");}$("varyBtn").setAttribute("aria-pressed",!!S.vary);if(document.activeElement!==$("countV"))$("countV").value=S.buildings.length;seg($("blocksSeg"),String(blkMode()));seg($("colsSeg"),b.cols);seg($("deepSeg"),b.deep);$("levelsV").textContent=b.levels;seg($("roofSeg"),b.roof);seg($("spanSeg"),b.span||"whole");$("radius").value=radOf(b);$("radiusV").textContent="R "+radOf(b)+" mm";$("levelsV").textContent=b.levels;
+  seg($("setSeg"),b.set);{const a=document.activeElement;if(a!==$("gutV"))$("gutV").value=gut();if(a!==$("aveV"))$("aveV").value=ave();if(a!==$("bwV"))$("bwV").value=BLOCKM;$("gapV").textContent=(S.gaps||[]).length;$("mixBtn").setAttribute("aria-pressed",!!S.mix);seg($("lmSeg"),S.landmarks?"1":"0");}$("varyBtn").setAttribute("aria-pressed",!!S.vary);if(document.activeElement!==$("countV"))$("countV").value=S.buildings.length;seg($("blocksSeg"),String(blkMode()));seg($("colsSeg"),b.cols);{const m=S.rmax;$("capC").textContent="across"+(m?" · max "+m.c:"");$("capD").textContent="deep"+(m?" · max "+m.d:"");$("capL").textContent="levels"+(m?" · max "+m.l:"");}seg($("deepSeg"),b.deep);$("levelsV").textContent=b.levels;seg($("roofSeg"),b.roof);seg($("spanSeg"),b.span||"whole");$("radius").value=radOf(b);$("radiusV").textContent="R "+radOf(b)+" mm";$("levelsV").textContent=b.levels;
   $("pitch").value=b.pitch;$("pitchV").textContent=b.pitch+"°";$("pitch").disabled=b.roof!=="slant";$("bodySel").value=b.body||"porcelain";seg($("finishSeg"),b.finish||"glazed");
   $("glazeSw").innerHTML=(b.finish||"glazed")!=="unglazed"?Object.entries(GLAZE).map(([k,g])=>{const c=g.col===null?BODY[b.body||"porcelain"].col:g.col;return `<button type="button" data-g="${k}" title="${g.name} glaze" aria-label="${g.name} glaze" aria-pressed="${(b.glazeCol||"white")===k}" style="width:22px;height:22px;border-radius:50%;cursor:pointer;background:${hex(c)};border:2px solid ${(b.glazeCol||"white")===k?"var(--terra)":"var(--line)"}${g.col===null?";background-image:linear-gradient(135deg,transparent 45%,rgba(0,0,0,.25) 50%,transparent 55%)":""}"></button>`;}).join(""):"";
   $("roofCol").innerHTML=`<option value="same">same as walls</option><option value="unglazed">unglazed ${BODY[b.body||"porcelain"].name.toLowerCase()}</option>`+Object.entries(GLAZE).map(([k,g])=>`<option value="${k}">${g.name} glaze</option>`).join("");$("roofCol").value=b.roofCol||"same";
@@ -1150,12 +1150,16 @@ on("bwSeg","click",e=>{const x=e.target.closest("button");if(!x||!x.dataset.d)re
 on("gutSeg","click",e=>{const x=e.target.closest("button");if(!x||!x.dataset.d)return;S.gutter=GUTTER=Math.max(0,Math.min(240,gut()+ +x.dataset.d));gridLayout(S.buildings);renderUI();});
 on("setSeg","click",e=>{const x=e.target.closest("button");if(!x)return;each(b=>{b.set=x.dataset.v;if(b.set!=="ottoman"&&b.roof==="slant")b.roof="modern";if(b.set==="ottoman"&&b.roof==="modern")b.roof="slant";});S.editSet=x.dataset.v;renderUI();});
 /* Randomize also deals a new size (across, deep), roof (slanted or flat) and roof piece (whole or per module); levels stay */
-const randomShape=b=>{resize3(b,pick([1,2,3]),pick([1,2,3]),b.levels);b.roof=pick(["slant","modern"]);b.span=pick(["whole","module"]);};
+/* Randomize treats the size last chosen with the Size buttons as the most it may deal (across, deep, levels): S.rmax keeps
+   that choice apart from the size shown, so pressing Randomize again never shrinks the limit. Unset: the size at the first press */
+const rmaxOf=b=>{if(!S.rmax)S.rmax={c:b.cols,d:b.deep,l:b.levels};return S.rmax;},upTo=n=>1+Math.floor(Math.random()*Math.max(1,n));
+const setRmax=(k,v)=>{const b=Bs();S.rmax=Object.assign({c:b.cols,d:b.deep,l:b.levels},S.rmax||{},{[k]:v});};
+const randomShape=b=>{const m=rmaxOf(b);resize3(b,upTo(m.c),upTo(m.d),upTo(m.l));b.roof=pick(["slant","modern"]);b.span=pick(["whole","module"]);};
 on("randB","click",()=>{each(b=>{const k=pick(Object.keys(PALETTES));usePal(k);randomShape(b);randomizeBuilding(b);randomizeLight(b);randPal(b,k);});renderUI();});
 on("randLight","click",()=>{each(randomizeLight);renderUI();});
-on("colsSeg","click",e=>{const x=e.target.closest("button");if(!x)return;each(b=>resize3(b,+x.dataset.v,b.deep,b.levels));renderUI();});
-on("deepSeg","click",e=>{const x=e.target.closest("button");if(!x)return;each(b=>resize3(b,b.cols,+x.dataset.v,b.levels));renderUI();});
-on("levelsSeg","click",e=>{const x=e.target.closest("button");if(!x||!x.dataset.d)return;each(b=>{const n=Math.max(1,Math.min(Math.max(MAX_LEVELS,b.levels),b.levels+ +x.dataset.d));if(n!==b.levels)resize3(b,b.cols,b.deep,n);});renderUI();});
+on("colsSeg","click",e=>{const x=e.target.closest("button");if(!x)return;setRmax("c",+x.dataset.v);each(b=>resize3(b,+x.dataset.v,b.deep,b.levels));renderUI();});
+on("deepSeg","click",e=>{const x=e.target.closest("button");if(!x)return;setRmax("d",+x.dataset.v);each(b=>resize3(b,b.cols,+x.dataset.v,b.levels));renderUI();});
+on("levelsSeg","click",e=>{const x=e.target.closest("button");if(!x||!x.dataset.d)return;each(b=>{const n=Math.max(1,Math.min(Math.max(MAX_LEVELS,b.levels),b.levels+ +x.dataset.d));if(n!==b.levels)resize3(b,b.cols,b.deep,n);});setRmax("l",Bs().levels);renderUI();});
 on("roofSeg","click",e=>{const x=e.target.closest("button");if(!x)return;each(b=>b.roof=x.dataset.v);renderUI();});
 on("pitch","input",e=>{each(b=>b.pitch=+e.target.value);renderUI();});
 on("radius","input",e=>{each(b=>b.radius=+e.target.value);renderUI();});
