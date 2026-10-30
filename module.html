@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Beirut Lantern Generator</title>
+<title>TIKRAR · Beirut Lantern Generator</title>
 <meta name="description" content="Design porcelain lanterns from 60 × 60 mm modules with 40 mm walls: houses and towers, whole city blocks, 1860–1925 and modernist openings, candles and plates per level, with dimensioned PDF sheets.">
 <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
@@ -22,6 +22,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font:13px/16px var(--sans);-
 .grid12{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:var(--g);padding:0 var(--m)}
 header.grid12{align-items:end;padding-top:var(--m);padding-bottom:var(--g);border-bottom:2px solid var(--rule);row-gap:var(--u)}
 header h1{grid-column:1/8;font:700 40px/40px var(--sans);letter-spacing:-.03em;margin:0}
+header h1 small{display:block;font:500 11px/16px var(--sans);letter-spacing:.06em;text-transform:uppercase;margin-top:var(--u)}
 header .sub{grid-column:8/11;font-size:11px;line-height:16px;color:var(--ink)}
 header nav{grid-column:11/13;justify-self:end;display:flex;gap:var(--u);align-items:center}
 header nav a{color:var(--ink);font-size:11px;font-weight:700;text-decoration:none;text-transform:uppercase;letter-spacing:.06em}
@@ -141,7 +142,7 @@ body.showgrid #gridOverlay{background:repeating-linear-gradient(to bottom,transp
 <body>
 <div id="gridOverlay" class="grid12" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
 <header class="grid12">
-  <h1>Beirut Lantern Generator</h1>
+  <h1>TIKRAR<small>Beirut Lantern Generator</small></h1>
   <span class="sub">porcelain modules 60 × 60 mm · 40 mm walls · houses, towers and city blocks · 1860–1925 and modernist openings</span>
   <nav><a href="index.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
   <button class="btn icon" id="themeBtn" type="button" aria-label="Toggle colour theme">◐</button></nav>
@@ -864,12 +865,12 @@ on("gifBtn","click",async()=>{const btn=$("gifBtn");if(btn.disabled)return;btn.d
       else{randAll();rebuildNow();}
       await nextFrame();draw();g2.drawImage(cv,0,0,w,h);frames.push(gifIndex(g2.getImageData(0,0,w,h).data));}
     const blob=new Blob([gifEncode(frames,w,h,mode==="orbit"?8:mode==="sun"?12:60)],{type:"image/gif"}),a=document.createElement("a"),d=new Date(),z=n=>String(n).padStart(2,"0");
-    a.href=URL.createObjectURL(blob);a.download=`beirut-lantern-${mode}-${d.getFullYear()}${z(d.getMonth()+1)}${z(d.getDate())}-${z(d.getHours())}${z(d.getMinutes())}.gif`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);}
+    a.href=URL.createObjectURL(blob);a.download=`tikrar-${mode}-${d.getFullYear()}${z(d.getMonth()+1)}${z(d.getDate())}-${z(d.getHours())}${z(d.getMinutes())}.gif`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);}
   finally{camera.position.copy(pose.p);controls.target.copy(pose.t);controls.update();S.sun=sun0;   /* the design and the view come back as they were */
     if(snap){const v=JSON.parse(snap);S.buildings=v.b;S.selB=v.sel;S.multi=v.m;S.sel=v.s;renderUI();}else applyNight();btn.textContent="Make";btn.disabled=false;need();}});
 /* the 3D view as a JPG, drawn fresh at the view's size and pixel density */
 on("jpgBtn","click",()=>{draw();const url=renderer.domElement.toDataURL("image/jpeg",0.92),a=document.createElement("a"),d=new Date(),z=n=>String(n).padStart(2,"0");
-  a.href=url;a.download=`beirut-lantern-${d.getFullYear()}${z(d.getMonth()+1)}${z(d.getDate())}-${z(d.getHours())}${z(d.getMinutes())}.jpg`;document.body.appendChild(a);a.click();a.remove();});
+  a.href=url;a.download=`tikrar-${d.getFullYear()}${z(d.getMonth()+1)}${z(d.getDate())}-${z(d.getHours())}${z(d.getMinutes())}.jpg`;document.body.appendChild(a);a.click();a.remove();});
 on("keepPal","click",()=>{S.keepPal=!S.keepPal;$("keepPal").setAttribute("aria-pressed",!!S.keepPal);save();});
 function randAll(){const n=Math.max(1,Math.min(MAX_B,S.buildings.length)),list=[],keep=S.keepPal&&PALETTES[Bs().palette],pal=keep?Bs().palette:pick(Object.keys(PALETTES));for(let i=0;i<n;i++){const b=randomBuilding();randPal(b,keep||Math.random()<0.7?pal:pick(Object.keys(PALETTES)));autoPlace(b,list);list.push(b);}
   if(S.vary)varyStreets();S.buildings=gridLayout(list);S.selB=0;S.multi=[];S.sel="0:0:0";}
