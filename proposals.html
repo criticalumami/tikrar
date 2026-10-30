@@ -107,14 +107,14 @@ footer{padding:48px 0 64px;border-top:2px solid var(--rule);font-size:12px;color
 /* phones: the nav scrolls sideways under a fixed brand with a fade hinting at more; the Open TIKRAR buttons sit on their own line */
 @media (max-width:760px){nav.top .wrap{gap:20px;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-right:32px;-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 40px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 40px),transparent)}
   nav.top .wrap::-webkit-scrollbar{display:none}nav.top .brand{position:sticky;left:0;background:var(--bg);padding-right:12px;z-index:1}
-  nav.top a{line-height:48px}nav.top .brand{order:-2;margin-right:0}nav.top a[href="./"]{order:-1}
+  nav.top a{line-height:48px}nav.top .brand{order:-2;margin-right:0}nav.top a.sec{order:-1}
   p>a[href="./"]{display:table!important;margin-bottom:8px}}
 </style>
 </head>
 <body>
 
 <nav class="top"><div class="wrap">
-  <span class="brand">Beit Lantern</span>
+  <span class="brand">TIKRAR · Proposals</span>
   <a href="#ideas">Key ideas</a>
   <a href="#openings">1860–1925 openings</a>
   <a href="#modern-elements">Modernist elements</a>
@@ -122,7 +122,8 @@ footer{padding:48px 0 64px;border-top:2px solid var(--rule);font-size:12px;color
   <a href="#scale">Scale</a>
   <a href="#process">Process</a>
   <a href="#roadmap">Roadmap</a>
-  <a href="./" style="color:var(--terra);font-weight:600">Open TIKRAR →</a>
+  <a href="./" class="sec" style="color:var(--terra);font-weight:600">Cluster editor →</a>
+  <a href="module-editor.html" class="sec" style="color:var(--terra);font-weight:600">Module editor →</a>
   <button class="themebtn" id="themeBtn" type="button" aria-label="Toggle colour theme">◐</button>
 </div></nav>
 

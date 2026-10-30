@@ -28,6 +28,8 @@ header .sub{grid-column:8/11;font-size:11px;line-height:16px;color:var(--ink)}
 header nav{grid-column:11/13;justify-self:end;display:flex;gap:var(--u);align-items:center}
 header nav a{color:var(--ink);font-size:11px;font-weight:700;text-decoration:none;text-transform:uppercase;letter-spacing:.06em}
 header nav a:hover{color:var(--terra)}
+header nav a{margin-right:12px}header nav a[aria-current=page]{color:var(--terra);box-shadow:inset 0 -2px 0 var(--terra)}
+html[data-mode=module] aside>.panel:first-child{display:none}
 #ver{font-size:10px;color:var(--muted);margin-right:8px;white-space:nowrap}
 .btn{height:var(--ctl);border:1px solid var(--ink);background:transparent;color:var(--ink);font:500 13px/16px var(--sans);padding:0 12px;border-radius:0;cursor:pointer;white-space:nowrap}
 .btn:hover{background:var(--ink);color:var(--bg)}
@@ -152,12 +154,24 @@ header.grid12{padding-top:4px;padding-bottom:4px;border-bottom-width:1px}
 header h1{font-size:17px;line-height:24px}header h1 small{font-size:10px;margin-left:10px;vertical-align:1px}
 header nav .btn.icon{height:24px;width:24px;min-width:24px;padding:0;font-size:12px;line-height:22px}
 .layout{padding-top:12px}
+/* the panel in proportion with the slim bar: 26 px controls, 12 px type, 10 px labels, tighter rows and sections */
+aside{--ctl:26px;gap:16px}
+.panel{row-gap:4px;border-top-width:1px;padding-top:6px}
+.panel h2{font-size:15px;line-height:20px;margin-bottom:2px}
+.lbl{font-size:10px;line-height:14px}
+.seg button,.btn,select,.blist button,input.cnt{font-size:12px}
+.blist button span,.hint{font-size:10px;line-height:14px}
+.vbar button,.vbar .grp{font-size:10px}.vbar button{height:28px;padding:0 8px}
 /* phones: title and nav share the first row, the 3D view takes most of the screen, the toolbar is one row you swipe sideways */
 @media (max-width:760px){header h1{grid-column:1/9;grid-row:1;font-size:20px}header h1 small{display:block;margin:0;font-size:9px;line-height:12px;vertical-align:0}header nav{grid-column:9/13;grid-row:1;align-self:center}header .sub{display:none}
   .layout>.viewer{aspect-ratio:auto;height:min(64svh,560px);min-height:340px}
   .layout>.viewer{overflow:visible;margin-bottom:var(--ctl)}.vbar{top:100%;bottom:auto;background:#111;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}.vbar::-webkit-scrollbar{display:none}.vbar .grp{flex:none}
   .tag{padding:8px 12px;font-size:10px;line-height:14px}
   .f>.lbl{grid-column:1/-1;padding-top:8px}.f>.v{grid-column:1/-1;flex-wrap:wrap}.f>.v>.hint{flex-basis:100%}.seg button{padding:0 4px}}
+/* three sections in the bar: the nav takes the right half, the description gives way first */
+header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/13}
+@media (max-width:1400px){header .sub{display:none}header h1{grid-column:1/6}header nav{grid-column:6/13}}
+@media (max-width:760px){header h1{grid-column:1/-1;grid-row:1}header nav{grid-column:1/-1;grid-row:2;justify-self:stretch;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}header nav::-webkit-scrollbar{display:none}#ver{display:none}header nav a{flex:none}}
 </style>
 </head>
 <body>
@@ -165,7 +179,7 @@ header nav .btn.icon{height:24px;width:24px;min-width:24px;padding:0;font-size:1
 <header class="grid12">
   <h1>TIKRAR<small>Beirut Lantern Generator</small></h1>
   <span class="sub">porcelain modules 60 × 60 mm · 40 mm walls · houses, towers and city blocks · 1860–1925 and modernist openings</span>
-  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 30.10 · 12:35</span><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
+  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 30.10 · 13:05</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
   <button class="btn icon" id="themeBtn" type="button" aria-label="Toggle colour theme">◐</button></nav>
 </header>
 
@@ -271,7 +285,10 @@ $("themeBtn").onclick=()=>{const dark=root.dataset.theme?root.dataset.theme==="d
 /* ================= model =================
    village = buildings on a 30 mm grid; building = cols × deep × levels modules, each with four walls,
    one plate (or base) and one candle switch per level, one roof style. Key "c:r:l": column, row (0 = street), level. */
-const KEY="beit-lantern-designer-v3";
+/* two editors share this page: the Cluster editor (index.html, module.html) and the Module editor (module-editor.html, <html data-mode="module">) */
+const MODE=document.documentElement.dataset.mode==="module"?"module":"cluster";
+const KEY=MODE==="module"?"tikrar-module-editor-v1":"beit-lantern-designer-v3";
+document.querySelectorAll("header nav a[data-sec]").forEach(a=>{if(a.dataset.sec===MODE)a.setAttribute("aria-current","page");});
 const clone=o=>JSON.parse(JSON.stringify(o));
 const bays=(a,b,c)=>({mode:"bays",bays:[a,b,c]});
 const wall=(type,extra)=>Object.assign({mode:"wall",type},extra||{});
@@ -444,7 +461,7 @@ function gridLayout(list){if(!list.length)return list;let vary=false,mix=false;t
       if(ri===0)b.z=zf-d/2;else{b.z=zf-k.D+d/2;b.rot=2;}});});});   /* the back row is flush with the block's back edge and faces that street */
   return list;}
 function defaultVillage(){return gridLayout(["central","stair","modernTower","liwan","photo","liwan","modernRow","stair","liwan","modernTower","photo","stair","central","photo","modernTower","liwan","stair"].map(k=>KINDS[k]()));}
-function defaults(){return {buildings:defaultVillage(),selB:0,sel:"0:0:0",selFace:"front",editSet:"ottoman",night:false,explode:0,gridded:3,gutter:30,avenue:60,multi:[]};}
+function defaults(){return {buildings:MODE==="module"?[KINDS.liwan()]:defaultVillage(),selB:0,sel:"0:0:0",selFace:"front",editSet:"ottoman",night:false,explode:0,gridded:3,gutter:30,avenue:60,multi:[]};}
 let S=defaults();
 try{const v=JSON.parse(localStorage.getItem(KEY)||"null");if(v&&Array.isArray(v.buildings)&&v.buildings.length)S=Object.assign(defaults(),v);}catch(e){}
 S.buildings.forEach(b=>{if(b.set==='grid')b.set='modern';Object.values(b.mods).forEach(m=>FACES.forEach(f=>{const w=m[f];if(w&&((w.type&&!B.BY[w.type])||(w.bays&&w.bays.some(x=>!B.BAY[x]))))m[f]=randomWall(b.set);}));});   /* the retired grid openings become a fresh wall of the building's book */if(S.editSet==='grid')S.editSet='modern';if(S.gutter===undefined)S.gutter=30;GUTTER=S.gutter;if(S.avenue===undefined)S.avenue=60;AVENUE=S.avenue;if(S.blockM===undefined)S.blockM=6;BLOCKM=S.blockM;if((S.gridded||0)<3){gridLayout(S.buildings);S.gridded=3;}   /* designs saved before the village grid are laid out on it once */
@@ -584,7 +601,7 @@ function matOf(body,glaze,gloss){const k=(S.render?"R|":"")+body+"|"+glaze+(glos
     :new THREE.MeshStandardMaterial({color:col,roughness:0.66,metalness:0,envMapIntensity:0.2});        /* satin-matte glaze */
   m.userData.translucent=bd.glow;m.emissive=new THREE.Color(0xff9a3c);m.emissiveIntensity=0;m.onBeforeCompile=groundAO;return MATS[k]=m;}
 /* cheap contact occlusion, no extra pass: light falls off softly over the bottom ~25 mm (about 2 m at 1:75), so buildings sit on the ground */
-function groundAO(sh){sh.vertexShader=sh.vertexShader.replace("#include <common>","#include <common>\nvarying float vAOy;").replace("#include <worldpos_vertex>","#include <worldpos_vertex>\nvAOy=(modelMatrix*vec4(transformed,1.0)).y;");
+function groundAO(sh){sh.vertexShader=sh.vertexShader.replace("#include <common>","#include <common>\nvarying float vAOy;").replace("#include <worldpos_vertex>","#include <worldpos_vertex>\n#ifdef USE_INSTANCING\nvAOy=(modelMatrix*instanceMatrix*vec4(transformed,1.0)).y;\n#else\nvAOy=(modelMatrix*vec4(transformed,1.0)).y;\n#endif");
   sh.fragmentShader=sh.fragmentShader.replace("#include <common>","#include <common>\nvarying float vAOy;").replace("#include <aomap_fragment>","#include <aomap_fragment>\n{float g=smoothstep(0.0,26.0,vAOy);reflectedLight.indirectDiffuse*=mix(0.5,1.0,g);reflectedLight.directDiffuse*=mix(0.78,1.0,g);}");}
 const gl=b=>b.finish==="gloss";
 const bodyMat=b=>matOf(b.body||"porcelain",(b.finish||"glazed")==="unglazed"?"unglazed":(b.glazeCol||"white"),gl(b));
@@ -601,7 +618,7 @@ const MAT={glaze:new THREE.MeshStandardMaterial({color:0xf6f1e8,roughness:0.22,m
   sel:new THREE.LineBasicMaterial({color:0xe2231a}),line:new THREE.LineBasicMaterial({color:0xe2231a}),band:new THREE.MeshBasicMaterial({color:0xe2231a,side:THREE.DoubleSide}),
   /* candle light, the same for every lit module however many there are: the inside of a lit module glows warm
      (seen through its openings) and a soft warm pool spreads on the ground round a lit building */
-  glow:new THREE.MeshBasicMaterial({color:0xffa860,side:THREE.BackSide,toneMapped:false}),
+  glow:new THREE.MeshBasicMaterial({color:0xffb562,side:THREE.BackSide,toneMapped:false}),
   pool:new THREE.MeshBasicMaterial({color:0xff9a48,transparent:true,opacity:0.5,blending:THREE.AdditiveBlending,depthWrite:false,toneMapped:false})};
 {const c=document.createElement("canvas");c.width=c.height=128;const g=c.getContext("2d"),r=g.createRadialGradient(64,64,0,64,64,64);r.addColorStop(0,"rgba(255,255,255,1)");r.addColorStop(0.35,"rgba(255,255,255,.45)");r.addColorStop(1,"rgba(255,255,255,0)");g.fillStyle=r;g.fillRect(0,0,128,128);MAT.pool.map=new THREE.CanvasTexture(c);}
 
@@ -610,7 +627,7 @@ let room=new THREE.Group();scene.add(room);
 const lc=h=>S.render?new THREE.Color(h).convertSRGBToLinear():new THREE.Color(h);
 function buildRoom(){scene.remove(room);room.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.isLine&&o.material!==MAT.line)o.material.dispose();});room=new THREE.Group();
   /* by day the ground is the page: pure white, with only the shadows drawn on it */
-  const white=!S.night,gb=bounds(),gsz=Math.max(gb.x1-gb.x0,gb.z1-gb.z0)+(white?1400:8000),g=new THREE.Mesh(new THREE.PlaneGeometry(gsz,gsz),white?new THREE.ShadowMaterial({opacity:0.3}):new THREE.MeshStandardMaterial({color:lc(S.render?(S.night?0x1c1f27:0xc4bcb0):0x2a2f3b),roughness:1,envMapIntensity:0.2}));g.rotation.x=-Math.PI/2;g.position.set((gb.x0+gb.x1)/2,-groundDrop(),(gb.z0+gb.z1)/2);g.receiveShadow=true;room.add(g);   /* by day only as big as the shadows need, so nothing reaches the horizon */
+  const white=!S.night,gb=bounds(),gsz=Math.max(gb.x1-gb.x0,gb.z1-gb.z0)+(white?1400:8000),g=new THREE.Mesh(new THREE.PlaneGeometry(gsz,gsz),white?new THREE.ShadowMaterial({opacity:0.3}):new THREE.MeshStandardMaterial({color:lc(S.render?(S.night?0x020202:0xc4bcb0):0x020202),roughness:1,envMapIntensity:0.2}));g.rotation.x=-Math.PI/2;g.position.set((gb.x0+gb.x1)/2,-groundDrop(),(gb.z0+gb.z1)/2);g.receiveShadow=true;room.add(g);   /* by day only as big as the shadows need, so nothing reaches the horizon */
   /* the ground line: in the Front elevation the ground is edge-on, so it is drawn as one black hairline at y = 0 */
   {const b=bounds(),gl=new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(b.x0-4000,0,b.z1+600),new THREE.Vector3(b.x1+4000,0,b.z1+600)]),new THREE.LineBasicMaterial({color:S.night?0x9aa0ad:0x111111}));
    gl.visible=S.view==="front"&&camera===ortho;gl.name="groundLine";room.add(gl);}
@@ -664,7 +681,7 @@ function fillet(pts,r){const n=pts.length,o=[];for(let i=0;i<n;i++){const a=pts[
     ux=a[0]-b[0],uy=a[1]-b[1],vx=c[0]-b[0],vy=c[1]-b[1],lu=Math.hypot(ux,uy),lv=Math.hypot(vx,vy);
     if(lu<1e-6||lv<1e-6){o.push(b);continue;}const th=Math.acos(Math.max(-1,Math.min(1,(ux*vx+uy*vy)/(lu*lv))));
     if(th>2.8){o.push(b);continue;}const d=Math.min(r/Math.tan(th/2),lu*0.45,lv*0.45),p0=[b[0]+ux/lu*d,b[1]+uy/lu*d],p1=[b[0]+vx/lv*d,b[1]+vy/lv*d];
-    for(let k=0;k<=4;k++){const t=k/4,q=(1-t)*(1-t),m=2*t*(1-t),w=t*t;o.push([q*p0[0]+m*b[0]+w*p1[0],q*p0[1]+m*b[1]+w*p1[1]]);}}
+    for(let k=0;k<=2;k++){const t=k/2,q=(1-t)*(1-t),m=2*t*(1-t),w=t*t;o.push([q*p0[0]+m*b[0]+w*p1[0],q*p0[1]+m*b[1]+w*p1[1]]);}}
   return o;}
 /* slip-cast softness, after the owner's reference (matte porcelain houses): soft outer edges, openings crisp with only a slight round (BV).
    How round a wall's edges can be: the face bevel eats bv from both sides of every bar, so keep ≥ 0.8 mm of flat bar at the face
@@ -672,8 +689,8 @@ function fillet(pts,r){const n=pts.length,o=[];for(let i=0;i<n;i++){const a=pts[
 function wallBv(holes){let g=99;const bb=holes.map(h=>{let a=[1e9,1e9,-1e9,-1e9];h.forEach(([x,y])=>{a=[Math.min(a[0],x),Math.min(a[1],y),Math.max(a[2],x),Math.max(a[3],y)];});return a;});
   bb.forEach((a,i)=>{g=Math.min(g,a[1],H-a[3],a[0],W-a[2]);for(let j=i+1;j<bb.length;j++){const c=bb[j];g=Math.min(g,Math.max(c[0]-a[2],a[0]-c[2],c[1]-a[3],a[1]-c[3]));}});
   return Math.max(0.5,Math.min(BV,(g-0.8)/2));}
-function softExtrude(outer,holes,depth,mat,bv){bv=Math.min(bv===undefined?BV:bv,depth/2-0.05);const s=shapeOf(outer);holes.forEach(h=>s.holes.push(new THREE.Path(h.map(([x,y])=>new THREE.Vector2(x,y)))));
-  const geo=new THREE.ExtrudeGeometry(s,{depth:depth-2*bv,bevelEnabled:true,bevelThickness:bv,bevelSize:bv,bevelOffset:-bv,bevelSegments:2,curveSegments:8});geo.translate(0,0,bv);
+function softExtrude(outer,holes,depth,mat,bv,segs){bv=Math.min(bv===undefined?BV:bv,depth/2-0.05);const s=shapeOf(outer);holes.forEach(h=>s.holes.push(new THREE.Path(h.map(([x,y])=>new THREE.Vector2(x,y)))));
+  const geo=new THREE.ExtrudeGeometry(s,{depth:depth-2*bv,bevelEnabled:true,bevelThickness:bv,bevelSize:bv,bevelOffset:-bv,bevelSegments:segs||2,curveSegments:8});geo.translate(0,0,bv);
   const m=new THREE.Mesh(geo,mat);m.castShadow=true;m.receiveShadow=true;return m;}
 function soft(outer,holes,depth,mat,y,bv){const m=softExtrude(outer,holes,depth,mat,bv);m.rotation.x=-Math.PI/2;m.position.y=y;return m;}
 function flat(outer,holes,depth,mat,y){const m=extrude(outer,holes,depth,mat);m.rotation.x=-Math.PI/2;m.position.y=y;return m;}
@@ -690,10 +707,14 @@ function cornerPieces(b,k){const g=new THREE.Group(),R=Math.min(radOf(b),W/2-1);
     else{pts.push([h-R,h-T],[h-T,h-T],[h-T,h-R]);}
     const m=soft(pts.map(([x,z])=>[x*sx,-z*sz]),[],H,mat,0,1.4);g.add(m);});
   return g;}
+/* wall geometry cache: identical walls (same openings, same corner radius) share one geometry, drawn instanced */
+const WGEO=new Map();
 function buildWall(bi,k,fname){
   const o=B.build(S.buildings[bi].mods[k][fname]),g=new THREE.Group();g.rotation.y=ANG[fname];
   const Rr=Math.min(radOf(S.buildings[bi]),W/2-1);
-  const hp=o.holes.map(h=>fillet(h.p,0.8)),bv=wallBv(hp),e=Rr>0.01?Math.min(bv,Rr):0,w=softExtrude([[Rr-e,0],[W-Rr+e,0],[W-Rr+e,H],[Rr-e,H]],hp,T,modMat(S.buildings[bi],k),bv);w.position.set(-W/2,0,W/2-T);w.userData={bi,k,fname};pickable.push(w);g.add(w);
+  const key=JSON.stringify(S.buildings[bi].mods[k][fname])+"|"+Rr;let geo=WGEO.get(key);
+  if(!geo){const hp=o.holes.map(h=>fillet(h.p,0.8)),bv=wallBv(hp),e=Rr>0.01?Math.min(bv,Rr):0;geo=softExtrude([[Rr-e,0],[W-Rr+e,0],[W-Rr+e,H],[Rr-e,H]],hp,T,null,bv,1).geometry;if(WGEO.size>4000)WGEO.clear();WGEO.set(key,geo);}
+  const w=new THREE.Mesh(geo,modMat(S.buildings[bi],k));w.castShadow=w.receiveShadow=true;w.position.set(-W/2,0,W/2-T);w.userData={bi,k,fname,shared:true};pickable.push(w);g.add(w);
   return g;}
 const plateT=l=>l===0?BASE_T:PLATE_T;
 function levelY(b,gap){const ys=[];let y=0;for(let l=0;l<b.levels;l++){if(b.plates[l])y+=plateT(l)+gap*0.5;ys.push(y);y+=H+gap;}return {ys,top:y-gap};}
@@ -772,10 +793,17 @@ function placeLights(anchors){lights.length=0;LPOOL.forEach(L=>{L.userData.base=
 let merged=new THREE.Group();scene.add(merged);
 /* walls of a lit module get their own copy of the glaze that glows from inside at night, so every lit lantern
    glows evenly however many point lights there are */
-const LIT={};function litOf(m){if(LIT[m.uuid])return LIT[m.uuid];const c=m.clone();c.userData=Object.assign({},m.userData,{lit:true});return LIT[m.uuid]=c;}
-function mergeGroup(root){root.updateMatrixWorld(true);const buckets=new Map(),out=new THREE.Group();
+/* a lit module's walls glow faintly from inside, warm light tinted by the glaze it passes through, so colours stay coherent at night */
+const LIT={};function litOf(m){if(LIT[m.uuid])return LIT[m.uuid];const c=m.clone();c.userData=Object.assign({},m.userData,{lit:true});c.onBeforeCompile=m.onBeforeCompile;
+  c.emissive=new THREE.Color(0xffa24c).multiply(m.color.clone().lerp(new THREE.Color(1,1,1),0.3));return LIT[m.uuid]=c;}
+function mergeGroup(root){root.updateMatrixWorld(true);const buckets=new Map(),inst=new Map(),out=new THREE.Group();
   root.traverse(o=>{if(!o.isMesh)return;if(o.material===MAT.flame){const f=o.clone();o.getWorldPosition(f.position);out.add(f);flames.push(f);return;}
-    const mat=o.userData.lit?litOf(o.material):o.material,k=mat.uuid+(o.castShadow?"c":"")+(o.receiveShadow?"r":"");if(!buckets.has(k))buckets.set(k,{m:mat,cast:o.castShadow,recv:o.receiveShadow,list:[]});buckets.get(k).list.push(o);});
+    const mat=o.userData.lit?litOf(o.material):o.material;
+    if(o.userData.shared){const k=o.geometry.uuid+mat.uuid;if(!inst.has(k))inst.set(k,{g:o.geometry,m:mat,list:[]});inst.get(k).list.push(o);return;}
+    const k=mat.uuid+(o.castShadow?"c":"")+(o.receiveShadow?"r":"");if(!buckets.has(k))buckets.set(k,{m:mat,cast:o.castShadow,recv:o.receiveShadow,list:[]});buckets.get(k).list.push(o);});
+  /* walls used only once are merged like everything else, so rare walls don't each cost a draw call */
+  inst.forEach(({m,list},k)=>{if(list.length>1)return;inst.delete(k);const kk=m.uuid+"cr";if(!buckets.has(kk))buckets.set(kk,{m,cast:true,recv:true,list:[]});buckets.get(kk).list.push(...list);});
+  inst.forEach(({g,m,list})=>{const im=new THREE.InstancedMesh(g,m,list.length);list.forEach((o,i)=>im.setMatrixAt(i,o.matrixWorld));im.instanceMatrix.needsUpdate=true;im.castShadow=im.receiveShadow=true;im.matrixAutoUpdate=false;im.userData.shared=true;out.add(im);});
   root.traverse(o=>{if(o.isLine){const l=new THREE.LineLoop(o.geometry,o.material);l.matrixAutoUpdate=false;l.matrix.copy(o.matrixWorld);out.add(l);}});
   buckets.forEach(({m,cast,recv,list})=>{let n=0;const parts=list.map(o=>{const g=o.geometry.index?o.geometry.toNonIndexed():o.geometry.clone();g.applyMatrix4(o.matrixWorld);n+=g.attributes.position.count;return g;});
     const pos=new Float32Array(n*3),nor=new Float32Array(n*3),uv=new Float32Array(n*2);let i=0;
@@ -785,12 +813,12 @@ function mergeGroup(root){root.updateMatrixWorld(true);const buckets=new Map(),o
   return out;}
 let rbq=0;function rebuild(){if(!rbq)rbq=requestAnimationFrame(()=>{rbq=0;rebuildNow();});}   /* a drag on a slider rebuilds once per frame, not once per pixel */
 function rebuildNow(){
-  built.traverse(o=>{if(o.geometry&&!o.isLine)o.geometry.dispose();});merged.traverse(o=>{if(o.geometry&&o.isMesh&&o.material!==MAT.flame)o.geometry.dispose();});scene.remove(merged);
+  built.traverse(o=>{if(o.geometry&&!o.isLine&&!o.userData.shared)o.geometry.dispose();});merged.traverse(o=>{if(o.geometry&&o.isMesh&&o.material!==MAT.flame&&!o.userData.shared)o.geometry.dispose();});scene.remove(merged);
   built=new THREE.Group();pickable.length=0;flames.length=0;
   const gap=+S.explode,budget={anchors:[]};S.buildings.forEach((_,bi)=>built.add(buildBuilding(bi,gap,budget)));
   merged=mergeGroup(built);scene.add(merged);placeLights(budget.anchors);buildRoom();applyNight();}
-function applyNight(){const n=S.night,rd=S.render;scene.background=n?lc(rd?0x12151c:0x1e2330):new THREE.Color(0xffffff);view.classList.toggle("dark",!!(n||rd));   /* abstract: a seamless warm-white backdrop by day, a warm dusk at night */
-  hemi.intensity=n?0.8:0.26;hemi.color.set(n?0xdfe3ec:0xfff4e6);hemi.groundColor.set(n?0x6a625a:0xc9bba8);   /* a constant soft fill, night included, so glazes always read */   /* night: a blue dusk sky */
+function applyNight(){const n=S.night,rd=S.render;scene.background=n?new THREE.Color(0x000000):new THREE.Color(0xffffff);   /* night is pitch black: only the candles light the city */view.classList.toggle("dark",!!(n||rd));   /* abstract: a seamless warm-white backdrop by day, a warm dusk at night */
+  hemi.intensity=n?0.07:0.26;hemi.color.set(n?0x8890a8:0xfff4e6);hemi.groundColor.set(n?0x2a2018:0xc9bba8);   /* a constant soft fill, night included, so glazes always read */   /* night: a blue dusk sky */
   sun.intensity=n?0:1.5*(sun.userData.k||1);   /* day: a soft warm sky and one gentle key light; night: the candles */
   /* filmic tone mapping keeps white porcelain from blowing out (Render mode does its own in the final pass) */
   /* Render mode by day draws straight to the screen (filmic tone, sRGB) so the white page stays pure white;
@@ -806,9 +834,9 @@ function applyNight(){const n=S.night,rd=S.render;scene.background=n?lc(rd?0x121
    if(!n)hemi.color.set(0xffe2c4).lerp(new THREE.Color(0xfff4e6),Math.min(1,hi));}
   {const ext=Math.max(b.x1-b.x0,b.z1-b.z0,b.h)*0.75+200;Object.assign(sun.shadow.camera,{left:-ext,right:ext,top:ext,bottom:-ext,near:50,far:1200+ext*1.6});sun.shadow.camera.updateProjectionMatrix();}sun.target.position.set(cx,0,cz);
   const cs=S.candle===undefined?1:S.candle;lights.forEach(L=>L.intensity=n?L.userData.base*cs:0);flames.forEach(f=>f.visible=n);
-  MAT.glow.visible=MAT.pool.visible=n;MAT.glow.color.set(0xffa860).multiplyScalar(Math.min(1.3,0.75*cs));MAT.pool.opacity=Math.min(0.9,0.42*cs);$("nightBtn").setAttribute("aria-pressed",n);
+  MAT.glow.visible=MAT.pool.visible=n;MAT.glow.color.set(0xffb562).multiplyScalar(Math.min(1.4,1.05*cs));MAT.pool.opacity=Math.min(0.9,0.42*cs);$("nightBtn").setAttribute("aria-pressed",n);
   Object.values(MATS).forEach(m=>{m.emissiveIntensity=0;});
-  Object.values(LIT).forEach(m=>{m.emissiveIntensity=n?cs*(m.userData.translucent?(S.render?0.06:0.1):(S.render?0.025:0.05)):0;});   /* thin porcelain glows through; stoneware and terracotta only a little */   /* thin porcelain glows a little when lit from inside */
+  Object.values(LIT).forEach(m=>{m.emissiveIntensity=n?cs*(m.userData.translucent?(S.render?0.12:0.17):(S.render?0.03:0.04)):0;});   /* thin porcelain glows through; stoneware and terracotta only a little */   /* thin porcelain glows a little when lit from inside */
   if(S.render){scene.environment=n?null:(envRoom||envBasic);   /* night: nothing but the candles */hemi.intensity=n?0.45:0.38;sun.intensity=n?0:1.1*(sun.userData.k||1);sun.shadow.mapSize.set(2048,2048);sun.shadow.normalBias=0.4;
     lights.forEach(L=>L.intensity=n?L.userData.base*1.2*cs:0);if(finalPass)finalPass.uniforms.exposure.value=n?1.05:0.8;
     if(bloom){bloom.strength=n?0.15:0.08;bloom.threshold=n?0.9:0.95;bloom.radius=0.45;}}
@@ -848,8 +876,8 @@ let lastD=0;function fitDepth(){if(camera===ortho)return;const d=camera.position
     const span=camera.far-camera.near;ssao.minDistance=0.4/span;ssao.maxDistance=Math.min(0.1,40/span);ssao.kernelRadius=Math.max(4,d*0.012);}}
 let tick=0,lastFlick=0;(function loop(now){requestAnimationFrame(loop);controls.update();fitDepth();
   /* candle flicker: about 15 frames a second (8 in Render mode), never faster than the screen needs */
-  if(S.night&&flames.length&&now-lastFlick>(S.render?120:66)&&!document.hidden){lastFlick=now;tick+=0.4;
-    {const cs=S.candle===undefined?1:S.candle,k=0.96+Math.sin(tick*1.7)*0.03+Math.sin(tick*4.1)*0.015;MAT.glow.color.set(0xffa860).multiplyScalar(Math.min(1.3,0.75*cs)*k);MAT.pool.opacity=Math.min(0.9,0.42*cs)*k;}
+  if(S.night&&flames.length&&now-lastFlick>(S.render?120:100)&&!document.hidden){lastFlick=now;tick+=0.4;
+    {const cs=S.candle===undefined?1:S.candle,k=0.96+Math.sin(tick*1.7)*0.03+Math.sin(tick*4.1)*0.015;MAT.glow.color.set(0xffb562).multiplyScalar(Math.min(1.4,1.05*cs)*k);MAT.pool.opacity=Math.min(0.9,0.42*cs)*k;}
     lights.forEach((L,i)=>L.intensity=L.userData.base*(S.render?1.2:1)*(S.candle===undefined?1:S.candle)*(0.96+Math.sin(tick*1.7+i)*0.04+Math.sin(tick*4.1+i*2)*0.02));flames.forEach((f,i)=>f.scale.y=1.6+Math.sin(tick*3+i)*0.12);need();}
   const moving=now-lastMove<160;
   /* Render mode: ambient occlusion only once the view settles, so orbiting stays smooth */
