@@ -31,7 +31,7 @@ Steps for every push:
 1. In Dav's repo, run `git pull --rebase --autostash origin main` first, because Dav's own Claude pushes to main often. Never edit Dav's root `index.html` or his app files.
 2. Commit with `-c user.name=ss -c user.email=criticalumami@users.noreply.github.com`. Don't put model names in commit messages.
 3. Copy the changed files into the tikrar clone. Check that `git remote -v` shows `criticalumami/tikrar`, then push to main.
-4. Check that the "pages build and deployment" run finished (Actions tab), then confirm the version stamp next to the nav on the live page (currently `v 30.10 · 13:05`). Bump the stamp in module.html (`id="ver"`) with each release.
+4. Check that the "pages build and deployment" run finished (Actions tab), then confirm the version stamp next to the nav on the live page (currently `v 30.10 · 18:30`). Bump the stamp in module.html (`id="ver"`) with each release.
 
 Cloud sessions can't change repo settings or reach github.io directly. When settings need changing, do it through Remote Control on the owner's Mac (gh signed in as criticalumami), and only with the owner's go-ahead.
 
@@ -43,8 +43,8 @@ The whole app lives in one file, `docs/module.html` (about 1,350 lines). Three.j
 | --- | --- | --- |
 | Mode and storage | `MODE`, `KEY`, `defaults()` | `<html data-mode="module">` means Module editor. Storage keys: `tikrar-module-editor-v1` (module) and `beit-lantern-designer-v3` (cluster); theme is `beit-proposals-theme` |
 | Buildings | `KINDS`, `make()`, `randomBuilding()`, `randomizeBuilding()`, `randomWall()` | Building kinds include landmarks (Holiday Inn, Gefinor, EDL, Saroulla, Egg, Museum) at true 1:75. `KINDS.court` is the public court tray |
-| Layout | `clusterLayout()` (when `S.mix` is on, clusters from `S.dist`), `gridLayout()`, `defaultVillage()`, `autoPlace()`, `rollBlocks()` | Swiss grid applies to the layout only. Empty blocks are `S.gaps`. `S.blocks` = 0 hidden, 1 lines, 2 plots (4 mm trays, `TRAY`) |
-| Geometry | `buildBuilding()`, `buildWall()`, `softExtrude()`, `fillet()`, `wallBv()`, `cornerPieces()`, `slantRoof()`, `modernRoof()`, `courtOf()` | Rounded look: BV 0.9, filleted openings, corner rims 1.4, plates 1.9, base 2.8. `WGEO` caches wall geometry by openings and corner radius |
+| Layout | `streetGrid()` (column widths, street widths, cluster ends; `S.mix` = Clusters from `S.dist`), `gridLayout()` (every street straight through the city; back rows flush with the back street), `fillGrid()` (`S.full`, `S.gridCols`), `allSlabs()`, `lightAll()`, `defaultVillage()`, `autoPlace()`, `rollBlocks()` | Swiss grid applies to the layout only. Empty blocks are `S.gaps`. `S.blocks` = 0 hidden, 1 lines, 2 plots (4 mm trays, `TRAY`) |
+| Geometry | `buildBuilding()`, `buildWall()` (wall ends squared off at the corner), `softExtrude()` + `bevelNormals()` (true round-bevel normals), `fillet()`, `wallBv()`, `cornerPieces()` / `cornerGeo()` (the wall section swept round the corner, cached in `CGEO`), `slantRoof()`, `modernRoof()`, `courtOf()` | Rounded look: BV 0.9, filleted openings, corner rims 1.4, plates 1.9, base 2.8. `WGEO` caches wall geometry by openings and corner radius |
 | Rendering | `rebuild()` / `rebuildNow()`, `mergeGroup()`, `loop()`, `need()` | Renders on demand only. Meshes merge per material; repeated walls become `InstancedMesh`. Shared geometries are never disposed |
 | Materials and light | `matOf()`, `hqMatOf()`, `groundAO()`, `applyNight()`, `litOf()`, `placeLights()`, `setRender()` | ACES tone mapping. Day: exposure 0.95, hemi 0.26, sun 2.8·k. Night: black background, hemi 0.07, emissive candle tint `0xffa24c`, glow `0xffb562`, flicker every 100 ms. No point lights (`MAX_LIGHTS=0`) |
 | Palettes | `applyPalette()`, `applyAccent()`, `randPal()` | Roofs vary: 65% white, otherwise a palette colour |

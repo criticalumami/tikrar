@@ -44,6 +44,11 @@ html[data-mode=module] aside>.panel:first-child{display:none}
 .layout>.viewer{grid-column:1/9}.layout>aside{grid-column:9/13;scrollbar-gutter:stable}
 /* panel hidden: the 3D view takes all 12 columns */
 body.nopanel .layout>aside{display:none}body.nopanel .layout>.viewer{grid-column:1/-1}
+/* the divider between the 3D view and the panel: drag it to give the view more or fewer columns (it snaps to the 12-column grid); double-click resets */
+.layout{position:relative}.split{display:none}
+@media (min-width:761px){.split{display:block;position:absolute;top:var(--m);bottom:var(--m);width:var(--g);cursor:col-resize;z-index:5;touch-action:none}
+  .split::after{content:"";position:absolute;left:calc(50% - 1px);top:0;bottom:0;width:2px;background:transparent}.split:hover::after,.split.drag::after{background:var(--terra)}
+  body.nopanel .split{display:none}}
 @media (max-width:1100px){.layout>.viewer{grid-column:1/8}.layout>aside{grid-column:8/13}header h1{font-size:32px;line-height:40px}}
 @media (max-width:760px){.grid12{--m:16px}.layout>.viewer,.layout>aside{grid-column:1/-1}header h1{grid-column:1/-1;font-size:32px;line-height:32px}header .sub{grid-column:1/10}header nav{grid-column:10/13}}
 .viewer{position:sticky;top:var(--m);background:#fff;outline:1px solid var(--line);overflow:hidden;aspect-ratio:1/1;max-height:calc(100vh - 2*var(--m));width:100%}
@@ -179,11 +184,12 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
 <header class="grid12">
   <h1>TIKRAR<small>Beirut Lantern Generator</small></h1>
   <span class="sub">porcelain modules 60 × 60 mm · 40 mm walls · houses, towers and city blocks · 1860–1925 and modernist openings</span>
-  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 30.10 · 13:05</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
+  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 30.10 · 18:30</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
   <button class="btn icon" id="themeBtn" type="button" aria-label="Toggle colour theme">◐</button></nav>
 </header>
 
 <div class="layout grid12">
+  <div class="split" id="split" title="Drag to resize the 3D view and the panel (snaps to the grid columns); double-click to reset" role="separator" aria-orientation="vertical"></div>
   <div class="viewer" id="viewer">
     <div class="tag" id="tag"></div>
     <div class="vbar">
@@ -192,7 +198,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
       <div class="grp"><label for="sunT" title="Time of day: morning (left) to evening (right)">Sun</label><input type="range" id="sunT" min="0" max="1" step="0.01" value="0.35" title="Sun: morning to evening"></div>
       <div class="grp"><label for="explode">Explode</label><input type="range" id="explode" min="0" max="30" step="1" value="0"></div>
       <div class="grp"><button type="button" id="orthoBtn" aria-pressed="false" title="Orthographic: parallel lines, no perspective">Ortho</button><button type="button" data-view="axo" title="Axonometric view">Axo</button><button type="button" data-view="plan" title="Plan, from above">Plan</button><button type="button" data-view="front" title="Front elevation">Front</button></div>
-      <div class="grp"><button type="button" id="lockBtn" aria-pressed="false" title="Lock the camera: no orbit, pan or zoom">Lock</button><button type="button" id="resetView">Reset view</button><button type="button" id="jpgBtn" title="Save the 3D view as a JPG">JPG</button><button type="button" id="panelBtn" aria-pressed="true" title="Show or hide the side panel (P)">Panel</button></div>
+      <div class="grp"><button type="button" id="lockBtn" aria-pressed="false" title="Lock the camera: no orbit, pan or zoom">Lock</button><button type="button" id="resetView">Reset view</button><button type="button" id="jpgBtn" title="Save the 3D view as a JPG">JPG</button><button type="button" id="gifQuick" title="Save the 3D view as an animated GIF (animation and frames: GIF, under Checks)">GIF</button><button type="button" id="panelBtn" aria-pressed="true" title="Show or hide the side panel (P)">Panel</button></div>
     </div>
   </div>
 
@@ -209,7 +215,8 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
       <div class="f"><span class="lbl">Side streets</span><div class="v"><div class="seg" id="gutSeg" title="Streets between block columns"><button type="button" data-d="-15" aria-label="Narrower side streets">−</button><input class="cnt" id="gutV" type="number" min="0" max="240" step="15" aria-label="Side street width, mm" title="mm, in 15 mm steps"><button type="button" data-d="15" aria-label="Wider side streets">+</button></div></div></div>
       <div class="f"><span class="lbl">Main streets</span><div class="v"><div class="seg" id="aveSeg" title="Streets between block rows"><button type="button" data-d="-15" aria-label="Narrower main streets">−</button><input class="cnt" id="aveV" type="number" min="0" max="360" step="15" aria-label="Main street width, mm" title="mm, in 15 mm steps"><button type="button" data-d="15" aria-label="Wider main streets">+</button></div><button class="btn" type="button" id="varyBtn" aria-pressed="false" title="Give every street its own width, from narrow lanes to wide avenues; press again for a new mix">Vary</button></div></div>
       <div class="f"><span class="lbl">Blocks</span><div class="v"><div class="seg" id="blocksSeg" title="The city blocks on the ground. Lines: outlines drawn on the ground. Plots: each block is a flat porcelain tray (4 mm, rounded) that the buildings stand on; an empty block becomes a public space; the streets are the gaps between trays"><button type="button" data-v="0">Hidden</button><button type="button" data-v="1">Lines</button><button type="button" data-v="2">Plots</button></div></div></div>
-      <div class="f"><span class="lbl">Layout</span><div class="v"><button class="btn" type="button" id="gridVillage" style="flex:1">Arrange on grid</button></div></div>
+      <div class="f"><span class="lbl">Layout</span><div class="v"><button class="btn" type="button" id="gridVillage" style="flex:1">Arrange on grid</button><button class="btn" type="button" id="fillGrid" style="flex:1" title="Every lot gets a building: each block's street fronts are filled wall to wall and the last row of blocks is completed (up to 360 buildings)">Fill grid</button></div></div>
+      <div class="f"><span class="lbl">All levels</span><div class="v"><div class="seg"><button type="button" id="allSlabs" title="A porcelain plate under every level of every building">Slabs everywhere</button><button type="button" id="lightAll" title="A plate and a candle on every level of every building: every lantern lit">Light all</button></div></div></div>
       <div class="f"><span class="lbl">Plazas</span><div class="v"><div class="seg" id="gapSeg" title="Plazas (empty blocks, public space): + leaves the block after the selected building's block empty, − fills the last one. With Blocks on Plots each plaza is an empty porcelain tray"><button type="button" data-d="-1" aria-label="One empty block fewer">−</button><button type="button" id="gapV" disabled style="cursor:default" title="Empty blocks">0</button><button type="button" data-d="1" aria-label="Add an empty block">+</button></div></div></div>
       <div class="f"><span class="lbl">Landmarks</span><div class="v"><div class="seg" id="lmSeg" title="Randomize All with or without landmarks; each landmark stands alone on its own block"><button type="button" data-v="0">Without</button><button type="button" data-v="1">With</button></div></div></div>
       <div class="f"><span class="lbl">Randomize</span><div class="v"><div class="seg"><button type="button" id="randBlock" title="New buildings in the selected building's block only, on the same footprints: the other blocks stay as they are">Block</button><button type="button" id="randVillage" title="New buildings everywhere">All</button><button type="button" id="rand10" title="10 random shots as a GIF: ten randomized cities as one GIF (Keep palette keeps the palette in every shot); your design comes back afterwards">GIF ×10</button></div><button class="btn" type="button" id="keepPal" aria-pressed="false" title="Randomize with the selected building's palette">Keep palette</button></div></div>
@@ -262,7 +269,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
       <div class="checks" id="checks"></div>
       <p class="hint"><b style="color:var(--bad)">✗</b> porcelain limits, to fix before casting. <b style="color:#b7791f">●</b> proportions from the two manuals: advice, not a rule.</p>
       <div class="f"><span class="lbl">Export</span><div class="v"><div class="seg"><button type="button" id="pdfBtn">Sheet (PDF)</button><button type="button" id="dlSvg">Elevations (SVG)</button></div></div></div>
-      <div class="f"><span class="lbl">GIF</span><div class="v"><select id="gifMode" aria-label="Animation"><option value="orbit">Orbit</option><option value="sun">Sun, morning to evening</option><option value="rand">Randomize series</option></select><select id="gifN" aria-label="Frames" style="flex:0 0 64px"><option>10</option><option>12</option><option selected>24</option><option>36</option></select><button class="btn" type="button" id="gifBtn">Make</button></div></div>
+      <div class="f"><span class="lbl">GIF</span><div class="v"><select id="gifMode" aria-label="Animation"><option value="orbit">Orbit</option><option value="sun">Sun, morning to evening</option><option value="explode">Explode and back</option><option value="rand">Randomize series</option></select><select id="gifN" aria-label="Frames" style="flex:0 0 64px"><option>10</option><option>12</option><option selected>24</option><option>36</option></select><button class="btn" type="button" id="gifBtn">Make</button></div></div>
       <div class="f"><span class="lbl">Start over</span><div class="v"><button class="btn" type="button" id="reset" style="flex:1">Reset city block</button></div></div>
     </div>
   </aside>
@@ -398,68 +405,71 @@ let BLOCKM=6;const blockW=list=>Math.max(BLOCKM*W,...list.map(b=>b.cols*W));   /
    with Vary on, every street gets its own width from narrow lanes to wide avenues, kept until you vary again */
 const r15=v=>Math.max(0,Math.round(v/15)*15);
 function varyStreets(){const pk=a=>a[Math.floor(Math.random()*a.length)];S.colGaps=Array.from({length:12},()=>pk([0.5,1,1,2]));S.rowGaps=Array.from({length:12},()=>pk([0.5,1,1.5,2.5]));}
-/* subgrids: with Mix on the city is a grid of clusters (superblocks) between continuous main streets; each cluster
-   has its own subgrid of blocks (1 to 3 across, 1 to 3 deep) on side streets, block widths in whole modules; some blocks
-   hold one row, some are split by a 15 mm alley into two parcels */
-function rollBlocks(){const pk=a=>a[Math.floor(Math.random()*a.length)];
+function rollBlocks(){S.gridCols=0;S.full=false;const pk=a=>a[Math.floor(Math.random()*a.length)];
   S.dist=Array.from({length:60},()=>{const k=pk([1,2,2,2,3,3]),rows=pk([1,2,2,3]);return {bw:Array.from({length:k},()=>Math.max(2,Math.round(BLOCKM*pk([0.5,0.67,0.75,1,1]))) ),rows,
     one:Array.from({length:k*rows},()=>Math.random()<0.25),alley:Array.from({length:k*rows},()=>Math.random()<0.35)};});}
-const LAYOUT={cols:[],rows:[],blocks:[],cg:()=>0,rg:()=>0,cw:()=>0,dist:null};   /* the last layout, for the block lines */
+const LAYOUT={cols:[],rows:[],blocks:[],G:null};   /* the last layout, for the block lines */
 const ALLEY=15;
-function clusterLayout(list){const g=gut(),main=ave(),wide=Math.max(...list.map(b=>b.cols*W)),gaps=new Set(S.gaps||[]),dists=[];let gi=0,cur=null,di=0;
-  const newDist=()=>{const sp=S.dist[di++%S.dist.length],k=sp.bw.length,d={blocks:[],k,rows:sp.rows,cw:sp.bw.map(m=>Math.max(m*W,wide))};
-    for(let r=0;r<sp.rows;r++)for(let c=0;c<k;c++){const j=r*k+c;d.blocks.push({c,r,BW:d.cw[c],one:sp.one[j],alley:sp.alley[j]&&!sp.one[j],rows:[[],[]],w:[0,0],gi:gi,empty:gaps.has(gi++)});}
-    dists.push(d);return d;};
-  let D=newDist(),bi=0;const next=()=>{bi++;if(bi>=D.blocks.length){D=newDist();bi=0;}while(D.blocks[bi].empty){bi++;if(bi>=D.blocks.length){D=newDist();bi=0;}}};
-  if(D.blocks[0].empty){bi=-1;next();}
-  let solo=false;const used=k=>k.rows[0].length||k.rows[1].length;
-  list.forEach(b=>{b.rot=0;const w=b.cols*W;if(solo){next();solo=false;}
-    if(isLM(b)){if(used(D.blocks[bi]))next();const k=D.blocks[bi];k.rows[0].push(b);k.w[0]=k.BW;k.solo=true;b.blk=k.gi;solo=true;return;}
-    for(;;){const k=D.blocks[bi];const r=k.w[0]+w<=k.BW?0:!k.one&&k.w[1]+w<=k.BW?1:-1;if(r>=0){k.rows[r].push(b);k.w[r]+=w;b.blk=k.gi;break;}next();}});
-  /* trim the last cluster's unused rows */
-  {const L=dists[dists.length-1];while(L.rows>1&&L.blocks.filter(k=>k.r===L.rows-1).every(k=>!k.rows[0].length)){L.blocks=L.blocks.filter(k=>k.r<L.rows-1);L.rows--;}}
-  dists.forEach(d=>{d.blocks.forEach(k=>{k.d=k.rows.map(r=>r.length?Math.max(...r.map(b=>b.deep*W)):0);k.D=k.d[0]+k.d[1]+(k.alley&&k.d[1]?ALLEY:0);});
-    d.rd=Array.from({length:d.rows},(_,r)=>Math.max(W,...d.blocks.filter(k=>k.r===r).map(k=>k.D)));
-    d.w=d.cw.reduce((a,x)=>a+x,0)+(d.k-1)*g;d.d=d.rd.reduce((a,x)=>a+x,0)+(d.rows-1)*g;});
-  /* clusters on the main grid: the column count that makes the city about 1.3 times as wide as deep */
-  const geo=n=>{const br=Math.ceil(dists.length/n),cwd=Array.from({length:n},(_,c)=>Math.max(0,...dists.filter((_,i)=>i%n===c).map(d=>d.w))),rdd=Array.from({length:br},(_,r)=>Math.max(0,...dists.slice(r*n,r*n+n).map(d=>d.d)));
-    return {n,br,cwd,rdd,TW:cwd.reduce((a,x)=>a+x,0)+(n-1)*main,TD:rdd.reduce((a,x)=>a+x,0)+(br-1)*main};};
-  let G=geo(1),best=1e9;for(let n=1;n<=dists.length;n++){const q=geo(n),s=Math.abs(Math.log(q.TW/q.TD/1.3));if(s<best){best=s;G=q;}}
-  const dcols=[],drows=[];{let x=-G.TW/2;G.cwd.forEach(w=>{dcols.push({x0:x,w});x+=w+main;});let z=G.TD/2;G.rdd.forEach(d=>{drows.push({z1:z,d});z-=d+main;});}
-  GAPS.length=0;LAYOUT.blocks=[];LAYOUT.dist={dcols,drows,main,g,clusters:[]};
-  dists.forEach((d,i)=>{const x0=dcols[i%G.n].x0,z1=drows[Math.floor(i/G.n)].z1,dl={x0,z1,w:d.w,d:d.d,blocks:[]};LAYOUT.dist.clusters.push(dl);
-    d.blocks.forEach(k=>{let bx=x0;for(let c=0;c<k.c;c++)bx+=d.cw[c]+g;let bz=z1;for(let r=0;r<k.r;r++)bz-=d.rd[r]+g;
-      const bd=k.D||d.rd[k.r];dl.blocks.push({x0:bx,x1:bx+k.BW,z0:bz-bd,z1:bz,alley:k.alley&&k.d[1]?bz-k.d[0]:null});if(k.empty)GAPS.push({x0:bx,z0:bz-d.rd[k.r],z1:bz});
-      k.rows.forEach((row,ri)=>{let x=bx+(k.solo&&row.length?(k.BW-row[0].cols*W)/2:0);row.forEach(b=>{const w=b.cols*W,dd=b.deep*W;b.x=x+w/2;x+=w;if(ri===0)b.z=bz-dd/2;else{b.z=bz-k.D+dd/2;b.rot=2;}});});});});
-  return list;}
-function gridLayout(list){if(!list.length)return list;let vary=false,mix=false;try{vary=!!(S.vary&&S.colGaps);mix=!!(S.mix&&S.dist);}catch(e){}   /* S is still being created while the default village is laid out */
-  if(mix)return clusterLayout(list);LAYOUT.dist=null;
-  const g=gut(),main=ave(),cg=c=>vary?r15(g*S.colGaps[((c%12)+12)%12]):g,rg=r=>vary?r15(main*S.rowGaps[((r%12)+12)%12]):main,BW=blockW(list),wide=Math.max(...list.map(b=>b.cols*W));
-  const cw=()=>BW,one=()=>false;
+/* the street grid: every street runs straight through the whole city, like a planned quarter. Block columns (widths)
+   and block rows (depths) are shared city-wide, so side streets line up from one end to the other. Off: every block
+   the typed width, main streets between block rows. Clusters on: columns and rows come in groups of 1 to 3 blocks
+   (superblocks) between continuous main streets, each column its own width in whole modules; some blocks hold one row,
+   some are split by a 15 mm alley into two parcels. The pattern repeats, so the grid carries on past the city unchanged. */
+function streetGrid(list){const g=gut(),main=ave(),wide=Math.max(W,...list.map(b=>b.cols*W));let vary=false,mix=false,full=false;try{vary=!!(S.vary&&S.colGaps);mix=!!(S.mix&&S.dist);full=!!S.full;}catch(e){}   /* S is still being created while the default village is laid out; full: after Fill grid, no one-row blocks or alleys */
+  const at=(a,i)=>a[((i%a.length)+a.length)%a.length],sg=c=>vary?r15(g*at(S.colGaps,c)):g,sr=r=>vary?r15(g*at(S.rowGaps,r)):g;
+  if(!mix){const BW=Math.max(BLOCKM*W,wide);return {mix,cw:()=>BW,cg:sg,rg:r=>vary?r15(main*at(S.rowGaps,r)):main,ce:()=>false,re:()=>true,one:()=>false,alley:()=>false};}
+  const cols=[],rows=[];
+  for(let j=0;j<12;j++){const sp=S.dist[j%S.dist.length];sp.bw.forEach((m,q)=>cols.push({w:Math.max(m*W,wide),end:q===sp.bw.length-1}));}
+  for(let j=0;j<12;j++){const sp=S.dist[(j+12)%S.dist.length];for(let q=0;q<sp.rows;q++)rows.push({end:q===sp.rows-1});}
+  const spec=i=>S.dist[((i*7)%S.dist.length+S.dist.length)%S.dist.length];
+  return {mix,cw:c=>at(cols,c).w,cg:c=>at(cols,c).end?main:sg(c),rg:r=>at(rows,r).end?main:sr(r),ce:c=>at(cols,c).end,re:r=>at(rows,r).end,
+    one:i=>!full&&!!spec(i).one[0],alley:i=>!full&&!!spec(i).alley[0]&&!spec(i).one[0]};}
+function gridLayout(list){if(!list.length)return list;
+  const G=streetGrid(list),{cw,cg,rg}=G;
   const gaps=new Set((()=>{try{return S.gaps||[];}catch(e){return [];}})());
   const pack=colOf=>{const blocks=[];let cur=null;const wOf=()=>cw(colOf(blocks.length));
-    const nb=()=>{while(gaps.has(blocks.length)){const w=wOf();blocks.push({rows:[[],[]],w:[w,w],empty:true});}cur={rows:[[],[]],w:[0,0],BW:wOf(),one:one(blocks.length)};blocks.push(cur);};nb();   /* empty blocks (plazas) keep their slot */
+    const nb=()=>{while(gaps.has(blocks.length)){const w=wOf();blocks.push({rows:[[],[]],w:[w,w],empty:true});}const i=blocks.length;cur={rows:[[],[]],w:[0,0],BW:wOf(),one:G.one(i),alley:G.alley(i)};blocks.push(cur);};nb();   /* empty blocks (plazas) keep their slot */
     let solo=false;list.forEach(b=>{b.rot=0;const w=b.cols*W;if(solo){nb();solo=false;}
       if(isLM(b)){if(cur.rows[0].length||cur.rows[1].length)nb();cur.rows[0].push(b);cur.w=[cur.BW,cur.BW];cur.solo=true;solo=true;return;}
       let r=cur.w[0]+w<=cur.BW?0:!cur.one&&cur.w[1]+w<=cur.BW?1:-1;if(r<0){nb();r=0;}cur.rows[r].push(b);cur.w[r]+=w;});
     {const mx=Math.max(0,...[...gaps].map(Number));while(blocks.length<=mx&&gaps.size){const w=wOf();blocks.push({rows:[[],[]],w:[w,w],empty:true});}}   /* trailing empty blocks */
+    blocks.forEach(k=>{k.d=k.rows.map(r=>r.length?Math.max(...r.map(b=>b.deep*W)):0);k.D=k.d[0]+k.d[1]+(k.alley&&k.d[1]?ALLEY:0);});
     return blocks;};
   /* the number of block columns that makes the city about 1.3 times as wide as deep */
-  const span=(bl,n)=>{const br=Math.ceil(bl.length/n);let tw=0,td=0;for(let c=0;c<Math.min(n,bl.length);c++)tw+=cw(c)+(c?cg(c-1):0);
-    for(let r=0;r<br;r++)td+=Math.max(2*W,...bl.slice(r*n,r*n+n).map(k=>k.rows.reduce((a,row)=>a+(row.length?Math.max(...row.map(b=>b.deep*W)):0),0)))+(r?rg(r-1):0);return tw/td;};
-  let bc=1,blocks=pack(()=>0),best=1e9;for(let n=1;n<=Math.min(24,list.length+gaps.size);n++){const bl=pack(i=>i%n),s=Math.abs(Math.log(span(bl,n)/1.3));if(s<best){best=s;bc=n;blocks=bl;}}
-  bc=Math.min(bc,blocks.length);const br=Math.ceil(blocks.length/bc);
-  blocks.forEach(k=>{k.d=k.rows.map(r=>r.length?Math.max(...r.map(b=>b.deep*W)):0);k.D=k.d[0]+k.d[1];});
-  const rowD=Array.from({length:br},(_,r)=>Math.max(2*W,...blocks.slice(r*bc,r*bc+bc).map(k=>k.D)));
+  const rowsOf=(bl,n)=>Array.from({length:Math.ceil(bl.length/n)},(_,r)=>Math.max(2*W,...bl.slice(r*n,r*n+n).map(k=>k.D||0)));
+  const span=(bl,n)=>{let tw=0,td=0;for(let c=0;c<Math.min(n,bl.length);c++)tw+=cw(c)+(c?cg(c-1):0);rowsOf(bl,n).forEach((d,r)=>td+=d+(r?rg(r-1):0));return tw/td;};
+  let bc=1,blocks=pack(()=>0),best=1e9;const fixed=(()=>{try{return S.gridCols||0;}catch(e){return 0;}})();   /* after Fill grid the column count stays, so the filled blocks keep their widths */
+  if(fixed){bc=fixed;blocks=pack(i=>i%fixed);}else for(let n=1;n<=Math.min(24,list.length+gaps.size);n++){const bl=pack(i=>i%n),s=Math.abs(Math.log(span(bl,n)/1.3));if(s<best){best=s;bc=n;blocks=bl;}}
+  bc=Math.min(bc,blocks.length);const br=Math.ceil(blocks.length/bc),rowD=rowsOf(blocks,bc);
   const cx=Array.from({length:bc},(_,c)=>{let x=0;for(let i=0;i<c;i++)x+=cw(i)+cg(i);return x;}),rz=Array.from({length:br},(_,r)=>{let z=0;for(let i=0;i<r;i++)z+=rowD[i]+rg(i);return z;});
   const TW=cx[bc-1]+cw(bc-1),TD=rz[br-1]+rowD[br-1];
-  GAPS.length=0;Object.assign(LAYOUT,{cols:cx.map((x,c)=>({x0:x-TW/2,w:cw(c)})),rows:rz.map((z,r)=>({z1:TD/2-z,d:rowD[r]})),blocks:[],cg,rg,cw});
-  blocks.forEach((k,i)=>{const c=i%bc,r=Math.floor(i/bc),x0=cx[c]-TW/2,zf=TD/2-rz[r];   /* zf: the block's street front */
-    if(k.empty)GAPS.push({x0,z0:zf-rowD[r],z1:zf});
-    LAYOUT.blocks.push({c,r,x0,w:cw(c),z0:zf-(k.empty||!k.D?rowD[r]:k.D),z1:zf});
+  GAPS.length=0;Object.assign(LAYOUT,{cols:cx.map((x,c)=>({x0:x-TW/2,w:cw(c)})),rows:rz.map((z,r)=>({z1:TD/2-z,d:rowD[r]})),blocks:[],G});
+  blocks.forEach((k,i)=>{const c=i%bc,r=Math.floor(i/bc),x0=cx[c]-TW/2,zf=TD/2-rz[r],zb=zf-rowD[r];   /* zf: the block's street front, zb: its back street */
+    if(k.empty)GAPS.push({x0,z0:zb,z1:zf});
+    LAYOUT.blocks.push({c,r,x0,w:cw(c),z0:zb,z1:zf,empty:!!k.empty,alley:k.alley&&k.d[1]?zf-k.d[0]:null,k});
     k.rows.forEach((row,ri)=>{let x=x0+(k.solo&&row.length?(cw(c)-row[0].cols*W)/2:0);row.forEach(b=>{const w=b.cols*W,d=b.deep*W;b.x=x+w/2;x+=w;b.blk=i;
-      if(ri===0)b.z=zf-d/2;else{b.z=zf-k.D+d/2;b.rot=2;}});});});   /* the back row is flush with the block's back edge and faces that street */
+      if(ri===0)b.z=zf-d/2;else{b.z=zb+d/2;b.rot=2;}});});});   /* the front row lines its street, the back row is flush with the back street and faces it */
   return list;}
+/* Fill grid: every lot gets a building. Each block's two street fronts are filled wall to wall with new buildings
+   no deeper than the row already is, and the last row of blocks is completed, so the city is a full rectangle of
+   blocks. The new buildings go into the list right where the packer expects them, so nothing else moves. */
+const FILL_MAX=360;
+function fillGrid(){S.gridCols=0;S.full=true;gridLayout(S.buildings);const bc=LAYOUT.cols.length,br=LAYOUT.rows.length,G=LAYOUT.G,after=new Map(),tail=[];let left=FILL_MAX-S.buildings.length;
+  const pal=b=>b&&b.palette&&PALETTES[b.palette]?b.palette:pick(Object.keys(PALETTES));
+  const row=(rem,maxDeep,p,into)=>{while(rem>=W&&left>0){const cols=Math.min(Math.floor(rem/W),pick([1,2,2,3,3])),deep=Math.max(1,maxDeep),b=randomFit({cols,deep,x:0,z:0,rot:0});
+      randPal(b,Math.random()<0.8?p:pick(Object.keys(PALETTES)));into.push(b);rem-=cols*W;left--;}};
+  const idx=new Map(S.buildings.map((b,i)=>[b,i])),last=a=>a.reduce((m,b)=>idx.get(b)>idx.get(m)?b:m,a[0]);
+  LAYOUT.blocks.forEach(B=>{const k=B.k;if(!k||k.empty||k.solo)return;const all=[...k.rows[0],...k.rows[1]];if(!all.length)return;const D=LAYOUT.rows[B.r].d,p=pal(all[0]),dk=r=>Math.max(...k.rows[r].map(b=>b.deep));
+    const f0=[],f1=[];row(k.BW-k.w[0],dk(0),p,f0);row(k.BW-k.w[1],Math.max(1,Math.min(3,Math.floor((D-k.d[0])/W))),p,f1);   /* the back row reaches through to the front row */
+    const a0=last(k.rows[0]),a1=last(all);(after.get(a0)||after.set(a0,[]).get(a0)).push(...f0);(after.get(a1)||after.set(a1,[]).get(a1)).push(...f1);});
+  /* the empty lots at the end of the last row of blocks */
+  for(let i=LAYOUT.blocks.length;i<bc*br&&left>0;i++){const c=i%bc,r=Math.floor(i/bc),D=LAYOUT.rows[r].d,p=pal(),md=Math.max(1,Math.min(3,Math.ceil(D/2/W)));
+    row(G.cw(c),md,p,tail);row(G.cw(c),Math.max(1,Math.min(3,Math.floor(D/W)-md)),p,tail);}
+  const out=[];S.buildings.forEach(b=>{out.push(b);if(after.has(b))out.push(...after.get(b));});out.push(...tail);
+  S.buildings=out;S.gridCols=bc;gridLayout(S.buildings);}
+/* the whole city at once: a plate under every level, or a plate and a candle on every level (a candle needs a plate) */
+function allSlabs(){S.buildings.forEach(b=>{if(b.court)return;b.plates=b.plates.map(()=>true);});}
+function lightAll(){S.buildings.forEach(b=>{if(b.court)return;b.plates=b.plates.map(()=>true);b.candles=b.candles.map(()=>true);});}
 function defaultVillage(){return gridLayout(["central","stair","modernTower","liwan","photo","liwan","modernRow","stair","liwan","modernTower","photo","stair","central","photo","modernTower","liwan","stair"].map(k=>KINDS[k]()));}
 function defaults(){return {buildings:MODE==="module"?[KINDS.liwan()]:defaultVillage(),selB:0,sel:"0:0:0",selFace:"front",editSet:"ottoman",night:false,explode:0,gridded:3,gutter:30,avenue:60,multi:[]};}
 let S=defaults();
@@ -634,33 +644,25 @@ function buildRoom(){scene.remove(room);room.traverse(o=>{if(o.geometry)o.geomet
   /* block lines: each city block's outline on the ground as a red hairline, and the same block-and-street grid carried on
      across the whole ground (block width × the deepest block, side and main streets at their set widths) */
   if(blkMode()){const plots=blkMode()===2,ly=0.3-groundDrop(),trays=[],pts=[],rect=(x0,z0,x1,z1,city)=>{if(plots&&city){trays.push([x0,z0,x1,z1]);return;}const c=[[x0,z0],[x1,z0],[x1,z1],[x0,z1]];c.forEach((p,i)=>{const q=c[(i+1)%4];pts.push(new THREE.Vector3(p[0],ly,p[1]),new THREE.Vector3(q[0],ly,q[1]));});};
-    if(!LAYOUT.blocks.length)gridLayout(JSON.parse(JSON.stringify(S.buildings)));   /* a saved design: work the layout out on a copy, nothing moves */
-    const L=LAYOUT,bc=L.cols.length,br=L.rows.length;L.blocks.forEach(k=>rect(k.x0,L.dist?k.z0:Math.min(k.z0,k.z1-L.rows[k.r].d),k.x0+k.w,k.z1,!L.dist));
-    if(L.dist){const Dd=L.dist,thick=[],band=(x0,z0,x1,z1)=>{const c=[[x0,z0],[x1,z0],[x1,z1],[x0,z1]];c.forEach((p,i)=>thick.push([p,c[(i+1)%4]]));};
-      Dd.clusters.forEach(d=>{band(d.x0,d.z1-d.d,d.x0+d.w,d.z1);d.blocks.forEach(k=>{rect(k.x0,k.z0,k.x1,k.z1,true);if(k.alley!==null&&!plots){pts.push(new THREE.Vector3(k.x0,ly,k.alley),new THREE.Vector3(k.x1,ly,k.alley),new THREE.Vector3(k.x0,ly,k.alley-ALLEY),new THREE.Vector3(k.x1,ly,k.alley-ALLEY));}});});
-      /* the cluster grid carried across the ground: same column widths, row depths and main streets, each cell with its own subgrid */
-      const gb=bounds(),ext=Math.max(gb.x1-gb.x0,gb.z1-gb.z0)/2+(S.night?1600:700),mx=(gb.x0+gb.x1)/2,mz=(gb.z0+gb.z1)/2,nc=Dd.dcols.length,nr=Dd.drows.length,
-        cwA=i=>Dd.dcols[((i%nc)+nc)%nc].w,rdA=j=>Dd.drows[((j%nr)+nr)%nr].d,cols=Dd.dcols.map((c,i)=>({i,x0:c.x0,w:c.w})),rows=Dd.drows.map((r,j)=>({j,z1:r.z1,d:r.d}));
-      for(let i=-1,x=cols[0].x0;x>mx-ext;i--){const w=cwA(i);x-=Dd.main+w;cols.unshift({i,x0:x,w});}
-      for(let i=nc,x=cols[cols.length-1].x0+cols[cols.length-1].w;x<mx+ext;i++){x+=Dd.main;cols.push({i,x0:x,w:cwA(i)});x+=cwA(i);}
-      for(let j=-1,z=rows[0].z1;z<mz+ext;j--){const d=rdA(j);z+=Dd.main+d;rows.unshift({j,z1:z,d});}
-      for(let j=nr,z=rows[rows.length-1].z1-rows[rows.length-1].d;z>mz-ext;j++){z-=Dd.main;rows.push({j,z1:z,d:rdA(j)});z-=rdA(j);}
-      const used=new Set(Dd.clusters.map((_,i)=>(i%nc)+","+Math.floor(i/nc)));
-      cols.forEach(c=>rows.forEach(r=>{if(used.has(c.i+","+r.j))return;band(c.x0,r.z1-r.d,c.x0+c.w,r.z1);
-        const sp=S.dist[(((c.i*7+r.j*13)%60)+60)%60],k=Math.min(sp.bw.length,Math.max(1,Math.floor((c.w+Dd.g)/(2*W+Dd.g)))),n=Math.min(sp.rows,Math.max(1,Math.floor((r.d+Dd.g)/(W+Dd.g))));
-        const bw=(c.w-(k-1)*Dd.g)/k,bd=(r.d-(n-1)*Dd.g)/n;for(let a=0;a<k;a++)for(let q=0;q<n;q++){const x0=c.x0+a*(bw+Dd.g),z1=r.z1-q*(bd+Dd.g);rect(x0,z1-bd,x0+bw,z1);}}));
-      /* main-street edges as 2.5 mm bands, block edges as hairlines */
+    if(!LAYOUT.blocks.length||!LAYOUT.G)gridLayout(JSON.parse(JSON.stringify(S.buildings)));   /* a saved design: work the layout out on a copy, nothing moves */
+    const L=LAYOUT,G=L.G,bc=L.cols.length,br=L.rows.length,thick=[],band=(x0,z0,x1,z1)=>{const c=[[x0,z0],[x1,z0],[x1,z1],[x0,z1]];c.forEach((p,i)=>thick.push([p,c[(i+1)%4]]));};
+    if(bc&&br){const gb=bounds(),ext=Math.max(gb.x1-gb.x0,gb.z1-gb.z0)/2+(S.night?1600:700),mx=(gb.x0+gb.x1)/2,mz=(gb.z0+gb.z1)/2,rD=j=>L.rows[((j%br)+br)%br].d;
+      /* the same columns, rows and streets carried on past the city, so every street runs on to the edge of the ground */
+      const cols=L.cols.map((c,i)=>({i,x0:c.x0,w:c.w}));for(let i=-1,x=L.cols[0].x0;x>mx-ext;i--){const w=G.cw(i);x=x-G.cg(i)-w;cols.unshift({i,x0:x,w});}
+      for(let i=bc,x=L.cols[bc-1].x0+L.cols[bc-1].w;x<mx+ext;i++){x+=G.cg(i-1);cols.push({i,x0:x,w:G.cw(i)});x+=G.cw(i);}
+      const rows=L.rows.map((r,j)=>({j,z1:r.z1,d:r.d}));for(let j=-1,z=L.rows[0].z1;z<mz+ext;j--){const d=rD(j);z=z+G.rg(j)+d;rows.unshift({j,z1:z,d});}
+      for(let j=br,z=L.rows[br-1].z1-L.rows[br-1].d;z>mz-ext;j++){z-=G.rg(j-1);rows.push({j,z1:z,d:rD(j)});z-=rD(j);}
+      const real=new Map(L.blocks.map(k=>[k.c+","+k.r,k]));
+      cols.forEach(c=>rows.forEach(r=>{const k=real.get(c.i+","+r.j);rect(c.x0,r.z1-r.d,c.x0+c.w,r.z1,!!k);
+        if(k&&k.alley!==null&&!plots)pts.push(new THREE.Vector3(c.x0,ly,k.alley),new THREE.Vector3(c.x0+c.w,ly,k.alley),new THREE.Vector3(c.x0,ly,k.alley-ALLEY),new THREE.Vector3(c.x0+c.w,ly,k.alley-ALLEY));}));
+      /* clusters: each superblock between main streets outlined with a 2.5 mm band */
+      if(G.mix){const cg=[],rg=[];let s=null;cols.forEach(c=>{if(G.ce(c.i-1))s=c.x0;if(s!==null&&G.ce(c.i)){cg.push([s,c.x0+c.w]);s=null;}});
+        s=null;rows.forEach(r=>{if(G.re(r.j-1))s=r.z1;if(s!==null&&G.re(r.j)){rg.push([r.z1-r.d,s]);s=null;}});
+        cg.forEach(([x0,x1])=>rg.forEach(([z0,z1])=>band(x0,z0,x1,z1)));}}
+    {/* main-street edges as 2.5 mm bands, block edges as hairlines */
       const v=[],hw=1.25;thick.forEach(([p,q])=>{const dx=q[0]-p[0],dz=q[1]-p[1],l=Math.hypot(dx,dz)||1,nx=-dz/l*hw,nz=dx/l*hw,ex=dx/l*hw,ez=dz/l*hw,a=[p[0]-ex+nx,p[1]-ez+nz],b=[q[0]+ex+nx,q[1]+ez+nz],c2=[q[0]+ex-nx,q[1]+ez-nz],d2=[p[0]-ex-nx,p[1]-ez-nz];
         [a,b,c2,a,c2,d2].forEach(o=>v.push(o[0],ly+0.05,o[1]));});
-      if(!plots){const tg=new THREE.BufferGeometry();tg.setAttribute("position",new THREE.Float32BufferAttribute(v,3));room.add(new THREE.Mesh(tg,MAT.band));}}
-    else if(bc&&br){const gb=bounds(),ext=Math.max(gb.x1-gb.x0,gb.z1-gb.z0)/2+(S.night?1600:700),mx=(gb.x0+gb.x1)/2,mz=(gb.z0+gb.z1)/2,D=Math.max(...L.rows.map(r=>r.d));
-      /* columns and rows carried on past the city with the same widths, streets and depths */
-      const cols=L.cols.map((c,i)=>({i,x0:c.x0,w:c.w}));for(let i=-1,x=L.cols[0].x0;x>mx-ext;i--){const w=L.cw(i);x=x-L.cg(i)-w;cols.unshift({i,x0:x,w});}
-      for(let i=bc,x=L.cols[bc-1].x0+L.cols[bc-1].w;x<mx+ext;i++){x+=L.cg(i-1);cols.push({i,x0:x,w:L.cw(i)});x+=L.cw(i);}
-      const rows=L.rows.map((r,j)=>({j,z1:r.z1,d:r.d}));for(let j=-1,z=L.rows[0].z1;z<mz+ext;j--){z=z+L.rg(j)+D;rows.unshift({j,z1:z,d:D});}
-      for(let j=br,z=L.rows[br-1].z1-L.rows[br-1].d;z>mz-ext;j++){z-=L.rg(j-1);rows.push({j,z1:z,d:D});z-=D;}
-      const used=new Set(L.blocks.map(k=>k.c+","+k.r));
-      cols.forEach(c=>rows.forEach(r=>{if(used.has(c.i+","+r.j))return;rect(c.x0,r.z1-r.d,c.x0+c.w,r.z1);}));}
+      if(v.length&&!plots){const tg=new THREE.BufferGeometry();tg.setAttribute("position",new THREE.Float32BufferAttribute(v,3));room.add(new THREE.Mesh(tg,MAT.band));}}
     if(pts.length)room.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(pts),MAT.line));
     /* plots: one flat porcelain tray per city block (TRAY mm, rounded corners), top flush with the buildings' feet at y = 0 */
     if(trays.length){const tm=matOf("porcelain","pale",false),tg=new THREE.Group();trays.forEach(([x0,z0,x1,z1])=>tg.add(flat(rsq(x0,-z1,x1,-z0,4),[],TRAY,tm,-TRAY)));tg.updateMatrixWorld(true);room.add(mergeGroup(tg));}}
@@ -690,22 +692,61 @@ function wallBv(holes){let g=99;const bb=holes.map(h=>{let a=[1e9,1e9,-1e9,-1e9]
   bb.forEach((a,i)=>{g=Math.min(g,a[1],H-a[3],a[0],W-a[2]);for(let j=i+1;j<bb.length;j++){const c=bb[j];g=Math.min(g,Math.max(c[0]-a[2],a[0]-c[2],c[1]-a[3],a[1]-c[3]));}});
   return Math.max(0.5,Math.min(BV,(g-0.8)/2));}
 function softExtrude(outer,holes,depth,mat,bv,segs){bv=Math.min(bv===undefined?BV:bv,depth/2-0.05);const s=shapeOf(outer);holes.forEach(h=>s.holes.push(new THREE.Path(h.map(([x,y])=>new THREE.Vector2(x,y)))));
-  const geo=new THREE.ExtrudeGeometry(s,{depth:depth-2*bv,bevelEnabled:true,bevelThickness:bv,bevelSize:bv,bevelOffset:-bv,bevelSegments:segs||2,curveSegments:8});geo.translate(0,0,bv);
+  const geo=new THREE.ExtrudeGeometry(s,{depth:depth-2*bv,bevelEnabled:true,bevelThickness:bv,bevelSize:bv,bevelOffset:-bv,bevelSegments:segs||3,curveSegments:8});geo.translate(0,0,bv);bevelNormals(geo,depth,bv);
   const m=new THREE.Mesh(geo,mat);m.castShadow=true;m.receiveShadow=true;return m;}
+/* glazed-porcelain shading: the bevel is a quarter circle, so a point θ round it faces sinθ along the outline's normal and
+   cosθ off the face; those true normals make a two- or three-step bevel read as one round edge. Along the outline the
+   normal is shared wherever the outline turns less than 50° (arcs, fillets, the bevel's own steps), so curves are smooth
+   and real corners stay crisp. The flat faces keep their own normal and read dead flat. */
+function bevelNormals(geo,depth,bv){const p=geo.attributes.position.array,nA=geo.attributes.normal.array,nt=p.length/9,K=new Float64Array(p.length/3);for(let i=0;i<p.length;i+=3)K[i/3]=((Math.round(p[i]*500)+40000)*80000+Math.round(p[i+1]*500)+40000)*80000+Math.round(p[i+2]*500)+40000;const q=i=>K[i/3];
+  const dir=new Float32Array(nt*2),skip=new Uint8Array(nt),map=new Map(),C=Math.cos(50*Math.PI/180);
+  for(let t=0;t<nt;t++){const o=t*9,ax=p[o+3]-p[o],ay=p[o+4]-p[o+1],az=p[o+5]-p[o+2],bx=p[o+6]-p[o],by=p[o+7]-p[o+1],bz=p[o+8]-p[o+2],
+      nx=ay*bz-az*by,ny=az*bx-ax*bz,nz=ax*by-ay*bx,l=Math.hypot(nx,ny,nz),lx=Math.hypot(nx,ny);
+    if(l<1e-9||lx<1e-9*l){skip[t]=1;continue;}   /* the flat faces (and any sliver of no area) keep their normal */
+    dir[t*2]=nx/lx;dir[t*2+1]=ny/lx;for(let v=0;v<9;v+=3){const k=q(o+v);let a=map.get(k);if(!a)map.set(k,a=[]);a.push(t);}}
+  for(let t=0;t<nt;t++){if(skip[t])continue;const o=t*9,dx=dir[t*2],dy=dir[t*2+1];
+    for(let v=0;v<9;v+=3){const i=o+v;let sx=0,sy=0;map.get(q(i)).forEach(u=>{const ux=dir[u*2],uy=dir[u*2+1];if(dx*ux+dy*uy>C){sx+=ux;sy+=uy;}});
+      const l=Math.hypot(sx,sy)||1,z=p[i+2];let c=0,zd=0;
+      if(z<bv-1e-4){c=(bv-z)/bv;zd=-1;}else if(z>depth-bv+1e-4){c=(z-depth+bv)/bv;zd=1;}
+      c=Math.max(0,Math.min(1,c));const sn=Math.sqrt(1-c*c);nA[i]=sx/l*sn;nA[i+1]=sy/l*sn;nA[i+2]=zd*c;}}
+  geo.attributes.normal.needsUpdate=true;}
 function soft(outer,holes,depth,mat,y,bv){const m=softExtrude(outer,holes,depth,mat,bv);m.rotation.x=-Math.PI/2;m.position.y=y;return m;}
 function flat(outer,holes,depth,mat,y){const m=extrude(outer,holes,depth,mat);m.rotation.x=-Math.PI/2;m.position.y=y;return m;}
 const sq=(x0,z0,x1,z1)=>[[x0,z0],[x1,z0],[x1,z1],[x0,z1]];
 /* rectangle with rounded corners (radius r), as a polygon */
-function rsq(x0,z0,x1,z1,r){if(r<=0.01)return sq(x0,z0,x1,z1);const o=[],arc=(cx,cz,a0)=>{for(let k=0;k<=6;k++){const a=a0+k/6*Math.PI/2;o.push([cx+r*Math.cos(a),cz+r*Math.sin(a)]);}};
+function rsq(x0,z0,x1,z1,r){if(r<=0.01)return sq(x0,z0,x1,z1);const o=[],n=r>2?12:8,arc=(cx,cz,a0)=>{for(let k=0;k<=n;k++){const a=a0+k/n*Math.PI/2;o.push([cx+r*Math.cos(a),cz+r*Math.sin(a)]);}};
   arc(x1-r,z0+r,-Math.PI/2);arc(x1-r,z1-r,0);arc(x0+r,z1-r,Math.PI/2);arc(x0+r,z0+r,Math.PI);return o;}
 const radOf=b=>b.radius===undefined?4:b.radius;
-/* the four rounded vertical edges of a module: a quarter ring of outer radius R (solid where R ≤ wall thickness) */
-function cornerPieces(b,k){const g=new THREE.Group(),R=Math.min(radOf(b),W/2-1);if(R<=0.01)return g;const h=W/2,mat=modMat(b,k);
-  [[1,1],[1,-1],[-1,-1],[-1,1]].forEach(([sx,sz])=>{const pts=[],cx=h-R,cz=h-R;
-    for(let i=0;i<=10;i++){const a=i/10*Math.PI/2;pts.push([cx+R*Math.cos(a),cz+R*Math.sin(a)]);}
-    if(R>T+0.01)for(let i=10;i>=0;i--){const a=i/10*Math.PI/2;pts.push([cx+(R-T)*Math.cos(a),cz+(R-T)*Math.sin(a)]);}
-    else{pts.push([h-R,h-T],[h-T,h-T],[h-T,h-R]);}
-    const m=soft(pts.map(([x,z])=>[x*sx,-z*sz]),[],H,mat,0,1.4);g.add(m);});
+/* the four rounded vertical edges of a module: the wall's own section (T thick, edges rounded by the wall's bevel)
+   swept a quarter turn round the corner, outer radius R. It starts and ends exactly where the walls end, with the same
+   section and the same normals, so wall and corner read as one cast piece: no overlap, no seam, nothing coplanar to
+   flicker. The bevel eases from one wall's radius to the next round the turn. Where R ≤ T the inside corner is square. */
+const CSEG=16,KSEG=2,CGEO=new Map();
+function cornerGeo(R,ra,rb){const key=[R,ra,rb].map(v=>v.toFixed(3)).join("|");let geo=CGEO.get(key);if(geo)return geo;
+  const h=W/2,c=h-R,prof=r=>{const o=[],P=(s,y,nr,ny)=>o.push([s,y,nr,ny]),Q=Math.PI/2;
+    P(0,r,1,0);for(let k=0;k<=KSEG;k++){const a=k/KSEG*Q;P(r-r*Math.cos(a),H-r+r*Math.sin(a),Math.cos(a),Math.sin(a));}
+    for(let k=0;k<=KSEG;k++){const a=k/KSEG*Q;P(T-r+r*Math.sin(a),H-r+r*Math.cos(a),-Math.sin(a),Math.cos(a));}
+    for(let k=0;k<=KSEG;k++){const a=k/KSEG*Q;P(T-r+r*Math.cos(a),r-r*Math.sin(a),-Math.cos(a),-Math.sin(a));}
+    for(let k=0;k<=KSEG;k++){const a=k/KSEG*Q;P(r-r*Math.sin(a),r-r*Math.cos(a),Math.sin(a),-Math.cos(a));}
+    return o;};
+  /* a section point (s in from the outer face, height y) at station j round the turn, with its normal */
+  const at=(pt,j,half)=>{const t=j/CSEG,f=t*Math.PI/2,[s,y,nr,ny]=pt;
+    if(R-s>1e-6)return [c+(R-s)*Math.cos(f),y,c+(R-s)*Math.sin(f),nr*Math.cos(f),ny,nr*Math.sin(f)];
+    const d=s-R;return half?[c-d*(1-t)*2,y,h-s,0,ny,nr]:[h-s,y,c-d*t*2,nr,ny,0];};   /* square inside corner: two flat halves */
+  const pos=[],nor=[],sm=t=>t*t*(3-2*t),profs=[];for(let j=0;j<=CSEG;j++)profs.push(prof(ra+(rb-ra)*sm(j/CSEG)));
+  for(let j=0;j<CSEG;j++){const half=j>=CSEG/2;for(let i=0;i<profs[j].length-1;i++){
+    const a=at(profs[j][i],j,half),b=at(profs[j][i+1],j,half),d=at(profs[j+1][i],j+1,half),e=at(profs[j+1][i+1],j+1,half);
+    [a,b,e,a,e,d].forEach(v=>{pos.push(v[0],v[1],v[2]);nor.push(v[3],v[4],v[5]);});}}
+  geo=new THREE.BufferGeometry();geo.setAttribute("position",new THREE.Float32BufferAttribute(pos,3));geo.setAttribute("normal",new THREE.Float32BufferAttribute(nor,3));
+  geo.setAttribute("uv",new THREE.Float32BufferAttribute(new Array(pos.length/3*2).fill(0),2));
+  /* wind every triangle to face its own normal */
+  {const p=geo.attributes.position.array,n=geo.attributes.normal.array;for(let t=0;t<p.length;t+=9){const ax=p[t+3]-p[t],ay=p[t+4]-p[t+1],az=p[t+5]-p[t+2],bx=p[t+6]-p[t],by=p[t+7]-p[t+1],bz=p[t+8]-p[t+2];
+    if((ay*bz-az*by)*(n[t]+n[t+3]+n[t+6])+(az*bx-ax*bz)*(n[t+1]+n[t+4]+n[t+7])+(ax*by-ay*bx)*(n[t+2]+n[t+5]+n[t+8])<0)for(let k=0;k<3;k++){let q=p[t+3+k];p[t+3+k]=p[t+6+k];p[t+6+k]=q;q=n[t+3+k];n[t+3+k]=n[t+6+k];n[t+6+k]=q;}}}
+  geo.computeBoundingSphere();CGEO.set(key,geo);return geo;}
+/* corners in order: the +x+z corner turned 0, 90, 180, 270°; each joins the wall at its start (first) and its end (second) */
+const CORNERS=[[0,"right","front"],[Math.PI/2,"back","right"],[Math.PI,"left","back"],[-Math.PI/2,"front","left"]];
+function cornerPieces(b,k,bvs){const g=new THREE.Group(),R=Math.min(radOf(b),W/2-1);if(R<=0.01)return g;const mat=modMat(b,k),bv=f=>Math.min(bvs&&bvs[f]||BV,T/2-0.05);
+  CORNERS.forEach(([a,f0,f1])=>{const m=new THREE.Mesh(cornerGeo(R,bv(f0),bv(f1)),mat);m.rotation.y=a;m.castShadow=m.receiveShadow=true;m.userData.shared=true;g.add(m);});
   return g;}
 /* wall geometry cache: identical walls (same openings, same corner radius) share one geometry, drawn instanced */
 const WGEO=new Map();
@@ -713,9 +754,15 @@ function buildWall(bi,k,fname){
   const o=B.build(S.buildings[bi].mods[k][fname]),g=new THREE.Group();g.rotation.y=ANG[fname];
   const Rr=Math.min(radOf(S.buildings[bi]),W/2-1);
   const key=JSON.stringify(S.buildings[bi].mods[k][fname])+"|"+Rr;let geo=WGEO.get(key);
-  if(!geo){const hp=o.holes.map(h=>fillet(h.p,0.8)),bv=wallBv(hp),e=Rr>0.01?Math.min(bv,Rr):0;geo=softExtrude([[Rr-e,0],[W-Rr+e,0],[W-Rr+e,H],[Rr-e,H]],hp,T,null,bv,1).geometry;if(WGEO.size>4000)WGEO.clear();WGEO.set(key,geo);}
+  if(!geo){const hp=o.holes.map(h=>fillet(h.p,0.8)),bv=wallBv(hp);geo=softExtrude([[Rr,0],[W-Rr,0],[W-Rr,H],[Rr,H]],hp,T,null,bv,KSEG).geometry;
+    /* with round corners the wall's two ends are squared off flat, so the corner sweep (same section) carries on from them seamlessly */
+    if(Rr>0.01){const p=geo.attributes.position.array,ec=bv+0.02,bb=hp.map(h=>{let a=[1e9,1e9,-1e9,-1e9];h.forEach(([x,y])=>{a=[Math.min(a[0],x),Math.min(a[1],y),Math.max(a[2],x),Math.max(a[3],y)];});return a;}),
+        inHole=(x,y)=>bb.some(a=>x>a[0]-ec&&x<a[2]+ec&&y>a[1]-ec&&y<a[3]+ec);
+      for(let i=0;i<p.length;i+=3){const x=p[i],y=p[i+1];if(x<Rr+ec&&!inHole(x,y))p[i]=Rr;else if(x>W-Rr-ec&&!inHole(x,y))p[i]=W-Rr;}
+      geo.attributes.position.needsUpdate=true;bevelNormals(geo,T,Math.min(bv,T/2-0.05));}
+    geo.userData.bv=Math.min(bv,T/2-0.05);if(WGEO.size>4000)WGEO.clear();WGEO.set(key,geo);}
   const w=new THREE.Mesh(geo,modMat(S.buildings[bi],k));w.castShadow=w.receiveShadow=true;w.position.set(-W/2,0,W/2-T);w.userData={bi,k,fname,shared:true};pickable.push(w);g.add(w);
-  return g;}
+  g.userData.bv=geo.userData.bv;return g;}
 const plateT=l=>l===0?BASE_T:PLATE_T;
 function levelY(b,gap){const ys=[];let y=0;for(let l=0;l<b.levels;l++){if(b.plates[l])y+=plateT(l)+gap*0.5;ys.push(y);y+=H+gap;}return {ys,top:y-gap};}
 /* one roof piece per building: a hipped lid over the whole footprint (the manual's single red-tiled hip), or one flat slab */
@@ -752,7 +799,7 @@ function buildBuilding(bi,gap,lightBudget){
     if(b.plates[l]){const vents=[];for(let c=0;c<b.cols;c++)for(let r=0;r<b.deep;r++)vents.push(circle(4,mx(c),-mz(r)));
       const p=soft(rsq(-hw,-hd,hw,hd,radOf(b)),l===0?[]:vents,plateT(l),plateMat(b),ys[l]-plateT(l)-gap*0.5,l===0?2.8:1.9);g.add(p);
       if(l===0){const f=flat(rsq(-hw-0.05,-hd-0.05,hw+0.05,hd+0.05,radOf(b)),[],1.2,footMat(b),ys[0]-plateT(0)-gap*0.5);g.add(f);}}
-    for(let c=0;c<b.cols;c++)for(let r=0;r<b.deep;r++){const k=c+":"+r+":"+l;if(!alive(b,k))continue;const mg=new THREE.Group();mg.position.set(mx(c),ys[l],mz(r));FACES.forEach(f=>mg.add(buildWall(bi,k,f)));mg.add(cornerPieces(b,k));if(b.candles[l]&&b.plates[l])mg.traverse(o=>o.userData.lit=true);g.add(mg);
+    for(let c=0;c<b.cols;c++)for(let r=0;r<b.deep;r++){const k=c+":"+r+":"+l;if(!alive(b,k))continue;const mg=new THREE.Group();mg.position.set(mx(c),ys[l],mz(r));const bvs={};FACES.forEach(f=>{const w=buildWall(bi,k,f);bvs[f]=w.userData.bv;mg.add(w);});mg.add(cornerPieces(b,k,bvs));if(b.candles[l]&&b.plates[l])mg.traverse(o=>o.userData.lit=true);g.add(mg);
       if(b.candles[l]&&b.plates[l]){const tea=new THREE.Mesh(new THREE.CylinderGeometry(19,19,8,24),MAT.tea);tea.position.set(mx(c),ys[l]+4,mz(r));g.add(tea);
         const fl=new THREE.Mesh(new THREE.SphereGeometry(2,10,8),MAT.flame);fl.scale.set(0.8,1.6,0.8);fl.position.set(mx(c),ys[l]+11,mz(r));g.add(fl);flames.push(fl);
         const gw=new THREE.Mesh(new THREE.BoxGeometry(W-2*T-0.6,H-0.6,W-2*T-0.6),MAT.glow);gw.position.set(mx(c),ys[l]+H/2,mz(r));g.add(gw);}}
@@ -868,7 +915,7 @@ const draw=()=>{if(S.render&&S.night&&composer){finalPass.uniforms.time.value=ti
 /* draw only when something changed: an edit, the camera moving (and settling), or the candles flickering at night */
 let dirty=2,lastMove=0,hqDue=false;const need=()=>{dirty=Math.max(dirty,1);};
 controls.addEventListener("change",()=>{need();lastMove=performance.now();hqDue=true;});
-new ResizeObserver(()=>{resize();need();}).observe(view);
+new ResizeObserver(()=>{resize();placeSplit();need();}).observe(view);
 /* keep the depth range tight around the view, so far-off buildings keep their depth precision (and SSAO reads it right) */
 let lastD=0;function fitDepth(){if(camera===ortho)return;const d=camera.position.distanceTo(controls.target);if(Math.abs(d-lastD)<d*0.01)return;lastD=d;
   camera.near=Math.max(2,d*0.04);camera.far=d*4+2500;camera.updateProjectionMatrix();
@@ -996,7 +1043,8 @@ const MAX_B=120;
 /* a new random building for the village, in the kept palette when Keep palette is on */
 function villageBuilding(){const b=randomBuilding(),keep=S.keepPal&&PALETTES[Bs().palette];randPal(b,keep?Bs().palette:pick(Object.keys(PALETTES)));return b;}
 /* grow or shrink to n buildings: new ones at the end take the next block slots */
-function setCount(n){n=Math.max(1,Math.min(MAX_B,Math.round(n)||1));if(n===S.buildings.length){$("countV").value=n;return;}
+function setCount(n){n=Math.max(1,Math.min(Math.max(MAX_B,S.buildings.length),Math.round(n)||1));   /* a filled grid can hold more than MAX_B; − still works from there */
+  if(n===S.buildings.length){$("countV").value=n;return;}
   while(S.buildings.length<n)S.buildings.push(villageBuilding());while(S.buildings.length>n)S.buildings.pop();
   S.multi=(S.multi||[]).filter(i=>i<S.buildings.length);if(S.selB>=S.buildings.length)S.selB=S.buildings.length-1;gridLayout(S.buildings);renderUI();}
 on("countSeg","click",e=>{const x=e.target.closest("button");if(!x||!x.dataset.d)return;setCount(S.buildings.length+ +x.dataset.d);});
@@ -1007,7 +1055,18 @@ on("randBlock","click",()=>{const ks=new Set(SELB().map(b=>b.blk)),keep=S.keepPa
   S.buildings=S.buildings.map(b=>{if(!ks.has(b.blk))return b;const n=randomFit(b);randPal(n,keep||Math.random()<0.7?pal:pick(Object.keys(PALETTES)));return n;});S.sel="0:0:0";renderUI();});
 on("blocksSeg","click",e=>{const x=e.target.closest("button");if(!x)return;S.blocks=+x.dataset.v;seg($("blocksSeg"),String(blkMode()));buildRoom();need();save();});
 /* the side panel can be hidden: the 3D view then takes the whole width (P) */
-const setPanel=show=>{document.body.classList.toggle("nopanel",!show);$("panelBtn").setAttribute("aria-pressed",show);S.nopanel=!show;};
+const setPanel=show=>{document.body.classList.toggle("nopanel",!show);$("panelBtn").setAttribute("aria-pressed",show);S.nopanel=!show;placeSplit();};
+/* panel / view split: S.vcols is how many of the 12 columns the 3D view takes (4 to 10); unset means the default */
+function placeSplit(){const lay=document.querySelector(".layout"),vw=$("viewer"),as=document.querySelector(".layout>aside"),sp=$("split"),desk=innerWidth>760,n=desk&&!S.nopanel&&S.vcols?S.vcols:0;
+  vw.style.gridColumn=n?"1/"+(n+1):"";as.style.gridColumn=n?(n+1)+"/13":"";
+  if(desk){const g=parseFloat(getComputedStyle(lay).columnGap)||16;sp.style.left=(vw.offsetLeft+vw.offsetWidth)+"px";sp.style.width=g+"px";}}
+{const sp=$("split"),lay=document.querySelector(".layout");let drag=false;
+  const colAt=x=>{const cs=getComputedStyle(lay),r=lay.getBoundingClientRect(),pl=parseFloat(cs.paddingLeft),g=parseFloat(cs.columnGap)||16,cw=(r.width-pl-parseFloat(cs.paddingRight)-11*g)/12;
+    return Math.max(4,Math.min(10,Math.round((x-r.left-pl+g/2)/(cw+g))));};
+  sp.addEventListener("pointerdown",e=>{drag=true;sp.classList.add("drag");sp.setPointerCapture(e.pointerId);e.preventDefault();});
+  sp.addEventListener("pointermove",e=>{if(!drag)return;const n=colAt(e.clientX);if(n!==S.vcols){S.vcols=n;placeSplit();}});
+  const end=()=>{if(!drag)return;drag=false;sp.classList.remove("drag");save();};sp.addEventListener("pointerup",end);sp.addEventListener("pointercancel",end);
+  sp.addEventListener("dblclick",()=>{delete S.vcols;placeSplit();save();});addEventListener("resize",placeSplit);}
 on("panelBtn","click",()=>{setPanel(document.body.classList.contains("nopanel"));save();});
 addEventListener("keydown",e=>{if((e.key==="p"||e.key==="P")&&!/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName)&&!e.metaKey&&!e.ctrlKey){setPanel(document.body.classList.contains("nopanel"));save();}});
 /* time of day */
@@ -1041,18 +1100,21 @@ on("gifBtn","click",async()=>{const btn=$("gifBtn");if(btn.disabled)return;btn.d
   /* the frames are the 3D view itself, same framing, light and settings, at up to 1080 px on the long side */
   const cv=renderer.domElement,sc=Math.min(1,1080/Math.max(cv.width,cv.height)),w=Math.round(cv.width*sc),h=Math.round(cv.height*sc),c2=document.createElement("canvas");c2.width=w;c2.height=h;const g2=c2.getContext("2d",{willReadFrequently:true});
   g2.imageSmoothingQuality="high";const hist=new Uint32Array(32768),sum=new Float64Array(32768*3);
-  const pose={p:camera.position.clone(),t:controls.target.clone()},sun0=S.sun,snap=mode==="rand"?JSON.stringify({b:S.buildings,sel:S.selB,m:S.multi,s:S.sel}):null,frames=[];
+  const pose={p:camera.position.clone(),t:controls.target.clone()},sun0=S.sun,ex0=S.explode,snap=mode==="rand"?JSON.stringify({b:S.buildings,sel:S.selB,m:S.multi,s:S.sel}):null,frames=[];
   try{for(let i=0;i<N;i++){btn.textContent=(i+1)+"/"+N;
       if(mode==="orbit"){const a=2*Math.PI*i/N,v=pose.p.clone().sub(pose.t);v.applyAxisAngle(new THREE.Vector3(0,1,0),a);camera.position.copy(pose.t).add(v);camera.lookAt(pose.t);}
       else if(mode==="sun"){S.sun=0.04+0.92*i/(N-1);applyNight();}
+      else if(mode==="explode"){S.explode=Math.round(24*Math.sin(Math.PI*i/N));rebuildNow();}   /* the modules part and close again, so the GIF loops */
+      else if(MODE==="module"){randomizeBuilding(Bs());rebuildNow();}   /* Module editor: new walls on the same module */
       else{randAll();rebuildNow();}
       await nextFrame();draw();g2.drawImage(cv,0,0,w,h);frames.push(gif15(g2.getImageData(0,0,w,h).data,hist,sum));}
     btn.textContent="…";await nextFrame();const {pal,lut}=gifPalette(hist,sum),ixs=frames.map(f=>{const o=new Uint8Array(f.length);for(let i=0;i<f.length;i++)o[i]=lut[f[i]];return o;});
     const blob=new Blob([gifEncode(ixs,w,h,mode==="orbit"?8:mode==="sun"?12:60,pal)],{type:"image/gif"}),a=document.createElement("a"),d=new Date(),z=n=>String(n).padStart(2,"0");
     a.href=URL.createObjectURL(blob);a.download=`tikrar-${mode}-${d.getFullYear()}${z(d.getMonth()+1)}${z(d.getDate())}-${z(d.getHours())}${z(d.getMinutes())}.gif`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);}
-  finally{camera.position.copy(pose.p);controls.target.copy(pose.t);controls.update();S.sun=sun0;   /* the design and the view come back as they were */
+  finally{camera.position.copy(pose.p);controls.target.copy(pose.t);controls.update();S.sun=sun0;if(S.explode!==ex0){S.explode=ex0;rebuildNow();}   /* the design and the view come back as they were */
     if(snap){const v=JSON.parse(snap);S.buildings=v.b;S.selB=v.sel;S.multi=v.m;S.sel=v.s;renderUI();}else applyNight();btn.textContent="Make";btn.disabled=false;need();}});
 /* the 3D view as a JPG, drawn fresh at the view's size and pixel density */
+on("gifQuick","click",()=>$("gifBtn").click());
 on("jpgBtn","click",()=>{draw();const url=renderer.domElement.toDataURL("image/jpeg",0.92),a=document.createElement("a"),d=new Date(),z=n=>String(n).padStart(2,"0");
   a.href=url;a.download=`tikrar-${d.getFullYear()}${z(d.getMonth()+1)}${z(d.getDate())}-${z(d.getHours())}${z(d.getMinutes())}.jpg`;document.body.appendChild(a);a.click();a.remove();});
 on("keepPal","click",()=>{S.keepPal=!S.keepPal;$("keepPal").setAttribute("aria-pressed",!!S.keepPal);save();});
@@ -1063,12 +1125,15 @@ function randAll(){const n=Math.max(1,Math.min(MAX_B,S.buildings.length)),list=[
   /* public courts: about one in ten (at least one from six buildings up), in place of ordinary buildings, never of a landmark */
   {const nc=n>=6?Math.max(1,Math.round(n/10)):0;for(let i=0;i<nc;i++){const idx=list.map((b,j)=>j).filter(j=>!isLM(list[j])&&!list[j].court);if(!idx.length)break;
      const j=pick(idx),b=KINDS.court();randPal(b,keep||Math.random()<0.7?pal:pick(Object.keys(PALETTES)));list[j]=b;}}
-  if(S.vary)varyStreets();S.mix=true;rollBlocks();S.buildings=gridLayout(list);S.selB=0;S.multi=[];S.sel="0:0:0";}
+  if(S.vary)varyStreets();S.mix=true;S.gridCols=0;rollBlocks();S.buildings=gridLayout(list);S.selB=0;S.multi=[];S.sel="0:0:0";}
 on("randVillage","click",()=>{randAll();renderUI();});   /* the camera stays exactly where it is (Reset view refits) */
 on("gapSeg","click",e=>{const x=e.target.closest("button");if(!x||!x.dataset.d)return;S.gaps=S.gaps||[];
   if(+x.dataset.d>0){const at=(Bs().blk===undefined?0:Bs().blk)+1;S.gaps=S.gaps.map(g=>g>=at?g+1:g);S.gaps.push(at);}else S.gaps.pop();
   gridLayout(S.buildings);renderUI();});
-on("gridVillage","click",()=>{gridLayout(S.buildings);renderUI();fitView();});
+on("gridVillage","click",()=>{S.gridCols=0;S.full=false;gridLayout(S.buildings);renderUI();fitView();});
+on("fillGrid","click",()=>{fillGrid();renderUI();});
+on("allSlabs","click",()=>{allSlabs();renderUI();});
+on("lightAll","click",()=>{lightAll();renderUI();});
 on("aveSeg","click",e=>{const x=e.target.closest("button");if(!x||!x.dataset.d)return;S.avenue=AVENUE=Math.max(0,Math.min(360,ave()+ +x.dataset.d));gridLayout(S.buildings);renderUI();});
 on("varyBtn","click",()=>{S.vary=!S.vary;if(S.vary)varyStreets();gridLayout(S.buildings);renderUI();});
 /* typed street widths and block width, snapped to the grid steps */
