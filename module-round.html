@@ -73,6 +73,7 @@ aside{display:grid;gap:calc(4*var(--u))}
 #matHint{min-height:48px}#levelRows{height:calc(4*var(--ctl));overflow-y:auto;align-content:start;scrollbar-gutter:stable}#planPick{min-height:calc(3*var(--ctl) + 2px);align-items:start}
 .seg input.cnt{height:calc(var(--ctl) - 2px);border:0;border-left:1px solid var(--ink);border-right:1px solid var(--ink);background:var(--field);color:var(--ink);font:500 13px/16px var(--sans);text-align:center;width:100%;min-width:0;-moz-appearance:textfield}
 .seg input.cnt::-webkit-inner-spin-button,.seg input.cnt::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+#bodySel{flex:0 1 112px}#finishSeg button{padding:0 4px}
 .num{min-width:48px;text-align:right;font-size:11px;color:var(--muted)}
 .lbl{font:500 11px/16px var(--sans);text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
 .seg{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);border:1px solid var(--ink);min-width:0}
@@ -135,7 +136,7 @@ select{height:var(--ctl);background:var(--field);border:0;border-radius:0;paddin
 /* the construction lines: columns and the 8 px baseline over the whole page (Grid button or the G key) */
 #gridOverlay{position:fixed;inset:0;pointer-events:none;z-index:50;display:none}
 body.showgrid #gridOverlay{display:grid}
-#gridOverlay i{background:rgba(226,35,26,.07);border-left:1px solid rgba(226,35,26,.25);border-right:1px solid rgba(226,35,26,.25)}
+#gridOverlay i{background:color-mix(in srgb,var(--terra) 7%,transparent);border-left:1px solid color-mix(in srgb,var(--terra) 25%,transparent);border-right:1px solid color-mix(in srgb,var(--terra) 25%,transparent)}
 body.showgrid #gridOverlay{background:repeating-linear-gradient(to bottom,transparent 0 7px,rgba(0,140,255,.12) 7px 8px)}
 </style>
 </head>
@@ -494,17 +495,25 @@ const GLAZE={clear:{name:"Clear",col:null},white:{name:"White",col:0xf6f3ee},cel
    public-service posters, Grid Systems in Graphic Design): black, white and signal red, with warm grey, ochre, ultramarine,
    cobalt, deep green and cream, each read as a glaze */
 const PALETTES={
-  sea:{name:"Mediterranean",walls:"white",accents:["turquoise","cobalt","sky"],plates:"sky",roof:"cobalt"},
-  swiss:{name:"Black, white, red",walls:"white",accents:["black","red"],plates:"black",roof:"red"},
-  concert:{name:"Concert poster",walls:"cream",accents:["ultramarine","red","yellow"],plates:"black",roof:"ultramarine"},
-  ochre:{name:"Ochre and black",walls:"cream",accents:["ochre","black"],plates:"grey",roof:"black"},
-  ultra:{name:"Ultramarine",walls:"white",accents:["ultramarine","cobalt","sky"],plates:"ultramarine",roof:"white"},
-  grey:{name:"Warm grey and red",walls:"grey",accents:["white","red"],plates:"white",roof:"grey"},
-  green:{name:"Green and cream",walls:"cream",accents:["green","ochre"],plates:"green",roof:"green"},
-  gray:{name:"Grayscale",walls:"white",accents:["pale","mid","charcoal"],plates:"charcoal",roof:"mid"},
-  white:{name:"All white",walls:"white",accents:["white"],plates:"white",roof:"white"}};
+  sea:{name:"Mediterranean",accent:0x2f5c9e,walls:"white",accents:["turquoise","cobalt","sky"],plates:"sky",roof:"cobalt"},
+  swiss:{name:"Black, white, red",accent:0xd52b1e,walls:"white",accents:["black","red"],plates:"black",roof:"red"},
+  concert:{name:"Concert poster",accent:0x1f3b8f,walls:"cream",accents:["ultramarine","red","yellow"],plates:"black",roof:"ultramarine"},
+  ochre:{name:"Ochre and black",accent:0x9a6a14,walls:"cream",accents:["ochre","black"],plates:"grey",roof:"black"},
+  ultra:{name:"Ultramarine",accent:0x1f3b8f,walls:"white",accents:["ultramarine","cobalt","sky"],plates:"ultramarine",roof:"white"},
+  grey:{name:"Warm grey and red",accent:0xd52b1e,walls:"grey",accents:["white","red"],plates:"white",roof:"grey"},
+  green:{name:"Green and cream",accent:0x1e5a40,walls:"cream",accents:["green","ochre"],plates:"green",roof:"green"},
+  gray:{name:"Grayscale",accent:0x5e5e5c,walls:"white",accents:["pale","mid","charcoal"],plates:"charcoal",roof:"mid"},
+  white:{name:"All white",accent:0xe2231a,walls:"white",accents:["white"],plates:"white",roof:"white"}};
 function applyPalette(b,key,accentShare){const p=PALETTES[key];if(b.finish==="unglazed"||!b.finish)b.finish="glazed";b.glazeCol=p.walls;b.plateCol=p.plates;b.roofCol=p.roof;b.palette=key;
   const share=accentShare===undefined?0.3:accentShare;Object.keys(b.mods).forEach(k=>{if(Math.random()<share)b.mods[k].col=pick(p.accents);else delete b.mods[k].col;});}
+/* the site accent follows the palette in use: the last palette applied (or the city's most common one) gives the
+   colour of highlights, active buttons, the grid overlay, the selection outline and the block lines */
+function accentHex(){let k=S.accentPal;if(!PALETTES[k]){const n={};S.buildings.forEach(b=>{if(b.palette)n[b.palette]=(n[b.palette]||0)+1;});k=Object.keys(n).sort((a,b)=>n[b]-n[a])[0];}
+  return PALETTES[k]&&PALETTES[k].accent!==undefined?PALETTES[k].accent:0xe2231a;}
+function applyAccent(){const h=accentHex(),c=new THREE.Color(h),dark=getComputedStyle(root).getPropertyValue("--bg").trim()==="#0e0e0e",ui=dark?c.clone().lerp(new THREE.Color(0xffffff),0.35):c;
+  root.style.setProperty("--terra","#"+ui.getHexString());root.style.setProperty("--terra-soft","#"+ui.clone().lerp(new THREE.Color(dark?0x0e0e0e:0xffffff),0.88).getHexString());
+  [MAT.sel,MAT.line,MAT.band].forEach(m=>m.color.set(h));need();}
+const usePal=k=>{S.accentPal=k;};
 /* a palette picked at random: roofs come out white about two times in three, the palette's roof colour otherwise */
 function randPal(b,key){applyPalette(b,key);if(Math.random()<0.65)b.roofCol="white";}
 const hex=c=>"#"+c.toString(16).padStart(6,"0");
@@ -561,7 +570,7 @@ const MAT={glaze:new THREE.MeshStandardMaterial({color:0xf6f1e8,roughness:0.22,m
   bisque:new THREE.MeshStandardMaterial({color:0xc9bfae,roughness:0.95}),
   terra:new THREE.MeshStandardMaterial({color:0xb8603c,roughness:0.35}),
   tea:new THREE.MeshStandardMaterial({color:0xd9d6cf,roughness:0.6}),flame:new THREE.MeshBasicMaterial({color:0xffd27a}),
-  sel:new THREE.LineBasicMaterial({color:0xe2231a}),
+  sel:new THREE.LineBasicMaterial({color:0xe2231a}),line:new THREE.LineBasicMaterial({color:0xe2231a}),band:new THREE.MeshBasicMaterial({color:0xe2231a,side:THREE.DoubleSide}),
   /* candle light, the same for every lit module however many there are: the inside of a lit module glows warm
      (seen through its openings) and a soft warm pool spreads on the ground round a lit building */
   glow:new THREE.MeshBasicMaterial({color:0xffa860,side:THREE.BackSide,toneMapped:false}),
@@ -571,7 +580,7 @@ const MAT={glaze:new THREE.MeshStandardMaterial({color:0xf6f1e8,roughness:0.22,m
 /* ---------- ground ---------- */
 let room=new THREE.Group();scene.add(room);
 const lc=h=>S.render?new THREE.Color(h).convertSRGBToLinear():new THREE.Color(h);
-function buildRoom(){scene.remove(room);room.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.isLine)o.material.dispose();});room=new THREE.Group();
+function buildRoom(){scene.remove(room);room.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.isLine&&o.material!==MAT.line)o.material.dispose();});room=new THREE.Group();
   /* by day the ground is the page: pure white, with only the shadows drawn on it */
   const white=!S.night,gb=bounds(),gsz=Math.max(gb.x1-gb.x0,gb.z1-gb.z0)+(white?1400:8000),g=new THREE.Mesh(new THREE.PlaneGeometry(gsz,gsz),white?new THREE.ShadowMaterial({opacity:0.16}):new THREE.MeshStandardMaterial({color:lc(S.render?(S.night?0x1c1f27:0xc4bcb0):0x2a2f3b),roughness:1,envMapIntensity:0.2}));g.rotation.x=-Math.PI/2;g.position.set((gb.x0+gb.x1)/2,0,(gb.z0+gb.z1)/2);g.receiveShadow=true;room.add(g);   /* by day only as big as the shadows need, so nothing reaches the horizon */
   /* the ground line: in the Front elevation the ground is edge-on, so it is drawn as one black hairline at y = 0 */
@@ -598,7 +607,7 @@ function buildRoom(){scene.remove(room);room.traverse(o=>{if(o.geometry)o.geomet
       /* main-street edges as 2.5 mm bands, block edges as hairlines */
       const v=[],hw=1.25;thick.forEach(([p,q])=>{const dx=q[0]-p[0],dz=q[1]-p[1],l=Math.hypot(dx,dz)||1,nx=-dz/l*hw,nz=dx/l*hw,ex=dx/l*hw,ez=dz/l*hw,a=[p[0]-ex+nx,p[1]-ez+nz],b=[q[0]+ex+nx,q[1]+ez+nz],c2=[q[0]+ex-nx,q[1]+ez-nz],d2=[p[0]-ex-nx,p[1]-ez-nz];
         [a,b,c2,a,c2,d2].forEach(o=>v.push(o[0],0.35,o[1]));});
-      const tg=new THREE.BufferGeometry();tg.setAttribute("position",new THREE.Float32BufferAttribute(v,3));room.add(new THREE.Mesh(tg,new THREE.MeshBasicMaterial({color:0xe2231a,side:THREE.DoubleSide})));}
+      const tg=new THREE.BufferGeometry();tg.setAttribute("position",new THREE.Float32BufferAttribute(v,3));room.add(new THREE.Mesh(tg,MAT.band));}
     else if(bc&&br){const gb=bounds(),ext=Math.max(gb.x1-gb.x0,gb.z1-gb.z0)/2+(S.night?1600:700),mx=(gb.x0+gb.x1)/2,mz=(gb.z0+gb.z1)/2,D=Math.max(...L.rows.map(r=>r.d));
       /* columns and rows carried on past the city with the same widths, streets and depths */
       const cols=L.cols.map((c,i)=>({i,x0:c.x0,w:c.w}));for(let i=-1,x=L.cols[0].x0;x>mx-ext;i--){const w=L.cw(i);x=x-L.cg(i)-w;cols.unshift({i,x0:x,w});}
@@ -607,7 +616,7 @@ function buildRoom(){scene.remove(room);room.traverse(o=>{if(o.geometry)o.geomet
       for(let j=br,z=L.rows[br-1].z1-L.rows[br-1].d;z>mz-ext;j++){z-=L.rg(j-1);rows.push({j,z1:z,d:D});z-=D;}
       const used=new Set(L.blocks.map(k=>k.c+","+k.r));
       cols.forEach(c=>rows.forEach(r=>{if(used.has(c.i+","+r.j))return;rect(c.x0,r.z1-r.d,c.x0+c.w,r.z1);}));}
-    if(pts.length)room.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(pts),new THREE.LineBasicMaterial({color:0xe2231a})));}
+    if(pts.length)room.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(pts),MAT.line));}
   scene.add(room);}
 
 let built=new THREE.Group();scene.add(built);const pickable=[],lights=[];
@@ -854,7 +863,7 @@ function renderEditor(){
 }
 const ck=c=>`<div class="ck"><span class="s ${c.ok?"ok":c.note?"note":"bad"}">${c.ok?"✓":c.note?"●":"✗"}</span><span>${c.label}</span><span class="v">${c.v}</span></div>`;
 function renderUI(){
-  fixSel();const b=Bs(),[sc,sr,sl]=keyParts(S.sel);
+  fixSel();applyAccent();const b=Bs(),[sc,sr,sl]=keyParts(S.sel);
   $("bList").innerHTML=S.buildings.map((x,i)=>`<button type="button" class="${i===S.selB?"on":isSel(i)?"also":""}" data-b="${i}" aria-pressed="${isSel(i)}" title="Shift- or ⌘-click to add to the selection">${x.name}<span>${x.cols}×${x.deep}×${x.levels}</span></button>`).join("");
   $("villageMeta").textContent=S.buildings.length+" building"+(S.buildings.length>1?"s":"")+" · "+S.buildings.reduce((a,x)=>a+x.cols*x.deep*x.levels,0)+" modules";
   seg($("setSeg"),b.set);{const a=document.activeElement;if(a!==$("gutV"))$("gutV").value=gut();if(a!==$("aveV"))$("aveV").value=ave();if(a!==$("bwV"))$("bwV").value=BLOCKM;$("gapV").textContent=(S.gaps||[]).length;$("mixBtn").setAttribute("aria-pressed",!!S.mix);seg($("lmSeg"),S.landmarks?"1":"0");}$("varyBtn").setAttribute("aria-pressed",!!S.vary);if(document.activeElement!==$("countV"))$("countV").value=S.buildings.length;seg($("blocksSeg"),S.blocks?"1":"0");seg($("colsSeg"),b.cols);seg($("deepSeg"),b.deep);$("levelsV").textContent=b.levels;seg($("roofSeg"),b.roof);seg($("spanSeg"),b.span||"whole");$("radius").value=radOf(b);$("radiusV").textContent="R "+radOf(b)+" mm";$("levelsV").textContent=b.levels;
@@ -912,7 +921,7 @@ function setCount(n){n=Math.max(1,Math.min(MAX_B,Math.round(n)||1));if(n===S.bui
 on("countSeg","click",e=>{const x=e.target.closest("button");if(!x||!x.dataset.d)return;setCount(S.buildings.length+ +x.dataset.d);});
 on("countV","change",e=>setCount(+e.target.value));
 on("countV","keydown",e=>{if(e.key==="Enter")e.target.blur();});
-on("randBlock","click",()=>{const ks=new Set(SELB().map(b=>b.blk)),keep=S.keepPal&&PALETTES[Bs().palette],pal=keep?Bs().palette:pick(Object.keys(PALETTES));
+on("randBlock","click",()=>{const ks=new Set(SELB().map(b=>b.blk)),keep=S.keepPal&&PALETTES[Bs().palette],pal=keep?Bs().palette:pick(Object.keys(PALETTES));usePal(pal);
   if([...ks].some(k=>k===undefined)){gridLayout(S.buildings);ks.clear();SELB().forEach(b=>ks.add(b.blk));}   /* designs from before blocks were numbered */
   S.buildings=S.buildings.map(b=>{if(!ks.has(b.blk))return b;const n=randomFit(b);randPal(n,keep||Math.random()<0.7?pal:pick(Object.keys(PALETTES)));return n;});S.sel="0:0:0";renderUI();});
 on("blocksSeg","click",e=>{const x=e.target.closest("button");if(!x)return;S.blocks=x.dataset.v==="1";seg($("blocksSeg"),S.blocks?"1":"0");buildRoom();need();save();});
@@ -955,7 +964,7 @@ on("gifBtn","click",async()=>{const btn=$("gifBtn");if(btn.disabled)return;btn.d
 on("jpgBtn","click",()=>{draw();const url=renderer.domElement.toDataURL("image/jpeg",0.92),a=document.createElement("a"),d=new Date(),z=n=>String(n).padStart(2,"0");
   a.href=url;a.download=`tikrar-${d.getFullYear()}${z(d.getMonth()+1)}${z(d.getDate())}-${z(d.getHours())}${z(d.getMinutes())}.jpg`;document.body.appendChild(a);a.click();a.remove();});
 on("keepPal","click",()=>{S.keepPal=!S.keepPal;$("keepPal").setAttribute("aria-pressed",!!S.keepPal);save();});
-function randAll(){const n=Math.max(1,Math.min(MAX_B,S.buildings.length)),list=[],nLM=S.landmarks?Math.max(1,Math.round(n/25)):0,keep=S.keepPal&&PALETTES[Bs().palette],pal=keep?Bs().palette:pick(Object.keys(PALETTES));for(let i=0;i<n;i++){const b=randomBuilding();randPal(b,keep||Math.random()<0.7?pal:pick(Object.keys(PALETTES)));autoPlace(b,list);list.push(b);}
+function randAll(){const n=Math.max(1,Math.min(MAX_B,S.buildings.length)),list=[],nLM=S.landmarks?Math.max(1,Math.round(n/25)):0,keep=S.keepPal&&PALETTES[Bs().palette],pal=keep?Bs().palette:pick(Object.keys(PALETTES));usePal(pal);for(let i=0;i<n;i++){const b=randomBuilding();randPal(b,keep||Math.random()<0.7?pal:pick(Object.keys(PALETTES)));autoPlace(b,list);list.push(b);}
   /* landmarks on: about one per 25 buildings (at least one), each different, each on its own block */
   if(nLM){const ks=LANDMARKS.slice().sort(()=>Math.random()-0.5).slice(0,Math.min(nLM,LANDMARKS.length,list.length));
     ks.forEach(k=>{const b=KINDS[k]();randPal(b,keep||Math.random()<0.7?pal:pick(Object.keys(PALETTES)));list.splice(Math.floor(Math.random()*list.length),1,b);});}
@@ -978,7 +987,7 @@ on("bwSeg","click",e=>{const x=e.target.closest("button");if(!x||!x.dataset.d)re
 ["gutV","aveV","bwV"].forEach(id=>on(id,"keydown",e=>{if(e.key==="Enter")e.target.blur();}));
 on("gutSeg","click",e=>{const x=e.target.closest("button");if(!x||!x.dataset.d)return;S.gutter=GUTTER=Math.max(0,Math.min(240,gut()+ +x.dataset.d));gridLayout(S.buildings);renderUI();});
 on("setSeg","click",e=>{const x=e.target.closest("button");if(!x)return;each(b=>{b.set=x.dataset.v;if(b.set!=="ottoman"&&b.roof==="slant")b.roof="modern";if(b.set==="ottoman"&&b.roof==="modern")b.roof="slant";});S.editSet=x.dataset.v;renderUI();});
-on("randB","click",()=>{each(b=>{randomizeBuilding(b);randomizeLight(b);randPal(b,pick(Object.keys(PALETTES)));});renderUI();});
+on("randB","click",()=>{each(b=>{const k=pick(Object.keys(PALETTES));usePal(k);randomizeBuilding(b);randomizeLight(b);randPal(b,k);});renderUI();});
 on("randLight","click",()=>{each(randomizeLight);renderUI();});
 on("colsSeg","click",e=>{const x=e.target.closest("button");if(!x)return;each(b=>resize3(b,+x.dataset.v,b.deep,b.levels));renderUI();});
 on("deepSeg","click",e=>{const x=e.target.closest("button");if(!x)return;each(b=>resize3(b,b.cols,+x.dataset.v,b.levels));renderUI();});
@@ -992,8 +1001,8 @@ on("plateCol","change",e=>{each(b=>b.plateCol=e.target.value);renderUI();});
 let palScope="b";on("palScopeSeg","click",e=>{const x=e.target.closest("button");if(!x)return;palScope=x.dataset.v;seg($("palScopeSeg"),palScope);});
 /* palette scope: the selected buildings, every building in their blocks, or all */
 const scopeB=()=>palScope==="v"?S.buildings:palScope==="k"?(()=>{const ks=new Set(SELB().map(b=>b.blk));return S.buildings.filter(b=>ks.has(b.blk));})():SELB();
-on("palettes","click",e=>{const x=e.target.closest("button");if(!x)return;scopeB().forEach(b=>applyPalette(b,x.dataset.pal));renderUI();});
-on("randCol","click",()=>{const keys=Object.keys(PALETTES);if(palScope!=="b"){const k=pick(keys);scopeB().forEach(b=>randPal(b,Math.random()<0.7?k:pick(keys)));}else{const k=pick(keys);each(b=>randPal(b,k));}renderUI();});
+on("palettes","click",e=>{const x=e.target.closest("button");if(!x)return;usePal(x.dataset.pal);scopeB().forEach(b=>applyPalette(b,x.dataset.pal));renderUI();});
+on("randCol","click",()=>{const keys=Object.keys(PALETTES);if(palScope!=="b"){const k=pick(keys);usePal(k);scopeB().forEach(b=>randPal(b,Math.random()<0.7?k:pick(keys)));}else{const k=pick(keys);usePal(k);each(b=>randPal(b,k));}renderUI();});
 on("bodySel","change",e=>{each(b=>b.body=e.target.value);renderUI();});
 on("finishSeg","click",e=>{const x=e.target.closest("button");if(!x)return;each(b=>b.finish=x.dataset.v);renderUI();});
 on("glazeSw","click",e=>{const x=e.target.closest("button");if(!x)return;each(b=>b.glazeCol=x.dataset.g);renderUI();});
