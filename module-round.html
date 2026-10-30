@@ -170,12 +170,12 @@ body.showgrid #gridOverlay{background:repeating-linear-gradient(to bottom,transp
       <div class="f"><span class="lbl">Move</span><div class="v"><div class="seg" id="moveSeg"><button type="button" data-mv="-1,0" aria-label="Move left">←</button><button type="button" data-mv="1,0" aria-label="Move right">→</button><button type="button" data-mv="0,-1" aria-label="Move back">↑</button><button type="button" data-mv="0,1" aria-label="Move forward">↓</button><button type="button" id="rotBtn" aria-label="Turn 90°">⟳</button></div></div></div>
       <div class="f"><span class="lbl">Edit</span><div class="v"><div class="seg"><button type="button" id="dupB">Duplicate</button><button type="button" id="delB">Remove</button></div></div></div>
       <div class="f"><span class="lbl">Buildings</span><div class="v"><div class="seg" id="countSeg" title="Grow or shrink the city block (1 to 120): type a number or use − / +; new buildings take the next block slots"><button type="button" data-d="-1" aria-label="One building fewer">−</button><input class="cnt" id="countV" type="number" min="1" max="120" step="1" inputmode="numeric" aria-label="Number of buildings"><button type="button" data-d="1" aria-label="One building more">+</button></div></div></div>
-      <div class="f"><span class="lbl">Block width</span><div class="v"><div class="seg" id="bwSeg" title="Modules per block row (60 mm each); a block is never narrower than its widest building"><button type="button" data-d="-1" aria-label="Narrower blocks">−</button><input class="cnt" id="bwV" type="number" min="2" max="16" step="1" aria-label="Block width in modules"><button type="button" data-d="1" aria-label="Wider blocks">+</button></div><span class="hint">modules</span></div></div>
+      <div class="f"><span class="lbl">Block width</span><div class="v"><div class="seg" id="bwSeg" title="Modules per block row (60 mm each); a block is never narrower than its widest building"><button type="button" data-d="-1" aria-label="Narrower blocks">−</button><input class="cnt" id="bwV" type="number" min="2" max="16" step="1" aria-label="Block width in modules"><button type="button" data-d="1" aria-label="Wider blocks">+</button></div><button class="btn" type="button" id="mixBtn" aria-pressed="false" title="Mixed block sizes: every block column its own width (half to twice the block width) and some one-row blocks; Randomize All turns it on">Mix</button></div></div>
       <div class="f"><span class="lbl">Side streets</span><div class="v"><div class="seg" id="gutSeg" title="Streets between block columns"><button type="button" data-d="-15" aria-label="Narrower side streets">−</button><input class="cnt" id="gutV" type="number" min="0" max="240" step="15" aria-label="Side street width, mm" title="mm, in 15 mm steps"><button type="button" data-d="15" aria-label="Wider side streets">+</button></div></div></div>
       <div class="f"><span class="lbl">Main streets</span><div class="v"><div class="seg" id="aveSeg" title="Streets between block rows"><button type="button" data-d="-15" aria-label="Narrower main streets">−</button><input class="cnt" id="aveV" type="number" min="0" max="360" step="15" aria-label="Main street width, mm" title="mm, in 15 mm steps"><button type="button" data-d="15" aria-label="Wider main streets">+</button></div><button class="btn" type="button" id="varyBtn" aria-pressed="false" title="Give every street its own width, from narrow lanes to wide avenues; press again for a new mix">Vary</button></div></div>
       <div class="f"><span class="lbl">Block lines</span><div class="v"><div class="seg" id="blocksSeg" title="Draw the city blocks' outlines on the ground"><button type="button" data-v="0">Hidden</button><button type="button" data-v="1">Shown</button></div></div></div>
       <div class="f"><span class="lbl">Layout</span><div class="v"><button class="btn" type="button" id="gridVillage" style="flex:1">Arrange on grid</button><span class="hint">plazas</span><div class="seg" id="gapSeg" title="Empty blocks (plazas): + leaves the slot after the selected building's block empty, − fills the last one"><button type="button" data-d="-1" aria-label="One empty block fewer">−</button><button type="button" id="gapV" disabled style="cursor:default" title="Empty blocks">0</button><button type="button" data-d="1" aria-label="Add an empty block">+</button></div></div></div>
-      <div class="f"><span class="lbl">Randomize</span><div class="v"><div class="seg"><button type="button" id="randBlock" title="New buildings in the selected building's block only, on the same footprints: the other blocks stay as they are">Block</button><button type="button" id="randVillage" title="New buildings everywhere">All</button><button type="button" id="rand10" title="Ten randomized cities as one GIF (Keep palette keeps the palette in every shot); your design comes back afterwards">10 → GIF</button></div><button class="btn" type="button" id="keepPal" aria-pressed="false" title="Randomize with the selected building's palette">Keep palette</button></div></div>
+      <div class="f"><span class="lbl">Randomize</span><div class="v"><div class="seg"><button type="button" id="randBlock" title="New buildings in the selected building's block only, on the same footprints: the other blocks stay as they are">Block</button><button type="button" id="randVillage" title="New buildings everywhere">All</button><button type="button" id="rand10" title="10 random shots as a GIF: ten randomized cities as one GIF (Keep palette keeps the palette in every shot); your design comes back afterwards">GIF ×10</button></div><button class="btn" type="button" id="keepPal" aria-pressed="false" title="Randomize with the selected building's palette">Keep palette</button></div></div>
       <p class="hint">Arrange on grid packs the buildings wall to wall into city blocks of equal width (Block width, 6 modules by default; type any number in the fields), two rows back to back, each row facing its own street. Side streets run between block columns, main streets between block rows; − / + re-lays the blocks live. Vary gives every street its own width, from narrow lanes to wide avenues (turn it off and on for a new mix; Randomize All mixes them again too; Randomize Block renews only the selected building's block). Arrows move one building in 30 mm steps. Block lines draws the blocks' outlines on the ground.</p>
     </div>
 
@@ -353,19 +353,32 @@ let BLOCKM=6;const blockW=list=>Math.max(BLOCKM*W,...list.map(b=>b.cols*W));   /
    with Vary on, every street gets its own width from narrow lanes to wide avenues, kept until you vary again */
 const r15=v=>Math.max(0,Math.round(v/15)*15);
 function varyStreets(){const pk=a=>a[Math.floor(Math.random()*a.length)];S.colGaps=Array.from({length:12},()=>pk([0.5,1,1,2]));S.rowGaps=Array.from({length:12},()=>pk([0.5,1,1.5,2.5]));}
-function gridLayout(list){if(!list.length)return list;let vary=false;try{vary=!!(S.vary&&S.colGaps);}catch(e){}   /* S is still being created while the default village is laid out */
-  const g=gut(),main=ave(),cg=c=>vary?r15(g*S.colGaps[c%12]):g,rg=r=>vary?r15(main*S.rowGaps[r%12]):main,BW=blockW(list);
-  const gaps=new Set((()=>{try{return S.gaps||[];}catch(e){return [];}})()),blocks=[];let cur=null;
-  const nb=()=>{while(gaps.has(blocks.length))blocks.push({rows:[[],[]],w:[BW,BW],empty:true});cur={rows:[[],[]],w:[0,0]};blocks.push(cur);};nb();   /* empty blocks (plazas) keep their slot */
-  list.forEach(b=>{b.rot=0;const w=b.cols*W;let r=cur.w[0]+w<=BW?0:cur.w[1]+w<=BW?1:-1;if(r<0){nb();r=0;}cur.rows[r].push(b);cur.w[r]+=w;});
-  {const mx=Math.max(0,...[...gaps].map(Number));while(blocks.length<=mx&&gaps.size)blocks.push({rows:[[],[]],w:[BW,BW],empty:true});}   /* trailing empty blocks */
+/* mixed blocks: with Mix on, every block column has its own width (half to twice the typed block width, in whole
+   modules) and some blocks hold one row only, so blocks differ in size while columns and streets stay aligned */
+function rollBlocks(){const pk=a=>a[Math.floor(Math.random()*a.length)];S.colW=Array.from({length:12},()=>Math.max(2,Math.round(BLOCKM*pk([0.5,0.75,1,1,1.25,1.5]))));S.oneRow=Array.from({length:12},()=>Math.random()<0.3);}
+const LAYOUT={cols:[],rows:[],blocks:[],cg:()=>0,rg:()=>0,cw:()=>0};   /* the last layout, for the block lines */
+function gridLayout(list){if(!list.length)return list;let vary=false,mix=false;try{vary=!!(S.vary&&S.colGaps);mix=!!(S.mix&&S.colW);}catch(e){}   /* S is still being created while the default village is laid out */
+  const g=gut(),main=ave(),cg=c=>vary?r15(g*S.colGaps[((c%12)+12)%12]):g,rg=r=>vary?r15(main*S.rowGaps[((r%12)+12)%12]):main,BW=blockW(list),wide=Math.max(...list.map(b=>b.cols*W));
+  const cw=c=>mix?Math.max(S.colW[((c%12)+12)%12]*W,wide):BW,one=i=>mix&&S.oneRow[i%12];
+  const gaps=new Set((()=>{try{return S.gaps||[];}catch(e){return [];}})());
+  const pack=colOf=>{const blocks=[];let cur=null;const wOf=()=>cw(colOf(blocks.length));
+    const nb=()=>{while(gaps.has(blocks.length)){const w=wOf();blocks.push({rows:[[],[]],w:[w,w],empty:true});}cur={rows:[[],[]],w:[0,0],BW:wOf(),one:one(blocks.length)};blocks.push(cur);};nb();   /* empty blocks (plazas) keep their slot */
+    list.forEach(b=>{b.rot=0;const w=b.cols*W;let r=cur.w[0]+w<=cur.BW?0:!cur.one&&cur.w[1]+w<=cur.BW?1:-1;if(r<0){nb();r=0;}cur.rows[r].push(b);cur.w[r]+=w;});
+    {const mx=Math.max(0,...[...gaps].map(Number));while(blocks.length<=mx&&gaps.size){const w=wOf();blocks.push({rows:[[],[]],w:[w,w],empty:true});}}   /* trailing empty blocks */
+    return blocks;};
+  /* the number of block columns that makes the city about 1.3 times as wide as deep */
+  const span=(bl,n)=>{const br=Math.ceil(bl.length/n);let tw=0,td=0;for(let c=0;c<Math.min(n,bl.length);c++)tw+=cw(c)+(c?cg(c-1):0);
+    for(let r=0;r<br;r++)td+=Math.max(2*W,...bl.slice(r*n,r*n+n).map(k=>k.rows.reduce((a,row)=>a+(row.length?Math.max(...row.map(b=>b.deep*W)):0),0)))+(r?rg(r-1):0);return tw/td;};
+  let bc=1,blocks=pack(()=>0),best=1e9;for(let n=1;n<=Math.min(24,list.length+gaps.size);n++){const bl=pack(i=>i%n),s=Math.abs(Math.log(span(bl,n)/1.3));if(s<best){best=s;bc=n;blocks=bl;}}
+  bc=Math.min(bc,blocks.length);const br=Math.ceil(blocks.length/bc);
   blocks.forEach(k=>{k.d=k.rows.map(r=>r.length?Math.max(...r.map(b=>b.deep*W)):0);k.D=k.d[0]+k.d[1];});
-  const bc=Math.max(1,Math.min(blocks.length,Math.round(Math.sqrt(blocks.length*1.6)))),br=Math.ceil(blocks.length/bc);
   const rowD=Array.from({length:br},(_,r)=>Math.max(2*W,...blocks.slice(r*bc,r*bc+bc).map(k=>k.D)));
-  const cx=Array.from({length:bc},(_,c)=>{let x=0;for(let i=0;i<c;i++)x+=BW+cg(i);return x;}),rz=Array.from({length:br},(_,r)=>{let z=0;for(let i=0;i<r;i++)z+=rowD[i]+rg(i);return z;});
-  const TW=cx[bc-1]+BW,TD=rz[br-1]+rowD[br-1];
-  GAPS.length=0;blocks.forEach((k,i)=>{const c=i%bc,r=Math.floor(i/bc),x0=cx[c]-TW/2,zf=TD/2-rz[r];   /* zf: the block's street front */
+  const cx=Array.from({length:bc},(_,c)=>{let x=0;for(let i=0;i<c;i++)x+=cw(i)+cg(i);return x;}),rz=Array.from({length:br},(_,r)=>{let z=0;for(let i=0;i<r;i++)z+=rowD[i]+rg(i);return z;});
+  const TW=cx[bc-1]+cw(bc-1),TD=rz[br-1]+rowD[br-1];
+  GAPS.length=0;Object.assign(LAYOUT,{cols:cx.map((x,c)=>({x0:x-TW/2,w:cw(c)})),rows:rz.map((z,r)=>({z1:TD/2-z,d:rowD[r]})),blocks:[],cg,rg,cw});
+  blocks.forEach((k,i)=>{const c=i%bc,r=Math.floor(i/bc),x0=cx[c]-TW/2,zf=TD/2-rz[r];   /* zf: the block's street front */
     if(k.empty)GAPS.push({x0,z0:zf-rowD[r],z1:zf});
+    LAYOUT.blocks.push({c,r,x0,w:cw(c),z0:zf-(k.empty||!k.D?rowD[r]:k.D),z1:zf});
     k.rows.forEach((row,ri)=>{let x=x0;row.forEach(b=>{const w=b.cols*W,d=b.deep*W;b.x=x+w/2;x+=w;b.blk=i;
       if(ri===0)b.z=zf-d/2;else{b.z=zf-k.D+d/2;b.rot=2;}});});});   /* the back row is flush with the block's back edge and faces that street */
   return list;}
@@ -374,6 +387,7 @@ function defaults(){return {buildings:defaultVillage(),selB:0,sel:"0:0:0",selFac
 let S=defaults();
 try{const v=JSON.parse(localStorage.getItem(KEY+"-round")||localStorage.getItem(KEY)||"null");if(v&&Array.isArray(v.buildings)&&v.buildings.length)S=Object.assign(defaults(),v);}catch(e){}
 S.buildings.forEach(b=>{if(b.set==='grid')b.set='modern';Object.values(b.mods).forEach(m=>FACES.forEach(f=>{const w=m[f];if(w&&((w.type&&!B.BY[w.type])||(w.bays&&w.bays.some(x=>!B.BAY[x]))))m[f]=randomWall(b.set);}));});   /* the retired grid openings become a fresh wall of the building's book */if(S.editSet==='grid')S.editSet='modern';if(S.gutter===undefined)S.gutter=30;GUTTER=S.gutter;if(S.avenue===undefined)S.avenue=60;AVENUE=S.avenue;if(S.blockM===undefined)S.blockM=6;BLOCKM=S.blockM;if((S.gridded||0)<3){gridLayout(S.buildings);S.gridded=3;}   /* designs saved before the village grid are laid out on it once */
+LAYOUT.blocks.length=0;   /* the block lines are worked out again for the design just loaded */
 S.buildings.forEach(b=>{if(b.glaze){if(!b.roofCol)b.roofCol=b.glaze==="terra"?"terra":"same";delete b.glaze;}});
 const save=()=>{try{localStorage.setItem(KEY+"-round",JSON.stringify(S));}catch(e){}};
 const Bs=()=>S.buildings[S.selB];
@@ -528,14 +542,17 @@ function buildRoom(){scene.remove(room);room.traverse(o=>{if(o.geometry)o.geomet
    gl.visible=S.view==="front"&&camera===ortho;gl.name="groundLine";room.add(gl);}
   /* block lines: each city block's outline on the ground as a red hairline, and the same block-and-street grid carried on
      across the whole ground (block width × the deepest block, side and main streets at their set widths) */
-  if(S.blocks){const BW=blockW(S.buildings),bk={},pts=[],rect=(x0,z0,x1,z1)=>{const c=[[x0,z0],[x1,z0],[x1,z1],[x0,z1]];c.forEach((p,i)=>{const q=c[(i+1)%4];pts.push(new THREE.Vector3(p[0],0.3,p[1]),new THREE.Vector3(q[0],0.3,q[1]));});};
-    S.buildings.forEach(b=>{if(b.blk===undefined)return;const f=fp(b),k=bk[b.blk]||(bk[b.blk]={x0:1e9,z0:1e9,z1:-1e9});k.x0=Math.min(k.x0,b.x-f.w/2);k.z0=Math.min(k.z0,b.z-f.d/2);k.z1=Math.max(k.z1,b.z+f.d/2);});
-    const ks=Object.values(bk).concat(GAPS);ks.forEach(k=>rect(k.x0,k.z0,k.x0+BW,k.z1));
-    if(ks.length){const D=Math.max(...ks.map(k=>k.z1-k.z0)),P=BW+gut(),Q=D+ave(),X0=Math.min(...ks.map(k=>k.x0)),X1=Math.max(...ks.map(k=>k.x0+BW)),Z0=Math.min(...ks.map(k=>k.z0)),Z1=Math.max(...ks.map(k=>k.z1)),
-        ext=Math.max(X1-X0,Z1-Z0)/2+(S.night?1600:700),cx=(X0+X1)/2,cz=(Z0+Z1)/2,fz=Math.max(...ks.map(k=>k.z1));   /* the front row's street edge anchors the rows */
-      for(let i=Math.floor((cx-ext-X0)/P);X0+i*P<cx+ext;i++)for(let j=Math.floor((fz-(cz+ext))/Q);fz-j*Q-D>cz-ext;j++){const x0=X0+i*P,z1=fz-j*Q,z0=z1-D;
-        if(x0+BW>X0-1&&x0<X1+1&&z1>Z0-1&&z0<Z1+1)continue;   /* inside the laid-out city: the real blocks are drawn above */
-        rect(x0,z0,x0+BW,z1);}}
+  if(S.blocks){const pts=[],rect=(x0,z0,x1,z1)=>{const c=[[x0,z0],[x1,z0],[x1,z1],[x0,z1]];c.forEach((p,i)=>{const q=c[(i+1)%4];pts.push(new THREE.Vector3(p[0],0.3,p[1]),new THREE.Vector3(q[0],0.3,q[1]));});};
+    if(!LAYOUT.blocks.length)gridLayout(JSON.parse(JSON.stringify(S.buildings)));   /* a saved design: work the layout out on a copy, nothing moves */
+    const L=LAYOUT,bc=L.cols.length,br=L.rows.length;L.blocks.forEach(k=>rect(k.x0,k.z0,k.x0+k.w,k.z1));
+    if(bc&&br){const gb=bounds(),ext=Math.max(gb.x1-gb.x0,gb.z1-gb.z0)/2+(S.night?1600:700),mx=(gb.x0+gb.x1)/2,mz=(gb.z0+gb.z1)/2,D=Math.max(...L.rows.map(r=>r.d));
+      /* columns and rows carried on past the city with the same widths, streets and depths */
+      const cols=L.cols.map((c,i)=>({i,x0:c.x0,w:c.w}));for(let i=-1,x=L.cols[0].x0;x>mx-ext;i--){const w=L.cw(i);x=x-L.cg(i)-w;cols.unshift({i,x0:x,w});}
+      for(let i=bc,x=L.cols[bc-1].x0+L.cols[bc-1].w;x<mx+ext;i++){x+=L.cg(i-1);cols.push({i,x0:x,w:L.cw(i)});x+=L.cw(i);}
+      const rows=L.rows.map((r,j)=>({j,z1:r.z1,d:r.d}));for(let j=-1,z=L.rows[0].z1;z<mz+ext;j--){z=z+L.rg(j)+D;rows.unshift({j,z1:z,d:D});}
+      for(let j=br,z=L.rows[br-1].z1-L.rows[br-1].d;z>mz-ext;j++){z-=L.rg(j-1);rows.push({j,z1:z,d:D});z-=D;}
+      const used=new Set(L.blocks.map(k=>k.c+","+k.r));
+      cols.forEach(c=>rows.forEach(r=>{if(used.has(c.i+","+r.j))return;rect(c.x0,r.z1-r.d,c.x0+c.w,r.z1);}));}
     if(pts.length)room.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(pts),new THREE.LineBasicMaterial({color:0xe2231a})));}
   scene.add(room);}
 
@@ -786,7 +803,7 @@ function renderUI(){
   fixSel();const b=Bs(),[sc,sr,sl]=keyParts(S.sel);
   $("bList").innerHTML=S.buildings.map((x,i)=>`<button type="button" class="${i===S.selB?"on":isSel(i)?"also":""}" data-b="${i}" aria-pressed="${isSel(i)}" title="Shift- or ⌘-click to add to the selection">${x.name}<span>${x.cols}×${x.deep}×${x.levels}</span></button>`).join("");
   $("villageMeta").textContent=S.buildings.length+" building"+(S.buildings.length>1?"s":"")+" · "+S.buildings.reduce((a,x)=>a+x.cols*x.deep*x.levels,0)+" modules";
-  seg($("setSeg"),b.set);{const a=document.activeElement;if(a!==$("gutV"))$("gutV").value=gut();if(a!==$("aveV"))$("aveV").value=ave();if(a!==$("bwV"))$("bwV").value=BLOCKM;$("gapV").textContent=(S.gaps||[]).length;}$("varyBtn").setAttribute("aria-pressed",!!S.vary);if(document.activeElement!==$("countV"))$("countV").value=S.buildings.length;seg($("blocksSeg"),S.blocks?"1":"0");seg($("colsSeg"),b.cols);seg($("deepSeg"),b.deep);$("levelsV").textContent=b.levels;seg($("roofSeg"),b.roof);seg($("spanSeg"),b.span||"whole");$("radius").value=radOf(b);$("radiusV").textContent="R "+radOf(b)+" mm";$("levelsV").textContent=b.levels;
+  seg($("setSeg"),b.set);{const a=document.activeElement;if(a!==$("gutV"))$("gutV").value=gut();if(a!==$("aveV"))$("aveV").value=ave();if(a!==$("bwV"))$("bwV").value=BLOCKM;$("gapV").textContent=(S.gaps||[]).length;$("mixBtn").setAttribute("aria-pressed",!!S.mix);}$("varyBtn").setAttribute("aria-pressed",!!S.vary);if(document.activeElement!==$("countV"))$("countV").value=S.buildings.length;seg($("blocksSeg"),S.blocks?"1":"0");seg($("colsSeg"),b.cols);seg($("deepSeg"),b.deep);$("levelsV").textContent=b.levels;seg($("roofSeg"),b.roof);seg($("spanSeg"),b.span||"whole");$("radius").value=radOf(b);$("radiusV").textContent="R "+radOf(b)+" mm";$("levelsV").textContent=b.levels;
   $("pitch").value=b.pitch;$("pitchV").textContent=b.pitch+"°";$("pitch").disabled=b.roof!=="slant";$("bodySel").value=b.body||"porcelain";seg($("finishSeg"),b.finish||"glazed");
   $("glazeSw").innerHTML=(b.finish||"glazed")!=="unglazed"?Object.entries(GLAZE).map(([k,g])=>{const c=g.col===null?BODY[b.body||"porcelain"].col:g.col;return `<button type="button" data-g="${k}" title="${g.name} glaze" aria-label="${g.name} glaze" aria-pressed="${(b.glazeCol||"white")===k}" style="width:22px;height:22px;border-radius:50%;cursor:pointer;background:${hex(c)};border:2px solid ${(b.glazeCol||"white")===k?"var(--terra)":"var(--line)"}${g.col===null?";background-image:linear-gradient(135deg,transparent 45%,rgba(0,0,0,.25) 50%,transparent 55%)":""}"></button>`;}).join(""):"";
   $("roofCol").innerHTML=`<option value="same">same as walls</option><option value="unglazed">unglazed ${BODY[b.body||"porcelain"].name.toLowerCase()}</option>`+Object.entries(GLAZE).map(([k,g])=>`<option value="${k}">${g.name} glaze</option>`).join("");$("roofCol").value=b.roofCol||"same";
@@ -885,7 +902,7 @@ on("jpgBtn","click",()=>{draw();const url=renderer.domElement.toDataURL("image/j
   a.href=url;a.download=`tikrar-${d.getFullYear()}${z(d.getMonth()+1)}${z(d.getDate())}-${z(d.getHours())}${z(d.getMinutes())}.jpg`;document.body.appendChild(a);a.click();a.remove();});
 on("keepPal","click",()=>{S.keepPal=!S.keepPal;$("keepPal").setAttribute("aria-pressed",!!S.keepPal);save();});
 function randAll(){const n=Math.max(1,Math.min(MAX_B,S.buildings.length)),list=[],keep=S.keepPal&&PALETTES[Bs().palette],pal=keep?Bs().palette:pick(Object.keys(PALETTES));for(let i=0;i<n;i++){const b=randomBuilding();randPal(b,keep||Math.random()<0.7?pal:pick(Object.keys(PALETTES)));autoPlace(b,list);list.push(b);}
-  if(S.vary)varyStreets();S.buildings=gridLayout(list);S.selB=0;S.multi=[];S.sel="0:0:0";}
+  if(S.vary)varyStreets();S.mix=true;rollBlocks();S.buildings=gridLayout(list);S.selB=0;S.multi=[];S.sel="0:0:0";}
 on("randVillage","click",()=>{randAll();renderUI();fitView();});
 on("gapSeg","click",e=>{const x=e.target.closest("button");if(!x||!x.dataset.d)return;S.gaps=S.gaps||[];
   if(+x.dataset.d>0){const at=(Bs().blk===undefined?0:Bs().blk)+1;S.gaps=S.gaps.map(g=>g>=at?g+1:g);S.gaps.push(at);}else S.gaps.pop();
@@ -897,8 +914,9 @@ on("varyBtn","click",()=>{S.vary=!S.vary;if(S.vary)varyStreets();gridLayout(S.bu
 const relay=()=>{gridLayout(S.buildings);renderUI();};
 on("gutV","change",e=>{S.gutter=GUTTER=Math.max(0,Math.min(240,r15(+e.target.value||0)));relay();});
 on("aveV","change",e=>{S.avenue=AVENUE=Math.max(0,Math.min(360,r15(+e.target.value||0)));relay();});
-on("bwV","change",e=>{S.blockM=BLOCKM=Math.max(2,Math.min(16,Math.round(+e.target.value)||6));relay();});
-on("bwSeg","click",e=>{const x=e.target.closest("button");if(!x||!x.dataset.d)return;S.blockM=BLOCKM=Math.max(2,Math.min(16,BLOCKM+ +x.dataset.d));relay();});
+on("bwV","change",e=>{S.blockM=BLOCKM=Math.max(2,Math.min(16,Math.round(+e.target.value)||6));if(S.mix)rollBlocks();relay();});
+on("mixBtn","click",()=>{S.mix=!S.mix;if(S.mix)rollBlocks();relay();});
+on("bwSeg","click",e=>{const x=e.target.closest("button");if(!x||!x.dataset.d)return;S.blockM=BLOCKM=Math.max(2,Math.min(16,BLOCKM+ +x.dataset.d));if(S.mix)rollBlocks();relay();});
 ["gutV","aveV","bwV"].forEach(id=>on(id,"keydown",e=>{if(e.key==="Enter")e.target.blur();}));
 on("gutSeg","click",e=>{const x=e.target.closest("button");if(!x||!x.dataset.d)return;S.gutter=GUTTER=Math.max(0,Math.min(240,gut()+ +x.dataset.d));gridLayout(S.buildings);renderUI();});
 on("setSeg","click",e=>{const x=e.target.closest("button");if(!x)return;each(b=>{b.set=x.dataset.v;if(b.set!=="ottoman"&&b.roof==="slant")b.roof="modern";if(b.set==="ottoman"&&b.roof==="modern")b.roof="slant";});S.editSet=x.dataset.v;renderUI();});
