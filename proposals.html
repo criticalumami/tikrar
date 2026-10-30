@@ -1,0 +1,543 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Beit Lantern Proposals</title>
+<meta name="description" content="Proposals for Beit Lantern: slip-cast porcelain Lebanese lantern houses. Design language from Beirut architecture 1925–1970, an all-porcelain element library, the making process, and the app roadmap.">
+<style>
+/* Swiss grid, after Josef Müller-Brockmann: 12 columns, 24 px margins, 16 px gutters, an 8 px baseline.
+   Each section hangs its number and title in columns 1–3 and sets its content in columns 4–12.
+   One grotesque (no web fonts), flush left, black and white with one red. */
+:root{--bg:#fff;--paper:#fff;--ink:#111;--muted:#6b6b6b;--line:#dcdcdc;--rule:#111;--terra:#e2231a;--terra-soft:#fde9e8;--night:#141a2a;--glow:#ffbf66;--radius:0;
+  --m:24px;--g:16px;--sans:"Helvetica Neue",Helvetica,Inter,Arial,system-ui,sans-serif}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#0e0e0e;--paper:#0e0e0e;--ink:#f2f2f2;--muted:#9a9a9a;--line:#2c2c2c;--rule:#f2f2f2;--terra:#ff4436;--terra-soft:#3a1412}}
+:root[data-theme="dark"]{--bg:#0e0e0e;--paper:#0e0e0e;--ink:#f2f2f2;--muted:#9a9a9a;--line:#2c2c2c;--rule:#f2f2f2;--terra:#ff4436;--terra-soft:#3a1412}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/24px var(--sans);-webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums}
+.wrap{max-width:1440px;margin:0 auto;padding:0 var(--m)}
+h1,h2,h3{font-family:var(--sans);font-weight:700;margin:0;letter-spacing:-.02em}
+h1{font-size:clamp(40px,7vw,96px);line-height:.96;letter-spacing:-.04em}
+h2{font-size:32px;line-height:32px;margin-bottom:16px}
+h3{font-size:16px;line-height:24px;margin-bottom:8px}
+p{margin:0 0 16px}
+a{color:var(--ink);text-decoration-thickness:1px;text-underline-offset:3px}
+a:hover{color:var(--terra)}
+.mono{font-family:var(--sans);font-size:13px}
+.eyebrow{font:500 11px/16px var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--terra);margin-bottom:8px}
+.lead{font-size:18px;line-height:24px;color:var(--ink);max-width:none}
+nav.top{position:sticky;top:0;z-index:10;background:var(--bg);border-bottom:2px solid var(--rule)}
+nav.top .wrap{display:flex;gap:24px;align-items:center;height:48px;overflow-x:auto;white-space:nowrap}
+nav.top a{color:var(--ink);text-decoration:none;font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.06em}
+nav.top a:hover{color:var(--terra)}
+nav.top .brand{font:700 15px var(--sans);letter-spacing:-.01em;color:var(--ink);margin-right:auto}
+header.hero{padding:64px 0 48px}
+header.hero .wrap{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:var(--g)}
+header.hero .wrap>*{grid-column:1/-1}
+header.hero h1{grid-column:1/11}
+header.hero .lead,header.hero .note,header.hero p{grid-column:4/11}
+header.hero .note{margin-top:24px;display:block;padding:16px 0 0;border-top:2px solid var(--rule);font-size:13px;line-height:20px}
+section{padding:48px 0;border-top:2px solid var(--rule)}
+section>.wrap{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:var(--g);grid-auto-flow:row dense}
+section>.wrap>*{grid-column:4/-1;min-width:0}
+section>.wrap>.eyebrow,section>.wrap>h2{grid-column:1/4;grid-row:1;align-self:start}
+section>.wrap>h2{margin-top:24px}
+@media (max-width:860px){section>.wrap>*,section>.wrap>.eyebrow,section>.wrap>h2,header.hero .wrap>*{grid-column:1/-1!important}}
+.grid{display:grid;gap:var(--g)}
+.g2{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+.card{background:transparent;border:0;border-top:1px solid var(--rule);padding:8px 0 16px}
+.card h3{font-size:16px}
+.num{font:700 11px var(--sans);color:var(--terra);letter-spacing:.06em}
+.ideas .card p{font-size:14px;color:var(--muted);margin:0}
+.explorer{border-top:1px solid var(--rule)}
+.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:16px 0;border-bottom:1px solid var(--line)}
+.seg{display:inline-flex;border:1px solid var(--ink);flex-wrap:wrap}
+.seg button{height:32px;border:0;background:transparent;color:var(--ink);font:500 13px var(--sans);padding:0 12px;cursor:pointer}
+.seg button+button{border-left:1px solid var(--ink)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.toggle{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);padding:0 6px;cursor:pointer}
+.spacer{flex:1}
+.stage{display:block;width:100%;height:auto;max-height:600px}
+.stage-wrap{position:relative}
+.era-info{display:grid;grid-template-columns:1.2fr 1fr;gap:var(--g);padding:16px 0;border-top:1px solid var(--line)}
+.era-info h3{margin-bottom:4px}
+.era-info ul{margin:0;padding-left:16px;font-size:14px;color:var(--muted)}
+.era-info .tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.tag{font:500 11px var(--sans);padding:0 8px;line-height:24px;border:1px solid var(--terra);color:var(--terra)}
+@media (max-width:720px){.era-info{grid-template-columns:1fr}}
+.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th,.tbl td{text-align:left;padding:8px 8px 7px 0;border-bottom:1px solid var(--line);vertical-align:top}
+.tbl th{font:500 11px var(--sans);text-transform:uppercase;letter-spacing:.06em;color:var(--muted);border-bottom:1px solid var(--rule)}
+.tbl td.ok{color:#1d7a3a}
+.tbl-scroll{overflow-x:auto;border-top:1px solid var(--rule)}
+.el{padding:0;overflow:hidden;display:flex;flex-direction:column;border-top:0}
+.el svg{display:block;width:100%;height:auto;background:var(--night)}
+.el .body{padding:16px 0}
+.el .body p{font-size:14px;color:var(--muted);margin-bottom:8px}
+.el .how{font-size:13px;border-top:1px solid var(--line);padding-top:8px;margin-top:8px;color:var(--ink)}
+.badge{display:inline-block;font:700 11px var(--sans);padding:0 6px;margin-right:8px;vertical-align:1px;border:1px solid currentColor}
+.badge.a{color:#1d7a3a}.badge.b{color:#3d3d9e}
+.pattern-row{display:flex;gap:8px;padding:8px 0 0}
+.pattern-row button{font:500 12px var(--sans);border:1px solid var(--line);background:transparent;color:var(--muted);padding:4px 8px;cursor:pointer}
+.pattern-row button[aria-pressed="true"]{border-color:var(--terra);color:var(--terra)}
+.steps{counter-reset:s;list-style:none;margin:0;padding:0;display:grid;gap:0}
+.steps li{display:grid;grid-template-columns:64px 1fr;gap:var(--g);border-top:1px solid var(--rule);padding:16px 0}
+.steps li::before{counter-increment:s;content:counter(s,decimal-leading-zero);font:700 32px/32px var(--sans);color:var(--terra);letter-spacing:-.03em}
+.steps h3{font-size:16px}
+.steps p{font-size:14px;color:var(--muted);margin-bottom:8px}
+.imp{font-size:13px;margin:8px 0 0;padding-left:16px}
+.imp li{display:list-item;border:0;padding:0;margin:4px 0}
+.imp li::before{content:none}
+.imp li::marker{content:"→  ";color:var(--terra)}
+.flow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:16px 0 24px;font:500 12px var(--sans)}
+.flow span{padding:4px 8px;border:1px solid var(--ink)}
+.flow i{color:var(--terra);font-style:normal}
+.diagram{border-top:1px solid var(--rule);padding:16px 0;margin-bottom:24px}
+.diagram svg{width:100%;height:auto;display:block;background:#fbfbfb}
+.diagram figcaption{font-size:12px;color:var(--muted);padding:8px 0 0}
+.road .card h3{display:flex;justify-content:space-between;align-items:baseline}
+.road ol{margin:0;padding-left:20px;font-size:14px}
+.road li{margin:8px 0}
+.road li b{font-weight:700}
+.road li span{color:var(--muted)}
+footer{padding:48px 0 64px;border-top:2px solid var(--rule);font-size:12px;color:var(--muted)}
+.themebtn{border:1px solid var(--ink);background:transparent;color:var(--ink);font-size:13px;width:32px;height:32px;cursor:pointer}
+</style>
+</head>
+<body>
+
+<nav class="top"><div class="wrap">
+  <span class="brand">Beit Lantern</span>
+  <a href="#ideas">Key ideas</a>
+  <a href="#openings">1860–1925 openings</a>
+  <a href="#modern-elements">Modernist elements</a>
+  <a href="#modernism">Landmarks</a>
+  <a href="#scale">Scale</a>
+  <a href="#process">Process</a>
+  <a href="#roadmap">Roadmap</a>
+  <a href="module.html" style="color:var(--terra);font-weight:600">Open TIKRAR →</a>
+  <button class="themebtn" id="themeBtn" type="button" aria-label="Toggle colour theme">◐</button>
+</div></nav>
+
+<header class="hero"><div class="wrap">
+  <div class="eyebrow">Proposals · slip-cast porcelain lanterns</div>
+  <h1>One module, a whole Beirut street</h1>
+  <p class="lead" style="margin-top:18px">Every lantern is built from one porcelain module: a 60 × 60 mm square with 40 mm walls, 1:75 of a Beirut room. Its four walls take openings from the 1860–1925 houses or from Beirut's modernism; modules stack into houses and towers, and houses and towers line up into a village, all within the proportions of the two restoration manuals.</p>
+  <div class="note"><b>Rules used throughout:</b> no non-porcelain accessories; for now everything is flush with the walls; every wall passes the porcelain limits (openings ≥ 1.6 mm, bars ≥ 2.5 mm, ≤ 40 % open, 3 mm from corners and edges); every fired piece ≤ 60 mm tall.</div>
+  <p style="margin-top:22px"><a href="module.html" style="display:inline-block;background:var(--ink);color:var(--bg);text-decoration:none;padding:0 16px;line-height:40px;font-weight:700">Open TIKRAR →</a>
+  <span style="color:var(--muted);font-size:14px;margin-left:10px">Village and building editor in 3D: pick openings for every wall, candles and plates per level, roof, clay and glaze, checks, and a CAD technical sheet as PDF.</span></p>
+</div></header>
+
+<section id="ideas"><div class="wrap">
+  <div class="eyebrow">Summary</div>
+  <h2>Six ideas</h2>
+  <div class="grid g3 ideas" style="margin-top:22px">
+    <div class="card"><div class="num">01</div><h3>One module at 1:75</h3><p>60 × 60 mm is a 4.5 m room bay and 40 mm a 3.0 m wall. One mould family makes every building; only the wall patterns change.</p></div>
+    <div class="card"><div class="num">02</div><h3>Openings from two books</h3><p>Triple arches, līwān arches, hilālī doors, coupled windows and oculi from <i>Houses of Beirut 1860–1925</i>; ribbons, claustras, fins and portholes from <i>Architectures de Beyrouth</i>.</p></div>
+    <div class="card"><div class="num">03</div><h3>Houses and towers on one street</h3><p>Modules stack up to eight high and sit three across and three deep. Central-hall houses keep a square plan, one to three levels and a symmetric front; modernist blocks may rise.</p></div>
+    <div class="card"><div class="num">04</div><h3>Porcelain-safe by construction</h3><p>Every opening, bar and wall is checked as you design. Every one of the 4,096 element combinations and 134 whole-wall designs passes.</p></div>
+    <div class="card"><div class="num">05</div><h3>Light per level</h3><p>Each level can sit on its own plate and carry its own tealights; plates and roofs are vented. The roof covers the whole house in one piece, or each module.</p></div>
+    <div class="card"><div class="num">+</div><h3>Drawings for the workshop</h3><p>Each building exports a CAD technical sheet: general arrangement, elevations, plan, section, stacking detail and every wall type dimensioned, with mould sizes.</p></div>
+  </div>
+</div></section>
+
+<section id="openings"><div class="wrap">
+  <div class="eyebrow">Houses of Beirut 1860–1925</div>
+  <h2>Pick your openings</h2>
+  <p class="lead">The printed piece is one porcelain module: a 60 × 60 mm square with 40 mm walls, 3 mm thick. Base, modules and roof are separate pieces: modules stack on porcelain lips (as many levels as you like) or line up side by side, under a slanted or modern flat roof. For now everything is flush with the walls: openings only, no mouldings, balconies or overhangs. Each wall takes typical openings, three elements side by side or one whole-wall design, or a random draw.</p>
+  <p style="margin-top:18px"><a href="module.html" style="display:inline-block;background:var(--ink);color:var(--bg);text-decoration:none;padding:0 16px;line-height:40px;font-weight:700">Open TIKRAR →</a>
+  <span style="color:var(--muted);font-size:14px;margin-left:10px">3D preview, candlelight, stacking and rows, roof and base, randomize, and porcelain checks on every wall.</span></p>
+  <h3 style="margin-top:30px">Typical elements, three to a wall</h3>
+  <div class="grid" id="bayGrid" style="grid-template-columns:repeat(auto-fill,minmax(110px,1fr));margin-top:12px"></div>
+  <h3 style="margin-top:30px">Whole-wall designs from the manual</h3>
+  <div class="grid g3" id="wallGrid" style="margin-top:12px"></div>
+  <p style="font-size:13px;color:var(--muted);margin-top:14px">From <i>Houses of Beirut 1860–1925, Restoration manual</i> (Beirut Heritage Initiative, 2021): typology pp. 20–25, roofs pp. 78–85, doors pp. 162–165, windows pp. 166–169, bays with three arches pp. 170–173. Every design here passes the porcelain checks: openings ≥ 1.6 mm, bars and columns ≥ 2.5 mm, walls ≤ 40 % open, 3 mm from the corners and the scrape edge.</p>
+</div></section>
+
+<section id="modern-elements"><div class="wrap">
+  <div class="eyebrow">Beirut 1945–1970</div>
+  <h2>Modernist patterns and elements</h2>
+  <p class="lead">The same 60 × 40 mm wall, read through Beirut's modernism: ribbon windows, claustra screens, vertical brise-soleil slots, egg-crate grids, portholes and buildings lifted on pilotis. All cut flush through the porcelain wall, within the same casting limits.</p>
+  <h3 style="margin-top:26px">Elements, three to a wall</h3>
+  <div class="grid" id="modBayGrid" style="grid-template-columns:repeat(auto-fill,minmax(110px,1fr));margin-top:12px"></div>
+  <h3 style="margin-top:30px">Whole-wall patterns</h3>
+  <div class="grid g3" id="modWallGrid" style="margin-top:12px"></div>
+  <p style="font-size:13px;color:var(--muted);margin-top:14px">From <i>Architectures de Beyrouth 1925–1970, Manuel de restauration</i> (Beirut Heritage Initiative, 2022): typologies PDF pp. 16–20, cantilevers p. 38, brise-soleil and claustras pp. 52–53, windows pp. 78–93. Claustra cells are 3.4 mm at a 6 mm pitch, leaving 2.6 mm of porcelain between them. Eight cast-block claustras (meander, framed square, eight-point star, diamond, octagram and hooks, X and diamond, cross of squares, circle and quarter arcs) are cast exaggerated as 17 mm blocks (3 × 2 on a wall) or 15 mm blocks (two in a bay), with exactly 2.6 mm of porcelain between every two holes, 12–32 % open; the busiest split into two 40-pin insert sets. Try them in <a href="module.html">TIKRAR</a> (the Beirut Lantern Generator) under Style → Modernist.</p>
+</div></section>
+
+<section id="modernism"><div class="wrap">
+  <div class="eyebrow">Landmarks</div>
+  <h2>Iconic modernist Beirut, as lanterns</h2>
+  <p class="lead">Proposed landmark lanterns, after studying photographs of each building. Each keeps the building's signature elements and its proportions (storey counts, height-to-width ratios, bay rhythm, measured from photos to about ±10 %) and is designed to survive casting and firing.</p>
+  <p class="mono" style="color:var(--muted);margin-top:10px">All six are drawn at the same scale, 1 unit = 1 mm fired, so their sizes compare directly. A village house is 180 mm wide. Each landmark gets its own scale (1:200–1:400): at the village's 1:75 a 14-storey tower would be 0.6 m.</p>
+  <div class="note" style="margin-top:16px;padding:8px 0 0;border-top:1px solid var(--rule);font-size:13px;line-height:20px"><b>Porcelain-safe rules.</b> Porcelain softens at top temperature, so tall thin walls lean and lattice-like walls crack or slump. Every landmark follows four rules:
+  <ul style="margin:6px 0 0;padding-left:18px">
+    <li><b>Fired sections ≤ 60 mm</b>, each fired on its own, then stacked dry on 3 mm porcelain locating lips, with no glue. The tealight sits in the base section.</li>
+    <li><b>Each wall ≤ 40 % open.</b> The rest of a facade pattern (fins, slab edges, deep cells) is relief: raised 0.8–1 mm or recessed 1 mm. The card's figure is computed from the drawing.</li>
+    <li><b>3 mm walls</b> for anything over one section, and <b>fins and bars ≥ 2.5 mm</b> wherever they run long.</li>
+    <li><b>≤ 40 pins per insert set</b>, as in the studio.</li>
+  </ul></div>
+  <div class="grid g3" style="margin-top:22px" id="modGrid"></div>
+  <p style="font-size:13px;color:var(--muted);margin-top:18px">Facts from the
+    <a href="https://arab-architecture.org/db/building/electricite-du-liban-headquarters">Arab Architecture database</a>,
+    <a href="https://en.wikipedia.org/wiki/The_Egg,_Beirut">Wikipedia: The Egg</a>,
+    <a href="https://en.wikipedia.org/wiki/Rue_Clemenceau">Wikipedia: Rue Clemenceau</a>,
+    <a href="https://www.arch.columbia.edu/summer-workshops/2016/beirut">Columbia GSAPP Beirut workshop</a>,
+    <a href="https://www.aljazeera.com/news/2015/12/scars-war-lebanon-holiday-inn-151219082356997.html">Al Jazeera</a> and
+    <a href="https://en.wikipedia.org/wiki/National_Museum_of_Beirut">Wikipedia: National Museum of Beirut</a>. Dates differ between sources; ranges are given where they do.</p>
+</div></section>
+
+<section id="scale"><div class="wrap">
+  <div class="eyebrow">From the manual</div>
+  <h2>The 1:75 reference scale</h2>
+  <p class="lead">Real sizes from <i>Houses of Beirut 1860–1925</i> (HoB) and <i>Architectures de Beyrouth 1925–1970</i> (AdB), converted to fired millimetres. Ticks mark where the generator matches.</p>
+  <div class="tbl-scroll" style="margin-top:20px">
+  <table class="tbl">
+    <thead><tr><th>Real element</th><th>Real size</th><th>At 1:75 (fired)</th><th>In the generator</th></tr></thead>
+    <tbody>
+      <tr><td>Room bay</td><td>4.5 m</td><td><b>60 mm</b></td><td class="ok">module 60 × 60 ✓</td></tr>
+      <tr><td>Floor height (1954 code; earlier 3.30 m)</td><td>3.00 m</td><td><b>40 mm</b></td><td class="ok">module walls 40 ✓</td></tr>
+      <tr><td>Central-hall house plan (AdB figs. 11, 287; HoB pp. 22–23)</td><td>≈ 13.5 × 13.5 m, 3 bays × 3 deep</td><td><b>180 × 180 mm</b></td><td class="ok">3 × 3 modules, proportion check ✓</td></tr>
+      <tr><td>House height (HoB p. 24)</td><td>two or three floors</td><td>1–3 modules</td><td class="ok">proportion check ✓</td></tr>
+      <tr><td>Roof pitch (HoB p. 80)</td><td>“soft slopes of about 30°”</td><td>hipped lid, 30°</td><td class="ok">default 30°, one piece or per module ✓</td></tr>
+      <tr><td>Grid step</td><td>2.25 m</td><td><b>30 mm</b></td><td class="ok">village grid 30 ✓</td></tr>
+      <tr><td>Stone wall</td><td>25–35 cm</td><td>3.3–4.7 mm</td><td>cast wall 3.0</td></tr>
+      <tr><td>Entrance door, post-1860 (HoB p. 163)</td><td>1.00–1.10 × 2.00–2.20 m</td><td>13–15 × 27–29 mm</td><td>14 × 23 + fanlight</td></tr>
+      <tr><td>Oriental hilālī door (HoB p. 162)</td><td>0.95 × 1.90 m</td><td><b>12.7 × 25.3 mm</b></td><td class="ok">12.8 × 25.3 ✓</td></tr>
+      <tr><td>Window parapet (HoB p. 166)</td><td>≈ 0.75 m</td><td><b>10 mm</b> sill</td><td class="ok">tall windows sill 10 ✓</td></tr>
+      <tr><td>High window (HoB p. 169)</td><td>≈ 40 cm wide</td><td>5.3 mm</td><td class="ok">5.4 ✓</td></tr>
+      <tr><td>Claustra block (AdB pp. 52–53)</td><td>20 cm</td><td>2.7 mm → 3.4 mm cell, 2.6 mm bar</td><td>exaggerated to cast</td></tr>
+    </tbody>
+  </table>
+  </div>
+</div></section>
+
+<section id="process"><div class="wrap">
+  <div class="eyebrow">Step by step</div>
+  <h2>The making process</h2>
+  <p class="lead">Designer sizes are fired millimetres. Moulds and prints are master size, fired ÷ (1 − shrink): ×1.163 for porcelain at 14 %; the technical sheet states the factor for the chosen clay. Improvements are marked ▶.</p>
+  <div class="flow"><span>Editor</span><i>→</i><span>Mold design</span><i>→</i><span>Resin case molds</span><i>→</i><span>Plaster mold</span><i>→</i><span>Slip cast</span><i>→</i><span>Fettle + extras</span><i>→</i><span>Fire</span><i>→</i><span>Lantern</span></div>
+
+  <figure class="diagram" style="margin-left:0;margin-right:0">
+    <svg viewBox="0 0 760 270" role="img" aria-label="Section through a wall piece with a window insert and facade relief">
+      <defs>
+        <pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="6" stroke="#c9c2b6" stroke-width="1.2"/></pattern>
+      </defs>
+      <!-- plaster wall piece -->
+      <rect x="250" y="20" width="150" height="230" fill="#ece8e1" stroke="#a69f93"/>
+      <rect x="250" y="20" width="150" height="230" fill="url(#hatch)"/>
+      <!-- pocket on outside face -->
+      <rect x="250" y="70" width="22" height="130" fill="#f6f4ef" stroke="#a69f93"/>
+      <!-- port through plaster -->
+      <rect x="272" y="115" width="128" height="40" fill="#f6f4ef"/>
+      <!-- relief recess in plaster face -->
+      <path d="M400 40 l-10 4 v22 l10 4 Z" fill="#f6f4ef" stroke="#a69f93"/>
+      <!-- cast porcelain -->
+      <path d="M400 20 h18 v20 l-10 4 v22 l10 4 v45 h-18 v-45 l-10 -4 v-22 l10 -4 Z" fill="#fffdf8" stroke="#8d867b"/>
+      <rect x="400" y="155" width="18" height="95" fill="#fffdf8" stroke="#8d867b"/>
+      <!-- resin insert: plate + pin with draft -->
+      <rect x="236" y="74" width="34" height="122" rx="3" fill="#f2b45c" stroke="#b97a2a"/>
+      <path d="M270 117 L430 119 L436 125 L436 145 L430 151 L270 153 Z" fill="#f2b45c" stroke="#b97a2a"/>
+      <rect x="214" y="120" width="24" height="30" rx="4" fill="#f2b45c" stroke="#b97a2a"/>
+      <!-- cavity -->
+      <rect x="418" y="20" width="140" height="230" fill="none" stroke="#cfc8bb" stroke-dasharray="4 4"/>
+      <!-- labels -->
+      <g font-family="Helvetica Neue,Helvetica,Arial,sans-serif" font-size="13" fill="#3a352e">
+        <text x="300" y="240">plaster wall piece</text>
+        <text x="440" y="36">relief: a recess in the plaster,</text>
+        <text x="440" y="52">3° draft, ≤ 1.2 mm deep</text>
+        <text x="440" y="100">cast porcelain, 2.5 mm fired</text>
+        <text x="450" y="140">pin stands "pin reach" past the cast,</text>
+        <text x="450" y="156">1–2° draft, chamfered tip</text>
+        <text x="440" y="214">slip-filled cavity → drained</text>
+        <text x="20" y="106">insert plate in its</text>
+        <text x="20" y="122">3 mm pocket</text>
+        <text x="20" y="170">drawer pull:</text>
+        <text x="20" y="186">pull the set early</text>
+      </g>
+      <g stroke="#3a352e" stroke-width=".8" fill="none">
+        <path d="M436 48 L404 52"/><path d="M436 96 L412 100"/><path d="M446 136 L436 134"/>
+        <path d="M140 112 L236 112"/><path d="M130 176 L214 140"/>
+      </g>
+    </svg>
+    <figcaption>Section through one wall piece of the plaster mold (not to scale): a window insert passes through the plaster, and facade relief is a shallow recess in the plaster face.</figcaption>
+  </figure>
+
+  <ol class="steps" id="steps"></ol>
+
+  <h3 style="margin:34px 0 12px">Troubleshooting</h3>
+  <div class="tbl-scroll">
+  <table class="tbl">
+    <thead><tr><th>Symptom</th><th>Likely cause</th><th>Fix</th></tr></thead>
+    <tbody>
+      <tr><td>Cracks at window corners</td><td>cast shrank onto the pins</td><td>pull insert sets earlier, add pin draft, round inside corners ≥ 0.5 mm</td></tr>
+      <tr><td>Opening skinned over</td><td>pin too short or cast too thick</td><td>raise pin reach, shorten cast time</td></tr>
+      <tr><td>Seam lines</td><td>joints open or plaster chipped</td><td>check key fit, chamfer plaster edges 0.3 mm</td></tr>
+      <tr><td>Cast sticks to mold</td><td>mold wet or slip too thin</td><td>dry the mold, check specific gravity</td></tr>
+      <tr><td>Module leans after firing</td><td>uneven drying or warped shelf</td><td>dry on a bat, flat kiln wash</td></tr>
+      <tr><td>Pinholes on facade</td><td>bubbles in plaster or slip</td><td>vibrate the plaster pour, sieve and rest the slip</td></tr>
+    </tbody>
+  </table>
+  </div>
+</div></section>
+
+<section id="roadmap"><div class="wrap">
+  <div class="eyebrow">For the app</div>
+  <h2>Roadmap</h2>
+  <p class="lead">Next steps for the generator and the workshop, in priority order.</p>
+  <div class="grid g2 road" style="margin-top:22px">
+    <div class="card"><h3>Produceable <span class="mono">P1</span></h3><ol>
+      <li><b>STL export per wall type</b> <span>resin insert sets and wall plates, with manifold-3d</span></li>
+      <li><b>Pin draft</b> <span>1–2° on pins and ports, in the checks</span></li>
+      <li><b>Mould count for the village</b> <span>wall types shared across buildings</span></li></ol></div>
+    <div class="card"><h3>Composition <span class="mono">P2</span></h3><ol>
+      <li><b>Three-lobed arches</b> <span>the remaining HoB arch type</span></li>
+      <li><b>Landmark mode</b> <span>the Egg, EDL, Gefinor, Saroulla at their own scales</span></li>
+      <li><b>Street rules</b> <span>party walls, setbacks, corner buildings</span></li></ol></div>
+    <div class="card"><h3>Projecting porcelain <span class="mono">P3</span></h3><ol>
+      <li><b>Relief back on</b> <span>frames, cornices, string courses (switch <span class="mono">FLUSH</span> off)</span></li>
+      <li><b>Balconies and sun-shades</b> <span>6 mm cantilevers, no prop</span></li>
+      <li><b>Translucent panes</b> <span>0.6–1 mm porcelain behind openings</span></li></ol></div>
+    <div class="card"><h3>Workshop <span class="mono">P4</span></h3><ol>
+      <li><b>Batch log</b> <span>measured shrink per clay feeds the sheets</span></li>
+      <li><b>Village sheet</b> <span>one PDF for every building on the street</span></li>
+      <li><b>Glaze tests</b> <span>fired swatches for each glaze colour</span></li></ol></div>
+  </div>
+</div></section>
+
+<footer><div class="wrap">
+  <p>Design references: <i>Architectures de Beyrouth, 1925–1970 · Manuel de restauration</i>, ed. Fadlallah Dagher, Beirut Heritage Initiative / Éditions Al Ayn, 2022 (<a href="https://www.beirutheritageinitiative.com/restoration-manual/">beirutheritageinitiative.com</a>). Typologies pp. 18–39, cast facade elements pp. 62–101, claustras pp. 102–105, windows and doors pp. 154–185, ironwork pp. 186–195 of the book.</p>
+  <p><i>Houses of Beirut 1860–1925, Restoration manual</i>, ed. Nathalie Chahine and Fadlallah Dagher, Beirut Heritage Initiative / Éditions Al Ayn, 2021: typology pp. 20–25, roofs pp. 78–85, doors pp. 162–165, windows pp. 166–169, bays with three arches pp. 170–173.</p>
+  <p>Full written proposals live in the repository's <span class="mono">crit_proposals/</span> folder.</p>
+</div></footer>
+
+<script src="openings.js"></script>
+<script>
+/* ---------- opening catalogue (shared with the module designer) ---------- */
+(function(){
+const B=window.BeitOpenings;if(!B)return;
+const cell=(svg,title,sub,body)=>`<div class="card el">${svg}<div class="body"><h3 style="font-size:19px">${title}</h3>${sub?`<p class="mono" style="font-size:11.5px">${sub}</p>`:""}${body?`<p>${body}</p>`:""}</div></div>`;
+const bayCards=set=>B.BAYS.filter(b=>b.set===set).map(b=>{const o=B.build({mode:"bays",bays:["none",b.id,"none"]});o.holes.forEach(h=>h.p=h.p.map(([x,y])=>[x-18,y]));
+  const svg=B.faceSVG(o,{night:true,label:b.name}).replace(/viewBox="[^"]+"/,'viewBox="-1 -1 26 42"');
+  return `<div class="card el" style="padding:0">${svg}<div class="body" style="padding:8px 10px"><b style="font-size:13px">${b.name}</b><p class="mono" style="font-size:11px;margin:2px 0 0">${b.ref?(set==="modern"?b.ref.replace("Architectures de Beyrouth","AdB"):"manual "+b.ref):""}</p></div></div>`;}).join("");
+const wallCards=set=>B.CAT.filter(c=>c.set===set&&c.id!=="blank").map(c=>{const o=B.build({type:c.id,frame:true,cornice:true,canopy:true}),r=B.checkFace(o,14);
+  return cell(B.faceSVG(o,{night:true,dims:true,label:c.name}),c.name,(c.ref?(set==="modern"?c.ref.replace("Architectures de Beyrouth","AdB"):"manual "+c.ref)+" · ":"")+r.open.toFixed(0)+" % open · "+r.pins+" pin"+(r.pins===1?"":"s"),c.desc);}).join("");
+document.getElementById("bayGrid").innerHTML=bayCards("ottoman");document.getElementById("wallGrid").innerHTML=wallCards("ottoman");
+document.getElementById("modBayGrid").innerHTML=bayCards("modern");document.getElementById("modWallGrid").innerHTML=wallCards("modern");
+})();
+</script>
+<script>
+(function(){
+/* ---------- theme ---------- */
+const root=document.documentElement;
+try{const t=localStorage.getItem("beit-proposals-theme");if(t)root.dataset.theme=t;}catch(e){}
+document.getElementById("themeBtn").onclick=()=>{
+  const dark=root.dataset.theme?root.dataset.theme==="dark":matchMedia("(prefers-color-scheme: dark)").matches;
+  root.dataset.theme=dark?"light":"dark";
+  try{localStorage.setItem("beit-proposals-theme",root.dataset.theme);}catch(e){}
+};
+
+/* ---------- shape helpers (mm, facade y up; SVG y = -y) ---------- */
+const f=n=>+n.toFixed(2);
+const rect=(x,s,w,h)=>`M${f(x)} ${f(-s)}h${f(w)}v${f(-h)}h${f(-w)}Z`;
+const arch=(x,s,w,h)=>{const r=w/2,st=Math.max(0,h-r);return `M${f(x)} ${f(-s)}v${f(-st)}a${f(r)} ${f(r)} 0 0 1 ${f(w)} 0v${f(st)}Z`;};
+const pointed=(x,s,w,h)=>{const a=0.866*w,st=Math.max(0,h-a);return `M${f(x)} ${f(-s)}v${f(-st)}a${f(w)} ${f(w)} 0 0 1 ${f(w/2)} ${f(-a)}a${f(w)} ${f(w)} 0 0 1 ${f(w/2)} ${f(a)}v${f(st)}Z`;};
+const segm=(x,s,w,h)=>{const r0=w/6,R=(w*w/4+r0*r0)/(2*r0),st=h-r0;return `M${f(x)} ${f(-s)}v${f(-st)}a${f(R)} ${f(R)} 0 0 1 ${f(w)} 0v${f(st)}Z`;};
+const circ=(cx,cy,r)=>`M${f(cx-r)} ${f(-cy)}a${f(r)} ${f(r)} 0 1 0 ${f(2*r)} 0a${f(r)} ${f(r)} 0 1 0 ${f(-2*r)} 0Z`;
+const diamond=(cx,cy,rx,ry)=>`M${f(cx)} ${f(-cy-ry)}L${f(cx+rx)} ${f(-cy)}L${f(cx)} ${f(-cy+ry)}L${f(cx-rx)} ${f(-cy)}Z`;
+const cross=(cx,cy,a,t)=>`M${f(cx-t/2)} ${f(-cy-a)}h${f(t)}v${f(a-t/2)}h${f(a-t/2)}v${f(t)}h${f(-(a-t/2))}v${f(a-t/2)}h${f(-t)}v${f(-(a-t/2))}h${f(-(a-t/2))}v${f(-t)}h${f(a-t/2)}Z`;
+const waisted=(x,s,w,h)=>{const m=w*0.28;return `M${f(x)} ${f(-s)}h${f(w)}q${f(-m)} ${f(-h/2)} 0 ${f(-h)}h${f(-w)}q${f(m)} ${f(h/2)} 0 ${f(h)}Z`;};
+function triple(x,s,w,h,kind){const g=Math.max(2.6,w*0.065),wi=(w-2*g)/3,fn=kind==="pointed"?pointed:kind==="rect"?rect:arch;return [0,1,2].map(k=>fn(x+k*(wi+g),s,wi,h));}
+
+/* balustrade: returns {outline, holes} for a front piece from y0, width w, height h */
+function balustrade(x,y0,w,h,pattern){
+  const pl=2.2,hr=2.2,inner=h-pl-hr,holes=[];const pitch=3.6,hw=1.8;
+  const n=Math.floor((w-2)/pitch),off=x+(w-n*pitch)/2+(pitch-hw)/2;
+  for(let i=0;i<n;i++){const hx=off+i*pitch;
+    if(pattern==="lozenge") holes.push(diamond(hx+hw/2,y0+pl+inner/2,hw*0.9,inner/2-0.3));
+    else if(pattern==="circles"){holes.push(circ(hx+hw/2,y0+pl+inner*0.3,hw*0.7));holes.push(circ(hx+hw/2,y0+pl+inner*0.72,hw*0.7));}
+    else if(pattern==="waisted") holes.push(waisted(hx,y0+pl,hw*1.2,inner));
+    else holes.push(rect(hx,y0+pl,hw,inner));}
+  return {outline:rect(x,y0,w,h),holes};
+}
+function claustra(x,y0,w,h,pattern){
+  const c=5,holes=[];const nx=Math.floor((w-1)/c),ny=Math.floor((h-1)/c);
+  const ox=x+(w-nx*c)/2,oy=y0+(h-ny*c)/2;
+  for(let j=0;j<ny;j++)for(let i=0;i<nx;i++){const cx=ox+i*c+c/2,cy=oy+j*c+c/2;
+    if(pattern==="cross") holes.push(cross(cx,cy,1.7,1.1));
+    else if(pattern==="square") holes.push(rect(cx-1.6,cy-1.6,3.2,3.2));
+    else if(pattern==="offset") {if((i+j)%2===0)holes.push(circ(cx,cy,1.9));else holes.push(circ(cx,cy,1.0));}
+    else holes.push(circ(cx,cy,1.6));}
+  return holes;
+}
+/* shutters: slats as wall-coloured bars over an opening, top third left open */
+function slats(x,s,w,h){const out=[];const top=s+h*0.62;for(let y=s+0.8;y<top;y+=2.0)out.push(rect(x,y,w,1.25));out.push(rect(x+w/2-0.35,s,0.7,h));return out;}
+/* inverted-step consoles hanging under y: n brackets spread over width w, depth d */
+function consoles(x,y,n,w,d){const out=[];for(let i=0;i<n;i++){const cx=x+(n===1?w/2:i*(w/(n-1)));
+  out.push(`M${f(cx-1.8)} ${f(-y)}h3.6v${f(d*0.35)}h-0.8v${f(d*0.35)}h-0.7v${f(d*0.3)}h-0.6v${f(-d*0.3)}h-0.7v${f(-d*0.35)}h-0.8Z`);}
+  return out;}
+
+/* ---------- modernist landmarks ----------
+   Elevations at ONE common scale (1 unit = 1 mm fired). Ratios from storey counts and photographs (±10 %). Ground line y=240.
+   Porcelain-safe rules: fired sections ≤ 60 mm stacked on porcelain lips (dashed lines), each wall ≤ 40 % open
+   (the rest of the pattern is relief), 3 mm walls, fins and bars ≥ 2.5 mm. Open % is computed per wall from the drawing. */
+(function(){
+const WALL="#5a4a3d",EDGE="#3b3129",REL="#7a6654",REC="#43372e",G="#ffbf66",DIM="#8a6a3e",TXT="#c9bfae",GROUND="#0f1420";
+const Y=240,VW=260,MAXH=60,MAXOPEN=40;
+const n2=v=>+v.toFixed(2);
+const lit=(i,j)=>((i*7+j*13)%10)<7?G:DIM;   /* a few rooms left dim, like a lived-in night */
+function ctx(){
+  const c={s:"",js:"",walls:[],joints:[]};
+  c.r=(x,y,w,h,f,o="")=>{c.s+=`<rect x="${n2(x)}" y="${n2(y)}" width="${n2(w)}" height="${n2(h)}" fill="${f}"${o}/>`;};
+  c.mass=(x,y,w,h)=>c.r(x,y,w,h,WALL,` stroke="${EDGE}" stroke-width=".6"`);
+  c.wall=(x,y,w,h)=>{c.mass(x,y,w,h);const W={a:w*h,o:0};c.walls.push(W);return W;};   /* a cast wall that carries openings */
+  c.hole=(W,x,y,w,h,f=G)=>{c.r(x,y,w,h,f);W.o+=w*h;};
+  c.rel=(x,y,w,h)=>c.r(x,y,w,h,REL);       /* raised relief */
+  c.rec=(x,y,w,h)=>c.r(x,y,w,h,REC);       /* recessed relief */
+  c.joint=(x,w,y)=>{c.joints.push(y);c.js+=`<line x1="${n2(x-3)}" y1="${n2(y)}" x2="${n2(x+w+3)}" y2="${n2(y)}" stroke="${TXT}" stroke-width=".7" stroke-dasharray="2 1.6"/>`;};
+  c.path=(d)=>{c.s+=`<path d="${d}" fill="${WALL}" stroke="${EDGE}" stroke-width=".6"/>`;};
+  return c;}
+const DRAW={
+ egg(c){const L=143,x=(VW-L)/2,lv=10.2;
+  for(let k=0;k<4;k++){const yb=Y-k*lv;
+    const W=c.wall(x+14,yb-lv,L-28,lv);for(let i=0;i<6;i++)c.hole(W,x+20+i*18.5,yb-lv+3.4,9,5,lit(i,k));   /* core wall carries the shell */
+    c.mass(x,yb-lv,L,2);for(let k2=0;k2<7;k2++)c.mass(x+3+k2*(L-9.5)/6,yb-lv+2,3.5,lv-2);
+    if(k)c.joint(x,L,yb);}
+  const yb=Y-4*lv,h=58,x0=x+5,x1=x+L-5;c.joint(x,L,yb);
+  c.path(`M${x0} ${yb} C${x0} ${yb-42} ${x0+16} ${yb-h} ${x0+46} ${yb-h} L${x1-46} ${yb-h} C${x1-16} ${yb-h} ${x1} ${yb-42} ${x1} ${yb} Z`);
+  const S={a:(x1-x0)*h*0.8,o:0};c.walls.push(S);
+  c.rel(x0+12,yb-30.5,x1-x0-24,1.2);
+  for(let i=0;i<7;i++)c.hole(S,x0+19+i*15.5,yb-27,6,8,lit(i,1));
+  return {w:L,h:n2(4*lv+h)};},
+ edl(c){const W=196,T=24,x=(VW-W-T)/2,fh=11.7,legs=[0,63.3,126.7,190];
+  const GW=c.wall(x+3,Y-20,W-6,20);for(let b=0;b<3;b++)[10,33].forEach(o=>c.hole(GW,x+legs[b]+6+o-3,Y-15,18,12));
+  legs.forEach(l=>c.mass(x+l,Y-20,6,20));
+  for(let j=0;j<14;j++){const y=Y-20-(j+1)*fh,F=c.wall(x,y,W,fh);
+    for(let b=0;b<3;b++)for(let i=0;i<10;i++){const cx=x+legs[b]+6+i*5.73;c.rec(cx+0.55,y+1,4.63,fh-2);c.hole(F,cx+1.36,y+3,3,6,lit(b*10+i,j));}}
+  legs.forEach(l=>c.rel(x+l,Y-20-14*fh,6,14*fh));
+  c.mass(x,Y-20-14*fh-4,W,4);
+  [55.1,101.9,148.7].forEach(h=>c.joint(x,W,Y-h));
+  const ST=c.wall(x+W,Y-198,T,198);for(let j=0;j<16;j++)c.hole(ST,x+W+10.5,Y-192+j*12,3,7,lit(j,3));
+  [49.5,99,148.5].forEach(h=>c.joint(x+W,T,Y-h));
+  return {w:W+T,h:198};},
+ gefinor(c){const x=(VW-185)/2;
+  const P=c.wall(x,Y-25,185,25);for(let i=0;i<7;i++)c.hole(P,x+6+i*24.5+4,Y-21,16,16,lit(i,0));c.mass(x-2,Y-27,189,3);
+  const tx=x+8,tw=75,sh=55;
+  for(let sct=0;sct<3;sct++){const y0=Y-27-(sct+1)*sh,S=c.wall(tx,y0,tw,sh);
+    for(let rw=0;rw<3;rw++)for(let i=0;i<11;i++)c.hole(S,tx+8.5+i*5.4,y0+1.25+rw*18.3,2,15.8,lit(i,rw+sct*3));
+    for(let i=0;i<10;i++)c.rel(tx+8.5+i*5.4+3.3,y0,0.8,sh);
+    if(sct)c.joint(tx,tw,y0+sh);}
+  c.mass(tx,Y-27-3*sh-4,tw,4);c.joint(tx,tw,Y-27);
+  const lx=x+93,lw=90,LB=c.wall(lx,Y-77,lw,50);
+  for(let f=0;f<6;f++){const y=Y-77+f*8.25;c.rel(lx,y,lw,3.25);for(let i=0;i<8;i++)c.hole(LB,lx+3.6+i*10.6+1.3,y+3.85,8,4,lit(i,f));}
+  c.joint(lx,lw,Y-27);
+  return {w:185,h:196};},
+ saroulla(c){const W=150,x=(VW-W)/2;
+  const B=c.wall(x,Y-25,W,25);[10,60,110].forEach((o,i)=>c.hole(B,x+o,Y-20,30,14,G));
+  for(let s3=0;s3<4;s3++){const y0=Y-25-(s3+1)*48,S=c.wall(x,y0,W,48);
+    for(let f=0;f<3;f++)for(let i=0;i<8;i++){const ox=x+2.5+i*18.2,oy=y0+(2-f)*16+1.25;c.rec(ox,oy,15.7,13.5);c.hole(S,ox+2.85,oy+2.25,10,9,lit(i,f+s3*3));}
+    c.joint(x,W,y0+48);}
+  for(let j=0;j<=12;j++)c.rel(x-2,Y-25-j*16-1.2,W+4,2.4);
+  c.mass(x+18,Y-29,96,2.5);[34,98].forEach(o=>c.mass(x+o,Y-26.5,4,26.5));
+  c.r(x+46,Y-37,40,6,"#2a2a2a");c.s+=`<text x="${x+66}" y="${Y-32.4}" fill="${G}" font-size="4.6" text-anchor="middle" font-family="Helvetica Neue,Helvetica,Arial,sans-serif">CINEMA</text>`;
+  return {w:W,h:217};},
+ holiday(c){const px=(VW-150)/2,x=px+25,W=110,T=20,fh=7.75;
+  const P=c.wall(px,Y-22,150,22);for(let i=0;i<9;i++)c.hole(P,px+7+i*16,Y-16,10,9);c.mass(px-2,Y-24,154,3);
+  for(let j=0;j<26;j++){const y=Y-22-(j+1)*fh,F=c.wall(x+T,y,W,fh),top=j===25;
+    for(let i=0;i<13;i++){const wx=x+T+3+i*8.1;c.rec(wx-0.6,y+0.9,5.6,fh-1.8);c.hole(F,wx,top?y+1.1:y+1.6,4.4,top?5.5:4.5,top?G:lit(i,j));}}
+  c.mass(x+T,Y-22-26*fh-2,W,2);
+  [7,14,20].forEach(f=>c.joint(x+T,W,Y-22-f*fh));c.joint(x,W+T,Y-22);
+  const ST=c.wall(x,Y-230,T,208);c.hole(ST,x+T/2-1,Y-226,2,8);
+  [52,104,156].forEach(h=>c.joint(x,T,Y-22-h));
+  return {w:150,h:230};},
+ museum(c){const W=220,x=(VW-W)/2;
+  for(let k=0;k<3;k++)c.mass(x-6+k*3,Y-(k+1)*2.7,W+12-k*6,2.7);
+  const b=Y-8.1;c.joint(x,W,b);
+  [x,x+148].forEach(wx=>{const Wg=c.wall(wx,b-44,72,44);c.mass(wx-1,b-47,74,3);
+    [10,40].forEach(o=>{c.rec(wx+o,b-36,22,28);for(let k=0;k<3;k++)c.hole(Wg,wx+o+3+k*6.5,b-33,2.6,24,lit(k,o));});});
+  const px=x+72;const R=c.wall(px+10,b-44,56,44);[0,1,2].forEach(i=>c.hole(R,px+16+i*16-4+4,b-26,8,24));
+  c.mass(px-2,b-54,80,10);c.mass(px+10,b-59,56,5);
+  c.mass(px,b-44,10,44);c.mass(px+66,b-44,10,44);
+  for(let k=0;k<4;k++){const cx=px+14+k*16.3;c.mass(cx,b-34,5,34);c.path(`M${cx-1.5} ${b-40} L${cx+6.5} ${b-40} L${cx+5} ${b-34} L${cx} ${b-34} Z`);}
+  return {w:232,h:67};}
+};
+const L=[
+ {k:"egg",t:"The Egg",m:"Beirut City Center · from 1965 · Joseph Philippe Karam",
+  p:"A concrete shell cinema for about 1,000 seats, never finished. A long, rounded capsule sits over a four-level open concrete frame.",
+  el:["the capsule: flat crown, rounded ends","a band of rectangular openings along its flank","four open floors of slabs and square columns"],
+  pr:"Shell length ≈ 2.3 × shell height; the frame ≈ 0.7 × shell height.",
+  sec:"5 sections: four 10 mm frame trays and a 58 mm shell",
+  how:"1:330, 143 × 75 × 99 mm. The shell is drain-cast as an upside-down bowl in a one-piece mould, 3 mm thick, with flank slots cut leather-hard through a printed guide. One tray mould is cast four times: a closed core wall with small windows carries the shell, and the slabs and 3.5 mm columns wrap it as the open frame."},
+ {k:"edl",t:"Électricité du Liban",m:"Mar Mikhaël · competition 1965, built c. 1967–72 · CETA (Aractingi, Neema, eng. Nassar)",
+  p:"Fourteen office floors lifted on four prestressed portals over an open ground floor, with a deep sun-breaker grid on the south face and a slim service tower at the end.",
+  el:["four portal legs, read as raised verticals up the whole face","the sun-breaker grid: 3 × 10 cells per floor","an open, lit ground floor","a slim service tower, a storey taller"],
+  pr:"Long face height ≈ 0.9 × length; service tower ≈ 1/8 of the length.",
+  sec:"4 slab sections (55, 47, 47, 39 mm) + 4 tower sections of 50 mm",
+  how:"1:300, 220 × 48 × 198 mm. Each cell is a 1 mm recess; only a 3 × 6 mm window in it goes through, with 2.7 mm fins between. One 30-pin set per floor. The portal legs are 6 mm raised relief. The service tower is its own stack."},
+ {k:"gefinor",t:"Gefinor Center",m:"Clemenceau · c. 1969–74 · Victor Gruen Associates with Assem Salam; structure Walid Jabri",
+  p:"Dark-glass office towers ribbed with thin vertical fins, with blank concrete end walls, beside a lower block of white horizontal bands, all on a podium raised on columns.",
+  el:["a tower of tight vertical fins","blank concrete end walls","a lower block of horizontal white bands","a podium of piers and shop windows"],
+  pr:"Tower height ≈ 2.2 × width; lower block ≈ 0.55 × its width.",
+  sec:"podium 25 mm + tower 3 × 55 mm + lower block 50 mm",
+  how:"1:400, 185 × 70 × 196 mm. Through-slots are 2 × 16 mm at a 5.4 mm pitch (3.4 mm fins), broken every two floors. A raised 0.8 mm rib between slots restores the dense fin rhythm. 33 pins per tower section; the lower block's windows are 8 × 4 mm under raised white bands."},
+ {k:"saroulla",t:"Saroulla building",m:"Hamra Street · 1961 · Karol Schayer",
+  p:"Twelve floors of deep loggias framed by projecting slabs and fins, over a glazed cinema floor with a thin canopy on round columns.",
+  el:["the loggia grid, 8 per floor, as deep recesses","floor slabs that project past the facade","a thin entrance canopy on two round columns","a lit cinema base"],
+  pr:"Height ≈ 1.45 × width; ground floor ≈ 1.5 × a typical floor.",
+  sec:"cinema base 25 mm + 4 sections of 3 floors (48 mm)",
+  how:"1:200, 150 × 75 × 217 mm. Each loggia is a 15.7 × 13.5 mm recess with a 10 × 9 mm window at the back, as on the real building. 24 pins per section. Slab edges are 2.4 mm raised bands. The canopy rests on two B4 porcelain columns, so it needs no prop."},
+ {k:"holiday",t:"Holiday Inn",m:"Minet el-Hosn · 1971–74 · André Wogenscky with Maurice Hindié",
+  p:"A 26-storey hotel slab with a dense grid of small deep-set windows, a blank service tower rising above it, and a low, wide podium.",
+  el:["a blank, windowless service tower, taller than the slab","a dense deep-set window grid, 13 per floor","a lit crown floor","a podium wider than the tower"],
+  pr:"Slab height ≈ 1.8 × width; service tower ≈ 1/6 of the width.",
+  sec:"podium 22 mm + slab 4 sections (7, 7, 6, 6 floors) + tower 4 × 52 mm",
+  how:"1:400, 150 × 50 × 230 mm. Windows are 4.4 × 4.5 mm in 1 mm recesses, with 3.7 mm bars. Pin sets are up to three floors (39 pins), from one printed comb. Sections keep the 50 mm-deep slab from leaning in the kiln."},
+ {k:"museum",t:"National Museum of Beirut",m:"Museum crossing · built 1930–37, inaugurated 1942 · Antoine Nahas and Pierre Leprince-Ringuet",
+  p:"Egyptian Revival, not modernist, and the city's landmark from before modernism. A deep portico of four lotus-capital columns stands between massive pylons, flanked by lower wings, on a broad stepped plinth.",
+  el:["four lotus-capital columns between two pylons","a deep cornice with a raised attic block","wings with tall slit windows in threes, in recessed panels","a broad stepped plinth"],
+  pr:"Portico ≈ 0.8 × as tall as it is wide and ≈ 1.35 × the wing height; wings ≈ 1/3 of the front each.",
+  sec:"plinth 8 mm + wings 47 mm + portico 59 mm; columns 40 mm, cast separately",
+  how:"1:250, 232 × 120 × 67 mm. Three modules (wing, portico, wing) on a plinth. Four B4 columns, cast solid in a two-part mould with the lotus flare, sit in front of a lit door wall."}
+];
+document.getElementById("modGrid").innerHTML=L.map(b=>{const c=ctx(),d=DRAW[b.k](c);
+  const open=Math.max(...c.walls.map(W=>W.o/W.a*100));
+  const ok=open<=MAXOPEN;
+  return `<div class="card el">
+  <svg viewBox="0 0 ${VW} 258" role="img" aria-label="${b.t}, porcelain-safe lantern elevation at true proportions"><rect x="0" y="${Y}" width="${VW}" height="18" fill="${GROUND}"/>${c.s}${c.js}<text x="6" y="252" fill="${TXT}" font-family="JetBrains Mono,monospace" font-size="7">${Math.round(d.w)} × ${Math.round(d.h)} mm fired · dashed = section joints</text></svg>
+  <div class="body"><h3>${b.t}</h3><p class="mono" style="font-size:12px">${b.m}</p><p>${b.p}</p>
+  <p style="margin-bottom:4px"><b style="color:var(--ink)">Keep:</b></p><ul style="margin:0 0 8px;padding-left:18px;font-size:14px;color:var(--muted)">${b.el.map(e=>`<li>${e}</li>`).join("")}</ul>
+  <p><b style="color:var(--ink)">Proportions:</b> ${b.pr}</p>
+  <p class="mono" style="font-size:12px;color:${ok?"#3c8a4f":"var(--terra)"}">${ok?"✓":"✕"} porcelain-safe · max ${open.toFixed(0)} % open per wall · ${b.sec}</p>
+  <div class="how"><b>Lantern:</b> ${b.how}</div></div></div>`;}).join("");
+})();
+
+/* ---------- process steps ---------- */
+const STEPS=[
+ ["Design the lantern","Beit Lantern Designer: buildings of 60 × 60 × 40 mm modules on a 30 mm grid, an opening pattern on every wall, plates, candles and roof per building.",
+  ["Start from a house or tower preset, then apply one pattern to a whole side or level.","Keep wall types few: every distinct wall is a mould insert set. The technical sheet counts them.","Facade swapping: one frame mold, interchangeable facade pieces."]],
+ ["Design the plaster mold","Mold making tab: four wall pieces split on the 45° corners, keyed, in a lipped base with a resin core; a 45° scrape chamfer; resin insert sets for the openings.",
+  ["Add a draft check: pins ≥ 1°, relief ≥ 3°.","Add a minimum-feature check for balustrades and claustras.","Keep ≥ 15 mm of plaster behind any pocket."]],
+ ["Print the resin parts","3D print tab: case molds (negatives of each plaster piece), insert sets and the base core, checked against the printer bed.",
+  ["STL export is the gating item: manifold-3d to fuse and cut.","Print facade plates facade-side up, so no supports touch the facade.","Post-cure fully and sand away layer lines; the porcelain copies them.","Clips or strap grooves on the case parts."]],
+ ["Pour the plaster pieces","Mold soap as release. Pottery plaster at 70 parts to 100 parts water by weight: sift, slake 2–3 min, mix 3 min.",
+  ["Vibrate the case 30 s after pouring so bubbles leave the facade face.","Dry the mold 3–5 days, until its weight stops dropping.","Pencil the module type and face on each piece."]],
+ ["Assemble the mold","Base with core, four walls in the lip with keys locked, insert sets clicked into their pockets, strap around.",
+  ["Leak-test only on a spare mold, never on a production one.","Fix seam lines in the design rather than with slip."]],
+ ["Slip-cast","Pour sieved deflocculated slip (specific gravity per the datasheet, often 1.75–1.80) down a wall, fill into the chamfer, top up, wait, drain, scrape the top flat at leather-firm.",
+  ["Calibrate cast time once with a cut test cast: 2.5 mm fired is ≈ 2.9 mm master.","Pull the insert sets as soon as the cast loses its shine, before it shrinks onto the pins.","Drain inverted at a slight angle so drips don't run down the facade."]],
+ ["Fettle","Walls off outwards, cast lifted off the core. Sponge seams and opening edges.",
+  ["Nothing is added while everything is flush: no balconies, frames or panes to join.","Incise the building name or a date inside the base, like a builder's mark."]],
+ ["Dry","Slowly and evenly, loosely covered the first day. Open tubes dry fast at the top edge.",
+  ["Dry standing on a flat bat so the bottom stays square to the top."]],
+ ["Bisque and high fire","Bisque about 950–1000 °C, sponge or sand (wear a mask), then high-fire to the slip's maturing temperature.",
+  ["Fire upright on a flat, washed shelf or a same-body setter.","Projections over ≈ 6 mm need a porcelain prop under them.","Fire a stepped translucency tile (0.6 / 0.8 / 1.0 / 1.2 mm) to choose pane thickness.","Optional: glaze only the inside, which reflects more candlelight out."]],
+ ["Assemble and light","Base, then modules level by level on their 3 mm lips, a plate under every lit level, roof on top. Tealights stand on plates only.",
+  ["Measure the first fired batch and correct the shrink value for the clay.","Keep a batch log: slip SG, cast time, shrink %, wall thickness, glaze."]]
+];
+document.getElementById("steps").innerHTML=STEPS.map(([t,p,imp])=>`<li><div><h3>${t}</h3><p>${p}</p><ul class="imp">${imp.map(i=>`<li>${i}</li>`).join("")}</ul></div></li>`).join("");
+})();
+</script>
+</body>
+</html>

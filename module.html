@@ -145,7 +145,7 @@ body.showgrid #gridOverlay{background:repeating-linear-gradient(to bottom,transp
 <header class="grid12">
   <h1>TIKRAR<small>Beirut Lantern Generator</small></h1>
   <span class="sub">porcelain modules 60 × 60 mm · 40 mm walls · houses, towers and city blocks · 1860–1925 and modernist openings</span>
-  <nav><a href="index.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
+  <nav><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
   <button class="btn icon" id="themeBtn" type="button" aria-label="Toggle colour theme">◐</button></nav>
 </header>
 
@@ -171,14 +171,14 @@ body.showgrid #gridOverlay{background:repeating-linear-gradient(to bottom,transp
       <div class="f"><span class="lbl">Move</span><div class="v"><div class="seg" id="moveSeg"><button type="button" data-mv="-1,0" aria-label="Move left">←</button><button type="button" data-mv="1,0" aria-label="Move right">→</button><button type="button" data-mv="0,-1" aria-label="Move back">↑</button><button type="button" data-mv="0,1" aria-label="Move forward">↓</button><button type="button" id="rotBtn" aria-label="Turn 90°">⟳</button></div></div></div>
       <div class="f"><span class="lbl">Edit</span><div class="v"><div class="seg"><button type="button" id="dupB">Duplicate</button><button type="button" id="delB">Remove</button></div></div></div>
       <div class="f"><span class="lbl">Buildings</span><div class="v"><div class="seg" id="countSeg" title="Grow or shrink the city block (1 to 120): type a number or use − / +; new buildings take the next block slots"><button type="button" data-d="-1" aria-label="One building fewer">−</button><input class="cnt" id="countV" type="number" min="1" max="120" step="1" inputmode="numeric" aria-label="Number of buildings"><button type="button" data-d="1" aria-label="One building more">+</button></div></div></div>
-      <div class="f"><span class="lbl">Block width</span><div class="v"><div class="seg" id="bwSeg" title="Modules per block row (60 mm each); a block is never narrower than its widest building"><button type="button" data-d="-1" aria-label="Narrower blocks">−</button><input class="cnt" id="bwV" type="number" min="2" max="16" step="1" aria-label="Block width in modules"><button type="button" data-d="1" aria-label="Wider blocks">+</button></div><button class="btn" type="button" id="mixBtn" aria-pressed="false" title="Mixed block sizes: every block column its own width (half to twice the block width) and some one-row blocks; Randomize All turns it on">Mix</button></div></div>
+      <div class="f"><span class="lbl">Block width</span><div class="v"><div class="seg" id="bwSeg" title="Modules per block row (60 mm each); a block is never narrower than its widest building"><button type="button" data-d="-1" aria-label="Narrower blocks">−</button><input class="cnt" id="bwV" type="number" min="2" max="16" step="1" aria-label="Block width in modules"><button type="button" data-d="1" aria-label="Wider blocks">+</button></div><button class="btn" type="button" id="mixBtn" aria-pressed="false" title="Clusters: the city as clusters of blocks between continuous main streets, each cluster its own subgrid (1 to 3 blocks across and deep) on side streets, with alleys and one-row blocks; Randomize All turns it on. Off: every block the typed width">Clusters</button></div></div>
       <div class="f"><span class="lbl">Side streets</span><div class="v"><div class="seg" id="gutSeg" title="Streets between block columns"><button type="button" data-d="-15" aria-label="Narrower side streets">−</button><input class="cnt" id="gutV" type="number" min="0" max="240" step="15" aria-label="Side street width, mm" title="mm, in 15 mm steps"><button type="button" data-d="15" aria-label="Wider side streets">+</button></div></div></div>
       <div class="f"><span class="lbl">Main streets</span><div class="v"><div class="seg" id="aveSeg" title="Streets between block rows"><button type="button" data-d="-15" aria-label="Narrower main streets">−</button><input class="cnt" id="aveV" type="number" min="0" max="360" step="15" aria-label="Main street width, mm" title="mm, in 15 mm steps"><button type="button" data-d="15" aria-label="Wider main streets">+</button></div><button class="btn" type="button" id="varyBtn" aria-pressed="false" title="Give every street its own width, from narrow lanes to wide avenues; press again for a new mix">Vary</button></div></div>
       <div class="f"><span class="lbl">Block lines</span><div class="v"><div class="seg" id="blocksSeg" title="Draw the city blocks' outlines on the ground"><button type="button" data-v="0">Hidden</button><button type="button" data-v="1">Shown</button></div></div></div>
       <div class="f"><span class="lbl">Layout</span><div class="v"><button class="btn" type="button" id="gridVillage" style="flex:1">Arrange on grid</button><span class="hint">plazas</span><div class="seg" id="gapSeg" title="Empty blocks (plazas): + leaves the slot after the selected building's block empty, − fills the last one"><button type="button" data-d="-1" aria-label="One empty block fewer">−</button><button type="button" id="gapV" disabled style="cursor:default" title="Empty blocks">0</button><button type="button" data-d="1" aria-label="Add an empty block">+</button></div></div></div>
       <div class="f"><span class="lbl">Landmarks</span><div class="v"><div class="seg" id="lmSeg" title="Randomize All with or without landmarks; each landmark stands alone on its own block"><button type="button" data-v="0">Without</button><button type="button" data-v="1">With</button></div></div></div>
       <div class="f"><span class="lbl">Randomize</span><div class="v"><div class="seg"><button type="button" id="randBlock" title="New buildings in the selected building's block only, on the same footprints: the other blocks stay as they are">Block</button><button type="button" id="randVillage" title="New buildings everywhere">All</button><button type="button" id="rand10" title="10 random shots as a GIF: ten randomized cities as one GIF (Keep palette keeps the palette in every shot); your design comes back afterwards">GIF ×10</button></div><button class="btn" type="button" id="keepPal" aria-pressed="false" title="Randomize with the selected building's palette">Keep palette</button></div></div>
-      <p class="hint">Arrange on grid packs the buildings wall to wall into city blocks of equal width (Block width, 6 modules by default; type any number in the fields), two rows back to back, each row facing its own street. Side streets run between block columns, main streets between block rows; − / + re-lays the blocks live. Vary gives every street its own width, from narrow lanes to wide avenues (turn it off and on for a new mix; Randomize All mixes them again too; Randomize Block renews only the selected building's block). Arrows move one building in 30 mm steps. Block lines draws the blocks' outlines on the ground.</p>
+      <p class="hint">Arrange on grid packs the buildings wall to wall into city blocks of equal width (Block width, 6 modules by default; type any number in the fields), two rows back to back, each row facing its own street. Side streets run between block columns, main streets between block rows; − / + re-lays the blocks live. Vary gives every street its own width, from narrow lanes to wide avenues (turn it off and on for a new mix; Randomize All mixes them again too and lays the city out in clusters (Clusters button: groups of blocks between main streets, each with its own subgrid); Randomize Block renews only the selected building's block). Arrows move one building in 30 mm steps. Block lines draws the blocks' outlines on the ground.</p>
     </div>
 
     <div class="panel">
@@ -358,7 +358,7 @@ let BLOCKM=6;const blockW=list=>Math.max(BLOCKM*W,...list.map(b=>b.cols*W));   /
    with Vary on, every street gets its own width from narrow lanes to wide avenues, kept until you vary again */
 const r15=v=>Math.max(0,Math.round(v/15)*15);
 function varyStreets(){const pk=a=>a[Math.floor(Math.random()*a.length)];S.colGaps=Array.from({length:12},()=>pk([0.5,1,1,2]));S.rowGaps=Array.from({length:12},()=>pk([0.5,1,1.5,2.5]));}
-/* subgrids: with Mix on the city is a grid of districts (superblocks) between continuous main streets; each district
+/* subgrids: with Mix on the city is a grid of clusters (superblocks) between continuous main streets; each cluster
    has its own subgrid of blocks (1 to 3 across, 1 to 3 deep) on side streets, block widths in whole modules; some blocks
    hold one row, some are split by a 15 mm alley into two parcels */
 function rollBlocks(){const pk=a=>a[Math.floor(Math.random()*a.length)];
@@ -366,7 +366,7 @@ function rollBlocks(){const pk=a=>a[Math.floor(Math.random()*a.length)];
     one:Array.from({length:k*rows},()=>Math.random()<0.25),alley:Array.from({length:k*rows},()=>Math.random()<0.35)};});}
 const LAYOUT={cols:[],rows:[],blocks:[],cg:()=>0,rg:()=>0,cw:()=>0,dist:null};   /* the last layout, for the block lines */
 const ALLEY=15;
-function districtLayout(list){const g=gut(),main=ave(),wide=Math.max(...list.map(b=>b.cols*W)),gaps=new Set(S.gaps||[]),dists=[];let gi=0,cur=null,di=0;
+function clusterLayout(list){const g=gut(),main=ave(),wide=Math.max(...list.map(b=>b.cols*W)),gaps=new Set(S.gaps||[]),dists=[];let gi=0,cur=null,di=0;
   const newDist=()=>{const sp=S.dist[di++%S.dist.length],k=sp.bw.length,d={blocks:[],k,rows:sp.rows,cw:sp.bw.map(m=>Math.max(m*W,wide))};
     for(let r=0;r<sp.rows;r++)for(let c=0;c<k;c++){const j=r*k+c;d.blocks.push({c,r,BW:d.cw[c],one:sp.one[j],alley:sp.alley[j]&&!sp.one[j],rows:[[],[]],w:[0,0],gi:gi,empty:gaps.has(gi++)});}
     dists.push(d);return d;};
@@ -376,24 +376,24 @@ function districtLayout(list){const g=gut(),main=ave(),wide=Math.max(...list.map
   list.forEach(b=>{b.rot=0;const w=b.cols*W;if(solo){next();solo=false;}
     if(isLM(b)){if(used(D.blocks[bi]))next();const k=D.blocks[bi];k.rows[0].push(b);k.w[0]=k.BW;k.solo=true;b.blk=k.gi;solo=true;return;}
     for(;;){const k=D.blocks[bi];const r=k.w[0]+w<=k.BW?0:!k.one&&k.w[1]+w<=k.BW?1:-1;if(r>=0){k.rows[r].push(b);k.w[r]+=w;b.blk=k.gi;break;}next();}});
-  /* trim the last district's unused rows */
+  /* trim the last cluster's unused rows */
   {const L=dists[dists.length-1];while(L.rows>1&&L.blocks.filter(k=>k.r===L.rows-1).every(k=>!k.rows[0].length)){L.blocks=L.blocks.filter(k=>k.r<L.rows-1);L.rows--;}}
   dists.forEach(d=>{d.blocks.forEach(k=>{k.d=k.rows.map(r=>r.length?Math.max(...r.map(b=>b.deep*W)):0);k.D=k.d[0]+k.d[1]+(k.alley&&k.d[1]?ALLEY:0);});
     d.rd=Array.from({length:d.rows},(_,r)=>Math.max(W,...d.blocks.filter(k=>k.r===r).map(k=>k.D)));
     d.w=d.cw.reduce((a,x)=>a+x,0)+(d.k-1)*g;d.d=d.rd.reduce((a,x)=>a+x,0)+(d.rows-1)*g;});
-  /* districts on the main grid: the column count that makes the city about 1.3 times as wide as deep */
+  /* clusters on the main grid: the column count that makes the city about 1.3 times as wide as deep */
   const geo=n=>{const br=Math.ceil(dists.length/n),cwd=Array.from({length:n},(_,c)=>Math.max(0,...dists.filter((_,i)=>i%n===c).map(d=>d.w))),rdd=Array.from({length:br},(_,r)=>Math.max(0,...dists.slice(r*n,r*n+n).map(d=>d.d)));
     return {n,br,cwd,rdd,TW:cwd.reduce((a,x)=>a+x,0)+(n-1)*main,TD:rdd.reduce((a,x)=>a+x,0)+(br-1)*main};};
   let G=geo(1),best=1e9;for(let n=1;n<=dists.length;n++){const q=geo(n),s=Math.abs(Math.log(q.TW/q.TD/1.3));if(s<best){best=s;G=q;}}
   const dcols=[],drows=[];{let x=-G.TW/2;G.cwd.forEach(w=>{dcols.push({x0:x,w});x+=w+main;});let z=G.TD/2;G.rdd.forEach(d=>{drows.push({z1:z,d});z-=d+main;});}
-  GAPS.length=0;LAYOUT.blocks=[];LAYOUT.dist={dcols,drows,main,g,districts:[]};
-  dists.forEach((d,i)=>{const x0=dcols[i%G.n].x0,z1=drows[Math.floor(i/G.n)].z1,dl={x0,z1,w:d.w,d:d.d,blocks:[]};LAYOUT.dist.districts.push(dl);
+  GAPS.length=0;LAYOUT.blocks=[];LAYOUT.dist={dcols,drows,main,g,clusters:[]};
+  dists.forEach((d,i)=>{const x0=dcols[i%G.n].x0,z1=drows[Math.floor(i/G.n)].z1,dl={x0,z1,w:d.w,d:d.d,blocks:[]};LAYOUT.dist.clusters.push(dl);
     d.blocks.forEach(k=>{let bx=x0;for(let c=0;c<k.c;c++)bx+=d.cw[c]+g;let bz=z1;for(let r=0;r<k.r;r++)bz-=d.rd[r]+g;
       const bd=k.D||d.rd[k.r];dl.blocks.push({x0:bx,x1:bx+k.BW,z0:bz-bd,z1:bz,alley:k.alley&&k.d[1]?bz-k.d[0]:null});if(k.empty)GAPS.push({x0:bx,z0:bz-d.rd[k.r],z1:bz});
       k.rows.forEach((row,ri)=>{let x=bx+(k.solo&&row.length?(k.BW-row[0].cols*W)/2:0);row.forEach(b=>{const w=b.cols*W,dd=b.deep*W;b.x=x+w/2;x+=w;if(ri===0)b.z=bz-dd/2;else{b.z=bz-k.D+dd/2;b.rot=2;}});});});});
   return list;}
 function gridLayout(list){if(!list.length)return list;let vary=false,mix=false;try{vary=!!(S.vary&&S.colGaps);mix=!!(S.mix&&S.dist);}catch(e){}   /* S is still being created while the default village is laid out */
-  if(mix)return districtLayout(list);LAYOUT.dist=null;
+  if(mix)return clusterLayout(list);LAYOUT.dist=null;
   const g=gut(),main=ave(),cg=c=>vary?r15(g*S.colGaps[((c%12)+12)%12]):g,rg=r=>vary?r15(main*S.rowGaps[((r%12)+12)%12]):main,BW=blockW(list),wide=Math.max(...list.map(b=>b.cols*W));
   const cw=()=>BW,one=()=>false;
   const gaps=new Set((()=>{try{return S.gaps||[];}catch(e){return [];}})());
@@ -592,15 +592,15 @@ function buildRoom(){scene.remove(room);room.traverse(o=>{if(o.geometry)o.geomet
     if(!LAYOUT.blocks.length)gridLayout(JSON.parse(JSON.stringify(S.buildings)));   /* a saved design: work the layout out on a copy, nothing moves */
     const L=LAYOUT,bc=L.cols.length,br=L.rows.length;L.blocks.forEach(k=>rect(k.x0,k.z0,k.x0+k.w,k.z1));
     if(L.dist){const Dd=L.dist,thick=[],band=(x0,z0,x1,z1)=>{const c=[[x0,z0],[x1,z0],[x1,z1],[x0,z1]];c.forEach((p,i)=>thick.push([p,c[(i+1)%4]]));};
-      Dd.districts.forEach(d=>{band(d.x0,d.z1-d.d,d.x0+d.w,d.z1);d.blocks.forEach(k=>{rect(k.x0,k.z0,k.x1,k.z1);if(k.alley!==null){pts.push(new THREE.Vector3(k.x0,0.3,k.alley),new THREE.Vector3(k.x1,0.3,k.alley),new THREE.Vector3(k.x0,0.3,k.alley-ALLEY),new THREE.Vector3(k.x1,0.3,k.alley-ALLEY));}});});
-      /* the district grid carried across the ground: same column widths, row depths and main streets, each cell with its own subgrid */
+      Dd.clusters.forEach(d=>{band(d.x0,d.z1-d.d,d.x0+d.w,d.z1);d.blocks.forEach(k=>{rect(k.x0,k.z0,k.x1,k.z1);if(k.alley!==null){pts.push(new THREE.Vector3(k.x0,0.3,k.alley),new THREE.Vector3(k.x1,0.3,k.alley),new THREE.Vector3(k.x0,0.3,k.alley-ALLEY),new THREE.Vector3(k.x1,0.3,k.alley-ALLEY));}});});
+      /* the cluster grid carried across the ground: same column widths, row depths and main streets, each cell with its own subgrid */
       const gb=bounds(),ext=Math.max(gb.x1-gb.x0,gb.z1-gb.z0)/2+(S.night?1600:700),mx=(gb.x0+gb.x1)/2,mz=(gb.z0+gb.z1)/2,nc=Dd.dcols.length,nr=Dd.drows.length,
         cwA=i=>Dd.dcols[((i%nc)+nc)%nc].w,rdA=j=>Dd.drows[((j%nr)+nr)%nr].d,cols=Dd.dcols.map((c,i)=>({i,x0:c.x0,w:c.w})),rows=Dd.drows.map((r,j)=>({j,z1:r.z1,d:r.d}));
       for(let i=-1,x=cols[0].x0;x>mx-ext;i--){const w=cwA(i);x-=Dd.main+w;cols.unshift({i,x0:x,w});}
       for(let i=nc,x=cols[cols.length-1].x0+cols[cols.length-1].w;x<mx+ext;i++){x+=Dd.main;cols.push({i,x0:x,w:cwA(i)});x+=cwA(i);}
       for(let j=-1,z=rows[0].z1;z<mz+ext;j--){const d=rdA(j);z+=Dd.main+d;rows.unshift({j,z1:z,d});}
       for(let j=nr,z=rows[rows.length-1].z1-rows[rows.length-1].d;z>mz-ext;j++){z-=Dd.main;rows.push({j,z1:z,d:rdA(j)});z-=rdA(j);}
-      const used=new Set(Dd.districts.map((_,i)=>(i%nc)+","+Math.floor(i/nc)));
+      const used=new Set(Dd.clusters.map((_,i)=>(i%nc)+","+Math.floor(i/nc)));
       cols.forEach(c=>rows.forEach(r=>{if(used.has(c.i+","+r.j))return;band(c.x0,r.z1-r.d,c.x0+c.w,r.z1);
         const sp=S.dist[(((c.i*7+r.j*13)%60)+60)%60],k=Math.min(sp.bw.length,Math.max(1,Math.floor((c.w+Dd.g)/(2*W+Dd.g)))),n=Math.min(sp.rows,Math.max(1,Math.floor((r.d+Dd.g)/(W+Dd.g))));
         const bw=(c.w-(k-1)*Dd.g)/k,bd=(r.d-(n-1)*Dd.g)/n;for(let a=0;a<k;a++)for(let q=0;q<n;q++){const x0=c.x0+a*(bw+Dd.g),z1=r.z1-q*(bd+Dd.g);rect(x0,z1-bd,x0+bw,z1);}}));
