@@ -44,6 +44,7 @@ body.nopanel .layout>aside{display:none}body.nopanel .layout>.viewer{grid-column
 @media (max-width:760px){.grid12{--m:16px}.layout>.viewer,.layout>aside{grid-column:1/-1}header h1{grid-column:1/-1;font-size:32px;line-height:32px}header .sub{grid-column:1/10}header nav{grid-column:10/13}}
 .viewer{position:sticky;top:var(--m);background:#fff;outline:1px solid var(--line);overflow:hidden;aspect-ratio:1/1;max-height:calc(100vh - 2*var(--m));width:100%}
 @media (max-width:760px){.viewer{position:relative;top:0;aspect-ratio:4/3}}
+
 .viewer canvas{display:block;width:100%!important;height:100%!important;touch-action:none}
 .vbar{position:absolute;left:0;right:0;bottom:0;display:flex;flex-wrap:wrap;background:rgba(17,17,17,.88)}
 .vbar .grp{display:flex;align-items:center;color:#f2f2f2;font:500 11px/16px var(--sans);text-transform:uppercase;letter-spacing:.06em;border-right:1px solid rgba(255,255,255,.16)}
@@ -138,6 +139,12 @@ select{height:var(--ctl);background:var(--field);border:0;border-radius:0;paddin
 body.showgrid #gridOverlay{display:grid}
 #gridOverlay i{background:color-mix(in srgb,var(--terra) 7%,transparent);border-left:1px solid color-mix(in srgb,var(--terra) 25%,transparent);border-right:1px solid color-mix(in srgb,var(--terra) 25%,transparent)}
 body.showgrid #gridOverlay{background:repeating-linear-gradient(to bottom,transparent 0 7px,rgba(0,140,255,.12) 7px 8px)}
+/* phones: title and nav share the first row, the 3D view takes most of the screen, the toolbar is one row you swipe sideways */
+@media (max-width:760px){header h1{grid-column:1/8;grid-row:1}header nav{grid-column:8/13;grid-row:1;align-self:start}header .sub{grid-column:1/-1;grid-row:2}
+  .layout>.viewer{aspect-ratio:auto;height:min(64svh,560px);min-height:340px}
+  .vbar{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}.vbar::-webkit-scrollbar{display:none}.vbar .grp{flex:none}
+  .tag{padding:8px 12px;font-size:10px;line-height:14px}
+  .f>.lbl{grid-column:1/-1;padding-top:8px}.f>.v{grid-column:1/-1;flex-wrap:wrap}.f>.v>.hint{flex-basis:100%}.seg button{padding:0 4px}}
 </style>
 </head>
 <body>
