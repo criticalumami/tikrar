@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<meta http-equiv="Cache-Control" content="no-cache, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>TIKRAR · Beirut Lantern Generator</title>
 <meta name="description" content="Design porcelain lanterns from 60 × 60 mm modules with 40 mm walls: houses and towers, whole city blocks, 1860–1925 and modernist openings, candles and plates per level, with dimensioned PDF sheets.">
@@ -27,6 +28,7 @@ header .sub{grid-column:8/11;font-size:11px;line-height:16px;color:var(--ink)}
 header nav{grid-column:11/13;justify-self:end;display:flex;gap:var(--u);align-items:center}
 header nav a{color:var(--ink);font-size:11px;font-weight:700;text-decoration:none;text-transform:uppercase;letter-spacing:.06em}
 header nav a:hover{color:var(--terra)}
+#ver{font-size:10px;color:var(--muted);margin-right:8px;white-space:nowrap}
 .btn{height:var(--ctl);border:1px solid var(--ink);background:transparent;color:var(--ink);font:500 13px/16px var(--sans);padding:0 12px;border-radius:0;cursor:pointer;white-space:nowrap}
 .btn:hover{background:var(--ink);color:var(--bg)}
 .btn.primary{background:var(--ink);color:var(--bg)}
@@ -139,8 +141,19 @@ select{height:var(--ctl);background:var(--field);border:0;border-radius:0;paddin
 body.showgrid #gridOverlay{display:grid}
 #gridOverlay i{background:color-mix(in srgb,var(--terra) 7%,transparent);border-left:1px solid color-mix(in srgb,var(--terra) 25%,transparent);border-right:1px solid color-mix(in srgb,var(--terra) 25%,transparent)}
 body.showgrid #gridOverlay{background:repeating-linear-gradient(to bottom,transparent 0 7px,rgba(0,140,255,.12) 7px 8px)}
+/* slim top bar: one row, wordmark and subtitle side by side, so the 3D view gets the height */
+header.grid12{align-items:center;padding-top:8px;padding-bottom:8px;row-gap:0}
+header h1,header h1{font-size:22px;line-height:32px;letter-spacing:-.02em;white-space:nowrap}
+header h1 small{display:inline;margin:0 0 0 12px;vertical-align:2px}
+header .sub{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--muted)}
+@media (max-width:1100px){header .sub{display:none}header h1{grid-column:1/10}header nav{grid-column:10/13}}
+/* thinner still: a 32 px bar with a hairline rule, small buttons, and a tighter gap above the view */
+header.grid12{padding-top:4px;padding-bottom:4px;border-bottom-width:1px}
+header h1{font-size:17px;line-height:24px}header h1 small{font-size:10px;margin-left:10px;vertical-align:1px}
+header nav .btn.icon{height:24px;width:24px;min-width:24px;padding:0;font-size:12px;line-height:22px}
+.layout{padding-top:12px}
 /* phones: title and nav share the first row, the 3D view takes most of the screen, the toolbar is one row you swipe sideways */
-@media (max-width:760px){header h1{grid-column:1/8;grid-row:1}header nav{grid-column:8/13;grid-row:1;align-self:start}header .sub{grid-column:1/-1;grid-row:2}
+@media (max-width:760px){header h1{grid-column:1/9;grid-row:1;font-size:20px}header h1 small{display:block;margin:0;font-size:9px;line-height:12px;vertical-align:0}header nav{grid-column:9/13;grid-row:1;align-self:center}header .sub{display:none}
   .layout>.viewer{aspect-ratio:auto;height:min(64svh,560px);min-height:340px}
   .layout>.viewer{overflow:visible;margin-bottom:var(--ctl)}.vbar{top:100%;bottom:auto;background:#111;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}.vbar::-webkit-scrollbar{display:none}.vbar .grp{flex:none}
   .tag{padding:8px 12px;font-size:10px;line-height:14px}
@@ -152,7 +165,7 @@ body.showgrid #gridOverlay{background:repeating-linear-gradient(to bottom,transp
 <header class="grid12">
   <h1>TIKRAR<small>Beirut Lantern Generator</small></h1>
   <span class="sub">porcelain modules 60 × 60 mm · 40 mm walls · houses, towers and city blocks · 1860–1925 and modernist openings</span>
-  <nav><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
+  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 30.10 · 12:35</span><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
   <button class="btn icon" id="themeBtn" type="button" aria-label="Toggle colour theme">◐</button></nav>
 </header>
 
@@ -174,18 +187,19 @@ body.showgrid #gridOverlay{background:repeating-linear-gradient(to bottom,transp
       <h2>City block <span class="meta" id="villageMeta"></span></h2>
       <div class="blist" id="bList"></div>
       <div class="f"><span class="lbl">Select</span><div class="v"><div class="seg"><button type="button" id="selAll">All</button><button type="button" id="selNone">Clear</button></div><span class="hint">shift or ⌘ click to pick several</span></div></div>
-      <div class="f"><span class="lbl">Add</span><div class="v"><select id="addKind" aria-label="Building to add"><option value="central">Central-hall house</option><option value="liwan">Līwān house</option><option value="photo">Arches &amp; keyholes</option><option value="stair">Stair tower</option><option value="modernRow">Modernist block</option><option value="modernTower">Modernist tower</option><option value="random">Random</option><optgroup label="Landmarks, true size at 1:75"><option value="holiday">Holiday Inn · 26 storeys</option><option value="gefinor">Gefinor Center · 15 storeys</option><option value="edl">Électricité du Liban · 15 storeys</option><option value="saroulla">Saroulla building · 10 storeys</option><option value="egg">The Egg · cinema</option><option value="museum">National Museum</option></optgroup></select><button class="btn" type="button" id="addBtn">Add</button></div></div>
+      <div class="f"><span class="lbl">Add</span><div class="v"><select id="addKind" aria-label="Building to add"><option value="central">Central-hall house</option><option value="liwan">Līwān house</option><option value="photo">Arches &amp; keyholes</option><option value="stair">Stair tower</option><option value="modernRow">Modernist block</option><option value="modernTower">Modernist tower</option><option value="court">Public court (flat tray)</option><option value="random">Random</option><optgroup label="Landmarks, true size at 1:75"><option value="holiday">Holiday Inn · 26 storeys</option><option value="gefinor">Gefinor Center · 15 storeys</option><option value="edl">Électricité du Liban · 15 storeys</option><option value="saroulla">Saroulla building · 10 storeys</option><option value="egg">The Egg · cinema</option><option value="museum">National Museum</option></optgroup></select><button class="btn" type="button" id="addBtn">Add</button></div></div>
       <div class="f"><span class="lbl">Move</span><div class="v"><div class="seg" id="moveSeg"><button type="button" data-mv="-1,0" aria-label="Move left">←</button><button type="button" data-mv="1,0" aria-label="Move right">→</button><button type="button" data-mv="0,-1" aria-label="Move back">↑</button><button type="button" data-mv="0,1" aria-label="Move forward">↓</button><button type="button" id="rotBtn" aria-label="Turn 90°">⟳</button></div></div></div>
       <div class="f"><span class="lbl">Edit</span><div class="v"><div class="seg"><button type="button" id="dupB">Duplicate</button><button type="button" id="delB">Remove</button></div></div></div>
       <div class="f"><span class="lbl">Buildings</span><div class="v"><div class="seg" id="countSeg" title="Grow or shrink the city block (1 to 120): type a number or use − / +; new buildings take the next block slots"><button type="button" data-d="-1" aria-label="One building fewer">−</button><input class="cnt" id="countV" type="number" min="1" max="120" step="1" inputmode="numeric" aria-label="Number of buildings"><button type="button" data-d="1" aria-label="One building more">+</button></div></div></div>
       <div class="f"><span class="lbl">Block width</span><div class="v"><div class="seg" id="bwSeg" title="Modules per block row (60 mm each); a block is never narrower than its widest building"><button type="button" data-d="-1" aria-label="Narrower blocks">−</button><input class="cnt" id="bwV" type="number" min="2" max="16" step="1" aria-label="Block width in modules"><button type="button" data-d="1" aria-label="Wider blocks">+</button></div><button class="btn" type="button" id="mixBtn" aria-pressed="false" title="Clusters: the city as clusters of blocks between continuous main streets, each cluster its own subgrid (1 to 3 blocks across and deep) on side streets, with alleys and one-row blocks; Randomize All turns it on. Off: every block the typed width">Clusters</button></div></div>
       <div class="f"><span class="lbl">Side streets</span><div class="v"><div class="seg" id="gutSeg" title="Streets between block columns"><button type="button" data-d="-15" aria-label="Narrower side streets">−</button><input class="cnt" id="gutV" type="number" min="0" max="240" step="15" aria-label="Side street width, mm" title="mm, in 15 mm steps"><button type="button" data-d="15" aria-label="Wider side streets">+</button></div></div></div>
       <div class="f"><span class="lbl">Main streets</span><div class="v"><div class="seg" id="aveSeg" title="Streets between block rows"><button type="button" data-d="-15" aria-label="Narrower main streets">−</button><input class="cnt" id="aveV" type="number" min="0" max="360" step="15" aria-label="Main street width, mm" title="mm, in 15 mm steps"><button type="button" data-d="15" aria-label="Wider main streets">+</button></div><button class="btn" type="button" id="varyBtn" aria-pressed="false" title="Give every street its own width, from narrow lanes to wide avenues; press again for a new mix">Vary</button></div></div>
-      <div class="f"><span class="lbl">Block lines</span><div class="v"><div class="seg" id="blocksSeg" title="Draw the city blocks' outlines on the ground"><button type="button" data-v="0">Hidden</button><button type="button" data-v="1">Shown</button></div></div></div>
-      <div class="f"><span class="lbl">Layout</span><div class="v"><button class="btn" type="button" id="gridVillage" style="flex:1">Arrange on grid</button><span class="hint">plazas</span><div class="seg" id="gapSeg" title="Empty blocks (plazas): + leaves the slot after the selected building's block empty, − fills the last one"><button type="button" data-d="-1" aria-label="One empty block fewer">−</button><button type="button" id="gapV" disabled style="cursor:default" title="Empty blocks">0</button><button type="button" data-d="1" aria-label="Add an empty block">+</button></div></div></div>
+      <div class="f"><span class="lbl">Blocks</span><div class="v"><div class="seg" id="blocksSeg" title="The city blocks on the ground. Lines: outlines drawn on the ground. Plots: each block is a flat porcelain tray (4 mm, rounded) that the buildings stand on; an empty block becomes a public space; the streets are the gaps between trays"><button type="button" data-v="0">Hidden</button><button type="button" data-v="1">Lines</button><button type="button" data-v="2">Plots</button></div></div></div>
+      <div class="f"><span class="lbl">Layout</span><div class="v"><button class="btn" type="button" id="gridVillage" style="flex:1">Arrange on grid</button></div></div>
+      <div class="f"><span class="lbl">Plazas</span><div class="v"><div class="seg" id="gapSeg" title="Plazas (empty blocks, public space): + leaves the block after the selected building's block empty, − fills the last one. With Blocks on Plots each plaza is an empty porcelain tray"><button type="button" data-d="-1" aria-label="One empty block fewer">−</button><button type="button" id="gapV" disabled style="cursor:default" title="Empty blocks">0</button><button type="button" data-d="1" aria-label="Add an empty block">+</button></div></div></div>
       <div class="f"><span class="lbl">Landmarks</span><div class="v"><div class="seg" id="lmSeg" title="Randomize All with or without landmarks; each landmark stands alone on its own block"><button type="button" data-v="0">Without</button><button type="button" data-v="1">With</button></div></div></div>
       <div class="f"><span class="lbl">Randomize</span><div class="v"><div class="seg"><button type="button" id="randBlock" title="New buildings in the selected building's block only, on the same footprints: the other blocks stay as they are">Block</button><button type="button" id="randVillage" title="New buildings everywhere">All</button><button type="button" id="rand10" title="10 random shots as a GIF: ten randomized cities as one GIF (Keep palette keeps the palette in every shot); your design comes back afterwards">GIF ×10</button></div><button class="btn" type="button" id="keepPal" aria-pressed="false" title="Randomize with the selected building's palette">Keep palette</button></div></div>
-      <p class="hint">Arrange on grid packs the buildings wall to wall into city blocks of equal width (Block width, 6 modules by default; type any number in the fields), two rows back to back, each row facing its own street. Side streets run between block columns, main streets between block rows; − / + re-lays the blocks live. Vary gives every street its own width, from narrow lanes to wide avenues (turn it off and on for a new mix; Randomize All mixes them again too and lays the city out in clusters (Clusters button: groups of blocks between main streets, each with its own subgrid); Randomize Block renews only the selected building's block). Arrows move one building in 30 mm steps. Block lines draws the blocks' outlines on the ground.</p>
+      <p class="hint">Arrange on grid packs the buildings wall to wall into city blocks of equal width (Block width, 6 modules by default; type any number in the fields), two rows back to back, each row facing its own street. Side streets run between block columns, main streets between block rows; − / + re-lays the blocks live. Vary gives every street its own width, from narrow lanes to wide avenues (turn it off and on for a new mix; Randomize All mixes them again too and lays the city out in clusters (Clusters button: groups of blocks between main streets, each with its own subgrid); Randomize Block renews only the selected building's block). Arrows move one building in 30 mm steps. Blocks: Lines draws the blocks' outlines on the ground (main streets heavier); Plots turns each block into a flat 4 mm porcelain tray the buildings stand on, so streets are the gaps between trays and an empty block is a public space.</p>
     </div>
 
     <div class="panel">
@@ -288,6 +302,8 @@ const KINDS={
       if(f==="front")return [wall("ribbon",{style:"two"}),wall("claustra",{style:"squares"}),wall("fins")][c];
       if(f==="back")return l?wall("ribbon"):wall("picture");
       return f==="left"?wall("portholes",{style:"tower"}):wall("glassblock");}),
+  /* public court: a flat porcelain tray (no walls, no roof) for a square, a courtyard or a plot left open */
+  court:()=>make("Public court","modern",2,2,1,"none",()=>INNER(),{court:true,candles:[false],plates:[true]}),
   modernTower:()=>make("Modernist tower","modern",1,1,6,"modern",(c,r,l,f)=>{
       if(l===0)return f==="front"?wall("pilotis"):f==="back"?wall("picture"):wall("glassblock");
       if(f==="front")return [null,wall("eggcrate"),wall("ribbon"),wall("claustra",{style:"crosses"}),wall("eggcrate"),wall("ribbon",{style:"two"})][l];
@@ -511,7 +527,9 @@ const PALETTES={
   green:{name:"Green and cream",accent:0x1e5a40,walls:"cream",accents:["green","ochre"],plates:"green",roof:"green"},
   gray:{name:"Grayscale",accent:0x5e5e5c,walls:"white",accents:["pale","mid","charcoal"],plates:"charcoal",roof:"mid"},
   white:{name:"All white",accent:0xe2231a,walls:"white",accents:["white"],plates:"white",roof:"white"}};
-function applyPalette(b,key,accentShare){const p=PALETTES[key];if(b.finish==="unglazed"||!b.finish)b.finish="glazed";b.glazeCol=p.walls;b.plateCol=p.plates;b.roofCol=p.roof;b.palette=key;
+function applyPalette(b,key,accentShare){const p=PALETTES[key];if(b.finish==="unglazed"||!b.finish)b.finish="glazed";b.glazeCol=p.walls;b.plateCol=p.plates;b.palette=key;
+  /* roofs vary with the palette, building by building: white about two times in three, otherwise the palette's roof colour or one of its accents */
+  b.roofCol=Math.random()<0.65?"white":pick([p.roof,p.roof,...p.accents]);
   const share=accentShare===undefined?0.3:accentShare;Object.keys(b.mods).forEach(k=>{if(Math.random()<share)b.mods[k].col=pick(p.accents);else delete b.mods[k].col;});}
 /* the site accent follows the palette in use: the last palette applied (or the city's most common one) gives the
    colour of highlights, active buttons, the grid overlay, the selection outline and the block lines */
@@ -521,8 +539,8 @@ function applyAccent(){const h=accentHex(),c=new THREE.Color(h),dark=getComputed
   root.style.setProperty("--terra","#"+ui.getHexString());root.style.setProperty("--terra-soft","#"+ui.clone().lerp(new THREE.Color(dark?0x0e0e0e:0xffffff),0.88).getHexString());
   [MAT.sel,MAT.line,MAT.band].forEach(m=>m.color.set(h));need();}
 const usePal=k=>{S.accentPal=k;};
-/* a palette picked at random: roofs come out white about two times in three, the palette's roof colour otherwise */
-function randPal(b,key){applyPalette(b,key);if(Math.random()<0.65)b.roofCol="white";}
+/* a palette picked at random (roofs vary as in applyPalette) */
+function randPal(b,key){applyPalette(b,key);}
 const hex=c=>"#"+c.toString(16).padStart(6,"0");
 const MATS={};
 let grain=null;function grainTex(){if(grain)return grain;const c=document.createElement("canvas");c.width=c.height=256;const g=c.getContext("2d"),im=g.createImageData(256,256);
@@ -551,20 +569,23 @@ function speckleTex(body,faint){const key="sp"+body+(faint?"f":"");if(RT[key])re
   const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(1/30,1/30);t.anisotropy=8;t.encoding=THREE.sRGBEncoding;return RT[key]=t;}
 function hqMatOf(body,glaze,col,bd){const lin=new THREE.Color(col).convertSRGBToLinear();
   const m=glaze==="unglazed"
-    ?new THREE.MeshStandardMaterial({color:lin,map:body==="porcelain"?null:speckleTex(body),roughness:1,roughnessMap:roughTex(),normalMap:biscuitN(),normalScale:new THREE.Vector2(0.9,0.9),metalness:0,envMapIntensity:0.08})
+    ?new THREE.MeshStandardMaterial({color:lin,map:body==="porcelain"?null:speckleTex(body),roughness:1,roughnessMap:roughTex(),normalMap:biscuitN(),normalScale:new THREE.Vector2(0.25,0.25),metalness:0,envMapIntensity:0.08})
     :new THREE.MeshPhysicalMaterial({color:lin,map:body==="porcelain"?null:speckleTex(body,true),roughness:0.2,metalness:0,normalMap:biscuitN(),normalScale:new THREE.Vector2(0.1,0.1),
        clearcoat:1,clearcoatRoughness:0.03,clearcoatNormalMap:glazeN(),clearcoatNormalScale:new THREE.Vector2(0.3,0.3),envMapIntensity:0.22,reflectivity:0.5});
-  m.userData.translucent=bd.glow;m.emissive=new THREE.Color(0xff9a3c).convertSRGBToLinear();m.emissiveIntensity=0;return m;}
+  m.userData.translucent=bd.glow;m.emissive=new THREE.Color(0xff9a3c).convertSRGBToLinear();m.emissiveIntensity=0;m.onBeforeCompile=groundAO;return m;}
 /* glazes are matte (satin) unless the building is set to Gloss */
 function matOf(body,glaze,gloss){const k=(S.render?"R|":"")+body+"|"+glaze+(gloss?"|g":"");if(MATS[k])return MATS[k];const bd=BODY[body]||BODY.porcelain;
   if(S.render){const col0=glaze==="unglazed"?bd.col:(GLAZE[glaze]&&GLAZE[glaze].col!==null?GLAZE[glaze].col:new THREE.Color(bd.col).lerp(new THREE.Color(0xffffff),0.12).getHex());const m=hqMatOf(body,glaze,col0,bd);
     if(glaze!=="unglazed"&&!gloss){m.roughness=0.6;m.clearcoat=0.15;m.clearcoatRoughness=0.5;m.envMapIntensity=0.12;}return MATS[k]=m;}
   const col=glaze==="unglazed"?bd.col:(GLAZE[glaze]&&GLAZE[glaze].col!==null?GLAZE[glaze].col:new THREE.Color(bd.col).lerp(new THREE.Color(0xffffff),0.12).getHex());
   const m=glaze==="unglazed"
-    ?new THREE.MeshStandardMaterial({color:col,roughness:0.92,metalness:0,envMapIntensity:0.2,bumpMap:grainTex(),bumpScale:0.035})        /* matte biscuit, fine grain */
+    ?new THREE.MeshStandardMaterial({color:col,roughness:0.92,metalness:0,envMapIntensity:0.15,bumpMap:grainTex(),bumpScale:0.035})        /* matte biscuit, fine grain */
     :gloss?new THREE.MeshPhysicalMaterial({color:col,roughness:0.28,metalness:0,clearcoat:1,clearcoatRoughness:0.06,envMapIntensity:0.55})        /* glassy glaze over the body */
-    :new THREE.MeshStandardMaterial({color:col,roughness:0.66,metalness:0,envMapIntensity:0.3});        /* satin-matte glaze */
-  m.userData.translucent=bd.glow;m.emissive=new THREE.Color(0xff9a3c);m.emissiveIntensity=0;return MATS[k]=m;}
+    :new THREE.MeshStandardMaterial({color:col,roughness:0.66,metalness:0,envMapIntensity:0.2});        /* satin-matte glaze */
+  m.userData.translucent=bd.glow;m.emissive=new THREE.Color(0xff9a3c);m.emissiveIntensity=0;m.onBeforeCompile=groundAO;return MATS[k]=m;}
+/* cheap contact occlusion, no extra pass: light falls off softly over the bottom ~25 mm (about 2 m at 1:75), so buildings sit on the ground */
+function groundAO(sh){sh.vertexShader=sh.vertexShader.replace("#include <common>","#include <common>\nvarying float vAOy;").replace("#include <worldpos_vertex>","#include <worldpos_vertex>\nvAOy=(modelMatrix*vec4(transformed,1.0)).y;");
+  sh.fragmentShader=sh.fragmentShader.replace("#include <common>","#include <common>\nvarying float vAOy;").replace("#include <aomap_fragment>","#include <aomap_fragment>\n{float g=smoothstep(0.0,26.0,vAOy);reflectedLight.indirectDiffuse*=mix(0.5,1.0,g);reflectedLight.directDiffuse*=mix(0.78,1.0,g);}");}
 const gl=b=>b.finish==="gloss";
 const bodyMat=b=>matOf(b.body||"porcelain",(b.finish||"glazed")==="unglazed"?"unglazed":(b.glazeCol||"white"),gl(b));
 /* a module may carry its own glaze colour (or be left unglazed); otherwise it follows the building */
@@ -589,17 +610,17 @@ let room=new THREE.Group();scene.add(room);
 const lc=h=>S.render?new THREE.Color(h).convertSRGBToLinear():new THREE.Color(h);
 function buildRoom(){scene.remove(room);room.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.isLine&&o.material!==MAT.line)o.material.dispose();});room=new THREE.Group();
   /* by day the ground is the page: pure white, with only the shadows drawn on it */
-  const white=!S.night,gb=bounds(),gsz=Math.max(gb.x1-gb.x0,gb.z1-gb.z0)+(white?1400:8000),g=new THREE.Mesh(new THREE.PlaneGeometry(gsz,gsz),white?new THREE.ShadowMaterial({opacity:0.16}):new THREE.MeshStandardMaterial({color:lc(S.render?(S.night?0x1c1f27:0xc4bcb0):0x2a2f3b),roughness:1,envMapIntensity:0.2}));g.rotation.x=-Math.PI/2;g.position.set((gb.x0+gb.x1)/2,0,(gb.z0+gb.z1)/2);g.receiveShadow=true;room.add(g);   /* by day only as big as the shadows need, so nothing reaches the horizon */
+  const white=!S.night,gb=bounds(),gsz=Math.max(gb.x1-gb.x0,gb.z1-gb.z0)+(white?1400:8000),g=new THREE.Mesh(new THREE.PlaneGeometry(gsz,gsz),white?new THREE.ShadowMaterial({opacity:0.3}):new THREE.MeshStandardMaterial({color:lc(S.render?(S.night?0x1c1f27:0xc4bcb0):0x2a2f3b),roughness:1,envMapIntensity:0.2}));g.rotation.x=-Math.PI/2;g.position.set((gb.x0+gb.x1)/2,-groundDrop(),(gb.z0+gb.z1)/2);g.receiveShadow=true;room.add(g);   /* by day only as big as the shadows need, so nothing reaches the horizon */
   /* the ground line: in the Front elevation the ground is edge-on, so it is drawn as one black hairline at y = 0 */
   {const b=bounds(),gl=new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(b.x0-4000,0,b.z1+600),new THREE.Vector3(b.x1+4000,0,b.z1+600)]),new THREE.LineBasicMaterial({color:S.night?0x9aa0ad:0x111111}));
    gl.visible=S.view==="front"&&camera===ortho;gl.name="groundLine";room.add(gl);}
   /* block lines: each city block's outline on the ground as a red hairline, and the same block-and-street grid carried on
      across the whole ground (block width × the deepest block, side and main streets at their set widths) */
-  if(S.blocks){const pts=[],rect=(x0,z0,x1,z1)=>{const c=[[x0,z0],[x1,z0],[x1,z1],[x0,z1]];c.forEach((p,i)=>{const q=c[(i+1)%4];pts.push(new THREE.Vector3(p[0],0.3,p[1]),new THREE.Vector3(q[0],0.3,q[1]));});};
+  if(blkMode()){const plots=blkMode()===2,ly=0.3-groundDrop(),trays=[],pts=[],rect=(x0,z0,x1,z1,city)=>{if(plots&&city){trays.push([x0,z0,x1,z1]);return;}const c=[[x0,z0],[x1,z0],[x1,z1],[x0,z1]];c.forEach((p,i)=>{const q=c[(i+1)%4];pts.push(new THREE.Vector3(p[0],ly,p[1]),new THREE.Vector3(q[0],ly,q[1]));});};
     if(!LAYOUT.blocks.length)gridLayout(JSON.parse(JSON.stringify(S.buildings)));   /* a saved design: work the layout out on a copy, nothing moves */
-    const L=LAYOUT,bc=L.cols.length,br=L.rows.length;L.blocks.forEach(k=>rect(k.x0,k.z0,k.x0+k.w,k.z1));
+    const L=LAYOUT,bc=L.cols.length,br=L.rows.length;L.blocks.forEach(k=>rect(k.x0,L.dist?k.z0:Math.min(k.z0,k.z1-L.rows[k.r].d),k.x0+k.w,k.z1,!L.dist));
     if(L.dist){const Dd=L.dist,thick=[],band=(x0,z0,x1,z1)=>{const c=[[x0,z0],[x1,z0],[x1,z1],[x0,z1]];c.forEach((p,i)=>thick.push([p,c[(i+1)%4]]));};
-      Dd.clusters.forEach(d=>{band(d.x0,d.z1-d.d,d.x0+d.w,d.z1);d.blocks.forEach(k=>{rect(k.x0,k.z0,k.x1,k.z1);if(k.alley!==null){pts.push(new THREE.Vector3(k.x0,0.3,k.alley),new THREE.Vector3(k.x1,0.3,k.alley),new THREE.Vector3(k.x0,0.3,k.alley-ALLEY),new THREE.Vector3(k.x1,0.3,k.alley-ALLEY));}});});
+      Dd.clusters.forEach(d=>{band(d.x0,d.z1-d.d,d.x0+d.w,d.z1);d.blocks.forEach(k=>{rect(k.x0,k.z0,k.x1,k.z1,true);if(k.alley!==null&&!plots){pts.push(new THREE.Vector3(k.x0,ly,k.alley),new THREE.Vector3(k.x1,ly,k.alley),new THREE.Vector3(k.x0,ly,k.alley-ALLEY),new THREE.Vector3(k.x1,ly,k.alley-ALLEY));}});});
       /* the cluster grid carried across the ground: same column widths, row depths and main streets, each cell with its own subgrid */
       const gb=bounds(),ext=Math.max(gb.x1-gb.x0,gb.z1-gb.z0)/2+(S.night?1600:700),mx=(gb.x0+gb.x1)/2,mz=(gb.z0+gb.z1)/2,nc=Dd.dcols.length,nr=Dd.drows.length,
         cwA=i=>Dd.dcols[((i%nc)+nc)%nc].w,rdA=j=>Dd.drows[((j%nr)+nr)%nr].d,cols=Dd.dcols.map((c,i)=>({i,x0:c.x0,w:c.w})),rows=Dd.drows.map((r,j)=>({j,z1:r.z1,d:r.d}));
@@ -613,8 +634,8 @@ function buildRoom(){scene.remove(room);room.traverse(o=>{if(o.geometry)o.geomet
         const bw=(c.w-(k-1)*Dd.g)/k,bd=(r.d-(n-1)*Dd.g)/n;for(let a=0;a<k;a++)for(let q=0;q<n;q++){const x0=c.x0+a*(bw+Dd.g),z1=r.z1-q*(bd+Dd.g);rect(x0,z1-bd,x0+bw,z1);}}));
       /* main-street edges as 2.5 mm bands, block edges as hairlines */
       const v=[],hw=1.25;thick.forEach(([p,q])=>{const dx=q[0]-p[0],dz=q[1]-p[1],l=Math.hypot(dx,dz)||1,nx=-dz/l*hw,nz=dx/l*hw,ex=dx/l*hw,ez=dz/l*hw,a=[p[0]-ex+nx,p[1]-ez+nz],b=[q[0]+ex+nx,q[1]+ez+nz],c2=[q[0]+ex-nx,q[1]+ez-nz],d2=[p[0]-ex-nx,p[1]-ez-nz];
-        [a,b,c2,a,c2,d2].forEach(o=>v.push(o[0],0.35,o[1]));});
-      const tg=new THREE.BufferGeometry();tg.setAttribute("position",new THREE.Float32BufferAttribute(v,3));room.add(new THREE.Mesh(tg,MAT.band));}
+        [a,b,c2,a,c2,d2].forEach(o=>v.push(o[0],ly+0.05,o[1]));});
+      if(!plots){const tg=new THREE.BufferGeometry();tg.setAttribute("position",new THREE.Float32BufferAttribute(v,3));room.add(new THREE.Mesh(tg,MAT.band));}}
     else if(bc&&br){const gb=bounds(),ext=Math.max(gb.x1-gb.x0,gb.z1-gb.z0)/2+(S.night?1600:700),mx=(gb.x0+gb.x1)/2,mz=(gb.z0+gb.z1)/2,D=Math.max(...L.rows.map(r=>r.d));
       /* columns and rows carried on past the city with the same widths, streets and depths */
       const cols=L.cols.map((c,i)=>({i,x0:c.x0,w:c.w}));for(let i=-1,x=L.cols[0].x0;x>mx-ext;i--){const w=L.cw(i);x=x-L.cg(i)-w;cols.unshift({i,x0:x,w});}
@@ -623,8 +644,11 @@ function buildRoom(){scene.remove(room);room.traverse(o=>{if(o.geometry)o.geomet
       for(let j=br,z=L.rows[br-1].z1-L.rows[br-1].d;z>mz-ext;j++){z-=L.rg(j-1);rows.push({j,z1:z,d:D});z-=D;}
       const used=new Set(L.blocks.map(k=>k.c+","+k.r));
       cols.forEach(c=>rows.forEach(r=>{if(used.has(c.i+","+r.j))return;rect(c.x0,r.z1-r.d,c.x0+c.w,r.z1);}));}
-    if(pts.length)room.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(pts),MAT.line));}
+    if(pts.length)room.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(pts),MAT.line));
+    /* plots: one flat porcelain tray per city block (TRAY mm, rounded corners), top flush with the buildings' feet at y = 0 */
+    if(trays.length){const tm=matOf("porcelain","pale",false),tg=new THREE.Group();trays.forEach(([x0,z0,x1,z1])=>tg.add(flat(rsq(x0,-z1,x1,-z0,4),[],TRAY,tm,-TRAY)));tg.updateMatrixWorld(true);room.add(mergeGroup(tg));}}
   scene.add(room);}
+const TRAY=4,blkMode=()=>S.blocks===true?1:(+S.blocks||0),groundDrop=()=>blkMode()===2?TRAY:0;   /* Blocks: 0 hidden, 1 lines, 2 plots (trays) */
 
 let built=new THREE.Group();scene.add(built);const pickable=[],lights=[];
 function shapeOf(p){const s=new THREE.Shape();p.forEach(([x,y],i)=>i?s.lineTo(x,y):s.moveTo(x,y));return s;}
@@ -632,24 +656,44 @@ function extrude(outer,holes,depth,mat){const s=shapeOf(outer);holes.forEach(h=>
   const m=new THREE.Mesh(new THREE.ExtrudeGeometry(s,{depth,bevelEnabled:false,curveSegments:8}),mat);m.castShadow=true;m.receiveShadow=true;return m;}
 const ANG={front:0,right:Math.PI/2,back:Math.PI,left:-Math.PI/2};
 const circle=(r,cx,cy,n)=>Array.from({length:n||20},(_,k)=>[(cx||0)+r*Math.cos(k/(n||20)*2*Math.PI),(cy||0)+r*Math.sin(k/(n||20)*2*Math.PI)]);
+/* ceramic softness: every slab and wall gets a rounded edge (BV mm, two segments) that stays inside its true outline,
+   so sizes, fits and openings are unchanged at their narrowest; openings flare a little at both faces */
+const BV=0.9;
+/* openings get slightly rounded corners (r mm), like a hand-finished slip-cast piece: only hole area is taken off, so every bar keeps its width */
+function fillet(pts,r){const n=pts.length,o=[];for(let i=0;i<n;i++){const a=pts[(i+n-1)%n],b=pts[i],c=pts[(i+1)%n],
+    ux=a[0]-b[0],uy=a[1]-b[1],vx=c[0]-b[0],vy=c[1]-b[1],lu=Math.hypot(ux,uy),lv=Math.hypot(vx,vy);
+    if(lu<1e-6||lv<1e-6){o.push(b);continue;}const th=Math.acos(Math.max(-1,Math.min(1,(ux*vx+uy*vy)/(lu*lv))));
+    if(th>2.8){o.push(b);continue;}const d=Math.min(r/Math.tan(th/2),lu*0.45,lv*0.45),p0=[b[0]+ux/lu*d,b[1]+uy/lu*d],p1=[b[0]+vx/lv*d,b[1]+vy/lv*d];
+    for(let k=0;k<=4;k++){const t=k/4,q=(1-t)*(1-t),m=2*t*(1-t),w=t*t;o.push([q*p0[0]+m*b[0]+w*p1[0],q*p0[1]+m*b[1]+w*p1[1]]);}}
+  return o;}
+/* slip-cast softness, after the owner's reference (matte porcelain houses): soft outer edges, openings crisp with only a slight round (BV).
+   How round a wall's edges can be: the face bevel eats bv from both sides of every bar, so keep ≥ 0.8 mm of flat bar at the face
+   (bounding-box gaps between openings and to the top and bottom edges: never more than the true gap) */
+function wallBv(holes){let g=99;const bb=holes.map(h=>{let a=[1e9,1e9,-1e9,-1e9];h.forEach(([x,y])=>{a=[Math.min(a[0],x),Math.min(a[1],y),Math.max(a[2],x),Math.max(a[3],y)];});return a;});
+  bb.forEach((a,i)=>{g=Math.min(g,a[1],H-a[3],a[0],W-a[2]);for(let j=i+1;j<bb.length;j++){const c=bb[j];g=Math.min(g,Math.max(c[0]-a[2],a[0]-c[2],c[1]-a[3],a[1]-c[3]));}});
+  return Math.max(0.5,Math.min(BV,(g-0.8)/2));}
+function softExtrude(outer,holes,depth,mat,bv){bv=Math.min(bv===undefined?BV:bv,depth/2-0.05);const s=shapeOf(outer);holes.forEach(h=>s.holes.push(new THREE.Path(h.map(([x,y])=>new THREE.Vector2(x,y)))));
+  const geo=new THREE.ExtrudeGeometry(s,{depth:depth-2*bv,bevelEnabled:true,bevelThickness:bv,bevelSize:bv,bevelOffset:-bv,bevelSegments:2,curveSegments:8});geo.translate(0,0,bv);
+  const m=new THREE.Mesh(geo,mat);m.castShadow=true;m.receiveShadow=true;return m;}
+function soft(outer,holes,depth,mat,y,bv){const m=softExtrude(outer,holes,depth,mat,bv);m.rotation.x=-Math.PI/2;m.position.y=y;return m;}
 function flat(outer,holes,depth,mat,y){const m=extrude(outer,holes,depth,mat);m.rotation.x=-Math.PI/2;m.position.y=y;return m;}
 const sq=(x0,z0,x1,z1)=>[[x0,z0],[x1,z0],[x1,z1],[x0,z1]];
 /* rectangle with rounded corners (radius r), as a polygon */
 function rsq(x0,z0,x1,z1,r){if(r<=0.01)return sq(x0,z0,x1,z1);const o=[],arc=(cx,cz,a0)=>{for(let k=0;k<=6;k++){const a=a0+k/6*Math.PI/2;o.push([cx+r*Math.cos(a),cz+r*Math.sin(a)]);}};
   arc(x1-r,z0+r,-Math.PI/2);arc(x1-r,z1-r,0);arc(x0+r,z1-r,Math.PI/2);arc(x0+r,z0+r,Math.PI);return o;}
-const radOf=b=>b.radius===undefined?3:b.radius;
+const radOf=b=>b.radius===undefined?4:b.radius;
 /* the four rounded vertical edges of a module: a quarter ring of outer radius R (solid where R ≤ wall thickness) */
 function cornerPieces(b,k){const g=new THREE.Group(),R=Math.min(radOf(b),W/2-1);if(R<=0.01)return g;const h=W/2,mat=modMat(b,k);
   [[1,1],[1,-1],[-1,-1],[-1,1]].forEach(([sx,sz])=>{const pts=[],cx=h-R,cz=h-R;
     for(let i=0;i<=10;i++){const a=i/10*Math.PI/2;pts.push([cx+R*Math.cos(a),cz+R*Math.sin(a)]);}
     if(R>T+0.01)for(let i=10;i>=0;i--){const a=i/10*Math.PI/2;pts.push([cx+(R-T)*Math.cos(a),cz+(R-T)*Math.sin(a)]);}
     else{pts.push([h-R,h-T],[h-T,h-T],[h-T,h-R]);}
-    const m=flat(pts.map(([x,z])=>[x*sx,-z*sz]),[],H,mat,0);g.add(m);});
+    const m=soft(pts.map(([x,z])=>[x*sx,-z*sz]),[],H,mat,0,1.4);g.add(m);});
   return g;}
 function buildWall(bi,k,fname){
   const o=B.build(S.buildings[bi].mods[k][fname]),g=new THREE.Group();g.rotation.y=ANG[fname];
   const Rr=Math.min(radOf(S.buildings[bi]),W/2-1);
-  const w=extrude([[Rr,0],[W-Rr,0],[W-Rr,H],[Rr,H]],o.holes.map(h=>h.p),T,modMat(S.buildings[bi],k));w.position.set(-W/2,0,W/2-T);w.userData={bi,k,fname};pickable.push(w);g.add(w);
+  const hp=o.holes.map(h=>fillet(h.p,0.8)),bv=wallBv(hp),e=Rr>0.01?Math.min(bv,Rr):0,w=softExtrude([[Rr-e,0],[W-Rr+e,0],[W-Rr+e,H],[Rr-e,H]],hp,T,modMat(S.buildings[bi],k),bv);w.position.set(-W/2,0,W/2-T);w.userData={bi,k,fname};pickable.push(w);g.add(w);
   return g;}
 const plateT=l=>l===0?BASE_T:PLATE_T;
 function levelY(b,gap){const ys=[];let y=0;for(let l=0;l<b.levels;l++){if(b.plates[l])y+=plateT(l)+gap*0.5;ys.push(y);y+=H+gap;}return {ys,top:y-gap};}
@@ -664,22 +708,28 @@ function outward(geo){const p=geo.attributes.position.array,u=geo.attributes.uv&
     if(az*bx-ax*bz<0){for(let k=0;k<3;k++){const q=p[t+3+k];p[t+3+k]=p[t+6+k];p[t+6+k]=q;}if(u){const i=t/3*2;for(let k=0;k<2;k++){const q=u[i+2+k];u[i+2+k]=u[i+4+k];u[i+4+k]=q;}}}}
   geo.attributes.position.needsUpdate=true;geo.computeVertexNormals();}
 function slantRoof(b){const g=new THREE.Group(),hw=(perMod(b)?1:b.cols)*W/2,hd=(perMod(b)?1:b.deep)*W/2,a=roofRun(b),rise=a*Math.tan(b.pitch*Math.PI/180),fas=2.5,mat=roofMat(b);
-  g.add(flat(rsq(-hw,-hd,hw,hd,radOf(b)),[sq(-hw+T+0.2,-hd+T+0.2,hw-T-0.2,hd-T-0.2)],fas,mat,0));
-  const tw=hw-a,td=hd-a,v=[],y1=fas,y2=y1+rise,C=sq(-hw,-hd,hw,hd),Ct=sq(-tw,-td,tw,td);
-  for(let k=0;k<4;k++){const a=C[k],c=C[(k+1)%4],at=Ct[k],ct=Ct[(k+1)%4];v.push(a[0],y1,a[1],c[0],y1,c[1],ct[0],y2,ct[1], a[0],y1,a[1],ct[0],y2,ct[1],at[0],y2,at[1]);}
-  const geo=new THREE.BufferGeometry();geo.setAttribute("position",new THREE.Float32BufferAttribute(v,3));geo.setAttribute("uv",new THREE.Float32BufferAttribute(v.filter((_,i)=>i%3!==1),2));geo.computeVertexNormals();
-  outward(geo);const m=new THREE.Mesh(geo,mat);m.castShadow=true;m.receiveShadow=true;g.add(m);
-  g.add(flat(sq(-tw,-td,tw,td),[circle(4)],1.5,mat,y2-1.5));return g;}
+  g.add(soft(rsq(-hw,-hd,hw,hd,radOf(b)),[sq(-hw+T+0.2,-hd+T+0.2,hw-T-0.2,hd-T-0.2)],fas,mat,0,1.2));
+  /* rounded hips: rings of rounded rectangles from the eaves to the ridge, joined with shared (smooth) normals */
+  const tw=hw-a,td=hd-a,y1=fas,y2=y1+rise,rb=Math.max(radOf(b),6),rt=Math.min(tw,td,3),
+    rings=[[hw-0.6,hd-0.6,rb,y1-0.4],[hw,hd,rb,y1+0.5],[tw+0.8,td+0.8,rt+0.8,y2-1.9],[tw,td,rt,y2-1.5]].map(([x,z,r,y])=>rsq(-x,-z,x,z,Math.min(r,x-0.01,z-0.01)).map(([px,pz])=>[px,y,pz]));
+  const n=rings[0].length,pos=[],idx=[];rings.forEach(r=>r.forEach(p=>pos.push(...p)));
+  for(let i=0;i<rings.length-1;i++)for(let j=0;j<n;j++){const a0=i*n+j,a1=i*n+(j+1)%n,b0=a0+n,b1=a1+n;idx.push(a0,b0,a1,a1,b0,b1);}
+  let geo=new THREE.BufferGeometry();geo.setAttribute("position",new THREE.Float32BufferAttribute(pos,3));geo.setAttribute("uv",new THREE.Float32BufferAttribute(pos.filter((_,i)=>i%3!==1),2));geo.setIndex(idx);geo.computeVertexNormals();
+  {const nm=geo.attributes.normal,p=rings[1][0];if(nm.getX(n)*p[0]+nm.getZ(n)*p[2]<0){for(let i=0;i<idx.length;i+=3){const q=idx[i+1];idx[i+1]=idx[i+2];idx[i+2]=q;}geo.setIndex(idx);geo.computeVertexNormals();}}   /* face the sky */
+  geo=geo.toNonIndexed();
+  const m=new THREE.Mesh(geo,mat);m.castShadow=true;m.receiveShadow=true;g.add(m);
+  g.add(soft(rsq(-tw,-td,tw,td,rt),[circle(4)],1.5,mat,y2-1.5,0.7));return g;}
 function modernRoof(b){const g=new THREE.Group(),hw=(perMod(b)?1:b.cols)*W/2,hd=(perMod(b)?1:b.deep)*W/2,mat=roofMat(b);
-  g.add(flat(rsq(-hw,-hd,hw,hd,radOf(b)),[circle(4)],2.5,mat,1.5));g.add(flat(sq(-hw+T+0.2,-hd+T+0.2,hw-T-0.2,hd-T-0.2),[sq(-hw+T+1.8,-hd+T+1.8,hw-T-1.8,hd-T-1.8)],1.5,mat,0));return g;}
+  g.add(soft(rsq(-hw,-hd,hw,hd,radOf(b)),[circle(4)],2.5,mat,1.5,1.2));g.add(flat(sq(-hw+T+0.2,-hd+T+0.2,hw-T-0.2,hd-T-0.2),[sq(-hw+T+1.8,-hd+T+1.8,hw-T-1.8,hd-T-1.8)],1.5,mat,0));return g;}
 function buildBuilding(bi,gap,lightBudget){
   const b=S.buildings[bi],g=new THREE.Group(),{ys,top}=levelY(b,gap),hw=b.cols*W/2,hd=b.deep*W/2;
   g.position.set(b.x,0,b.z);g.rotation.y=-b.rot*Math.PI/2;
+  if(b.court)return courtOf(b,bi,g,hw,hd);
   const mx=c=>(c-(b.cols-1)/2)*(W+gap*0.4),mz=r=>-(r-(b.deep-1)/2)*(W+gap*0.4);
   for(let l=0;l<b.levels;l++){
     /* plate (or base) under the level: one piece for the whole floor, a vent over every module */
     if(b.plates[l]){const vents=[];for(let c=0;c<b.cols;c++)for(let r=0;r<b.deep;r++)vents.push(circle(4,mx(c),-mz(r)));
-      const p=flat(rsq(-hw,-hd,hw,hd,radOf(b)),l===0?[]:vents,plateT(l),plateMat(b),ys[l]-plateT(l)-gap*0.5);g.add(p);
+      const p=soft(rsq(-hw,-hd,hw,hd,radOf(b)),l===0?[]:vents,plateT(l),plateMat(b),ys[l]-plateT(l)-gap*0.5,l===0?2.8:1.9);g.add(p);
       if(l===0){const f=flat(rsq(-hw-0.05,-hd-0.05,hw+0.05,hd+0.05,radOf(b)),[],1.2,footMat(b),ys[0]-plateT(0)-gap*0.5);g.add(f);}}
     for(let c=0;c<b.cols;c++)for(let r=0;r<b.deep;r++){const k=c+":"+r+":"+l;if(!alive(b,k))continue;const mg=new THREE.Group();mg.position.set(mx(c),ys[l],mz(r));FACES.forEach(f=>mg.add(buildWall(bi,k,f)));mg.add(cornerPieces(b,k));if(b.candles[l]&&b.plates[l])mg.traverse(o=>o.userData.lit=true);g.add(mg);
       if(b.candles[l]&&b.plates[l]){const tea=new THREE.Mesh(new THREE.CylinderGeometry(19,19,8,24),MAT.tea);tea.position.set(mx(c),ys[l]+4,mz(r));g.add(tea);
@@ -697,6 +747,14 @@ function buildBuilding(bi,gap,lightBudget){
   if(isSel(bi)){const pts=[[-hw-4,-hd-4],[hw+4,-hd-4],[hw+4,hd+4],[-hw-4,hd+4]].map(([x,z])=>new THREE.Vector3(x,0.6,z));const ln=new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(pts),MAT.sel);g.add(ln);}
   return g;}
 const flames=[];
+/* public court: a 6 mm porcelain tray with a 3 mm rounded rim (5 mm proud) and a round basin in the middle, one cast piece */
+const COURT_T=6,COURT_RIM=5;
+function courtOf(b,bi,g,hw,hd){const mat=plateMat(b),r=radOf(b),ri=Math.max(0.5,r-3);
+  const base=soft(rsq(-hw,-hd,hw,hd,r),[],COURT_T,mat,0,2.4);base.userData={bi,k:"0:0:0",fname:"front"};pickable.push(base);g.add(base);
+  g.add(soft(rsq(-hw,-hd,hw,hd,r),[rsq(-hw+3,-hd+3,hw-3,hd-3,ri)],COURT_RIM,mat,COURT_T-0.5,1.2));
+  const bs=soft(circle(14),[circle(10.5)],7,bodyMat(b),COURT_T-0.5,1.2);g.add(bs);
+  if(isSel(bi)){const pts=[[-hw-4,-hd-4],[hw+4,-hd-4],[hw+4,hd+4],[-hw-4,hd+4]].map(([x,z])=>new THREE.Vector3(x,0.6,z));g.add(new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(pts),MAT.sel));}
+  return g;}
 /* a fixed pool of candle lights, so editing never changes the light count (which would recompile every shader and stutter) */
 const LPOOL=Array.from({length:MAX_LIGHTS},(_,i)=>{const L=new THREE.PointLight(0xffa04f,0,280,2);L.castShadow=i<SHADOW_LIGHTS;L.shadow.mapSize.set(256,256);L.shadow.radius=3;L.shadow.bias=-0.003;
   L.shadow.camera.near=2;L.position.set(0,-500,0);L.userData.base=0;scene.add(L);return L;});
@@ -732,19 +790,19 @@ function rebuildNow(){
   const gap=+S.explode,budget={anchors:[]};S.buildings.forEach((_,bi)=>built.add(buildBuilding(bi,gap,budget)));
   merged=mergeGroup(built);scene.add(merged);placeLights(budget.anchors);buildRoom();applyNight();}
 function applyNight(){const n=S.night,rd=S.render;scene.background=n?lc(rd?0x12151c:0x1e2330):new THREE.Color(0xffffff);view.classList.toggle("dark",!!(n||rd));   /* abstract: a seamless warm-white backdrop by day, a warm dusk at night */
-  hemi.intensity=n?0.8:0.6;hemi.color.set(n?0xdfe3ec:0xfff4e6);hemi.groundColor.set(n?0x6a625a:0xc9bba8);   /* a constant soft fill, night included, so glazes always read */   /* night: a blue dusk sky */
+  hemi.intensity=n?0.8:0.26;hemi.color.set(n?0xdfe3ec:0xfff4e6);hemi.groundColor.set(n?0x6a625a:0xc9bba8);   /* a constant soft fill, night included, so glazes always read */   /* night: a blue dusk sky */
   sun.intensity=n?0:1.5*(sun.userData.k||1);   /* day: a soft warm sky and one gentle key light; night: the candles */
   /* filmic tone mapping keeps white porcelain from blowing out (Render mode does its own in the final pass) */
   /* Render mode by day draws straight to the screen (filmic tone, sRGB) so the white page stays pure white;
      by night it goes through the post chain (ambient occlusion, bloom, filmic tone) for the candle glow */
   {const post=rd&&n,tm=post?THREE.NoToneMapping:THREE.ACESFilmicToneMapping,enc=rd&&!n?THREE.sRGBEncoding:THREE.LinearEncoding;
    if(renderer.toneMapping!==tm||renderer.outputEncoding!==enc){renderer.toneMapping=tm;renderer.outputEncoding=enc;scene.traverse(o=>{if(o.material)o.material.needsUpdate=true;});}}
-  renderer.toneMappingExposure=rd?0.95:n?1.15:1.3;
+  renderer.toneMappingExposure=rd?0.95:n?1.15:0.95;
   const b=bounds(),cx=(b.x0+b.x1)/2,cz=(b.z0+b.z1)/2;
   /* time of day: the sun rises on the left (morning), stands high in front at noon, sets on the right; low sun is warmer */
   {const t=S.sun===undefined?0.35:S.sun,az=Math.PI*t,el=(8+62*Math.sin(Math.PI*t))*Math.PI/180,hi=Math.sin(el)/Math.sin(70*Math.PI/180);
    sun.position.set(cx-Math.cos(az)*Math.cos(el)*1200,Math.sin(el)*1200,cz+Math.sin(az)*Math.cos(el)*1200);
-   sun.color.set(0xffa868).lerp(new THREE.Color(0xfff4e6),Math.min(1,hi));sun.userData.k=0.55+0.45*hi;sun.intensity=n?0:1.5*sun.userData.k;
+   sun.color.set(0xffa868).lerp(new THREE.Color(0xfff4e6),Math.min(1,hi));sun.userData.k=0.55+0.45*hi;sun.intensity=n?0:2.8*sun.userData.k;
    if(!n)hemi.color.set(0xffe2c4).lerp(new THREE.Color(0xfff4e6),Math.min(1,hi));}
   {const ext=Math.max(b.x1-b.x0,b.z1-b.z0,b.h)*0.75+200;Object.assign(sun.shadow.camera,{left:-ext,right:ext,top:ext,bottom:-ext,near:50,far:1200+ext*1.6});sun.shadow.camera.updateProjectionMatrix();}sun.target.position.set(cx,0,cz);
   const cs=S.candle===undefined?1:S.candle;lights.forEach(L=>L.intensity=n?L.userData.base*cs:0);flames.forEach(f=>f.visible=n);
@@ -861,7 +919,7 @@ function renderUI(){
   fixSel();applyAccent();const b=Bs(),[sc,sr,sl]=keyParts(S.sel);
   $("bList").innerHTML=S.buildings.map((x,i)=>`<button type="button" class="${i===S.selB?"on":isSel(i)?"also":""}" data-b="${i}" aria-pressed="${isSel(i)}" title="Shift- or ⌘-click to add to the selection">${x.name}<span>${x.cols}×${x.deep}×${x.levels}</span></button>`).join("");
   $("villageMeta").textContent=S.buildings.length+" building"+(S.buildings.length>1?"s":"")+" · "+S.buildings.reduce((a,x)=>a+x.cols*x.deep*x.levels,0)+" modules";
-  seg($("setSeg"),b.set);{const a=document.activeElement;if(a!==$("gutV"))$("gutV").value=gut();if(a!==$("aveV"))$("aveV").value=ave();if(a!==$("bwV"))$("bwV").value=BLOCKM;$("gapV").textContent=(S.gaps||[]).length;$("mixBtn").setAttribute("aria-pressed",!!S.mix);seg($("lmSeg"),S.landmarks?"1":"0");}$("varyBtn").setAttribute("aria-pressed",!!S.vary);if(document.activeElement!==$("countV"))$("countV").value=S.buildings.length;seg($("blocksSeg"),S.blocks?"1":"0");seg($("colsSeg"),b.cols);seg($("deepSeg"),b.deep);$("levelsV").textContent=b.levels;seg($("roofSeg"),b.roof);seg($("spanSeg"),b.span||"whole");$("radius").value=radOf(b);$("radiusV").textContent="R "+radOf(b)+" mm";$("levelsV").textContent=b.levels;
+  seg($("setSeg"),b.set);{const a=document.activeElement;if(a!==$("gutV"))$("gutV").value=gut();if(a!==$("aveV"))$("aveV").value=ave();if(a!==$("bwV"))$("bwV").value=BLOCKM;$("gapV").textContent=(S.gaps||[]).length;$("mixBtn").setAttribute("aria-pressed",!!S.mix);seg($("lmSeg"),S.landmarks?"1":"0");}$("varyBtn").setAttribute("aria-pressed",!!S.vary);if(document.activeElement!==$("countV"))$("countV").value=S.buildings.length;seg($("blocksSeg"),String(blkMode()));seg($("colsSeg"),b.cols);seg($("deepSeg"),b.deep);$("levelsV").textContent=b.levels;seg($("roofSeg"),b.roof);seg($("spanSeg"),b.span||"whole");$("radius").value=radOf(b);$("radiusV").textContent="R "+radOf(b)+" mm";$("levelsV").textContent=b.levels;
   $("pitch").value=b.pitch;$("pitchV").textContent=b.pitch+"°";$("pitch").disabled=b.roof!=="slant";$("bodySel").value=b.body||"porcelain";seg($("finishSeg"),b.finish||"glazed");
   $("glazeSw").innerHTML=(b.finish||"glazed")!=="unglazed"?Object.entries(GLAZE).map(([k,g])=>{const c=g.col===null?BODY[b.body||"porcelain"].col:g.col;return `<button type="button" data-g="${k}" title="${g.name} glaze" aria-label="${g.name} glaze" aria-pressed="${(b.glazeCol||"white")===k}" style="width:22px;height:22px;border-radius:50%;cursor:pointer;background:${hex(c)};border:2px solid ${(b.glazeCol||"white")===k?"var(--terra)":"var(--line)"}${g.col===null?";background-image:linear-gradient(135deg,transparent 45%,rgba(0,0,0,.25) 50%,transparent 55%)":""}"></button>`;}).join(""):"";
   $("roofCol").innerHTML=`<option value="same">same as walls</option><option value="unglazed">unglazed ${BODY[b.body||"porcelain"].name.toLowerCase()}</option>`+Object.entries(GLAZE).map(([k,g])=>`<option value="${k}">${g.name} glaze</option>`).join("");$("roofCol").value=b.roofCol||"same";
@@ -919,7 +977,7 @@ on("countV","keydown",e=>{if(e.key==="Enter")e.target.blur();});
 on("randBlock","click",()=>{const ks=new Set(SELB().map(b=>b.blk)),keep=S.keepPal&&PALETTES[Bs().palette],pal=keep?Bs().palette:pick(Object.keys(PALETTES));usePal(pal);
   if([...ks].some(k=>k===undefined)){gridLayout(S.buildings);ks.clear();SELB().forEach(b=>ks.add(b.blk));}   /* designs from before blocks were numbered */
   S.buildings=S.buildings.map(b=>{if(!ks.has(b.blk))return b;const n=randomFit(b);randPal(n,keep||Math.random()<0.7?pal:pick(Object.keys(PALETTES)));return n;});S.sel="0:0:0";renderUI();});
-on("blocksSeg","click",e=>{const x=e.target.closest("button");if(!x)return;S.blocks=x.dataset.v==="1";seg($("blocksSeg"),S.blocks?"1":"0");buildRoom();need();save();});
+on("blocksSeg","click",e=>{const x=e.target.closest("button");if(!x)return;S.blocks=+x.dataset.v;seg($("blocksSeg"),String(blkMode()));buildRoom();need();save();});
 /* the side panel can be hidden: the 3D view then takes the whole width (P) */
 const setPanel=show=>{document.body.classList.toggle("nopanel",!show);$("panelBtn").setAttribute("aria-pressed",show);S.nopanel=!show;};
 on("panelBtn","click",()=>{setPanel(document.body.classList.contains("nopanel"));save();});
@@ -929,29 +987,40 @@ on("sunT","input",e=>{S.sun=+e.target.value;applyNight();save();});
 /* lock the camera: no orbit, pan or zoom (the view buttons still work) */
 const setLock=on=>{S.lock=!!on;controls.enabled=!S.lock;$("lockBtn").setAttribute("aria-pressed",S.lock);};
 on("lockBtn","click",()=>{setLock(!S.lock);save();});
-/* ---------- GIF: a small encoder (256 colours: a 6×6×6 cube plus 40 greys, LZW) and three animations ---------- */
-function gifIndex(d){const out=new Uint8Array(d.length/4);for(let i=0,j=0;i<d.length;i+=4,j++){const r=d[i],g=d[i+1],b=d[i+2],mx=Math.max(r,g,b),mn=Math.min(r,g,b);
-  out[j]=mx-mn<10?216+Math.round((r+g+b)/3/255*39):36*Math.round(r/51)+6*Math.round(g/51)+Math.round(b/51);}return out;}
+/* ---------- GIF: a small encoder with one palette made for the whole animation (median cut over every frame, 256 colours, LZW) ---------- */
+/* each frame is kept as 15-bit colours (5 bits a channel) while the histogram of all frames builds up; the palette comes from that */
+function gif15(d,hist,sum){const out=new Uint16Array(d.length/4);for(let i=0,j=0;i<d.length;i+=4,j++){const r=d[i],g=d[i+1],b=d[i+2],k=(r>>3)<<10|(g>>3)<<5|b>>3;out[j]=k;hist[k]++;sum[3*k]+=r;sum[3*k+1]+=g;sum[3*k+2]+=b;}return out;}
+function gifPalette(hist,sum){let boxes=[[]];for(let k=0;k<32768;k++)if(hist[k])boxes[0].push(k);
+  const ch=(k,c)=>c===0?k>>10:c===1?(k>>5)&31:k&31,span=bx=>{let best=-1,c0=0;for(let c=0;c<3;c++){let lo=31,hi=0;bx.forEach(k=>{const v=ch(k,c);if(v<lo)lo=v;if(v>hi)hi=v;});if(hi-lo>best){best=hi-lo;c0=c;}}return [best,c0];},
+    wt=bx=>bx.reduce((a,k)=>a+hist[k],0);
+  while(boxes.length<256){let bi=-1,bs=0;boxes.forEach((bx,i)=>{if(bx.length<2)return;const sc=span(bx)[0]*Math.sqrt(wt(bx));if(sc>bs){bs=sc;bi=i;}});if(bi<0)break;
+    const bx=boxes[bi],c=span(bx)[1];bx.sort((a,b)=>ch(a,c)-ch(b,c));const half=wt(bx)/2;let acc=0,m=1;for(;m<bx.length-1;m++){acc+=hist[bx[m-1]];if(acc>=half)break;}boxes.splice(bi,1,bx.slice(0,m),bx.slice(m));}
+  const pal=boxes.map(bx=>{let n=0,r=0,g=0,b=0;bx.forEach(k=>{n+=hist[k];r+=sum[3*k];g+=sum[3*k+1];b+=sum[3*k+2];});return [Math.round(r/n),Math.round(g/n),Math.round(b/n)];});
+  const lut=new Uint8Array(32768);boxes.forEach((bx,i)=>bx.forEach(k=>{lut[k]=i;}));   /* each colour goes to its own box's mean */
+  while(pal.length<256)pal.push([0,0,0]);return {pal,lut};}
 function gifLZW(ix,out){const emitTo=[];let cur=0,nb=0,size=9,next=258,dict=new Map(),pre=ix[0];
   const emit=c=>{cur|=c<<nb;nb+=size;while(nb>=8){emitTo.push(cur&255);cur>>=8;nb-=8;}};emit(256);
   for(let i=1;i<ix.length;i++){const k=ix[i],key=pre*256+k,v=dict.get(key);if(v!==undefined){pre=v;continue;}emit(pre);
     if(next===4096){emit(256);next=258;size=9;dict=new Map();}else{if(next>=(1<<size))size++;dict.set(key,next++);}pre=k;}
   emit(pre);emit(257);if(nb>0)emitTo.push(cur&255);out.push(8);for(let i=0;i<emitTo.length;i+=255){const n=Math.min(255,emitTo.length-i);out.push(n);for(let j=0;j<n;j++)out.push(emitTo[i+j]);}out.push(0);}
-function gifEncode(frames,w,h,cs){const o=[],s=t=>{for(const c of t)o.push(c.charCodeAt(0));},u16=v=>o.push(v&255,v>>8&255);
-  s("GIF89a");u16(w);u16(h);o.push(0xf7,0,0);for(let i=0;i<216;i++)o.push(Math.floor(i/36)*51,Math.floor(i/6)%6*51,i%6*51);for(let i=0;i<40;i++){const v=Math.round(i/39*255);o.push(v,v,v);}
+function gifEncode(frames,w,h,cs,pal){const o=[],s=t=>{for(const c of t)o.push(c.charCodeAt(0));},u16=v=>o.push(v&255,v>>8&255);
+  s("GIF89a");u16(w);u16(h);o.push(0xf7,0,0);pal.forEach(c=>o.push(c[0],c[1],c[2]));
   o.push(0x21,0xff,11);s("NETSCAPE2.0");o.push(3,1,0,0,0);
   frames.forEach(ix=>{o.push(0x21,0xf9,4,4);u16(cs);o.push(0,0,0x2c);u16(0);u16(0);u16(w);u16(h);o.push(0);gifLZW(ix,o);});o.push(0x3b);return new Uint8Array(o);}
 const nextFrame=()=>new Promise(r=>requestAnimationFrame(()=>r()));
 on("rand10","click",()=>{$("gifMode").value="rand";$("gifN").value="10";$("gifBtn").click();});
 on("gifBtn","click",async()=>{const btn=$("gifBtn");if(btn.disabled)return;btn.disabled=true;const mode=$("gifMode").value,N=+$("gifN").value;
-  const cv=renderer.domElement,w=Math.min(480,cv.width),h=Math.round(w*cv.height/cv.width),c2=document.createElement("canvas");c2.width=w;c2.height=h;const g2=c2.getContext("2d");
+  /* the frames are the 3D view itself, same framing, light and settings, at up to 1080 px on the long side */
+  const cv=renderer.domElement,sc=Math.min(1,1080/Math.max(cv.width,cv.height)),w=Math.round(cv.width*sc),h=Math.round(cv.height*sc),c2=document.createElement("canvas");c2.width=w;c2.height=h;const g2=c2.getContext("2d",{willReadFrequently:true});
+  g2.imageSmoothingQuality="high";const hist=new Uint32Array(32768),sum=new Float64Array(32768*3);
   const pose={p:camera.position.clone(),t:controls.target.clone()},sun0=S.sun,snap=mode==="rand"?JSON.stringify({b:S.buildings,sel:S.selB,m:S.multi,s:S.sel}):null,frames=[];
   try{for(let i=0;i<N;i++){btn.textContent=(i+1)+"/"+N;
       if(mode==="orbit"){const a=2*Math.PI*i/N,v=pose.p.clone().sub(pose.t);v.applyAxisAngle(new THREE.Vector3(0,1,0),a);camera.position.copy(pose.t).add(v);camera.lookAt(pose.t);}
       else if(mode==="sun"){S.sun=0.04+0.92*i/(N-1);applyNight();}
       else{randAll();rebuildNow();}
-      await nextFrame();draw();g2.drawImage(cv,0,0,w,h);frames.push(gifIndex(g2.getImageData(0,0,w,h).data));}
-    const blob=new Blob([gifEncode(frames,w,h,mode==="orbit"?8:mode==="sun"?12:60)],{type:"image/gif"}),a=document.createElement("a"),d=new Date(),z=n=>String(n).padStart(2,"0");
+      await nextFrame();draw();g2.drawImage(cv,0,0,w,h);frames.push(gif15(g2.getImageData(0,0,w,h).data,hist,sum));}
+    btn.textContent="…";await nextFrame();const {pal,lut}=gifPalette(hist,sum),ixs=frames.map(f=>{const o=new Uint8Array(f.length);for(let i=0;i<f.length;i++)o[i]=lut[f[i]];return o;});
+    const blob=new Blob([gifEncode(ixs,w,h,mode==="orbit"?8:mode==="sun"?12:60,pal)],{type:"image/gif"}),a=document.createElement("a"),d=new Date(),z=n=>String(n).padStart(2,"0");
     a.href=URL.createObjectURL(blob);a.download=`tikrar-${mode}-${d.getFullYear()}${z(d.getMonth()+1)}${z(d.getDate())}-${z(d.getHours())}${z(d.getMinutes())}.gif`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);}
   finally{camera.position.copy(pose.p);controls.target.copy(pose.t);controls.update();S.sun=sun0;   /* the design and the view come back as they were */
     if(snap){const v=JSON.parse(snap);S.buildings=v.b;S.selB=v.sel;S.multi=v.m;S.sel=v.s;renderUI();}else applyNight();btn.textContent="Make";btn.disabled=false;need();}});
@@ -963,6 +1032,9 @@ function randAll(){const n=Math.max(1,Math.min(MAX_B,S.buildings.length)),list=[
   /* landmarks on: about one per 25 buildings (at least one), each different, each on its own block */
   if(nLM){const ks=LANDMARKS.slice().sort(()=>Math.random()-0.5).slice(0,Math.min(nLM,LANDMARKS.length,list.length));
     ks.forEach(k=>{const b=KINDS[k]();randPal(b,keep||Math.random()<0.7?pal:pick(Object.keys(PALETTES)));list.splice(Math.floor(Math.random()*list.length),1,b);});}
+  /* public courts: about one in ten (at least one from six buildings up), in place of ordinary buildings, never of a landmark */
+  {const nc=n>=6?Math.max(1,Math.round(n/10)):0;for(let i=0;i<nc;i++){const idx=list.map((b,j)=>j).filter(j=>!isLM(list[j])&&!list[j].court);if(!idx.length)break;
+     const j=pick(idx),b=KINDS.court();randPal(b,keep||Math.random()<0.7?pal:pick(Object.keys(PALETTES)));list[j]=b;}}
   if(S.vary)varyStreets();S.mix=true;rollBlocks();S.buildings=gridLayout(list);S.selB=0;S.multi=[];S.sel="0:0:0";}
 on("randVillage","click",()=>{randAll();renderUI();});   /* the camera stays exactly where it is (Reset view refits) */
 on("gapSeg","click",e=>{const x=e.target.closest("button");if(!x||!x.dataset.d)return;S.gaps=S.gaps||[];
