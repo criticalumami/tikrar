@@ -104,6 +104,50 @@ function grid(o,cols,rows,px,py,cy0,shape){const x0=W/2-(cols-1)*px/2;let n=0;
 const SHAPES={squares:(x,y)=>R(x-1.7,y-1.7,3.4,3.4),circles:(x,y)=>ELL(x,y,1.7,1.7),
   crosses:(x,y)=>[[x-0.85,y-1.7],[x+0.85,y-1.7],[x+0.85,y-0.85],[x+1.7,y-0.85],[x+1.7,y+0.85],[x+0.85,y+0.85],[x+0.85,y+1.7],[x-0.85,y+1.7],[x-0.85,y+0.85],[x-1.7,y+0.85],[x-1.7,y-0.85],[x-0.85,y-0.85]],
   lozenges:(x,y)=>[[x,y-1.7],[x+1.7,y],[x,y+1.7],[x-1.7,y]]};
+/* claustra blocks (AdB pp. 52–53 and the common Beirut cement blocks): a real 20 cm block is under 3 mm at 1:75, so blocks are
+   cast exaggerated, 17 mm on a full wall (3 × 2) or 15 mm in a bay (two stacked). Each pattern draws its holes inside one block's inner square [0,s]², the block's own
+   half-bar (BAR/2) all round, so two blocks side by side leave a full bar between them. BAR is 2.6 mm everywhere. */
+const BAR=2.6,Q2=Math.SQRT2;   /* every bar between two holes, inside a block or across two blocks */
+const rot=(p,s,k)=>p.map(([x,y])=>{for(let i=0;i<k;i++)[x,y]=[s-y,x];return [x,y];});      /* quarter turns about the block centre */
+const four=(p,s)=>[0,1,2,3].map(k=>rot(p,s,k));
+const Lsh=(w,m)=>[[0,0],[m,0],[m,w],[w,w],[w,m],[0,m]];
+const sq=(x,y,a)=>[[x,y],[x+a,y],[x+a,y+a],[x,y+a]];
+const circ=(cx,cy,r)=>ELL(cx,cy,r,r);
+const BLOCKS={
+ /* nested squares: a square in the middle, an L wrapped round each corner */
+ meander:{name:"Meander (nested squares)",holes(s){const w=Math.max(1.7,(s-2*BAR)*0.25),c=s-2*BAR-2*w,m=(s-BAR)/2;
+   return [sq(w+BAR,w+BAR,c),...four(Lsh(w,m),s)];}},
+ /* a square framed by four trapezoids, split along the diagonals */
+ framed:{name:"Framed square",holes(s){const c=s*0.3,yi=(s-c)/2-BAR,d=BAR/Q2;
+   return [sq((s-c)/2,(s-c)/2,c),...four([[d,0],[s-d,0],[s-yi-d,yi],[yi+d,yi]],s)];}},
+ /* eight long hexagons round a solid eight-point star */
+ star:{name:"Eight-point star",holes(s){const c=s/2,h=0.9,out=[];
+   for(let k=0;k<8;k++){const a=k*Math.PI/4,r0=(k%2?0.4:0.16)*s,r2=(k%2?0.7:0.5)*s,u=[Math.cos(a),Math.sin(a)],v=[-u[1],u[0]];
+     const P=(r,t)=>[c+u[0]*r+v[0]*t,c+u[1]*r+v[1]*t];
+     out.push([P(r0,0),P(r0+h,-h),P(r2-h,-h),P(r2,0),P(r2-h,h),P(r0+h,h)]);}
+   return out;}},
+ /* a diamond touching the four sides, a triangle in each corner */
+ diamond:{name:"Diamond in a square",holes(s){const r=s/2,L=r-BAR*Q2;
+   return [[[r,0],[s,r],[r,s],[0,r]],...four([[0,0],[L,0],[0,L]],s)];}},
+ /* an eight-point star (two squares) with a hook in each corner */
+ octagram:{name:"Octagram and hooks",holes(s){const c=s/2,Ro=s*0.18,Ri=Ro*Math.cos(Math.PI/4)/Math.cos(Math.PI/8),st=[],w=2,m=s*0.36;
+   for(let k=0;k<16;k++){const a=k*Math.PI/8+Math.PI/2,r=k%2?Ri:Ro;st.push([c+r*Math.cos(a),c+r*Math.sin(a)]);}
+   return [st,...four([[0,0],[m,0],[m,w],[w+1.2,w],[w,w+1.2],[w,m],[0,m]],s)];}},
+ /* an X of bars round a diamond: big triangles top and bottom, narrow ones at the sides */
+ xdiamond:{name:"X and diamond",holes(s){const c=s/2,R=c-BAR-1.8,d=BAR/Q2,t=c-R-BAR,k=R+BAR-d;
+   return [[[c,c-R],[c+R,c],[c,c+R],[c-R,c]],...four([[d,0],[s-d,0],[c+k,t],[c-k,t]],s)];}},
+ /* a cross of squares: corner squares, pointed cells on the four sides, solid centre */
+ cross:{name:"Cross of squares",holes(s){const q=(s-2*BAR)/3,p=q*0.45,c=s/2,
+     edge=[[q+BAR,0],[2*q+BAR,0],[2*q+BAR,q],[c,q+p],[q+BAR,q]];
+   return [...four(sq(0,0,q),s),...four(edge,s)];}},
+ /* a quarter disc in each corner (a full circle where four blocks meet), a triangle on each side and a ring in the middle */
+ circle:{name:"Circle and quarter arcs",holes(s){const c=s/2,rq=s*0.2,rc=s*0.1,hw=s*0.09,n=10,
+     qd=[[0,0],...Array.from({length:n+1},(_,k)=>{const a=k/n*Math.PI/2;return [rq*Math.cos(a),rq*Math.sin(a)];})];
+   return [circ(c,c,rc),...four(qd,s),...four([[c-hw,0],[c+hw,0],[c,c-rc-BAR]],s)];}}
+};
+/* lay blocks of size T from (x0,y0); pins are split into insert sets of at most LIM.maxPins */
+function blocks(o,id,x0,y0,cols,rows,T,set0){const b=BLOCKS[id];let n=0;
+  for(let j=0;j<rows;j++)for(let i=0;i<cols;i++)b.holes(T-BAR).forEach(p=>{hole(o,tag(p.map(([u,v])=>[x0+i*T+BAR/2+u,y0+j*T+BAR/2+v]),"claustra"),set0+Math.floor(n/LIM.maxPins));n++;});}
 CAT.forEach(c=>c.set=c.set||"ottoman");
 CAT.push(
  {set:"modern",id:"ribbon",group:"Modernist",name:"Ribbon window",ref:AB+", windows pp. 78–93",
@@ -113,8 +157,8 @@ CAT.push(
    if(q.canopy)o.extras.push({t:"canopy",x:4,w:52,y:q.style==="two"?32.2:27.2});}},
  {set:"modern",id:"claustra",group:"Modernist",name:"Claustra screen",ref:AB+", pp. 52–53",
   desc:"A screen of cast blocks pierced in a repeating pattern: shade and air in, privacy kept. At night the whole wall glitters.",
-  styles:{label:"Pattern",options:{squares:"Squares",circles:"Circles",crosses:"Crosses",lozenges:"Lozenges"}},opts:["frame"],frameName:"Frame (relief)",
-  build(o,q){grid(o,8,5,6,6,9,SHAPES[q.style]||SHAPES.squares);if(q.frame)o.relief.push({o:R(5.5,4.4,49,33.2),i:R(7,5.9,46,30.2)});}},
+  styles:{label:"Pattern",options:Object.assign({squares:"Squares",circles:"Circles",crosses:"Crosses",lozenges:"Lozenges"},Object.fromEntries(Object.entries(BLOCKS).map(([k,b])=>[k,b.name+" blocks"])))},opts:["frame"],frameName:"Frame (relief)",
+  build(o,q){if(BLOCKS[q.style])blocks(o,q.style,4.5,3,3,2,17,1);else grid(o,8,5,6,6,9,SHAPES[q.style]||SHAPES.squares);if(q.frame)o.relief.push({o:R(5.5,4.4,49,33.2),i:R(7,5.9,46,30.2)});}},
  {set:"modern",id:"fins",group:"Modernist",name:"Vertical fins (brise-soleil)",ref:AB+", pp. 52–53",
   desc:"Tall slots between deep vertical fins that cut the low east and west sun: the sun-breaker wall.",
   opts:["frame"],frameName:"Raised fins (relief)",
@@ -160,7 +204,8 @@ const BAYS=[
  {set:"modern",id:"ribbonSeg",name:"Ribbon segment",ref:AB+" pp. 78–93",build:(o,c)=>hole(o,R(c-7.5,18,15,7))},
  {set:"modern",id:"porthole",name:"Porthole",ref:AB+" pp. 78–93",build:(o,c)=>hole(o,ELL(c,22,5,5))},
  {set:"modern",id:"portholes3",name:"Porthole column",ref:AB+" pp. 78–93",build:(o,c)=>[9,20,31].forEach(y=>hole(o,ELL(c,y,3,3)))},
- {set:"modern",id:"claustraCol",name:"Claustra column",ref:AB+" pp. 52–53",build:(o,c,i)=>{for(let j=0;j<5;j++)for(let k=0;k<3;k++)hole(o,R(c-6.1+k*4.9,8+j*4.9,2.4,2.4),1+i);}}
+ {set:"modern",id:"claustraCol",name:"Claustra column",ref:AB+" pp. 52–53",build:(o,c,i)=>{for(let j=0;j<5;j++)for(let k=0;k<3;k++)hole(o,R(c-6.1+k*4.9,8+j*4.9,2.4,2.4),1+i);}},
+ ...Object.entries(BLOCKS).map(([k,b])=>({set:"modern",id:"cl_"+k,name:"Claustra · "+b.name,ref:AB+" pp. 52–53",build:(o,c,i)=>blocks(o,k,c-7.5,4,1,2,15,1+i)}))
 ];
 BAYS.forEach(b=>b.set=b.set||(b.id==="none"?"both":"ottoman"));
 const BAY=Object.fromEntries(BAYS.map(b=>[b.id,b]));
@@ -171,7 +216,22 @@ const optLabel=(c,k)=>k==="frame"?(c.frameName||OPT_LABEL.frame):k==="cornice"?(
 
 /* oculus above: only where the main opening leaves room under the scrape edge */
 const OCULUS=()=>ELL(30,32.2,3,3);
-function gap(a,b){const A=bbox(a),B=bbox(b),dx=Math.max(B.x0-A.x1,A.x0-B.x1,0),dy=Math.max(B.y0-A.y1,A.y0-B.y1,0);return Math.hypot(dx,dy);}
+/* porcelain between two holes: the true distance between their outlines (bounding boxes overstate it for anything diagonal) */
+function bgap(a,b){const A=bbox(a),B=bbox(b),dx=Math.max(B.x0-A.x1,A.x0-B.x1,0),dy=Math.max(B.y0-A.y1,A.y0-B.y1,0);return Math.hypot(dx,dy);}
+function segGap(a,b,c,d){const cr=(o,p,q)=>(p[0]-o[0])*(q[1]-o[1])-(p[1]-o[1])*(q[0]-o[0]),d1=cr(c,d,a),d2=cr(c,d,b),d3=cr(a,b,c),d4=cr(a,b,d);
+  if(d1*d2<0&&d3*d4<0)return 0;
+  const pd=(p,u,v)=>{const dx=v[0]-u[0],dy=v[1]-u[1],t=Math.max(0,Math.min(1,((p[0]-u[0])*dx+(p[1]-u[1])*dy)/(dx*dx+dy*dy||1)));return Math.hypot(p[0]-u[0]-t*dx,p[1]-u[1]-t*dy);};
+  return Math.min(pd(a,c,d),pd(b,c,d),pd(c,a,b),pd(d,a,b));}
+function inside([x,y],p){let r=false;for(let i=0,j=p.length-1;i<p.length;j=i++){const [xi,yi]=p[i],[xj,yj]=p[j];if((yi>y)!==(yj>y)&&x<(xj-xi)*(y-yi)/(yj-yi)+xi)r=!r;}return r;}
+function gap(a,b,lim){const g=bgap(a,b);if(g>=(lim||1e9))return g;if(inside(a[0],b)||inside(b[0],a))return 0;let m=1e9;
+  for(let i=0;i<a.length;i++)for(let j=0;j<b.length;j++)m=Math.min(m,segGap(a[i],a[(i+1)%a.length],b[j],b[(j+1)%b.length]));return m;}
+/* narrowest width of a hole (of its convex hull): what the resin pin has to survive */
+function narrow(p){const P=p.slice().sort((a,b)=>a[0]-b[0]||a[1]-b[1]),cr=(o,a,b)=>(a[0]-o[0])*(b[1]-o[1])-(a[1]-o[1])*(b[0]-o[0]),lo=[],up=[];
+  for(const q of P){while(lo.length>1&&cr(lo[lo.length-2],lo[lo.length-1],q)<=1e-12)lo.pop();lo.push(q);}
+  for(const q of P.reverse()){while(up.length>1&&cr(up[up.length-2],up[up.length-1],q)<=1e-12)up.pop();up.push(q);}
+  const h=lo.slice(0,-1).concat(up.slice(0,-1));let m=1e9;
+  for(let i=0;i<h.length;i++){const a=h[i],b=h[(i+1)%h.length],L=Math.hypot(b[0]-a[0],b[1]-a[1]);if(L<1e-9)continue;let mx=0;
+    for(const q of h)mx=Math.max(mx,Math.abs((b[0]-a[0])*(q[1]-a[1])-(b[1]-a[1])*(q[0]-a[0]))/L);m=Math.min(m,mx);}return m;}
 function oculusFits(o){return o.holes.every(h=>gap(h.p,OCULUS())>=LIM.minBar);}
 
 function build(spec){
@@ -186,8 +246,8 @@ function canOculus(spec){if(spec.mode==="bays")return false;const o=F(),c=BY[spe
 /* ---------- checks for one face ---------- */
 function checkFace(o,shrink,radius){const edge=Math.max(LIM.edge,radius||0);   /* openings stay off the rounded corner as well as the mitre */
   const k=1/(1-(shrink||14)/100),hs=o.holes.map(h=>({p:h.p,b:bbox(h.p)}));
-  const minOpen=hs.length?Math.min(...hs.map(h=>Math.min(h.b.w,h.b.h))):null;
-  let minGap=1e9;for(let i=0;i<hs.length;i++)for(let j=i+1;j<hs.length;j++)minGap=Math.min(minGap,gap(hs[i].p,hs[j].p));
+  const minOpen=hs.length?Math.min(...hs.map(h=>Math.min(h.b.w,h.b.h,narrow(h.p)))):null;
+  let minGap=1e9;for(let i=0;i<hs.length;i++)for(let j=i+1;j<hs.length;j++)minGap=Math.min(minGap,gap(hs[i].p,hs[j].p,minGap));
   const finMin=o.fins.length?Math.min(...o.fins.map(f=>f.w)):null;
   const open=hs.reduce((a,h)=>a+area(h.p),0)/(W*H)*100;
   const out=[];const add=(ok,label,v)=>out.push({ok,label,v});
