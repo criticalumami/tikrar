@@ -190,7 +190,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
 <header class="grid12">
   <h1>TIKRAR<small>Beirut Lantern Generator</small></h1>
   <span class="sub">porcelain modules 60 × 60 mm · 40 mm walls · houses, towers and city blocks · 1860–1925 and modernist openings</span>
-  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 31.10 · 15:55</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
+  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 31.10 · 16:00</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
   <button class="btn icon" id="themeBtn" type="button" aria-label="Toggle colour theme">◐</button></nav>
 </header>
 
@@ -569,7 +569,8 @@ const PALETTES={
   white:{name:"All white",accent:0xe2231a,walls:"white",accents:["white"],plates:"white",roof:"white"}};
 function applyPalette(b,key,accentShare){const p=PALETTES[key];if(b.finish==="unglazed"||!b.finish)b.finish="glazed";b.glazeCol=p.walls;b.plateCol=p.plates;b.palette=key;
   /* roofs vary with the palette, building by building: white about two times in three, otherwise the palette's roof colour or one of its accents */
-  b.roofCol=Math.random()<0.65?"white":pick([p.roof,p.roof,...p.accents]);
+  b.roofCol=Math.random()<0.2?"white":pick([p.roof,p.roof,...p.accents]);
+  Object.keys(b.mods).forEach(k=>{if(Math.random()<0.6)b.mods[k].lid=Math.random()<0.2?"white":pick([p.roof,...p.accents]);else delete b.mods[k].lid;});   /* lids on a per-module roof get their own colours from the palette */
   const share=accentShare===undefined?0.3:accentShare;Object.keys(b.mods).forEach(k=>{if(Math.random()<share)b.mods[k].col=pick(p.accents);else delete b.mods[k].col;});}
 /* the site accent follows the palette in use: the last palette applied (or the city's most common one) gives the
    colour of highlights, active buttons, the grid overlay, the selection outline and the block lines */
@@ -849,7 +850,7 @@ function buildBuilding(bi,gap,lightBudget){
     /* a one-piece roof needs a complete top level; otherwise every column gets its own lid on its highest module */
     if(perMod(b)||!topComplete(b)){const sb=Object.assign({},b,{span:"module"});
       for(let c=0;c<b.cols;c++)for(let r=0;r<b.deep;r++){let lm=-1;for(let l=b.levels-1;l>=0;l--)if(alive(b,c+":"+r+":"+l)){lm=l;break;}if(lm<0)continue;
-        const rf=b.roof==="modern"?modernRoof(sb):slantRoof(sb);rf.position.set(mx(c),ys[lm]+H+gap*0.4,mz(r));g.add(rf);}}
+        const lb=b.mods[c+":"+r+":"+lm]&&b.mods[c+":"+r+":"+lm].lid?Object.assign({},sb,{roofCol:b.mods[c+":"+r+":"+lm].lid}):sb,rf=b.roof==="modern"?modernRoof(lb):slantRoof(lb);rf.position.set(mx(c),ys[lm]+H+gap*0.4,mz(r));g.add(rf);}}
     else{const rf=one();rf.position.set(0,top+gap*0.4,0);g.add(rf);}}
   if(isSel(bi)){const pts=[[-hw-4,-hd-4],[hw+4,-hd-4],[hw+4,hd+4],[-hw-4,hd+4]].map(([x,z])=>new THREE.Vector3(x,0.6,z));const ln=new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(pts),MAT.sel);g.add(ln);}
   return g;}
