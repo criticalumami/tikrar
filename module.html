@@ -190,7 +190,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
 <header class="grid12">
   <h1>TIKRAR<small>Beirut Lantern Generator</small></h1>
   <span class="sub">porcelain modules 60 × 60 mm · 40 mm walls · houses, towers and city blocks · 1860–1925 and modernist openings</span>
-  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 31.10 · 20:10</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
+  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 31.10 · 20:45</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
   <button class="btn icon" id="themeBtn" type="button" aria-label="Toggle colour theme">◐</button></nav>
 </header>
 
@@ -204,7 +204,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
       <div class="grp"><label for="sunT" title="Time of day: morning (left) to evening (right)">Sun</label><input type="range" id="sunT" min="0" max="1" step="0.01" value="0.35" title="Sun: morning to evening"></div>
       <div class="grp"><label for="explode">Explode</label><input type="range" id="explode" min="0" max="30" step="1" value="0"></div>
       <div class="grp"><button type="button" id="orthoBtn" aria-pressed="false" title="Orthographic: parallel lines, no perspective">Ortho</button><button type="button" data-view="axo" title="Axonometric view">Axo</button><button type="button" data-view="plan" title="Plan, from above">Plan</button><button type="button" data-view="front" title="Front elevation">Front</button></div>
-      <div class="grp"><button type="button" id="lockBtn" aria-pressed="false" title="Lock the camera: no orbit, pan or zoom">Lock</button><button type="button" id="resetView">Reset view</button><button type="button" id="jpgBtn" title="Save the 3D view as a JPG">JPG</button><button type="button" id="gifQuick" title="A randomize series as an animated GIF, from this exact view (frames: GIF, under Checks)">GIF</button><button type="button" id="panelBtn" aria-pressed="true" title="Show or hide the side panel (P)">Panel</button></div>
+      <div class="grp"><button type="button" id="spinBtn" aria-pressed="false" title="Keep turning the view around the model">Spin</button><button type="button" id="lockBtn" aria-pressed="false" title="Lock the camera: no orbit, pan or zoom">Lock</button><button type="button" id="resetView">Reset view</button><button type="button" id="jpgBtn" title="Save the 3D view as a JPG">JPG</button><button type="button" id="gifQuick" title="A randomize series as an animated GIF, from this exact view (frames: GIF, under Checks)">GIF</button><button type="button" id="panelBtn" aria-pressed="true" title="Show or hide the side panel (P)">Panel</button></div>
     </div>
   </div>
 
@@ -293,7 +293,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
 <script src="openings.js"></script>
 <script>
 (function(){
-const B=window.BeitOpenings,W=B.W,H=B.H,T=3,MAX_LEVELS=8,GRID=30,BASE_T=2.5,PLATE_T=4,MAX_LIGHTS=0,SHADOW_LIGHTS=0;   /* candle light on the ground is baked (see BAKE): every lit module throws the shapes of its openings */
+const B=window.BeitOpenings,W=B.W,H=B.H,T=3,MAX_LEVELS=8,GRID=30,BASE_T=4,PLATE_T=4,MAX_LIGHTS=0,SHADOW_LIGHTS=0;   /* candle light on the ground is baked (see BAKE): every lit module throws the shapes of its openings */
 const FACES=["front","right","back","left"],FNAME={front:"Front",right:"Right",back:"Back",left:"Left"};
 const $=id=>document.getElementById(id);
 const root=document.documentElement;
@@ -315,7 +315,7 @@ const wall=(type,extra)=>Object.assign({mode:"wall",type},extra||{});
 const pick=a=>a[Math.floor(Math.random()*a.length)];
 function make(name,set,cols,deep,levels,roof,fn,o){
   const b=Object.assign({name,set,cols,deep,levels,roof,pitch:30,body:"porcelain",finish:"glazed",glazeCol:"white",roofCol:"same",x:0,z:0,rot:0,mods:{},
-    plates:Array.from({length:levels},(_,l)=>l===0),candles:Array.from({length:levels},(_,l)=>l===0)},o||{});
+    plates:Array.from({length:levels},()=>true),candles:Array.from({length:levels},(_,l)=>l===0)},o||{});
   for(let c=0;c<cols;c++)for(let r=0;r<deep;r++)for(let l=0;l<levels;l++){const m={};FACES.forEach(f=>m[f]=fn(c,r,l,f,!sharedOf(b,c,r,f)));b.mods[c+":"+r+":"+l]=m;}
   return b;}
 /* the neighbour a wall faces, if any (walls between modules stay inside the building) */
@@ -383,7 +383,7 @@ const mirror=w=>w.mode==="bays"?bays(w.bays[2],w.bays[1],w.bays[0]):clone(w);
 /* random light: some levels lit, a plate under every lit level, the odd plate on its own; never a fully dark building */
 function randomizeLight(b){
   b.candles=Array.from({length:b.levels},(_,l)=>Math.random()<(l===0?0.7:0.4));if(!b.candles.some(Boolean))b.candles[Math.floor(Math.random()*b.levels)]=true;
-  b.plates=b.candles.map((c,l)=>c||Math.random()<(l===0?0.6:0.2));}
+  b.plates=b.candles.map(()=>true);}   /* a slab under every level by default */
 /* a new random building on the same footprint and spot, so the other blocks stay where they are */
 function randomFit(o){const tower=o.cols*o.deep===1&&Math.random()<0.6,set=tower?(Math.random()<0.75?"modern":"ottoman"):(Math.random()<0.6?"ottoman":"modern"),
   levels=tower?pick([3,4,5,6]):pick([1,2,3]),b=make(set==="modern"?(tower?"Modernist tower":"Modernist block"):(tower?"Stair tower":"House"),set,o.cols,o.deep,levels,set==="ottoman"?"slant":"modern",()=>wall("blank"));
@@ -505,7 +505,7 @@ function resize3(b,cols,deep,levels){const old=b,m={};
   for(let c=0;c<cols;c++)for(let r=0;r<deep;r++)for(let l=0;l<levels;l++){const k=c+":"+r+":"+l;
     m[k]=old.mods[k]?clone(old.mods[k]):clone(old.mods[Math.min(c,old.cols-1)+":"+Math.min(r,old.deep-1)+":"+Math.min(l,old.levels-1)]);
     FACES.forEach(f=>{if(sharedOf({cols,deep},c,r,f)&&!sharedOf(old,Math.min(c,old.cols-1),Math.min(r,old.deep-1),f))m[k][f]=INNER();});}
-  const pl=Array.from({length:levels},(_,l)=>l<old.levels?old.plates[l]:false),cd=Array.from({length:levels},(_,l)=>l<old.levels?old.candles[l]:false);
+  const pl=Array.from({length:levels},(_,l)=>l<old.levels?old.plates[l]:true),cd=Array.from({length:levels},(_,l)=>l<old.levels?old.candles[l]:false);
   Object.assign(b,{cols,deep,levels,mods:m,plates:pl,candles:cd});fixSel();}
 const levelName=l=>l?"Level "+l:"Ground";
 
@@ -794,7 +794,7 @@ const plateT=l=>l===0?BASE_T:PLATE_T;
    The base rests on its lower lips, so a building with a base stands LIP.h off the table. */
 const LIP={clr:0.5,w:2.5,h:3};   /* 2.5 mm wide = the porcelain minimum bar; 0.5 mm play covers the ±0.3 mm firing spread */
 function lipRing(cx,cz,y,mat,b){const o=W/2-T-LIP.clr,i=o-LIP.w,r=Math.max(1,Math.min(radOf(b),W/2-1));   /* corners as round as the walls' outer corners, edges softened like the walls */
-  return soft(rsq(cx-o,cz-o,cx+o,cz+o,r),[rsq(cx-i,cz-i,cx+i,cz+i,Math.max(0.6,r-LIP.w))],LIP.h,mat,y,Math.min(BV,LIP.w/2-0.1));}   /* the base is as thick as the roof slab (2.5 mm) with the same 1.2 mm round edge */
+  return soft(rsq(cx-o,cz-o,cx+o,cz+o,r),[rsq(cx-i,cz-i,cx+i,cz+i,Math.max(0.6,r-LIP.w))],LIP.h,mat,y,Math.min(BV,LIP.w/2-0.1));}   /* base, plates and flat roof: one 4 mm slab with lips on both faces */
 function levelY(b,gap){const ys=[];let y=b.plates[0]?LIP.h:0;for(let l=0;l<b.levels;l++){if(b.plates[l])y+=plateT(l)+gap*0.5;ys.push(y);y+=H+gap;}return {ys,top:y-gap};}
 /* one roof piece per building: a hipped lid over the whole footprint (the manual's single red-tiled hip), or one flat slab */
 const perMod=b=>b.span==="module";
@@ -861,7 +861,7 @@ function buildBuilding(bi,gap,lightBudget){
   for(let l=0;l<b.levels;l++){
     /* plate (or base) under the level: one piece for the whole floor, a vent over every module */
     if(b.plates[l]){const vents=[];for(let c=0;c<b.cols;c++)for(let r=0;r<b.deep;r++){if(!alive(b,c+":"+r+":"+l)){if(l>0&&courtOpen(b,c,r,l))vents.push(rsq(mx(c)-W/2+T,-mz(r)-W/2+T,mx(c)+W/2-T,-mz(r)+W/2-T,2).reverse());continue;}vents.push(circle(4,mx(c),-mz(r)));}   /* an upper plate is open over a courtyard */
-      const pm=l===0&&(b.plateCol||"same")==="same"?footMat(b):plateMat(b),py=ys[l]-plateT(l)-gap*0.5,p=soft(rsq(-hw,-hd,hw,hd,radOf(b)),l===0?[]:vents,plateT(l),pm,py,l===0?1.2:1.9);g.add(p);
+      const pm=plateMat(b),py=ys[l]-plateT(l)-gap*0.5,p=soft(rsq(-hw,-hd,hw,hd,radOf(b)),vents,plateT(l),pm,py,1.9);   /* base, plates and flat roof are one element: the same slab with lips on both faces */g.add(p);
       for(let c=0;c<b.cols;c++)for(let r=0;r<b.deep;r++){const up=alive(b,c+":"+r+":"+l),dn=l===0?up:alive(b,c+":"+r+":"+(l-1));   /* lips: on top for the module above, underneath for the module below (the base: its feet) */
         if(up)g.add(lipRing(mx(c),-mz(r),py+plateT(l),pm,b));if(dn)g.add(lipRing(mx(c),-mz(r),py-LIP.h,pm,b));}
 }   /* the base is one piece: no separate foot layer under it */
@@ -886,12 +886,11 @@ const GLOW_GEO=new THREE.BoxGeometry(W-2*T-0.6,H-0.6,W-2*T-0.6,6,6,6);
 MAT.glow.onBeforeCompile=sh=>{sh.vertexShader=sh.vertexShader.replace("#include <common>","#include <common>\nvarying vec3 vLoc;").replace("#include <begin_vertex>","#include <begin_vertex>\nvLoc=position;");
   sh.fragmentShader=sh.fragmentShader.replace("#include <common>","#include <common>\nvarying vec3 vLoc;").replace("vec4 diffuseColor = vec4( diffuse, opacity );",
     "vec3 fl=vec3(0.0,"+(-(H/2)+CANDLE_Y-2).toFixed(1)+",0.0);float d=length(vLoc-fl);float k=2.3/(1.0+pow(d/22.0,2.0))+0.22;vec4 diffuseColor=vec4(diffuse*k*vec3(1.0,0.86+0.14*k,0.72+0.28*k),opacity);");};
-/* public court: a 6 mm porcelain tray with a 3 mm rounded rim (5 mm proud) and a round basin in the middle, one cast piece */
+/* public court: a 6 mm porcelain tray with a 3 mm rounded rim (5 mm proud), one cast piece, an empty plaza */
 const COURT_T=6,COURT_RIM=5;
 function courtOf(b,bi,g,hw,hd){const mat=plateMat(b),r=radOf(b),ri=Math.max(0.5,r-3);
   const base=soft(rsq(-hw,-hd,hw,hd,r),[],COURT_T,mat,0,2.4);base.userData={bi,k:"0:0:0",fname:"front"};pickable.push(base);g.add(base);
   g.add(soft(rsq(-hw,-hd,hw,hd,r),[rsq(-hw+3,-hd+3,hw-3,hd-3,ri)],COURT_RIM,mat,COURT_T-0.5,1.2));
-  const bs=soft(circle(14),[circle(10.5)],7,bodyMat(b),COURT_T-0.5,1.2);g.add(bs);
   if(isSel(bi)){const pts=[[-hw-4,-hd-4],[hw+4,-hd-4],[hw+4,hd+4],[-hw-4,hd+4]].map(([x,z])=>new THREE.Vector3(x,0.6,z));g.add(new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(pts),MAT.sel));}
   return g;}
 /* a fixed pool of candle lights, so editing never changes the light count (which would recompile every shader and stutter) */
@@ -977,7 +976,7 @@ function rebuildNow(){
   const gap=+S.explode,budget={anchors:[]};S.buildings.forEach((_,bi)=>built.add(buildBuilding(bi,gap,budget)));
   merged=mergeGroup(built);scene.add(merged);placeLights(budget.anchors);BAKE.anchors=budget.anchors;buildRoom();applyNight();}
 function applyNight(){const n=S.night,rd=S.render;scene.background=new THREE.Color(n?0x000000:0xffffff);   /* the floor is one solid colour: white by day, near-black by night */   /* night is pitch black: only the candles light the city */view.classList.toggle("dark",!!(n||rd));   /* abstract: a seamless warm-white backdrop by day, a warm dusk at night */
-  hemi.intensity=n?0.3:0.26;hemi.color.set(n?0xdfe2e8:0xfff4e6);hemi.groundColor.set(n?0x3a3630:0xc9bba8);   /* night: a dim neutral room light, so white porcelain still reads white */   /* a constant soft fill, night included, so glazes always read */   /* night: a blue dusk sky */
+  hemi.intensity=n?0.42:0.26;hemi.color.set(n?0xdfe2e8:0xfff4e6);hemi.groundColor.set(n?0x3a3630:0xc9bba8);   /* night: a dim neutral room light, so white porcelain still reads white */   /* a constant soft fill, night included, so glazes always read */   /* night: a blue dusk sky */
   sun.intensity=n?0:1.5*(sun.userData.k||1);   /* day: a soft warm sky and one gentle key light; night: the candles */
   /* filmic tone mapping keeps white porcelain from blowing out (Render mode does its own in the final pass) */
   /* Render mode by day draws straight to the screen (filmic tone, sRGB) so the white page stays pure white;
@@ -989,14 +988,14 @@ function applyNight(){const n=S.night,rd=S.render;scene.background=new THREE.Col
   /* time of day: the sun rises on the left (morning), stands high in front at noon, sets on the right; low sun is warmer */
   {const t=S.sun===undefined?0.35:S.sun,az=Math.PI*t,el=(8+62*Math.sin(Math.PI*t))*Math.PI/180,hi=Math.sin(el)/Math.sin(70*Math.PI/180);
    sun.position.set(cx-Math.cos(az)*Math.cos(el)*1200,Math.sin(el)*1200,cz+Math.sin(az)*Math.cos(el)*1200);
-   sun.color.set(0xffa868).lerp(new THREE.Color(0xfff4e6),Math.min(1,hi));sun.userData.k=0.55+0.45*hi;sun.intensity=n?0.4:2.8*sun.userData.k;if(n)sun.color.set(0xc9d3e6);
+   sun.color.set(0xffa868).lerp(new THREE.Color(0xfff4e6),Math.min(1,hi));sun.userData.k=0.55+0.45*hi;sun.intensity=n?0:2.8*sun.userData.k;
    if(!n)hemi.color.set(0xffe2c4).lerp(new THREE.Color(0xfff4e6),Math.min(1,hi));}
   {const ext=Math.max(b.x1-b.x0,b.z1-b.z0,b.h)*0.75+200;Object.assign(sun.shadow.camera,{left:-ext,right:ext,top:ext,bottom:-ext,near:50,far:1200+ext*1.6});sun.shadow.camera.updateProjectionMatrix();}sun.target.position.set(cx,0,cz);
   const cs=S.candle===undefined?1:S.candle;lights.forEach(L=>L.intensity=n?L.userData.base*cs:0);flames.forEach(f=>f.visible=n);
   MAT.glow.visible=MAT.pool.visible=n;MAT.contact.visible=!!S.render;MAT.glow.color.set(0xffb562).multiplyScalar(Math.min(1.4,1.05*cs));MAT.pool.opacity=Math.min(0.9,0.42*cs);$("nightBtn").setAttribute("aria-pressed",n);
   Object.values(MATS).forEach(m=>{m.emissiveIntensity=0;});
   Object.values(LIT).forEach(m=>{m.emissiveIntensity=n?cs*(m.userData.translucent?(S.render?0.09:0.07):(S.render?0.02:0.03)):0;});   /* thin porcelain glows through; stoneware and terracotta only a little */   /* thin porcelain glows a little when lit from inside */
-  if(S.render){scene.environment=n?(envNight||null):(envRoom||envBasic);   /* night: nothing but the candles and a dim room */hemi.intensity=n?0.32:0.16;sun.intensity=n?0.75:1.7*(sun.userData.k||1);   /* night: a cool moon key gives the glaze its shape, highlights and cast shadows */sun.shadow.mapSize.set(2048,2048);sun.shadow.normalBias=0.4;
+  if(S.render){scene.environment=n?(envNight||null):(envRoom||envBasic);   /* night: nothing but the candles and a dim room */hemi.intensity=n?0.5:0.16;sun.intensity=n?0:1.7*(sun.userData.k||1);   /* no sun at night: the candles and a dim room only */sun.shadow.mapSize.set(2048,2048);sun.shadow.normalBias=0.4;
     lights.forEach(L=>L.intensity=n?L.userData.base*1.2*cs:0);if(finalPass)finalPass.uniforms.exposure.value=n?1.05:0.8;
     if(bloom){bloom.strength=n?0.06:0.08;bloom.threshold=n?0.9:0.95;bloom.radius=0.45;}}
   else{scene.environment=envBasic;sun.shadow.normalBias=0.4;}   /* normal offset keeps flat walls free of shadow acne (the dotted diagonal along triangle seams) */
@@ -1028,8 +1027,7 @@ let envNight=null;
 function studioScene(k){const sc=new THREE.Scene(),room=new THREE.Mesh(new THREE.BoxGeometry(10,6,10),new THREE.MeshBasicMaterial({color:new THREE.Color(0x3a3936).multiplyScalar(k>0.5?1:0.35),side:THREE.BackSide}));room.position.y=2;sc.add(room);
   const panel=(w,h,x,y,z,ry,rx,i)=>{const m=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshBasicMaterial({color:new THREE.Color(1,0.97,0.92).multiplyScalar(i*k),side:THREE.DoubleSide}));m.position.set(x,y,z);m.rotation.set(rx||0,ry||0,0);m.lookAt(0,0.6,0);sc.add(m);};
   panel(3.2,2.4,-3.6,2.6,3.4,0,0,9);panel(0.7,4,4.6,2.2,-0.6,0,0,6);panel(4,4,0,4.9,0,0,0,3);panel(10,1.2,0,-0.6,-4.9,0,0,0.6);return sc;}
-function setRender(on){if(on&&!S.render&&S.ortho){S.wasOrtho=true;setOrtho(false);}else if(!on&&S.render&&S.wasOrtho){S.wasOrtho=false;setOrtho(true);}   /* Render looks through a lens (perspective), as a photograph does */
-  {const f=on?28:35;if(persp.fov!==f){const k=Math.tan(persp.fov*Math.PI/360)/Math.tan(f*Math.PI/360),v=persp.position.clone().sub(controls.target).multiplyScalar(k);persp.position.copy(controls.target).add(v);persp.fov=f;persp.updateProjectionMatrix();controls.update();}}   /* a longer lens, stepped back so the framing stays */
+function setRender(on){   /* Render keeps the view exactly as it is: ortho stays ortho, the same lens and framing */
   S.render=on;$("renderBtn").setAttribute("aria-pressed",on);Object.keys(MATS).forEach(k=>delete MATS[k]);Object.keys(LIT).forEach(k=>delete LIT[k]);save();rebuild();}
 function resize(){const r=view.getBoundingClientRect();renderer.setSize(r.width,r.height,false);persp.aspect=r.width/r.height;persp.updateProjectionMatrix();orthoFrustum();
   if(composer){composer.setSize(r.width,r.height);const pr=renderer.getPixelRatio();fxaa.uniforms.resolution.value.set(1/(r.width*pr),1/(r.height*pr));}}
@@ -1246,6 +1244,8 @@ on("sunT","input",e=>{S.sun=+e.target.value;applyNight();save();});
 /* lock the camera: no orbit, pan or zoom (the view buttons still work) */
 const setLock=on=>{S.lock=!!on;controls.enabled=!S.lock;$("lockBtn").setAttribute("aria-pressed",S.lock);};
 on("lockBtn","click",()=>{setLock(!S.lock);save();});
+const setSpin=on=>{S.spin=!!on;controls.autoRotate=S.spin;controls.autoRotateSpeed=1.2;$("spinBtn").setAttribute("aria-pressed",S.spin);need();};   /* turns slowly round the target, also when the camera is locked */
+on("spinBtn","click",()=>{setSpin(!S.spin);save();});
 /* ---------- GIF: a small encoder with one palette made for the whole animation (median cut over every frame, 256 colours, LZW) ---------- */
 /* each frame is kept as 15-bit colours (5 bits a channel) while the histogram of all frames builds up; the palette comes from that */
 function gif15(d,hist,sum){const out=new Uint16Array(d.length/4);for(let i=0,j=0;i<d.length;i+=4,j++){const r=d[i],g=d[i+1],b=d[i+2],k=(r>>3)<<10|(g>>3)<<5|b>>3;out[j]=k;hist[k]++;sum[3*k]+=r;sum[3*k+1]+=g;sum[3*k+2]+=b;}return out;}
@@ -1279,7 +1279,7 @@ on("gifBtn","click",async()=>{const btn=$("gifBtn");if(btn.disabled)return;btn.d
       else if(mode==="sun"){S.sun=0.04+0.92*i/(N-1);applyNight();}
       else if(mode==="explode"){S.explode=Math.round(24*Math.sin(Math.PI*i/N));rebuildNow();}   /* the modules part and close again, so the GIF loops */
       else if(MODE==="module"){const b=Bs(),k=mode==="randall"||!PALETTES[b.palette]?palAt(i):b.palette;randomShape(b);randomizeBuilding(b);applyPalette(b,k);rebuildNow();}   /* Module editor: new walls on the same module, colours re-dealt from its palette */
-      else{const kp=S.keepPal;if(mode==="randall")Bs().palette=palAt(i);S.keepPal=true;randAll();S.keepPal=kp;rebuildNow();}   /* a new city each frame, all in one palette: the one in use, or (all palettes) the next palette each frame */
+      else{const pk=mode==="randall"?palAt(i):(PALETTES[Bs().palette]?Bs().palette:palAt(0));S.buildings=S.buildings.map(o=>{if(o.court)return o;const nb=randomFit(o);randPal(nb,pk);return nb;});rebuildNow();}   /* the same city plan each frame, so the view stays put: every building keeps its footprint and spot and gets new levels, walls and colours (one palette, or the next palette each frame) */
       await nextFrame();settleLight();draw();g2.drawImage(cv,0,0,w,h);frames.push(gif15(g2.getImageData(0,0,w,h).data,hist,sum));}
     btn.textContent="…";await nextFrame();const {pal,lut}=gifPalette(hist,sum),ixs=frames.map(f=>{const o=new Uint8Array(f.length);for(let i=0;i<f.length;i++)o[i]=lut[f[i]];return o;});
     const blob=new Blob([gifEncode(ixs,w,h,mode==="orbit"?4:mode==="sun"?6:mode==="explode"?5:25,pal)],{type:"image/gif"}),a=document.createElement("a"),d=new Date(),z=n=>String(n).padStart(2,"0");
@@ -1586,7 +1586,7 @@ on("pdfBtn","click",()=>{const btn=$("pdfBtn"),t=btn.textContent;btn.textContent
 
 $("explode").value=S.explode;S.editSet=S.editSet||Bs().set;
 if(S.render){S.render=false;setTimeout(()=>$("renderBtn").click(),0);}
-$("candle").value=S.candle===undefined?1:S.candle;$("keepPal").setAttribute("aria-pressed",!!S.keepPal);setPanel(!S.nopanel);setLock(S.lock);$("sunT").value=S.sun===undefined?0.35:S.sun;resize();if(S.ortho)setOrtho(true);renderUI();fitView();
+$("candle").value=S.candle===undefined?1:S.candle;$("keepPal").setAttribute("aria-pressed",!!S.keepPal);setPanel(!S.nopanel);setLock(S.lock);setSpin(S.spin);$("sunT").value=S.sun===undefined?0.35:S.sun;resize();if(S.ortho)setOrtho(true);renderUI();fitView();
 })();
 </script>
 </body>
