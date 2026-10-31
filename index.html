@@ -184,7 +184,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
 <header class="grid12">
   <h1>TIKRAR<small>Beirut Lantern Generator</small></h1>
   <span class="sub">porcelain modules 60 × 60 mm · 40 mm walls · houses, towers and city blocks · 1860–1925 and modernist openings</span>
-  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 31.10 · 14:55</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
+  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 31.10 · 15:10</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
   <button class="btn icon" id="themeBtn" type="button" aria-label="Toggle colour theme">◐</button></nav>
 </header>
 
@@ -594,19 +594,24 @@ function speckleTex(body,faint){const key="sp"+body+(faint?"f":"");if(RT[key])re
   for(let i=0;i<cnt;i++){const r=rnd()<0.92?0.6+rnd()*1.1:1.6+rnd()*2;g.fillStyle=`rgba(${col},${a*(0.4+rnd()*0.6)})`;g.beginPath();g.arc(rnd()*n,rnd()*n,r,0,7);g.fill();}
   if(body==="terracotta")for(let i=0;i<500;i++){g.fillStyle=`rgba(255,236,210,${0.25*rnd()})`;g.beginPath();g.arc(rnd()*n,rnd()*n,0.8+rnd(),0,7);g.fill();}
   const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(1/30,1/30);t.anisotropy=8;t.encoding=THREE.sRGBEncoding;return RT[key]=t;}
+/* after the owner's reference photos (glossy cream slip-cast houses): the glaze is smooth glass over the body, one clean
+   soft highlight and no surface noise; bare clay (the foot) is matte and fine, a chalky sheen, no grain at this scale */
+/* the table in Render mode: a dark honed stone, broad soft mottling only (one tile ≈ 400 mm), sRGB */
+function tableTex(){if(RT.table)return RT.table;const n=256,h=heightField(n,[[4,1],[9,0.6],[24,0.25]],11),t=texFrom(n,d=>{for(let i=0;i<n*n;i++){const v=Math.max(0,Math.min(255,228+(h[i]-0.9)*13));d[4*i]=v;d[4*i+1]=v*0.985;d[4*i+2]=v*0.96;d[4*i+3]=255;}},true);t.repeat.set(1/400,1/400);return RT.table=t;}
 function hqMatOf(body,glaze,col,bd){const lin=new THREE.Color(col).convertSRGBToLinear();
-  const m=glaze==="unglazed"
-    ?new THREE.MeshStandardMaterial({color:lin,map:body==="porcelain"?null:speckleTex(body),roughness:1,roughnessMap:roughTex(),normalMap:biscuitN(),normalScale:new THREE.Vector2(0.25,0.25),metalness:0,envMapIntensity:0.08})
-    :new THREE.MeshPhysicalMaterial({color:lin,map:body==="porcelain"?null:speckleTex(body,true),roughness:0.2,metalness:0,normalMap:biscuitN(),normalScale:new THREE.Vector2(0.1,0.1),
-       clearcoat:1,clearcoatRoughness:0.03,clearcoatNormalMap:glazeN(),clearcoatNormalScale:new THREE.Vector2(0.3,0.3),envMapIntensity:0.22,reflectivity:0.5});
+  const m=glaze==="unglazed"||glaze==="foot"
+    ?new THREE.MeshStandardMaterial({color:lin,map:body==="porcelain"?null:speckleTex(body),roughness:0.86,metalness:0,envMapIntensity:0.35})
+    :new THREE.MeshPhysicalMaterial({color:lin,map:body==="porcelain"?null:speckleTex(body,true),roughness:0.32,metalness:0,
+       clearcoat:1,clearcoatRoughness:0.06,envMapIntensity:0.9,reflectivity:0.5});
   m.userData.translucent=bd.glow;m.emissive=new THREE.Color(0xff9a3c).convertSRGBToLinear();m.emissiveIntensity=0;m.onBeforeCompile=groundAO;return m;}
 /* glazes are matte (satin) unless the building is set to Gloss */
 function matOf(body,glaze,gloss){const k=(S.render?"R|":"")+body+"|"+glaze+(gloss?"|g":"");if(MATS[k])return MATS[k];const bd=BODY[body]||BODY.porcelain;
-  if(S.render){const col0=glaze==="unglazed"?bd.col:(GLAZE[glaze]&&GLAZE[glaze].col!==null?GLAZE[glaze].col:new THREE.Color(bd.col).lerp(new THREE.Color(0xffffff),0.12).getHex());const m=hqMatOf(body,glaze,col0,bd);
-    if(glaze!=="unglazed"&&!gloss){m.roughness=0.6;m.clearcoat=0.15;m.clearcoatRoughness=0.5;m.envMapIntensity=0.12;}return MATS[k]=m;}
-  const col=glaze==="unglazed"?bd.col:(GLAZE[glaze]&&GLAZE[glaze].col!==null?GLAZE[glaze].col:new THREE.Color(bd.col).lerp(new THREE.Color(0xffffff),0.12).getHex());
-  const m=glaze==="unglazed"
-    ?new THREE.MeshStandardMaterial({color:col,roughness:0.92,metalness:0,envMapIntensity:0.15,bumpMap:grainTex(),bumpScale:0.035})        /* matte biscuit, fine grain */
+  const footCol=new THREE.Color(bd.col).multiply(new THREE.Color(0xd2c4ad)).getHex();   /* the unglazed foot: the bare body, a sandy tone as in the photos */
+  if(S.render){const col0=glaze==="foot"?footCol:glaze==="unglazed"?bd.col:(GLAZE[glaze]&&GLAZE[glaze].col!==null?GLAZE[glaze].col:new THREE.Color(bd.col).lerp(new THREE.Color(0xffffff),0.12).getHex());const m=hqMatOf(body,glaze,col0,bd);
+    if(glaze!=="unglazed"&&glaze!=="foot"&&!gloss){m.roughness=0.42;m.clearcoat=0.6;m.clearcoatRoughness=0.14;m.envMapIntensity=0.65;}return MATS[k]=m;}   /* satin: still a soft sheen, gloss: wet glass */
+  const col=glaze==="foot"?footCol:glaze==="unglazed"?bd.col:(GLAZE[glaze]&&GLAZE[glaze].col!==null?GLAZE[glaze].col:new THREE.Color(bd.col).lerp(new THREE.Color(0xffffff),0.12).getHex());
+  const m=glaze==="unglazed"||glaze==="foot"
+    ?new THREE.MeshStandardMaterial({color:col,roughness:0.9,metalness:0,envMapIntensity:0.15})        /* matte biscuit, smooth */
     :gloss?new THREE.MeshPhysicalMaterial({color:col,roughness:0.28,metalness:0,clearcoat:1,clearcoatRoughness:0.06,envMapIntensity:0.55})        /* glassy glaze over the body */
     :new THREE.MeshStandardMaterial({color:col,roughness:0.66,metalness:0,envMapIntensity:0.2});        /* satin-matte glaze */
   m.userData.translucent=bd.glow;m.emissive=new THREE.Color(0xff9a3c);m.emissiveIntensity=0;m.onBeforeCompile=groundAO;return MATS[k]=m;}
@@ -619,7 +624,7 @@ const bodyMat=b=>matOf(b.body||"porcelain",(b.finish||"glazed")==="unglazed"?"un
 const modMat=(b,k)=>{const c=b.mods[k]&&b.mods[k].col;return c?matOf(b.body||"porcelain",c,gl(b)):bodyMat(b);};
 const roofMat=b=>{const rc=b.roofCol||"same";return rc==="same"?bodyMat(b):matOf(b.body||"porcelain",rc,gl(b));};
 const plateMat=b=>{const rc=b.plateCol||"same";return rc==="same"?bodyMat(b):matOf(b.body||"porcelain",rc,gl(b));};
-const footMat=b=>matOf(b.body||"porcelain","unglazed");
+const footMat=b=>matOf(b.body||"porcelain","foot");
 const shrinkOf=b=>(BODY[b.body]||BODY.porcelain).shrink;
 const MAT={glaze:new THREE.MeshStandardMaterial({color:0xf6f1e8,roughness:0.22,metalness:0}),
   bisque:new THREE.MeshStandardMaterial({color:0xc9bfae,roughness:0.95}),
@@ -637,13 +642,13 @@ let room=new THREE.Group();scene.add(room);
 const lc=h=>S.render?new THREE.Color(h).convertSRGBToLinear():new THREE.Color(h);
 function buildRoom(){scene.remove(room);room.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.isLine&&o.material!==MAT.line)o.material.dispose();});room=new THREE.Group();
   /* by day the ground is the page: pure white, with only the shadows drawn on it */
-  const white=!S.night,gb=bounds(),gsz=Math.max(gb.x1-gb.x0,gb.z1-gb.z0)+(white?1400:8000),g=new THREE.Mesh(new THREE.PlaneGeometry(gsz,gsz),white?new THREE.ShadowMaterial({opacity:0.3}):new THREE.MeshStandardMaterial({color:lc(S.render?(S.night?0x0a0908:0xc4bcb0):0x0a0908),roughness:1,envMapIntensity:0.2}));g.rotation.x=-Math.PI/2;g.position.set((gb.x0+gb.x1)/2,-groundDrop(),(gb.z0+gb.z1)/2);g.receiveShadow=true;room.add(g);   /* by day only as big as the shadows need, so nothing reaches the horizon */
+  const white=!S.night&&!S.render,gb=bounds(),gsz=Math.max(gb.x1-gb.x0,gb.z1-gb.z0)+(white?1400:8000),g=new THREE.Mesh(new THREE.PlaneGeometry(gsz,gsz),white?new THREE.ShadowMaterial({opacity:0.3}):new THREE.MeshStandardMaterial({color:lc(S.render?(S.night?0x2c2925:0x48433c):0x0a0908),roughness:S.render?0.62:1,envMapIntensity:S.render?0.5:0.2,map:S.render?tableTex():null}));g.rotation.x=-Math.PI/2;g.position.set((gb.x0+gb.x1)/2,-groundDrop(),(gb.z0+gb.z1)/2);g.receiveShadow=true;room.add(g);if(S.render)tableTex().repeat.set(gsz/400,gsz/400);   /* by day only as big as the shadows need, so nothing reaches the horizon */
   /* the ground line: in the Front elevation the ground is edge-on, so it is drawn as one black hairline at y = 0 */
   {const b=bounds(),gl=new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(b.x0-4000,0,b.z1+600),new THREE.Vector3(b.x1+4000,0,b.z1+600)]),new THREE.LineBasicMaterial({color:S.night?0x9aa0ad:0x111111}));
    gl.visible=S.view==="front"&&camera===ortho;gl.name="groundLine";room.add(gl);}
   /* block lines: each city block's outline on the ground as a red hairline, and the same block-and-street grid carried on
      across the whole ground (block width × the deepest block, side and main streets at their set widths) */
-  if(blkMode()){const plots=blkMode()===2,ly=0.3-groundDrop(),trays=[],pts=[],rect=(x0,z0,x1,z1,city)=>{if(plots&&city){trays.push([x0,z0,x1,z1]);return;}const c=[[x0,z0],[x1,z0],[x1,z1],[x0,z1]];c.forEach((p,i)=>{const q=c[(i+1)%4];pts.push(new THREE.Vector3(p[0],ly,p[1]),new THREE.Vector3(q[0],ly,q[1]));});};
+  if(blkMode()&&!(S.render&&blkMode()===1)){const plots=blkMode()===2,   /* Render mode is a photograph: no drawn block lines on the table (plots stay, they are objects) */ly=0.3-groundDrop(),trays=[],pts=[],rect=(x0,z0,x1,z1,city)=>{if(plots&&city){trays.push([x0,z0,x1,z1]);return;}const c=[[x0,z0],[x1,z0],[x1,z1],[x0,z1]];c.forEach((p,i)=>{const q=c[(i+1)%4];pts.push(new THREE.Vector3(p[0],ly,p[1]),new THREE.Vector3(q[0],ly,q[1]));});};
     if(!LAYOUT.blocks.length||!LAYOUT.G)gridLayout(JSON.parse(JSON.stringify(S.buildings)));   /* a saved design: work the layout out on a copy, nothing moves */
     const L=LAYOUT,G=L.G,bc=L.cols.length,br=L.rows.length,thick=[],band=(x0,z0,x1,z1)=>{const c=[[x0,z0],[x1,z0],[x1,z1],[x0,z1]];c.forEach((p,i)=>thick.push([p,c[(i+1)%4]]));};
     if(bc&&br){const gb=bounds(),ext=Math.max(gb.x1-gb.x0,gb.z1-gb.z0)/2+(S.night?1600:700),mx=(gb.x0+gb.x1)/2,mz=(gb.z0+gb.z1)/2,rD=j=>L.rows[((j%br)+br)%br].d;
@@ -816,7 +821,7 @@ function buildBuilding(bi,gap,lightBudget){
   for(let l=0;l<b.levels;l++){
     /* plate (or base) under the level: one piece for the whole floor, a vent over every module */
     if(b.plates[l]){const vents=[];for(let c=0;c<b.cols;c++)for(let r=0;r<b.deep;r++)vents.push(circle(4,mx(c),-mz(r)));
-      const p=soft(rsq(-hw,-hd,hw,hd,radOf(b)),l===0?[]:vents,plateT(l),plateMat(b),ys[l]-plateT(l)-gap*0.5,l===0?1.2:1.9);g.add(p);
+      const p=soft(rsq(-hw,-hd,hw,hd,radOf(b)),l===0?[]:vents,plateT(l),l===0&&(b.plateCol||"same")==="same"?footMat(b):plateMat(b),ys[l]-plateT(l)-gap*0.5,l===0?1.2:1.9);g.add(p);
 }   /* the base is one piece: no separate foot layer under it */
     for(let c=0;c<b.cols;c++)for(let r=0;r<b.deep;r++){const k=c+":"+r+":"+l;if(!alive(b,k))continue;const mg=new THREE.Group();mg.position.set(mx(c),ys[l],mz(r));const bvs={};FACES.forEach(f=>{const w=buildWall(bi,k,f);bvs[f]=w.userData.bv;mg.add(w);});mg.add(cornerPieces(b,k,bvs));if(b.candles[l]&&b.plates[l])mg.traverse(o=>o.userData.lit=true);g.add(mg);
       if(b.candles[l]&&b.plates[l]){const tea=new THREE.Mesh(new THREE.CylinderGeometry(19,19,8,24),MAT.tea);tea.position.set(mx(c),ys[l]-gap*0.5+4,mz(r));g.add(tea);
@@ -878,6 +883,8 @@ function startBake(anchors){BAKE.q.length=0;BAKE.n=0;BAKE.ov.visible=false;
   const cc=renderer.getClearColor(new THREE.Color()),ca=renderer.getClearAlpha(),rt0=renderer.getRenderTarget();
   renderer.setRenderTarget(BAKE.rt);renderer.setClearColor(0x000000,1);renderer.clear(true,false,false);renderer.setRenderTarget(rt0);renderer.setClearColor(cc,ca);
   const p=new THREE.Vector3();anchors.forEach(a=>{a.getWorldPosition(p);BAKE.q.push(p.clone());});BAKE.ov.visible=true;}
+/* a still (GIF frame, JPG, PDF) waits for every candle to be baked first */
+const settleLight=()=>{if(BAKE.q.length)bakeStep(1e9);};
 function bakeStep(max){const t0=performance.now(),rt0=renderer.getRenderTarget(),ac=renderer.autoClear,pend=renderer.shadowMap.needsUpdate;
   renderer.setRenderTarget(BAKE.rt);renderer.autoClear=false;
   while(BAKE.q.length&&performance.now()-t0<max){BAKE.light.position.copy(BAKE.q.shift());renderer.shadowMap.needsUpdate=true;renderer.render(BAKE.scene,BAKE.cam);BAKE.n++;}
@@ -915,7 +922,7 @@ function rebuildNow(){
   built=new THREE.Group();pickable.length=0;flames.length=0;
   const gap=+S.explode,budget={anchors:[]};S.buildings.forEach((_,bi)=>built.add(buildBuilding(bi,gap,budget)));
   merged=mergeGroup(built);scene.add(merged);placeLights(budget.anchors);BAKE.anchors=budget.anchors;buildRoom();applyNight();}
-function applyNight(){const n=S.night,rd=S.render;scene.background=n?new THREE.Color(0x000000):new THREE.Color(0xffffff);   /* night is pitch black: only the candles light the city */view.classList.toggle("dark",!!(n||rd));   /* abstract: a seamless warm-white backdrop by day, a warm dusk at night */
+function applyNight(){const n=S.night,rd=S.render;scene.background=new THREE.Color(rd?(n?0x060706:0x2f322d):n?0x000000:0xffffff);   /* Render: a dark studio backdrop, as in the reference photos */   /* night is pitch black: only the candles light the city */view.classList.toggle("dark",!!(n||rd));   /* abstract: a seamless warm-white backdrop by day, a warm dusk at night */
   hemi.intensity=n?0.07:0.26;hemi.color.set(n?0x8890a8:0xfff4e6);hemi.groundColor.set(n?0x2a2018:0xc9bba8);   /* a constant soft fill, night included, so glazes always read */   /* night: a blue dusk sky */
   sun.intensity=n?0:1.5*(sun.userData.k||1);   /* day: a soft warm sky and one gentle key light; night: the candles */
   /* filmic tone mapping keeps white porcelain from blowing out (Render mode does its own in the final pass) */
@@ -923,7 +930,7 @@ function applyNight(){const n=S.night,rd=S.render;scene.background=n?new THREE.C
      by night it goes through the post chain (ambient occlusion, bloom, filmic tone) for the candle glow */
   {const post=rd&&n,tm=post?THREE.NoToneMapping:THREE.ACESFilmicToneMapping,enc=rd&&!n?THREE.sRGBEncoding:THREE.LinearEncoding;
    if(renderer.toneMapping!==tm||renderer.outputEncoding!==enc){renderer.toneMapping=tm;renderer.outputEncoding=enc;scene.traverse(o=>{if(o.material)o.material.needsUpdate=true;});}}
-  renderer.toneMappingExposure=rd?0.95:n?1.15:0.95;
+  renderer.toneMappingExposure=rd?(n?0.95:0.74):n?1.15:0.95;
   const b=bounds(),cx=(b.x0+b.x1)/2,cz=(b.z0+b.z1)/2;
   /* time of day: the sun rises on the left (morning), stands high in front at noon, sets on the right; low sun is warmer */
   {const t=S.sun===undefined?0.35:S.sun,az=Math.PI*t,el=(8+62*Math.sin(Math.PI*t))*Math.PI/180,hi=Math.sin(el)/Math.sin(70*Math.PI/180);
@@ -935,7 +942,7 @@ function applyNight(){const n=S.night,rd=S.render;scene.background=n?new THREE.C
   MAT.glow.visible=MAT.pool.visible=n;MAT.glow.color.set(0xffb562).multiplyScalar(Math.min(1.4,1.05*cs));MAT.pool.opacity=Math.min(0.9,0.42*cs);$("nightBtn").setAttribute("aria-pressed",n);
   Object.values(MATS).forEach(m=>{m.emissiveIntensity=0;});
   Object.values(LIT).forEach(m=>{m.emissiveIntensity=n?cs*(m.userData.translucent?(S.render?0.12:0.17):(S.render?0.03:0.04)):0;});   /* thin porcelain glows through; stoneware and terracotta only a little */   /* thin porcelain glows a little when lit from inside */
-  if(S.render){scene.environment=n?null:(envRoom||envBasic);   /* night: nothing but the candles */hemi.intensity=n?0.45:0.38;sun.intensity=n?0:1.1*(sun.userData.k||1);sun.shadow.mapSize.set(2048,2048);sun.shadow.normalBias=0.4;
+  if(S.render){scene.environment=envRoom||envBasic;   /* night: nothing but the candles */hemi.intensity=n?0.8:0.38;sun.intensity=n?0:1.1*(sun.userData.k||1);sun.shadow.mapSize.set(2048,2048);sun.shadow.normalBias=0.4;
     lights.forEach(L=>L.intensity=n?L.userData.base*1.2*cs:0);if(finalPass)finalPass.uniforms.exposure.value=n?1.05:0.8;
     if(bloom){bloom.strength=n?0.15:0.08;bloom.threshold=n?0.9:0.95;bloom.radius=0.45;}}
   else{scene.environment=envBasic;sun.shadow.normalBias=0;}
@@ -1162,7 +1169,7 @@ on("gifBtn","click",async()=>{const btn=$("gifBtn");if(btn.disabled)return;btn.d
       else if(mode==="explode"){S.explode=Math.round(24*Math.sin(Math.PI*i/N));rebuildNow();}   /* the modules part and close again, so the GIF loops */
       else if(MODE==="module"){const b=Bs(),k=mode==="randall"||!PALETTES[b.palette]?palAt(i):b.palette;randomShape(b);randomizeBuilding(b);applyPalette(b,k);rebuildNow();}   /* Module editor: new walls on the same module, colours re-dealt from its palette */
       else{const kp=S.keepPal;if(mode==="randall")Bs().palette=palAt(i);S.keepPal=true;randAll();S.keepPal=kp;rebuildNow();}   /* a new city each frame, all in one palette: the one in use, or (all palettes) the next palette each frame */
-      await nextFrame();draw();g2.drawImage(cv,0,0,w,h);frames.push(gif15(g2.getImageData(0,0,w,h).data,hist,sum));}
+      await nextFrame();settleLight();draw();g2.drawImage(cv,0,0,w,h);frames.push(gif15(g2.getImageData(0,0,w,h).data,hist,sum));}
     btn.textContent="…";await nextFrame();const {pal,lut}=gifPalette(hist,sum),ixs=frames.map(f=>{const o=new Uint8Array(f.length);for(let i=0;i<f.length;i++)o[i]=lut[f[i]];return o;});
     const blob=new Blob([gifEncode(ixs,w,h,mode==="orbit"?4:mode==="sun"?6:mode==="explode"?5:25,pal)],{type:"image/gif"}),a=document.createElement("a"),d=new Date(),z=n=>String(n).padStart(2,"0");
     a.href=URL.createObjectURL(blob);a.download=`tikrar-${mode}-${d.getFullYear()}${z(d.getMonth()+1)}${z(d.getDate())}-${z(d.getHours())}${z(d.getMinutes())}.gif`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);}
@@ -1171,7 +1178,7 @@ on("gifBtn","click",async()=>{const btn=$("gifBtn");if(btn.disabled)return;btn.d
 /* the 3D view as a JPG, drawn fresh at the view's size and pixel density */
 /* the toolbar GIF is always a randomize series from the current view: same palette unless the menu says all palettes (the panel's GIF settings set the frame count) */
 on("gifQuick","click",()=>{const sel=$("gifMode"),m=sel.value;if(!/^rand/.test(m))sel.value="rand";$("gifBtn").click();sel.value=m;});
-on("jpgBtn","click",()=>{draw();const url=renderer.domElement.toDataURL("image/jpeg",0.92),a=document.createElement("a"),d=new Date(),z=n=>String(n).padStart(2,"0");
+on("jpgBtn","click",()=>{settleLight();draw();const url=renderer.domElement.toDataURL("image/jpeg",0.92),a=document.createElement("a"),d=new Date(),z=n=>String(n).padStart(2,"0");
   a.href=url;a.download=`tikrar-${d.getFullYear()}${z(d.getMonth()+1)}${z(d.getDate())}-${z(d.getHours())}${z(d.getMinutes())}.jpg`;document.body.appendChild(a);a.click();a.remove();});
 on("keepPal","click",()=>{S.keepPal=!S.keepPal;$("keepPal").setAttribute("aria-pressed",!!S.keepPal);save();});
 function randAll(){const n=Math.max(1,Math.min(MAX_B,S.buildings.length)),list=[],nLM=S.landmarks?Math.max(1,Math.round(n/25)):0,keep=S.keepPal&&PALETTES[Bs().palette],pal=keep?Bs().palette:pick(Object.keys(PALETTES));usePal(pal);for(let i=0;i<n;i++){const b=randomBuilding();randPal(b,keep||Math.random()<0.7?pal:pick(Object.keys(PALETTES)));autoPlace(b,list);list.push(b);}
@@ -1323,7 +1330,7 @@ function makeSheet(jspdf){
 
   /* ================= sheet 1: general arrangement ================= */
   frame("GENERAL ARRANGEMENT","NTS (photo)");
-  draw();const img=renderer.domElement.toDataURL("image/jpeg",0.92),cw=renderer.domElement.width,ch=renderer.domElement.height;
+  settleLight();draw();const img=renderer.domElement.toDataURL("image/jpeg",0.92),cw=renderer.domElement.width,ch=renderer.domElement.height;
   const ih=Math.min(118,150*ch/cw),iw=ih*cw/ch;doc.addImage(img,"JPEG",12,12,iw,ih);lw(0.2);doc.rect(12,12,iw,ih);grey();TT("Viewport, as designed. Not to scale.",12,ih+15,5.2);ink();
   let y=14;const X=iw+20,row=(kk,v)=>{grey();TT(kk,X,y,5.6);ink();TT(String(v),X+30,y,6.4);y+=4.3;};
   TT(b.name,X,y,11);y+=6.5;
