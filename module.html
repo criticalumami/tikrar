@@ -190,7 +190,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
 <header class="grid12">
   <h1>TIKRAR<small>Beirut Lantern Generator</small></h1>
   <span class="sub">porcelain modules 60 × 60 mm · 40 mm walls · houses, towers and city blocks · 1860–1925 and modernist openings</span>
-  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 31.10 · 15:45</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
+  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 31.10 · 15:55</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
   <button class="btn icon" id="themeBtn" type="button" aria-label="Toggle colour theme">◐</button></nav>
 </header>
 
@@ -799,15 +799,17 @@ function outward(geo){const p=geo.attributes.position.array,u=geo.attributes.uv&
    Normals come from the section itself, so every curve reads round. The Ø 8 mm vent is drawn on the ridge. */
 const RGEO=new Map();
 function slantRoof(b){const g=new THREE.Group(),hw=(perMod(b)?1:b.cols)*W/2,hd=(perMod(b)?1:b.deep)*W/2,mat=roofMat(b),al=b.pitch*Math.PI/180,sa=Math.sin(al),ca=Math.cos(al),
-    fas=2.5,rb=1.2,rr=3,rk=9,uR=Math.min(hw,hd),R0=Math.min(radOf(b),hw,hd),Rh=Math.max(R0,6),K=8,prof=[];   /* prof: [inset u, height y, normal nu (inward), ny] */
+    fas=2.5,rb=1.2,rr=3,rk=4,uR=Math.min(hw,hd),R0=Math.min(radOf(b),hw,hd),Rh=Math.max(R0,6),K=8,prof=[];   /* prof: [inset u, height y, normal nu (inward), ny] */
   const P=(u,y,nu,ny)=>prof.push([u,y,nu,ny]);
-  /* closed underside: a flat soffit from the middle out; a one-module lid also gets its locating rim (see the technical review) */
-  P(uR,0,0,-1);if(hw===W/2&&hd===W/2){const r0=T+FIT.clr,r1=r0+FIT.rimW;P(r1,0,0,-1);P(r1,0,1,0);P(r1,-FIT.rimH,1,0);P(r1,-FIT.rimH,0,-1);P(r0,-FIT.rimH,0,-1);P(r0,-FIT.rimH,-1,0);P(r0,0,-1,0);P(r0,0,0,-1);}
-  P(T+0.2,0,0,-1);for(let k=0;k<=4;k++){const t=-Math.PI/2-k/4*Math.PI/2;P(rb+rb*Math.cos(t),rb+rb*Math.sin(t),Math.cos(t),Math.sin(t));}   /* underside, round bottom edge */
+  /* a slip-cast shell as thick as the walls (T): it sits on the wall top ring for ring, flush outside; the inside is
+     the outside offset by T, so from below it reads as one clean hollow lid */
+  P(T,0,0,-1);for(let k=0;k<=4;k++){const t=-Math.PI/2-k/4*Math.PI/2;P(rb+rb*Math.cos(t),rb+rb*Math.sin(t),Math.cos(t),Math.sin(t));}   /* underside, round bottom edge */
   for(let k=0;k<=6;k++){const t=Math.PI-k/6*(Math.PI/2-al);P(rr+rr*Math.cos(t),fas+rr*Math.sin(t),Math.cos(t),Math.sin(t));}   /* eave: up the face, rounding into the slope */
   const uE=rr-rr*sa,yE=fas+rr*ca,uS=uR-rk*sa,yTop=yE+(uS-uE)*Math.tan(al)+rk*(1-ca);
   for(let k=1;k<6;k++){const u=uE+(uS-uE)*k/6;P(u,yE+(u-uE)*Math.tan(al),-sa,ca);}
   for(let k=0;k<=4;k++){const t=Math.PI/2+al-k/4*al;P(uR+rk*Math.cos(t),yTop-rk+rk*Math.sin(t),Math.cos(t),Math.sin(t));}   /* rounded ridge */
+  {const outer=prof.slice(6),inn=outer.map(([u,y,nu,ny])=>[Math.min(uR,u-T*nu),y-T*ny,-nu,-ny]).filter(([u,y])=>y>0.01).reverse();
+   inn.push([T,0.01,1,0]);prof.unshift(...inn);}   /* inner face: apex down to the wall-thick seat ring */
   /* one ring of the loft: K+1 points round each corner, each with its outward direction */
   const ring=u=>{const x=Math.max(0,hw-u),z=Math.max(0,hd-u),r=Math.min(R0+(Rh-R0)*Math.min(1,u/6),x,z),o=[];
     [[x-r,-(z-r),-Math.PI/2],[x-r,z-r,0],[-(x-r),z-r,Math.PI/2],[-(x-r),-(z-r),Math.PI]].forEach(([cx,cz,a0])=>{for(let k=0;k<=K;k++){const a=a0+k/K*Math.PI/2,c=Math.cos(a),s2=Math.sin(a);o.push([cx+r*c,cz+r*s2,c,s2]);}});return o;};
@@ -943,7 +945,7 @@ function rebuildNow(){
   const gap=+S.explode,budget={anchors:[]};S.buildings.forEach((_,bi)=>built.add(buildBuilding(bi,gap,budget)));
   merged=mergeGroup(built);scene.add(merged);placeLights(budget.anchors);BAKE.anchors=budget.anchors;buildRoom();applyNight();}
 function applyNight(){const n=S.night,rd=S.render;scene.background=new THREE.Color(n?0x000000:0xffffff);   /* the floor is one solid colour: white by day, near-black by night */   /* night is pitch black: only the candles light the city */view.classList.toggle("dark",!!(n||rd));   /* abstract: a seamless warm-white backdrop by day, a warm dusk at night */
-  hemi.intensity=n?0.07:0.26;hemi.color.set(n?0x8890a8:0xfff4e6);hemi.groundColor.set(n?0x2a2018:0xc9bba8);   /* a constant soft fill, night included, so glazes always read */   /* night: a blue dusk sky */
+  hemi.intensity=n?0.42:0.26;hemi.color.set(n?0xdfe2e8:0xfff4e6);hemi.groundColor.set(n?0x3a3630:0xc9bba8);   /* night: a dim neutral room light, so white porcelain still reads white */   /* a constant soft fill, night included, so glazes always read */   /* night: a blue dusk sky */
   sun.intensity=n?0:1.5*(sun.userData.k||1);   /* day: a soft warm sky and one gentle key light; night: the candles */
   /* filmic tone mapping keeps white porcelain from blowing out (Render mode does its own in the final pass) */
   /* Render mode by day draws straight to the screen (filmic tone, sRGB) so the white page stays pure white;
@@ -961,8 +963,8 @@ function applyNight(){const n=S.night,rd=S.render;scene.background=new THREE.Col
   const cs=S.candle===undefined?1:S.candle;lights.forEach(L=>L.intensity=n?L.userData.base*cs:0);flames.forEach(f=>f.visible=n);
   MAT.glow.visible=MAT.pool.visible=n;MAT.glow.color.set(0xffb562).multiplyScalar(Math.min(1.4,1.05*cs));MAT.pool.opacity=Math.min(0.9,0.42*cs);$("nightBtn").setAttribute("aria-pressed",n);
   Object.values(MATS).forEach(m=>{m.emissiveIntensity=0;});
-  Object.values(LIT).forEach(m=>{m.emissiveIntensity=n?cs*(m.userData.translucent?(S.render?0.12:0.17):(S.render?0.03:0.04)):0;});   /* thin porcelain glows through; stoneware and terracotta only a little */   /* thin porcelain glows a little when lit from inside */
-  if(S.render){scene.environment=n?null:(envRoom||envBasic);   /* night: nothing but the candles and a dim room */hemi.intensity=n?0.45:0.38;sun.intensity=n?0:1.1*(sun.userData.k||1);sun.shadow.mapSize.set(2048,2048);sun.shadow.normalBias=0.4;
+  Object.values(LIT).forEach(m=>{m.emissiveIntensity=n?cs*(m.userData.translucent?(S.render?0.05:0.07):(S.render?0.02:0.03)):0;});   /* thin porcelain glows through; stoneware and terracotta only a little */   /* thin porcelain glows a little when lit from inside */
+  if(S.render){scene.environment=n?null:(envRoom||envBasic);   /* night: nothing but the candles and a dim room */hemi.intensity=n?0.9:0.38;sun.intensity=n?0:1.1*(sun.userData.k||1);sun.shadow.mapSize.set(2048,2048);sun.shadow.normalBias=0.4;
     lights.forEach(L=>L.intensity=n?L.userData.base*1.2*cs:0);if(finalPass)finalPass.uniforms.exposure.value=n?1.05:0.8;
     if(bloom){bloom.strength=n?0.06:0.08;bloom.threshold=n?0.9:0.95;bloom.radius=0.45;}}
   else{scene.environment=envBasic;sun.shadow.normalBias=0.4;}   /* normal offset keeps flat walls free of shadow acne (the dotted diagonal along triangle seams) */
@@ -1085,7 +1087,7 @@ function techReview(b){const rows=[],R_=(ok,label,v,fx)=>rows.push({ok,label,v,f
   R_(plR<=30,"Plate flatness",`${span} mm span / ${PLATE_T} mm = ${plR.toFixed(0)} : 1`,plR<=30?"Fires flat on a flat batt with alumina wash.":`Long thin plates slump and curl in firing. Fire on a dead-flat batt with alumina, or split the plate per row of modules (${W} mm wide strips keyed by the rims).`);
   R_(baR<=30,"Base flatness",`${span} mm span / ${BASE_T} mm = ${baR.toFixed(0)} : 1`,baR<=30?"Thin enough to look like the roof slab, stiff enough to fire flat.":`Keep the visible edge at ${BASE_T} mm and add ${FIT.rib} × ${FIT.rib} mm ribs underneath, under every wall line, set 4 mm back from the edge so they can't be seen. The ribs stiffen the base in the kiln and lift it off the table.`);
   const roofSeat=b.roof==="none"?"no roof":b.roof==="modern"?"slab with rim":"cast lid with rim";
-  R_(b.roof==="none"||true,"Roof seat",roofSeat,b.roof==="none"?"Open top: the top wall rims stay glazed-free so a roof can be added later.":`The roof has the same ${rim.toFixed(1)} mm rim on its underside, one per top module${perMod(b)?" (one lid each)":""}, so it can't slide off. Its outer edge is flush with the wall face, no overhang, and its underside is closed and flat.`);
+  R_(b.roof==="none"||true,"Roof seat",roofSeat,b.roof==="none"?"Open top: the top wall rims stay glazed-free so a roof can be added later.":`The roof has the same ${rim.toFixed(1)} mm rim on its underside, one per top module${perMod(b)?" (one lid each)":""}, so it can't slide off. It is a slip-cast shell as thick as the walls (3 mm), flush with the wall face, sitting ring on ring.`);
   const flameGap=H-FIT.flameTop;
   R_(lit===0||flameGap>=25,"Candle heat: flame to plate above",lit?`${flameGap} mm`:"no candles",lit?`A tealight flame tops out about ${FIT.flameTop} mm above its plate, leaving ${flameGap} mm to the plate over it. Open the vent over each lit module from Ø8 to Ø${FIT.ventLit} so the heat and soot rise through instead of pooling under the plate; on lower levels of tall stacks use LED tealights.`:"Add a candle to a level with a plate to see the heat check.");
   let minOpen=100;liveKeys(b).forEach(kk=>{const [,,l]=keyParts(kk);if(!(b.candles[l]&&b.plates[l]))return;let a=0;FACES.forEach(f=>{const o=B.build(b.mods[kk][f]);a+=o.holes.reduce((s2,h)=>s2+B.area(h.p),0);});minOpen=Math.min(minOpen,a/(4*W*H)*100);});
@@ -1104,8 +1106,8 @@ function techDetails(b){const ink="var(--ink)",ln="var(--line)",hat="rgba(120,11
   const j=sv(80,62,rect(10,40,T*S2,20)+rect(10,40-PLATE_T*S2,52,PLATE_T*S2)+rect(10+(T+c)*S2,40,rw*S2,rh*S2,ft)+rect(10+(T+c)*S2,40-PLATE_T*S2-rh*S2,rw*S2,rh*S2,ft)+rect(10,6,T*S2,40-PLATE_T*S2-6-0)+
     txt(66,46,"lower wall 3.0")+txt(66,34,"plate "+PLATE_T.toFixed(1))+txt(66,24,"upper wall 3.0")+txt(36,58,`rim ${rw} × ${rh}, ${c} clear`)+`<line x1="${10+T*S2}" y1="52" x2="${10+(T+c)*S2}" y2="52" stroke-width=".18"/>`);
   /* 2 roof seat */
-  const rs=sv(80,62,rect(10,34,T*S2,24)+`<path d="M10 34 L10 27 Q10 23 14 22.4 L80 8 L80 34 Z" fill="${hat}"/>`+rect(10+(T+c)*S2,34,rw*S2,rh*S2,ft)+`<line x1="10" y1="2" x2="10" y2="60" stroke-width=".15" stroke-dasharray="1 1"/>`+
-    txt(30,46,"top wall")+txt(44,26,"roof")+txt(12,4,"outer face: roof and wall flush")+txt(30,58,`seat rim ${rw} × ${rh}, ${c} clear`));
+  const rs=sv(80,62,rect(10,34,T*S2,24)+`<path d="M10 34 L10 27 Q10 23 14 22.4 L80 8 L80 20 L22 30.5 L22 34 Z" fill="${hat}"/>`+rect(10+(T+c)*S2,34,rw*S2,rh*S2,ft)+`<line x1="10" y1="2" x2="10" y2="60" stroke-width=".15" stroke-dasharray="1 1"/>`+
+    txt(30,46,"top wall")+txt(44,26,"roof shell 3.0")+txt(12,4,"outer face: roof and wall flush")+txt(30,58,`seat rim ${rw} × ${rh}, ${c} clear`));
   /* 3 base with hidden ribs */
   const bt=BASE_T*S2,bs=sv(80,62,rect(10,30,66,bt)+rect(26,30+bt,FIT.rib*S2,FIT.rib*S2,ft)+rect(56,30+bt,FIT.rib*S2,FIT.rib*S2,ft)+rect(10,6,T*S2,24)+rect(10+(T+c)*S2,30-rh*S2,rw*S2,rh*S2,ft)+
     `<line x1="0" y1="${30+bt+FIT.rib*S2}" x2="80" y2="${30+bt+FIT.rib*S2}" stroke="${ln}"/>`+txt(66,24,"wall")+txt(20,52,`base ${BASE_T} at the edge`)+txt(20,57,`ribs ${FIT.rib} × ${FIT.rib}, 4 mm in, unglazed`));
