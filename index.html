@@ -184,7 +184,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
 <header class="grid12">
   <h1>TIKRAR<small>Beirut Lantern Generator</small></h1>
   <span class="sub">porcelain modules 60 × 60 mm · 40 mm walls · houses, towers and city blocks · 1860–1925 and modernist openings</span>
-  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 31.10 · 14:40</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
+  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 31.10 · 14:55</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
   <button class="btn icon" id="themeBtn" type="button" aria-label="Toggle colour theme">◐</button></nav>
 </header>
 
@@ -908,6 +908,9 @@ function mergeGroup(root){root.updateMatrixWorld(true);const buckets=new Map(),i
   return out;}
 let rbq=0;function rebuild(){if(!rbq)rbq=requestAnimationFrame(()=>{rbq=0;rebuildNow();});}   /* a drag on a slider rebuilds once per frame, not once per pixel */
 function rebuildNow(){
+  /* buildings always move with their streets: after any change of size, levels, randomize or a new building the grid is
+     laid out again (it is deterministic, so an unchanged city stays put); a saved design is only re-laid if buildings overlap */
+  if(S.buildings.length>1&&(LAYOUT.G||S.buildings.some((b,i)=>overlaps(b,S.buildings.slice(i+1)))))gridLayout(S.buildings);
   built.traverse(o=>{if(o.geometry&&!o.isLine&&!o.userData.shared)o.geometry.dispose();});merged.traverse(o=>{if(o.geometry&&o.isMesh&&o.material!==MAT.flame&&!o.userData.shared)o.geometry.dispose();});scene.remove(merged);
   built=new THREE.Group();pickable.length=0;flames.length=0;
   const gap=+S.explode,budget={anchors:[]};S.buildings.forEach((_,bi)=>built.add(buildBuilding(bi,gap,budget)));
