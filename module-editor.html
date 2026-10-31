@@ -190,7 +190,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
 <header class="grid12">
   <h1>TIKRAR<small>Beirut Lantern Generator</small></h1>
   <span class="sub">porcelain modules 60 × 60 mm · 40 mm walls · houses, towers and city blocks · 1860–1925 and modernist openings</span>
-  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 31.10 · 18:05</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
+  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 31.10 · 20:10</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
   <button class="btn icon" id="themeBtn" type="button" aria-label="Toggle colour theme">◐</button></nav>
 </header>
 
@@ -616,8 +616,11 @@ function hqMatOf(body,glaze,col,bd){const lin=new THREE.Color(col).convertSRGBTo
   const m=glaze==="unglazed"||glaze==="foot"
     ?new THREE.MeshStandardMaterial({color:lin,map:body==="porcelain"?null:speckleTex(body),roughness:0.86,metalness:0,envMapIntensity:0.35})
     :new THREE.MeshPhysicalMaterial({color:lin,map:body==="porcelain"?null:speckleTex(body,true),roughness:0.32,metalness:0,
-       clearcoat:1,clearcoatRoughness:0.06,envMapIntensity:0.9,reflectivity:0.5});
-  m.userData.translucent=bd.glow;m.emissive=new THREE.Color(0xff9a3c).convertSRGBToLinear();m.emissiveIntensity=0;m.onBeforeCompile=groundAO;return m;}
+       clearcoat:1,clearcoatRoughness:0.05,envMapIntensity:1.25,reflectivity:0.5});
+  m.userData.translucent=bd.glow;m.emissive=new THREE.Color(0xff9a3c).convertSRGBToLinear();m.emissiveIntensity=0;m.onBeforeCompile=groundAOR;return m;}
+/* Render: the studio reflections stay full, but the even light they also add to every face is cut back, so the key light shapes
+   the pieces and the inside of a lantern falls into its own shadow instead of glowing as brightly as the outside */
+function groundAOR(sh){groundAO(sh);sh.fragmentShader=sh.fragmentShader.replace("#include <aomap_fragment>","#include <aomap_fragment>\nreflectedLight.indirectDiffuse*=0.42;");}
 /* glazes are matte (satin) unless the building is set to Gloss */
 function matOf(body,glaze,gloss){const k=(S.render?"R|":"")+body+"|"+glaze+(gloss?"|g":"");if(MATS[k])return MATS[k];const bd=BODY[body]||BODY.porcelain;
   const footCol=new THREE.Color(bd.col).multiply(new THREE.Color(0xd2c4ad)).getHex();   /* the unglazed foot: the bare body, a sandy tone as in the photos */
@@ -649,6 +652,8 @@ const MAT={glaze:new THREE.MeshStandardMaterial({color:0xf6f1e8,roughness:0.22,m
      (seen through its openings) and a soft warm pool spreads on the ground round a lit building */
   glow:new THREE.MeshBasicMaterial({color:0xffb562,side:THREE.BackSide,toneMapped:false}),
   pool:new THREE.MeshBasicMaterial({color:0xff9a48,transparent:true,opacity:0.5,blending:THREE.AdditiveBlending,depthWrite:false,toneMapped:false})};
+MAT.contact=new THREE.MeshBasicMaterial({color:0x000000,transparent:true,opacity:0.2,depthWrite:false});
+{const c=document.createElement("canvas");c.width=c.height=128;const g=c.getContext("2d");g.filter="blur(9px)";g.fillStyle="#fff";g.fillRect(22,22,84,84);MAT.contact.alphaMap=new THREE.CanvasTexture(c);}
 {const c=document.createElement("canvas");c.width=c.height=128;const g=c.getContext("2d"),r=g.createRadialGradient(64,64,0,64,64,64);r.addColorStop(0,"rgba(255,255,255,1)");r.addColorStop(0.35,"rgba(255,255,255,.45)");r.addColorStop(1,"rgba(255,255,255,0)");g.fillStyle=r;g.fillRect(0,0,128,128);MAT.pool.map=new THREE.CanvasTexture(c);}
 
 /* ---------- ground ---------- */
@@ -656,7 +661,7 @@ let room=new THREE.Group();scene.add(room);
 const lc=h=>S.render?new THREE.Color(h).convertSRGBToLinear():new THREE.Color(h);
 function buildRoom(){scene.remove(room);room.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.isLine&&o.material!==MAT.line)o.material.dispose();});room=new THREE.Group();
   /* by day the ground is the page: pure white, with only the shadows drawn on it */
-  const white=!S.night,gb=bounds(),gsz=Math.max(gb.x1-gb.x0,gb.z1-gb.z0)+(white?1400:8000),g=new THREE.Mesh(new THREE.PlaneGeometry(gsz,gsz),white?new THREE.ShadowMaterial({opacity:0.3}):new THREE.MeshStandardMaterial({color:lc(0x161616),roughness:1,envMapIntensity:0}));g.rotation.x=-Math.PI/2;g.position.set((gb.x0+gb.x1)/2,-groundDrop(),(gb.z0+gb.z1)/2);g.receiveShadow=true;room.add(g);   /* by day only as big as the shadows need, so nothing reaches the horizon */
+  const white=!S.night,gb=bounds(),gsz=Math.max(gb.x1-gb.x0,gb.z1-gb.z0)+(white?1400:8000),g=new THREE.Mesh(new THREE.PlaneGeometry(gsz,gsz),white?new THREE.ShadowMaterial({opacity:S.render?0.42:0.3}):new THREE.MeshStandardMaterial({color:lc(0x161616),roughness:1,envMapIntensity:0}));g.rotation.x=-Math.PI/2;g.position.set((gb.x0+gb.x1)/2,-groundDrop(),(gb.z0+gb.z1)/2);g.receiveShadow=true;room.add(g);   /* by day only as big as the shadows need, so nothing reaches the horizon */
   /* the ground line: in the Front elevation the ground is edge-on, so it is drawn as one black hairline at y = 0 */
   {const b=bounds(),gl=new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(b.x0-4000,0,b.z1+600),new THREE.Vector3(b.x1+4000,0,b.z1+600)]),new THREE.LineBasicMaterial({color:S.night?0x9aa0ad:0x111111}));
    gl.visible=S.view==="front"&&camera===ortho;gl.name="groundLine";room.add(gl);}
@@ -806,6 +811,7 @@ function outward(geo){const p=geo.attributes.position.array,u=geo.attributes.uv&
    lofted through rounded rectangles; their corner radius grows from the walls' radius at the eave so the hips stay soft.
    Normals come from the section itself, so every curve reads round. The Ø 8 mm vent is drawn on the ridge. */
 const RGEO=new Map();
+const VENT={a:5,r:1.6,c:1.3};   /* David's roof vent (beit-lantern-editor hipRoof): 10 mm rounded-square opening, R1.6, 1.3 mm chamfer */
 function slantRoof(b){const g=new THREE.Group(),hw=(perMod(b)?1:b.cols)*W/2,hd=(perMod(b)?1:b.deep)*W/2,mat=roofMat(b),al=b.pitch*Math.PI/180,sa=Math.sin(al),ca=Math.cos(al),
     fas=2.5,rb=1.2,rr=3,rk=4,uR=Math.min(hw,hd),R0=Math.min(radOf(b),hw,hd),Rh=Math.max(R0,6),K=8,prof=[];   /* prof: [inset u, height y, normal nu (inward), ny] */
   const P=(u,y,nu,ny)=>prof.push([u,y,nu,ny]);
@@ -813,15 +819,18 @@ function slantRoof(b){const g=new THREE.Group(),hw=(perMod(b)?1:b.cols)*W/2,hd=(
      the outside offset by T, so from below it reads as one clean hollow lid */
   P(T,0,0,-1);for(let k=0;k<=4;k++){const t=-Math.PI/2-k/4*Math.PI/2;P(rb+rb*Math.cos(t),rb+rb*Math.sin(t),Math.cos(t),Math.sin(t));}   /* underside, round bottom edge */
   for(let k=0;k<=6;k++){const t=Math.PI-k/6*(Math.PI/2-al);P(rr+rr*Math.cos(t),fas+rr*Math.sin(t),Math.cos(t),Math.sin(t));}   /* eave: up the face, rounding into the slope */
-  const uE=rr-rr*sa,yE=fas+rr*ca,uS=uR-rk*sa,yTop=yE+(uS-uE)*Math.tan(al)+rk*(1-ca);
-  for(let k=1;k<6;k++){const u=uE+(uS-uE)*k/6;P(u,yE+(u-uE)*Math.tan(al),-sa,ca);}
-  for(let k=0;k<=4;k++){const t=Math.PI/2+al-k/4*al;P(uR+rk*Math.cos(t),yTop-rk+rk*Math.sin(t),Math.cos(t),Math.sin(t));}   /* rounded ridge */
-  {const outer=prof.slice(6),inn=outer.map(([u,y,nu,ny])=>[Math.min(uR,u-T*nu),y-T*ny,-nu,-ny]).filter(([u,y])=>y>0.01).reverse();
-   inn.push([T,0.01,1,0]);prof.unshift(...inn);}   /* inner face: apex down to the wall-thick seat ring */
+  const uE=rr-rr*sa,yE=fas+rr*ca;
+  /* vent cut at the top, as in David's roof mold: the apex is cut off level, leaving a rounded-square opening
+     (VENT.a half-size, VENT.r corner) with a 45° chamfer on its rim, so the candle's heat and smoke leave the house */
+  const uO=uR-Math.min(VENT.a,0.45*uR),c=VENT.c,ySl=u=>yE+(u-uE)*Math.tan(al),yC=ySl(uO-c),yIn=ySl(uO)-T/ca;
+  for(let k=1;k<6;k++){const u=uE+(uO-c-uE)*k/6;P(u,ySl(u),-sa,ca);}
+  P(uO-c,yC,-sa,ca);P(uO-c,yC,0.707,0.707);P(uO,yC-c,0.707,0.707);P(uO,yC-c,1,0);P(uO,yIn,1,0);   /* chamfer, then the wall of the opening */
+  {const outer=prof.slice(6,prof.length-5),inn=outer.map(([u,y,nu,ny])=>[Math.min(uO,u-T*nu),y-T*ny,-nu,-ny]).filter(([u,y])=>y>0.01&&u<uO-0.05).reverse();
+   inn.unshift([uO,yIn,sa,-ca]);inn.push([T,0.01,1,0]);prof.push(...inn);}   /* inner face: from the opening down to the wall-thick seat ring */
   /* one ring of the loft: K+1 points round each corner, each with its outward direction */
-  const ring=u=>{const x=Math.max(0,hw-u),z=Math.max(0,hd-u),r=Math.min(R0+(Rh-R0)*Math.min(1,u/6),x,z),o=[];
+  const ring=u=>{const x=Math.max(0,hw-u),z=Math.max(0,hd-u),r=Math.min(R0+(Rh-R0)*Math.min(1,u/6),VENT.r+Math.max(0,uO-u),x,z),o=[];
     [[x-r,-(z-r),-Math.PI/2],[x-r,z-r,0],[-(x-r),z-r,Math.PI/2],[-(x-r),-(z-r),Math.PI]].forEach(([cx,cz,a0])=>{for(let k=0;k<=K;k++){const a=a0+k/K*Math.PI/2,c=Math.cos(a),s2=Math.sin(a);o.push([cx+r*c,cz+r*s2,c,s2]);}});return o;};
-  const key=[hw,hd,R0,b.pitch].join("|");let geo=RGEO.get(key);   /* identical roofs share one geometry, drawn instanced */
+  const key=[hw,hd,R0,b.pitch,"v"].join("|");let geo=RGEO.get(key);   /* identical roofs share one geometry, drawn instanced */
   if(!geo){const rings=prof.map(([u])=>ring(u)),n=rings[0].length,pos=[],nor=[];
   for(let i=0;i<prof.length-1;i++)for(let j=0;j<n;j++){const jj=(j+1)%n;
     [[i,j],[i+1,j],[i+1,jj],[i,j],[i+1,jj],[i,jj]].forEach(([a,c])=>{const q=rings[a][c],[,y,nu,ny]=prof[a],l=Math.hypot(nu,ny)||1;pos.push(q[0],y,q[1]);nor.push(-nu*q[2]/l,ny/l,-nu*q[3]/l);});}
@@ -836,10 +845,13 @@ function windToNormals(geo){const p=geo.attributes.position.array,n=geo.attribut
     if((ay*bz-az*by)*(n[t]+n[t+3]+n[t+6])+(az*bx-ax*bz)*(n[t+1]+n[t+4]+n[t+7])+(ax*by-ay*bx)*(n[t+2]+n[t+5]+n[t+8])<0){for(let k=0;k<3;k++){let q=p[t+3+k];p[t+3+k]=p[t+6+k];p[t+6+k]=q;q=n[t+3+k];n[t+3+k]=n[t+6+k];n[t+6+k]=q;}
       if(u){const i=t/3*2;for(let k=0;k<2;k++){const q=u[i+2+k];u[i+2+k]=u[i+4+k];u[i+4+k]=q;}}}}
   geo.computeBoundingSphere();}
-const FLAT_T=2.5;
-function modernRoof(b){const g=new THREE.Group(),nc=perMod(b)?1:b.cols,nd=perMod(b)?1:b.deep,hw=nc*W/2,hd=nd*W/2,mat=roofMat(b);
-  g.add(soft(rsq(-hw,-hd,hw,hd,radOf(b)),[circle(4)],FLAT_T,mat,0,1.2));   /* the slab sits on the wall tops, flush outside */
-  for(let c=0;c<nc;c++)for(let r=0;r<nd;r++){const x=(c-(nc-1)/2)*W,z=(r-(nd-1)/2)*W;g.add(lipRing(x,z,-LIP.h,mat,b),lipRing(x,z,FLAT_T,mat,b));}   /* lip under (inside the walls) and on top (to stack) */
+/* the flat roof IS a slab (owner request 31 Oct): the same piece as the plates between floors, same thickness, round edge,
+   Ø8 vent over each module, lips on both faces and the same colour; it just sits on the top level */
+const FLAT_T=PLATE_T;
+function modernRoof(b){const g=new THREE.Group(),nc=perMod(b)?1:b.cols,nd=perMod(b)?1:b.deep,hw=nc*W/2,hd=nd*W/2,mat=plateMat(b),xs=c=>(c-(nc-1)/2)*W,zs=r=>(r-(nd-1)/2)*W,vents=[];
+  for(let c=0;c<nc;c++)for(let r=0;r<nd;r++)vents.push(circle(4,xs(c),zs(r)));
+  g.add(soft(rsq(-hw,-hd,hw,hd,radOf(b)),vents,FLAT_T,mat,0,1.9));   /* sits on the wall tops, flush outside */
+  for(let c=0;c<nc;c++)for(let r=0;r<nd;r++)g.add(lipRing(xs(c),zs(r),-LIP.h,mat,b),lipRing(xs(c),zs(r),FLAT_T,mat,b));   /* lip under (inside the walls) and on top (to stack) */
   return g;}
 function buildBuilding(bi,gap,lightBudget){
   const b=S.buildings[bi],g=new THREE.Group(),{ys,top}=levelY(b,gap),hw=b.cols*W/2,hd=b.deep*W/2;
@@ -854,9 +866,9 @@ function buildBuilding(bi,gap,lightBudget){
         if(up)g.add(lipRing(mx(c),-mz(r),py+plateT(l),pm,b));if(dn)g.add(lipRing(mx(c),-mz(r),py-LIP.h,pm,b));}
 }   /* the base is one piece: no separate foot layer under it */
     for(let c=0;c<b.cols;c++)for(let r=0;r<b.deep;r++){const k=c+":"+r+":"+l;if(!alive(b,k))continue;const mg=new THREE.Group();mg.position.set(mx(c),ys[l],mz(r));const bvs={};FACES.forEach(f=>{const w=buildWall(bi,k,f);bvs[f]=w.userData.bv;mg.add(w);});mg.add(cornerPieces(b,k,bvs));if(b.candles[l]&&b.plates[l])mg.traverse(o=>o.userData.lit=true);g.add(mg);
-      if(b.candles[l]&&b.plates[l]){const tea=new THREE.Mesh(new THREE.CylinderGeometry(19,19,8,24),MAT.tea);tea.position.set(mx(c),ys[l]-gap*0.5+4,mz(r));g.add(tea);
+      if(b.candles[l]&&b.plates[l]){const tea=new THREE.Mesh(new THREE.CylinderGeometry(19,19,8,24),MAT.tea);tea.position.set(mx(c),ys[l]-gap*0.5+4,mz(r));tea.receiveShadow=true;g.add(tea);
         const fl=new THREE.Mesh(new THREE.SphereGeometry(2,10,8),MAT.flame);fl.scale.set(0.8,1.6,0.8);fl.position.set(mx(c),ys[l]-gap*0.5+11,mz(r));g.add(fl);flames.push(fl);
-        const gw=new THREE.Mesh(new THREE.BoxGeometry(W-2*T-0.6,H-0.6,W-2*T-0.6),MAT.glow);gw.position.set(mx(c),ys[l]+H/2,mz(r));g.add(gw);}}
+        const gw=new THREE.Mesh(GLOW_GEO,MAT.glow);gw.position.set(mx(c),ys[l]+H/2,mz(r));gw.userData.shared=true;g.add(gw);}}
     for(let c=0;c<b.cols;c++)for(let r=0;r<b.deep;r++)if(b.candles[l]&&b.plates[l]&&alive(b,c+":"+r+":"+l)){const a=new THREE.Object3D();a.position.set(mx(c),ys[l]-gap*0.5+CANDLE_Y,mz(r));a.userData={bi,l};g.add(a);lightBudget.anchors.push(a);}}
   if(b.roof!=="none"){const one=()=>b.roof==="modern"?modernRoof(b):slantRoof(b);
     /* a one-piece roof needs a complete top level; otherwise every column gets its own lid on its highest module */
@@ -864,9 +876,16 @@ function buildBuilding(bi,gap,lightBudget){
       for(let c=0;c<b.cols;c++)for(let r=0;r<b.deep;r++){let lm=-1;for(let l=b.levels-1;l>=0;l--)if(alive(b,c+":"+r+":"+l)){lm=l;break;}if(lm<0)continue;
         const lb=b.mods[c+":"+r+":"+lm]&&b.mods[c+":"+r+":"+lm].lid?Object.assign({},sb,{roofCol:b.mods[c+":"+r+":"+lm].lid}):sb,rf=b.roof==="modern"?modernRoof(lb):slantRoof(lb);rf.position.set(mx(c),ys[lm]+H+gap*0.4,mz(r));g.add(rf);}}
     else{const rf=one();rf.position.set(0,top+gap*0.4,0);g.add(rf);}}
+  {const cs=new THREE.Mesh(new THREE.PlaneGeometry(2*hw+14,2*hd+14),MAT.contact);cs.rotation.x=-Math.PI/2;cs.position.y=0.25-groundDrop();cs.renderOrder=1;g.add(cs);}   /* soft contact shadow where the piece meets the floor (Render) */
   if(isSel(bi)){const pts=[[-hw-4,-hd-4],[hw+4,-hd-4],[hw+4,hd+4],[-hw-4,hd+4]].map(([x,z])=>new THREE.Vector3(x,0.6,z));const ln=new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(pts),MAT.sel);g.add(ln);}
   return g;}
 const flames=[];
+/* the inside of a lit module: one shared box (drawn inside out, instanced), shaded by its distance to the flame, so the inner
+   walls glow warm next to the candle and fall off towards the corners and the top, as in the reference photos */
+const GLOW_GEO=new THREE.BoxGeometry(W-2*T-0.6,H-0.6,W-2*T-0.6,6,6,6);
+MAT.glow.onBeforeCompile=sh=>{sh.vertexShader=sh.vertexShader.replace("#include <common>","#include <common>\nvarying vec3 vLoc;").replace("#include <begin_vertex>","#include <begin_vertex>\nvLoc=position;");
+  sh.fragmentShader=sh.fragmentShader.replace("#include <common>","#include <common>\nvarying vec3 vLoc;").replace("vec4 diffuseColor = vec4( diffuse, opacity );",
+    "vec3 fl=vec3(0.0,"+(-(H/2)+CANDLE_Y-2).toFixed(1)+",0.0);float d=length(vLoc-fl);float k=2.3/(1.0+pow(d/22.0,2.0))+0.22;vec4 diffuseColor=vec4(diffuse*k*vec3(1.0,0.86+0.14*k,0.72+0.28*k),opacity);");};
 /* public court: a 6 mm porcelain tray with a 3 mm rounded rim (5 mm proud) and a round basin in the middle, one cast piece */
 const COURT_T=6,COURT_RIM=5;
 function courtOf(b,bi,g,hw,hd){const mat=plateMat(b),r=radOf(b),ri=Math.max(0.5,r-3);
@@ -958,7 +977,7 @@ function rebuildNow(){
   const gap=+S.explode,budget={anchors:[]};S.buildings.forEach((_,bi)=>built.add(buildBuilding(bi,gap,budget)));
   merged=mergeGroup(built);scene.add(merged);placeLights(budget.anchors);BAKE.anchors=budget.anchors;buildRoom();applyNight();}
 function applyNight(){const n=S.night,rd=S.render;scene.background=new THREE.Color(n?0x000000:0xffffff);   /* the floor is one solid colour: white by day, near-black by night */   /* night is pitch black: only the candles light the city */view.classList.toggle("dark",!!(n||rd));   /* abstract: a seamless warm-white backdrop by day, a warm dusk at night */
-  hemi.intensity=n?0.42:0.26;hemi.color.set(n?0xdfe2e8:0xfff4e6);hemi.groundColor.set(n?0x3a3630:0xc9bba8);   /* night: a dim neutral room light, so white porcelain still reads white */   /* a constant soft fill, night included, so glazes always read */   /* night: a blue dusk sky */
+  hemi.intensity=n?0.3:0.26;hemi.color.set(n?0xdfe2e8:0xfff4e6);hemi.groundColor.set(n?0x3a3630:0xc9bba8);   /* night: a dim neutral room light, so white porcelain still reads white */   /* a constant soft fill, night included, so glazes always read */   /* night: a blue dusk sky */
   sun.intensity=n?0:1.5*(sun.userData.k||1);   /* day: a soft warm sky and one gentle key light; night: the candles */
   /* filmic tone mapping keeps white porcelain from blowing out (Render mode does its own in the final pass) */
   /* Render mode by day draws straight to the screen (filmic tone, sRGB) so the white page stays pure white;
@@ -970,14 +989,14 @@ function applyNight(){const n=S.night,rd=S.render;scene.background=new THREE.Col
   /* time of day: the sun rises on the left (morning), stands high in front at noon, sets on the right; low sun is warmer */
   {const t=S.sun===undefined?0.35:S.sun,az=Math.PI*t,el=(8+62*Math.sin(Math.PI*t))*Math.PI/180,hi=Math.sin(el)/Math.sin(70*Math.PI/180);
    sun.position.set(cx-Math.cos(az)*Math.cos(el)*1200,Math.sin(el)*1200,cz+Math.sin(az)*Math.cos(el)*1200);
-   sun.color.set(0xffa868).lerp(new THREE.Color(0xfff4e6),Math.min(1,hi));sun.userData.k=0.55+0.45*hi;sun.intensity=n?0:2.8*sun.userData.k;
+   sun.color.set(0xffa868).lerp(new THREE.Color(0xfff4e6),Math.min(1,hi));sun.userData.k=0.55+0.45*hi;sun.intensity=n?0.4:2.8*sun.userData.k;if(n)sun.color.set(0xc9d3e6);
    if(!n)hemi.color.set(0xffe2c4).lerp(new THREE.Color(0xfff4e6),Math.min(1,hi));}
   {const ext=Math.max(b.x1-b.x0,b.z1-b.z0,b.h)*0.75+200;Object.assign(sun.shadow.camera,{left:-ext,right:ext,top:ext,bottom:-ext,near:50,far:1200+ext*1.6});sun.shadow.camera.updateProjectionMatrix();}sun.target.position.set(cx,0,cz);
   const cs=S.candle===undefined?1:S.candle;lights.forEach(L=>L.intensity=n?L.userData.base*cs:0);flames.forEach(f=>f.visible=n);
-  MAT.glow.visible=MAT.pool.visible=n;MAT.glow.color.set(0xffb562).multiplyScalar(Math.min(1.4,1.05*cs));MAT.pool.opacity=Math.min(0.9,0.42*cs);$("nightBtn").setAttribute("aria-pressed",n);
+  MAT.glow.visible=MAT.pool.visible=n;MAT.contact.visible=!!S.render;MAT.glow.color.set(0xffb562).multiplyScalar(Math.min(1.4,1.05*cs));MAT.pool.opacity=Math.min(0.9,0.42*cs);$("nightBtn").setAttribute("aria-pressed",n);
   Object.values(MATS).forEach(m=>{m.emissiveIntensity=0;});
-  Object.values(LIT).forEach(m=>{m.emissiveIntensity=n?cs*(m.userData.translucent?(S.render?0.05:0.07):(S.render?0.02:0.03)):0;});   /* thin porcelain glows through; stoneware and terracotta only a little */   /* thin porcelain glows a little when lit from inside */
-  if(S.render){scene.environment=n?null:(envRoom||envBasic);   /* night: nothing but the candles and a dim room */hemi.intensity=n?0.9:0.38;sun.intensity=n?0:1.1*(sun.userData.k||1);sun.shadow.mapSize.set(2048,2048);sun.shadow.normalBias=0.4;
+  Object.values(LIT).forEach(m=>{m.emissiveIntensity=n?cs*(m.userData.translucent?(S.render?0.09:0.07):(S.render?0.02:0.03)):0;});   /* thin porcelain glows through; stoneware and terracotta only a little */   /* thin porcelain glows a little when lit from inside */
+  if(S.render){scene.environment=n?(envNight||null):(envRoom||envBasic);   /* night: nothing but the candles and a dim room */hemi.intensity=n?0.32:0.16;sun.intensity=n?0.75:1.7*(sun.userData.k||1);   /* night: a cool moon key gives the glaze its shape, highlights and cast shadows */sun.shadow.mapSize.set(2048,2048);sun.shadow.normalBias=0.4;
     lights.forEach(L=>L.intensity=n?L.userData.base*1.2*cs:0);if(finalPass)finalPass.uniforms.exposure.value=n?1.05:0.8;
     if(bloom){bloom.strength=n?0.06:0.08;bloom.threshold=n?0.9:0.95;bloom.radius=0.45;}}
   else{scene.environment=envBasic;sun.shadow.normalBias=0.4;}   /* normal offset keeps flat walls free of shadow acne (the dotted diagonal along triangle seams) */
@@ -1002,8 +1021,16 @@ function setupComposer(){lastD=0;const r=view.getBoundingClientRect(),w=Math.max
   bloom=new THREE.UnrealBloomPass(new THREE.Vector2(w,h),0.12,0.55,0.92);composer.addPass(bloom);
   finalPass=new THREE.ShaderPass(FINAL);composer.addPass(finalPass);
   fxaa=new THREE.ShaderPass(THREE.FXAAShader);fxaa.uniforms.resolution.value.set(1/(w*pr),1/(h*pr));composer.addPass(fxaa);
-  const pm=new THREE.PMREMGenerator(renderer);envRoom=pm.fromScene(new THREE.RoomEnvironment(),0.04).texture;pm.dispose();}
-function setRender(on){S.render=on;$("renderBtn").setAttribute("aria-pressed",on);Object.keys(MATS).forEach(k=>delete MATS[k]);Object.keys(LIT).forEach(k=>delete LIT[k]);save();rebuild();}
+  const pm=new THREE.PMREMGenerator(renderer);envRoom=pm.fromScene(studioScene(1),0.02).texture;envNight=pm.fromScene(studioScene(0.3),0.02).texture;pm.dispose();}
+/* a photo studio for the glaze to reflect: a soft grey room, a big softbox to the front left, a strip light to the right and
+   a top panel; the long bright shapes give glazed walls and edges the soft streaks of a product shot */
+let envNight=null;
+function studioScene(k){const sc=new THREE.Scene(),room=new THREE.Mesh(new THREE.BoxGeometry(10,6,10),new THREE.MeshBasicMaterial({color:new THREE.Color(0x3a3936).multiplyScalar(k>0.5?1:0.35),side:THREE.BackSide}));room.position.y=2;sc.add(room);
+  const panel=(w,h,x,y,z,ry,rx,i)=>{const m=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshBasicMaterial({color:new THREE.Color(1,0.97,0.92).multiplyScalar(i*k),side:THREE.DoubleSide}));m.position.set(x,y,z);m.rotation.set(rx||0,ry||0,0);m.lookAt(0,0.6,0);sc.add(m);};
+  panel(3.2,2.4,-3.6,2.6,3.4,0,0,9);panel(0.7,4,4.6,2.2,-0.6,0,0,6);panel(4,4,0,4.9,0,0,0,3);panel(10,1.2,0,-0.6,-4.9,0,0,0.6);return sc;}
+function setRender(on){if(on&&!S.render&&S.ortho){S.wasOrtho=true;setOrtho(false);}else if(!on&&S.render&&S.wasOrtho){S.wasOrtho=false;setOrtho(true);}   /* Render looks through a lens (perspective), as a photograph does */
+  {const f=on?28:35;if(persp.fov!==f){const k=Math.tan(persp.fov*Math.PI/360)/Math.tan(f*Math.PI/360),v=persp.position.clone().sub(controls.target).multiplyScalar(k);persp.position.copy(controls.target).add(v);persp.fov=f;persp.updateProjectionMatrix();controls.update();}}   /* a longer lens, stepped back so the framing stays */
+  S.render=on;$("renderBtn").setAttribute("aria-pressed",on);Object.keys(MATS).forEach(k=>delete MATS[k]);Object.keys(LIT).forEach(k=>delete LIT[k]);save();rebuild();}
 function resize(){const r=view.getBoundingClientRect();renderer.setSize(r.width,r.height,false);persp.aspect=r.width/r.height;persp.updateProjectionMatrix();orthoFrustum();
   if(composer){composer.setSize(r.width,r.height);const pr=renderer.getPixelRatio();fxaa.uniforms.resolution.value.set(1/(r.width*pr),1/(r.height*pr));}}
 const draw=()=>{if(S.render&&S.night&&composer){finalPass.uniforms.time.value=tick%100;composer.render();}else renderer.render(scene,camera);};
@@ -1100,7 +1127,7 @@ function techReview(b){const rows=[],R_=(ok,label,v,fx)=>rows.push({ok,label,v,f
   R_(plR<=30,"Plate flatness",`${span} mm span / ${PLATE_T} mm = ${plR.toFixed(0)} : 1`,plR<=30?"Fires flat on a flat batt with alumina wash.":`Long thin plates slump and curl in firing. Fire on a dead-flat batt with alumina, or split the plate per row of modules (${W} mm wide strips keyed by the rims).`);
   R_(baR<=30,"Base flatness",`${span} mm span / ${BASE_T} mm = ${baR.toFixed(0)} : 1`,baR<=30?"Thin enough to look like the roof slab, stiff enough to fire flat.":`Keep the visible edge at ${BASE_T} mm and fire it on a dead-flat batt. Its lower lips (one ring per module, ${FIT.rimW} × ${FIT.rimH} mm, set ${(T+FIT.clr).toFixed(1)} mm in) stiffen it and lift it off the table.`);
   const roofSeat=b.roof==="none"?"no roof":b.roof==="modern"?"slab with lips on both faces":"cast lid with rim";
-  R_(b.roof==="none"||true,"Roof seat",roofSeat,b.roof==="none"?"Open top: the top wall rims stay glazed-free so a roof can be added later.":`The roof has the same ${rim.toFixed(1)} mm rim on its underside, one per top module${perMod(b)?" (one lid each)":""}, so it can't slide off. ${b.roof==="modern"?`The flat roof also carries the same lip on its top face, so another piece can stack on it. It is a ${FLAT_T} mm slab, flush with the wall face.`:"It is a slip-cast shell as thick as the walls (3 mm), flush with the wall face, sitting ring on ring."}`);
+  R_(b.roof==="none"||true,"Roof seat",roofSeat,b.roof==="none"?"Open top: the top wall rims stay glazed-free so a roof can be added later.":`The roof has the same ${rim.toFixed(1)} mm rim on its underside, one per top module${perMod(b)?" (one lid each)":""}, so it can't slide off. ${b.roof==="modern"?`The flat roof also carries the same lip on its top face, so another piece can stack on it. It is the same ${FLAT_T} mm slab as the plates between floors, flush with the wall face.`:"It is a slip-cast shell as thick as the walls (3 mm), flush with the wall face, sitting ring on ring."}`);
   const flameGap=H-FIT.flameTop;
   R_(lit===0||flameGap>=25,"Candle heat: flame to plate above",lit?`${flameGap} mm`:"no candles",lit?`A tealight flame tops out about ${FIT.flameTop} mm above its plate, leaving ${flameGap} mm to the plate over it. Open the vent over each lit module from Ø8 to Ø${FIT.ventLit} so the heat and soot rise through instead of pooling under the plate; on lower levels of tall stacks use LED tealights.`:"Add a candle to a level with a plate to see the heat check.");
   let minOpen=100;liveKeys(b).forEach(kk=>{const [,,l]=keyParts(kk);if(!(b.candles[l]&&b.plates[l]))return;let a=0;FACES.forEach(f=>{const o=B.build(b.mods[kk][f]);a+=o.holes.reduce((s2,h)=>s2+B.area(h.p),0);});minOpen=Math.min(minOpen,a/(4*W*H)*100);});
