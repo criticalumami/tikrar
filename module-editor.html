@@ -190,7 +190,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
 <header class="grid12">
   <h1>TIKRAR<small>Beirut Lantern Generator</small></h1>
   <span class="sub">porcelain modules 60 × 60 mm · 40 mm walls · houses, towers and city blocks · 1860–1925 and modernist openings</span>
-  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 31.10 · 18:06</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
+  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 31.10 · 20:45</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
   <button class="btn icon" id="themeBtn" type="button" aria-label="Toggle colour theme">◐</button></nav>
 </header>
 
@@ -293,7 +293,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
 <script src="openings.js"></script>
 <script>
 (function(){
-const B=window.BeitOpenings,W=B.W,H=B.H,T=3,LIP=3,MAX_LEVELS=8,GRID=30,BASE_T=2.5,PLATE_T=4,MAX_LIGHTS=0,SHADOW_LIGHTS=0;   /* candle light on the ground is baked (see BAKE): every lit module throws the shapes of its openings */
+const B=window.BeitOpenings,W=B.W,H=B.H,T=3,MAX_LEVELS=8,GRID=30,BASE_T=4,PLATE_T=4,MAX_LIGHTS=0,SHADOW_LIGHTS=0;   /* candle light on the ground is baked (see BAKE): every lit module throws the shapes of its openings */
 const FACES=["front","right","back","left"],FNAME={front:"Front",right:"Right",back:"Back",left:"Left"};
 const $=id=>document.getElementById(id);
 const root=document.documentElement;
@@ -787,13 +787,20 @@ function buildWall(bi,k,fname){
     geo.userData.bv=Math.min(bv,T/2-0.05);if(WGEO.size>4000)WGEO.clear();WGEO.set(key,geo);}
   const w=new THREE.Mesh(geo,modMat(S.buildings[bi],k));w.castShadow=w.receiveShadow=true;w.position.set(-W/2,0,W/2-T);w.userData={bi,k,fname,shared:true};pickable.push(w);g.add(w);
   g.userData.bv=geo.userData.bv;return g;}
-const plateT=l=>l===0?BASE_T:PLATE_T;   /* the base is as thick as the roof slab (2.5 mm) with the same 1.2 mm round edge */
-function levelY(b,gap){const ys=[];let y=0;for(let l=0;l<b.levels;l++){if(b.plates[l])y+=plateT(l)+gap*0.5;ys.push(y);y+=H+gap;}return {ys,top:y-gap};}
+const plateT=l=>l===0?BASE_T:PLATE_T;
+/* inner locating lips (owner request 31 Oct, after Dav's slab work): the base, every plate and the flat roof carry a lip on
+   BOTH faces, one ring per module, set in from the outer face by the wall (T) plus LIP.clr. The lip under a piece drops inside
+   the walls below it, the lip on top holds the walls above it, so pieces locate and stack. Outer faces stay flush.
+   The base rests on its lower lips, so a building with a base stands LIP.h off the table. */
+const LIP={clr:0.5,w:2.5,h:3};   /* 2.5 mm wide = the porcelain minimum bar; 0.5 mm play covers the ±0.3 mm firing spread */
+function lipRing(cx,cz,y,mat,b){const o=W/2-T-LIP.clr,i=o-LIP.w,r=Math.max(1,Math.min(radOf(b),W/2-1));   /* corners as round as the walls' outer corners, edges softened like the walls */
+  return soft(rsq(cx-o,cz-o,cx+o,cz+o,r),[rsq(cx-i,cz-i,cx+i,cz+i,Math.max(0.6,r-LIP.w))],LIP.h,mat,y,Math.min(BV,LIP.w/2-0.1));}   /* base, plates and flat roof: one 4 mm slab with lips on both faces */
+function levelY(b,gap){const ys=[];let y=b.plates[0]?LIP.h:0;for(let l=0;l<b.levels;l++){if(b.plates[l])y+=plateT(l)+gap*0.5;ys.push(y);y+=H+gap;}return {ys,top:y-gap};}
 /* one roof piece per building: a hipped lid over the whole footprint (the manual's single red-tiled hip), or one flat slab */
 const perMod=b=>b.span==="module";
 const topComplete=b=>{for(let c=0;c<b.cols;c++)for(let r=0;r<b.deep;r++)if(!alive(b,c+":"+r+":"+(b.levels-1)))return false;return true;};
 const roofRun=b=>(perMod(b)?1:Math.min(b.cols,b.deep))*W/2-2;   /* the slope runs up to the rounded ridge */
-function roofH(b){return b.roof==="none"?0:b.roof==="modern"?4:2.5+roofRun(b)*Math.tan(b.pitch*Math.PI/180);}
+function roofH(b){return b.roof==="none"?0:b.roof==="modern"?FLAT_T+LIP.h:2.5+roofRun(b)*Math.tan(b.pitch*Math.PI/180);}
 /* flip any triangle whose normal points down, so the roof faces the sky */
 function outward(geo){const p=geo.attributes.position.array,u=geo.attributes.uv&&geo.attributes.uv.array;
   for(let t=0;t<p.length;t+=9){const ax=p[t+3]-p[t],ay=p[t+4]-p[t+1],az=p[t+5]-p[t+2],bx=p[t+6]-p[t],by=p[t+7]-p[t+1],bz=p[t+8]-p[t+2];
@@ -838,8 +845,14 @@ function windToNormals(geo){const p=geo.attributes.position.array,n=geo.attribut
     if((ay*bz-az*by)*(n[t]+n[t+3]+n[t+6])+(az*bx-ax*bz)*(n[t+1]+n[t+4]+n[t+7])+(ax*by-ay*bx)*(n[t+2]+n[t+5]+n[t+8])<0){for(let k=0;k<3;k++){let q=p[t+3+k];p[t+3+k]=p[t+6+k];p[t+6+k]=q;q=n[t+3+k];n[t+3+k]=n[t+6+k];n[t+6+k]=q;}
       if(u){const i=t/3*2;for(let k=0;k<2;k++){const q=u[i+2+k];u[i+2+k]=u[i+4+k];u[i+4+k]=q;}}}}
   geo.computeBoundingSphere();}
-function modernRoof(b){const g=new THREE.Group(),hw=(perMod(b)?1:b.cols)*W/2,hd=(perMod(b)?1:b.deep)*W/2,mat=roofMat(b);
-  g.add(soft(rsq(-hw,-hd,hw,hd,radOf(b)),[circle(4)],2.5,mat,1.5,1.2));g.add(flat(sq(-hw+T+0.2,-hd+T+0.2,hw-T-0.2,hd-T-0.2),[sq(-hw+T+1.8,-hd+T+1.8,hw-T-1.8,hd-T-1.8)],1.5,mat,0));return g;}
+/* the flat roof IS a slab (owner request 31 Oct): the same piece as the plates between floors, same thickness, round edge,
+   Ø8 vent over each module, lips on both faces and the same colour; it just sits on the top level */
+const FLAT_T=PLATE_T;
+function modernRoof(b){const g=new THREE.Group(),nc=perMod(b)?1:b.cols,nd=perMod(b)?1:b.deep,hw=nc*W/2,hd=nd*W/2,mat=plateMat(b),xs=c=>(c-(nc-1)/2)*W,zs=r=>(r-(nd-1)/2)*W,vents=[];
+  for(let c=0;c<nc;c++)for(let r=0;r<nd;r++)vents.push(circle(4,xs(c),zs(r)));
+  g.add(soft(rsq(-hw,-hd,hw,hd,radOf(b)),vents,FLAT_T,mat,0,1.9));   /* sits on the wall tops, flush outside */
+  for(let c=0;c<nc;c++)for(let r=0;r<nd;r++)g.add(lipRing(xs(c),zs(r),-LIP.h,mat,b),lipRing(xs(c),zs(r),FLAT_T,mat,b));   /* lip under (inside the walls) and on top (to stack) */
+  return g;}
 function buildBuilding(bi,gap,lightBudget){
   const b=S.buildings[bi],g=new THREE.Group(),{ys,top}=levelY(b,gap),hw=b.cols*W/2,hd=b.deep*W/2;
   g.position.set(b.x,0,b.z);g.rotation.y=-b.rot*Math.PI/2;
@@ -848,7 +861,9 @@ function buildBuilding(bi,gap,lightBudget){
   for(let l=0;l<b.levels;l++){
     /* plate (or base) under the level: one piece for the whole floor, a vent over every module */
     if(b.plates[l]){const vents=[];for(let c=0;c<b.cols;c++)for(let r=0;r<b.deep;r++){if(!alive(b,c+":"+r+":"+l)){if(l>0&&courtOpen(b,c,r,l))vents.push(rsq(mx(c)-W/2+T,-mz(r)-W/2+T,mx(c)+W/2-T,-mz(r)+W/2-T,2).reverse());continue;}vents.push(circle(4,mx(c),-mz(r)));}   /* an upper plate is open over a courtyard */
-      const p=soft(rsq(-hw,-hd,hw,hd,radOf(b)),l===0?[]:vents,plateT(l),l===0&&(b.plateCol||"same")==="same"?footMat(b):plateMat(b),ys[l]-plateT(l)-gap*0.5,l===0?1.2:1.9);g.add(p);
+      const pm=plateMat(b),py=ys[l]-plateT(l)-gap*0.5,p=soft(rsq(-hw,-hd,hw,hd,radOf(b)),vents,plateT(l),pm,py,1.9);   /* base, plates and flat roof are one element: the same slab with lips on both faces */g.add(p);
+      for(let c=0;c<b.cols;c++)for(let r=0;r<b.deep;r++){const up=alive(b,c+":"+r+":"+l),dn=l===0?up:alive(b,c+":"+r+":"+(l-1));   /* lips: on top for the module above, underneath for the module below (the base: its feet) */
+        if(up)g.add(lipRing(mx(c),-mz(r),py+plateT(l),pm,b));if(dn)g.add(lipRing(mx(c),-mz(r),py-LIP.h,pm,b));}
 }   /* the base is one piece: no separate foot layer under it */
     for(let c=0;c<b.cols;c++)for(let r=0;r<b.deep;r++){const k=c+":"+r+":"+l;if(!alive(b,k))continue;const mg=new THREE.Group();mg.position.set(mx(c),ys[l],mz(r));const bvs={};FACES.forEach(f=>{const w=buildWall(bi,k,f);bvs[f]=w.userData.bv;mg.add(w);});mg.add(cornerPieces(b,k,bvs));if(b.candles[l]&&b.plates[l])mg.traverse(o=>o.userData.lit=true);g.add(mg);
       if(b.candles[l]&&b.plates[l]){const tea=new THREE.Mesh(new THREE.CylinderGeometry(19,19,8,24),MAT.tea);tea.position.set(mx(c),ys[l]-gap*0.5+4,mz(r));tea.receiveShadow=true;g.add(tea);
@@ -1100,17 +1115,17 @@ const ck=c=>`<div class="ck"><span class="s ${c.ok?"ok":c.note?"note":"bad"}">${
    The pieces: open module rings (4 walls cast as one, 60 × 60 × 40, 3 mm), plates (4 mm, Ø8 vent per module), the base
    (2.5 mm, unglazed foot), the roof (a hollow cast lid or a 2.5 mm slab) and a Ø38 tealight. Everything is fired apart and
    stacked dry. These are the details that make that work; the figures follow the selected building. */
-const FIT={clr:0.3,rimW:1.6,rimH:1.5,tol:0.5,ventLit:14,flameTop:20,rib:3};
+const FIT={clr:LIP.clr,rimW:LIP.w,rimH:LIP.h,tol:0.5,ventLit:14,flameTop:20,rib:3};
 function techReview(b){const rows=[],R_=(ok,label,v,fx)=>rows.push({ok,label,v,fx});
   const k=1/(1-shrinkOf(b)/100),inner=W-2*T,rim=inner-2*FIT.clr,n=Math.max(b.cols,b.deep),span=n*W,top=levelY(b,0).top+roofH(b),lit=b.candles.filter((c,l)=>c&&b.plates[l]).length;
   R_(true,"Mould scale","× "+k.toFixed(3),`${shrinkOf(b)} % ${BODY[b.body||"porcelain"].name.toLowerCase()} shrinkage: a 60.0 mm module is cast at ${(W*k).toFixed(1)} mm. Pieces from one batch and one kiln shelf vary about ±${FIT.tol} %, so every fit below leaves at least ${FIT.clr} mm.`);
-  R_(true,"Module to plate: locating rim",`${rim.toFixed(1)} mm square, ${FIT.rimW} × ${FIT.rimH}`,`Each plate carries a rim on both faces, one per module, that drops inside the ${inner.toFixed(0)} mm clear opening with ${FIT.clr} mm all round (±${(W*FIT.tol/100).toFixed(2)} mm firing spread). Rims are separate per module, so small differences between modules never add up.`);
+  R_(true,"Module to plate: locating rim",`${rim.toFixed(1)} mm square, ${FIT.rimW} × ${FIT.rimH}`,`Each plate carries a rim on both faces, one per module, that drops inside the ${inner.toFixed(0)} mm clear opening with ${FIT.clr} mm all round (±${(W*FIT.tol/100).toFixed(2)} mm firing spread). Rims are separate per module, so small differences between modules never add up. Lips on both faces need a closed two-part mould (top and bottom halves); give each lip about 2° draft so it releases.`);
   R_(true,"Glaze-free contact bands","3 mm wall rims · plate rims · roof seat",`Wax-resist every face that touches another piece: glaze adds 0.1–0.2 mm and would fuse pieces in the kiln or rock in use. These bands fire bare, the same sandy foot you see at the base.`);
   const plR=span/PLATE_T,baR=span/BASE_T;
   R_(plR<=30,"Plate flatness",`${span} mm span / ${PLATE_T} mm = ${plR.toFixed(0)} : 1`,plR<=30?"Fires flat on a flat batt with alumina wash.":`Long thin plates slump and curl in firing. Fire on a dead-flat batt with alumina, or split the plate per row of modules (${W} mm wide strips keyed by the rims).`);
-  R_(baR<=30,"Base flatness",`${span} mm span / ${BASE_T} mm = ${baR.toFixed(0)} : 1`,baR<=30?"Thin enough to look like the roof slab, stiff enough to fire flat.":`Keep the visible edge at ${BASE_T} mm and add ${FIT.rib} × ${FIT.rib} mm ribs underneath, under every wall line, set 4 mm back from the edge so they can't be seen. The ribs stiffen the base in the kiln and lift it off the table.`);
-  const roofSeat=b.roof==="none"?"no roof":b.roof==="modern"?"slab with rim":"cast lid with rim";
-  R_(b.roof==="none"||true,"Roof seat",roofSeat,b.roof==="none"?"Open top: the top wall rims stay glazed-free so a roof can be added later.":`The roof has the same ${rim.toFixed(1)} mm rim on its underside, one per top module${perMod(b)?" (one lid each)":""}, so it can't slide off. It is a slip-cast shell as thick as the walls (3 mm), flush with the wall face, sitting ring on ring.`);
+  R_(baR<=30,"Base flatness",`${span} mm span / ${BASE_T} mm = ${baR.toFixed(0)} : 1`,baR<=30?"Thin enough to look like the roof slab, stiff enough to fire flat.":`Keep the visible edge at ${BASE_T} mm and fire it on a dead-flat batt. Its lower lips (one ring per module, ${FIT.rimW} × ${FIT.rimH} mm, set ${(T+FIT.clr).toFixed(1)} mm in) stiffen it and lift it off the table.`);
+  const roofSeat=b.roof==="none"?"no roof":b.roof==="modern"?"slab with lips on both faces":"cast lid with rim";
+  R_(b.roof==="none"||true,"Roof seat",roofSeat,b.roof==="none"?"Open top: the top wall rims stay glazed-free so a roof can be added later.":`The roof has the same ${rim.toFixed(1)} mm rim on its underside, one per top module${perMod(b)?" (one lid each)":""}, so it can't slide off. ${b.roof==="modern"?`The flat roof also carries the same lip on its top face, so another piece can stack on it. It is the same ${FLAT_T} mm slab as the plates between floors, flush with the wall face.`:"It is a slip-cast shell as thick as the walls (3 mm), flush with the wall face, sitting ring on ring."}`);
   const flameGap=H-FIT.flameTop;
   R_(lit===0||flameGap>=25,"Candle heat: flame to plate above",lit?`${flameGap} mm`:"no candles",lit?`A tealight flame tops out about ${FIT.flameTop} mm above its plate, leaving ${flameGap} mm to the plate over it. Open the vent over each lit module from Ø8 to Ø${FIT.ventLit} so the heat and soot rise through instead of pooling under the plate; on lower levels of tall stacks use LED tealights.`:"Add a candle to a level with a plate to see the heat check.");
   let minOpen=100;liveKeys(b).forEach(kk=>{const [,,l]=keyParts(kk);if(!(b.candles[l]&&b.plates[l]))return;let a=0;FACES.forEach(f=>{const o=B.build(b.mods[kk][f]);a+=o.holes.reduce((s2,h)=>s2+B.area(h.p),0);});minOpen=Math.min(minOpen,a/(4*W*H)*100);});
@@ -1131,16 +1146,16 @@ function techDetails(b){const ink="var(--ink)",ln="var(--line)",hat="rgba(120,11
   /* 2 roof seat */
   const rs=sv(80,62,rect(10,34,T*S2,24)+`<path d="M10 34 L10 27 Q10 23 14 22.4 L80 8 L80 20 L22 30.5 L22 34 Z" fill="${hat}"/>`+rect(10+(T+c)*S2,34,rw*S2,rh*S2,ft)+`<line x1="10" y1="2" x2="10" y2="60" stroke-width=".15" stroke-dasharray="1 1"/>`+
     txt(30,46,"top wall")+txt(44,26,"roof shell 3.0")+txt(12,4,"outer face: roof and wall flush")+txt(30,58,`seat rim ${rw} × ${rh}, ${c} clear`));
-  /* 3 base with hidden ribs */
-  const bt=BASE_T*S2,bs=sv(80,62,rect(10,30,66,bt)+rect(26,30+bt,FIT.rib*S2,FIT.rib*S2,ft)+rect(56,30+bt,FIT.rib*S2,FIT.rib*S2,ft)+rect(10,6,T*S2,24)+rect(10+(T+c)*S2,30-rh*S2,rw*S2,rh*S2,ft)+
-    `<line x1="0" y1="${30+bt+FIT.rib*S2}" x2="80" y2="${30+bt+FIT.rib*S2}" stroke="${ln}"/>`+txt(66,24,"wall")+txt(20,52,`base ${BASE_T} at the edge`)+txt(20,57,`ribs ${FIT.rib} × ${FIT.rib}, 4 mm in, unglazed`));
+  /* 3 base with inner lips on both faces: the upper lip holds the walls, the lower lip is its foot */
+  const bt=BASE_T*S2,bs=sv(80,62,rect(10,30,66,bt)+rect(10+(T+c)*S2,30+bt,rw*S2,rh*S2,ft)+rect(10,6,T*S2,24)+rect(10+(T+c)*S2,30-rh*S2,rw*S2,rh*S2,ft)+
+    `<line x1="0" y1="${30+bt+rh*S2}" x2="80" y2="${30+bt+rh*S2}" stroke="${ln}"/>`+txt(66,24,"wall")+txt(30,46,`base ${BASE_T}`)+txt(30,57,`lips ${rw} × ${rh} both faces, ${c} clear, bare`));
   /* 4 candle section at 1 : 1 */
   const cs=sv(80,62,rect(8,12,3,44)+rect(69,12,3,44)+rect(8,56,64,3)+rect(8,9,64,3)+`<rect x="21" y="48" width="38" height="8" fill="${ln}"/>`+
     `<path d="M40 48 q-2 -6 0 -${FIT.flameTop-8} q2 ${FIT.flameTop-14} 0 ${FIT.flameTop-8}" fill="rgba(240,163,58,.8)" stroke="none"/>`+`<rect x="${40-FIT.ventLit/2}" y="9" width="${FIT.ventLit}" height="3" fill="var(--bg,#fff)" stroke="none"/>`+
     dim(62,56-FIT.flameTop,62,12,(H-FIT.flameTop)+" mm")+txt(40,7,"vent Ø"+FIT.ventLit,"middle")+txt(40,61.5,"Ø38 tealight on the plate","middle"));
   const fig=(svg,t,d)=>`<figure>${svg}<figcaption><b>${t}</b>${d}</figcaption></figure>`;
   return fig(j,"1 · Stacking joint, 4 : 1","Plates locate the module below and the module above with a bare rim on each face.")+fig(rs,"2 · Roof seat, 4 : 1","The roof sits flush with the outer wall face, no overhang. A rim under it drops inside the top ring, so it locates and lifts straight off.")+
-    fig(bs,"3 · Base, 4 : 1",`${BASE_T} mm at the edge like the roof slab; hidden ribs keep it flat in the kiln.`)+fig(cs,"4 · Candle in a module, 1 : 1","Flame, clearances and the enlarged vent over a lit module.");}
+    fig(bs,"3 · Base, 4 : 1",`${BASE_T} mm, flush outside. Inner lips on both faces: the top one holds the walls, the bottom one is its foot, so a base also stacks like a plate.`)+fig(cs,"4 · Candle in a module, 1 : 1","Flame, clearances and the enlarged vent over a lit module.");}
 function renderTech(b){const rows=techReview(b),bad=rows.filter(r=>!r.ok).length;
   $("techRows").innerHTML=rows.map(r=>`<div class="tr"><span class="s ${r.ok?"ok":"note"}">${r.ok?"✓":"●"}</span><span>${r.label}</span><span class="v">${r.v}</span><span class="fx">${r.fx}</span></div>`).join("");
   $("techDetails").innerHTML=techDetails(b);$("techMeta").textContent=bad?bad+" detail"+(bad>1?"s":"")+" to add":"fits as drawn";$("techMeta").style.color=bad?"#b7791f":"var(--ok)";}
@@ -1454,7 +1469,7 @@ function makeSheet(jspdf){
     "Opening types from Houses of Beirut 1860–1925 (HoB) and Architectures de Beyrouth 1925–1970 (AdB); page references on the wall-type sheets."]);
 
   /* ================= sheet 2: elevations ================= */
-  const sides=["front","right","back","left"],fwOf=s=>(s==="front"||s==="back"?b.cols:b.deep)*W,platesH=b.plates.reduce((a,p,l)=>a+(p?plateT(l):0),0),fh=b.levels*H+platesH+roofH(b);
+  const sides=["front","right","back","left"],fwOf=s=>(s==="front"||s==="back"?b.cols:b.deep)*W,platesH=b.plates.reduce((a,p,l)=>a+(p?plateT(l):0),0),fh=b.levels*H+platesH+(b.plates[0]?LIP.h:0)+roofH(b);
   const cellW=134,cellH=78,s=Math.min((cellW-34)/(Math.max(b.cols,b.deep)*W),(cellH-24)/fh,1.6);
   frame("ELEVATIONS",`${s.toFixed(2)} : 1`);
   const axisLabels=side=>{const n=fwOf(side)/W;if(side==="front")return [...Array(n)].map((_,i)=>String(i+1));if(side==="back")return [...Array(n)].map((_,i)=>String(n-i));
