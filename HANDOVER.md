@@ -31,7 +31,7 @@ Steps for every push:
 1. In Dav's repo, run `git pull --rebase --autostash origin main` first, because Dav's own Claude pushes to main often. Never edit Dav's root `index.html` or his app files.
 2. Commit with `-c user.name=ss -c user.email=criticalumami@users.noreply.github.com`. Don't put model names in commit messages.
 3. Copy the changed files into the tikrar clone. Check that `git remote -v` shows `criticalumami/tikrar`, then push to main.
-4. Check that the "pages build and deployment" run finished (Actions tab), then confirm the version stamp next to the nav on the live page (currently `v 30.10 · 19:30`). Bump the stamp in module.html (`id="ver"`) with each release.
+4. Check that the "pages build and deployment" run finished (Actions tab), then confirm the version stamp next to the nav on the live page (currently `v 31.10 · 14:00`). Bump the stamp in module.html (`id="ver"`) with each release.
 
 Cloud sessions can't change repo settings or reach github.io directly. When settings need changing, do it through Remote Control on the owner's Mac (gh signed in as criticalumami), and only with the owner's go-ahead.
 
