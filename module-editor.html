@@ -184,7 +184,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
 <header class="grid12">
   <h1>TIKRAR<small>Beirut Lantern Generator</small></h1>
   <span class="sub">porcelain modules 60 × 60 mm · 40 mm walls · houses, towers and city blocks · 1860–1925 and modernist openings</span>
-  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 31.10 · 14:00</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
+  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 31.10 · 14:15</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
   <button class="btn icon" id="themeBtn" type="button" aria-label="Toggle colour theme">◐</button></nav>
 </header>
 
@@ -280,7 +280,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
 <script src="openings.js"></script>
 <script>
 (function(){
-const B=window.BeitOpenings,W=B.W,H=B.H,T=3,LIP=3,MAX_LEVELS=8,GRID=30,BASE_T=6,PLATE_T=4,MAX_LIGHTS=0,SHADOW_LIGHTS=0;   /* candle light is drawn per module (glow and ground pools), not by a pool of point lights */
+const B=window.BeitOpenings,W=B.W,H=B.H,T=3,LIP=3,MAX_LEVELS=8,GRID=30,BASE_T=2.5,PLATE_T=4,MAX_LIGHTS=0,SHADOW_LIGHTS=0;   /* candle light is drawn per module (glow and ground pools), not by a pool of point lights */
 const FACES=["front","right","back","left"],FNAME={front:"Front",right:"Right",back:"Back",left:"Left"};
 const $=id=>document.getElementById(id);
 const root=document.documentElement;
@@ -763,7 +763,7 @@ function buildWall(bi,k,fname){
     geo.userData.bv=Math.min(bv,T/2-0.05);if(WGEO.size>4000)WGEO.clear();WGEO.set(key,geo);}
   const w=new THREE.Mesh(geo,modMat(S.buildings[bi],k));w.castShadow=w.receiveShadow=true;w.position.set(-W/2,0,W/2-T);w.userData={bi,k,fname,shared:true};pickable.push(w);g.add(w);
   g.userData.bv=geo.userData.bv;return g;}
-const plateT=l=>l===0?BASE_T:PLATE_T;
+const plateT=l=>l===0?BASE_T:PLATE_T;   /* the base is as thick as the roof slab (2.5 mm) with the same 1.2 mm round edge */
 function levelY(b,gap){const ys=[];let y=0;for(let l=0;l<b.levels;l++){if(b.plates[l])y+=plateT(l)+gap*0.5;ys.push(y);y+=H+gap;}return {ys,top:y-gap};}
 /* one roof piece per building: a hipped lid over the whole footprint (the manual's single red-tiled hip), or one flat slab */
 const perMod=b=>b.span==="module";
@@ -824,7 +824,7 @@ function buildBuilding(bi,gap,lightBudget){
   for(let l=0;l<b.levels;l++){
     /* plate (or base) under the level: one piece for the whole floor, a vent over every module */
     if(b.plates[l]){const vents=[];for(let c=0;c<b.cols;c++)for(let r=0;r<b.deep;r++)vents.push(circle(4,mx(c),-mz(r)));
-      const p=soft(rsq(-hw,-hd,hw,hd,radOf(b)),l===0?[]:vents,plateT(l),plateMat(b),ys[l]-plateT(l)-gap*0.5,l===0?2.8:1.9);g.add(p);
+      const p=soft(rsq(-hw,-hd,hw,hd,radOf(b)),l===0?[]:vents,plateT(l),plateMat(b),ys[l]-plateT(l)-gap*0.5,l===0?1.2:1.9);g.add(p);
 }   /* the base is one piece: no separate foot layer under it */
     for(let c=0;c<b.cols;c++)for(let r=0;r<b.deep;r++){const k=c+":"+r+":"+l;if(!alive(b,k))continue;const mg=new THREE.Group();mg.position.set(mx(c),ys[l],mz(r));const bvs={};FACES.forEach(f=>{const w=buildWall(bi,k,f);bvs[f]=w.userData.bv;mg.add(w);});mg.add(cornerPieces(b,k,bvs));if(b.candles[l]&&b.plates[l])mg.traverse(o=>o.userData.lit=true);g.add(mg);
       if(b.candles[l]&&b.plates[l]){const tea=new THREE.Mesh(new THREE.CylinderGeometry(19,19,8,24),MAT.tea);tea.position.set(mx(c),ys[l]+4,mz(r));g.add(tea);
