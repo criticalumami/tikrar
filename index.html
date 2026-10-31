@@ -184,7 +184,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
 <header class="grid12">
   <h1>TIKRAR<small>Beirut Lantern Generator</small></h1>
   <span class="sub">porcelain modules 60 × 60 mm · 40 mm walls · houses, towers and city blocks · 1860–1925 and modernist openings</span>
-  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 31.10 · 14:25</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
+  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 31.10 · 14:40</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
   <button class="btn icon" id="themeBtn" type="button" aria-label="Toggle colour theme">◐</button></nav>
 </header>
 
@@ -280,7 +280,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
 <script src="openings.js"></script>
 <script>
 (function(){
-const B=window.BeitOpenings,W=B.W,H=B.H,T=3,LIP=3,MAX_LEVELS=8,GRID=30,BASE_T=2.5,PLATE_T=4,MAX_LIGHTS=6,SHADOW_LIGHTS=6;   /* up to 6 lit modules get a real shadow-casting candle light, so the openings throw their pattern on the ground; the rest get a soft glow pool */
+const B=window.BeitOpenings,W=B.W,H=B.H,T=3,LIP=3,MAX_LEVELS=8,GRID=30,BASE_T=2.5,PLATE_T=4,MAX_LIGHTS=0,SHADOW_LIGHTS=0;   /* candle light on the ground is baked (see BAKE): every lit module throws the shapes of its openings */
 const FACES=["front","right","back","left"],FNAME={front:"Front",right:"Right",back:"Back",left:"Left"};
 const $=id=>document.getElementById(id);
 const root=document.documentElement;
@@ -637,7 +637,7 @@ let room=new THREE.Group();scene.add(room);
 const lc=h=>S.render?new THREE.Color(h).convertSRGBToLinear():new THREE.Color(h);
 function buildRoom(){scene.remove(room);room.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.isLine&&o.material!==MAT.line)o.material.dispose();});room=new THREE.Group();
   /* by day the ground is the page: pure white, with only the shadows drawn on it */
-  const white=!S.night,gb=bounds(),gsz=Math.max(gb.x1-gb.x0,gb.z1-gb.z0)+(white?1400:8000),g=new THREE.Mesh(new THREE.PlaneGeometry(gsz,gsz),white?new THREE.ShadowMaterial({opacity:0.3}):new THREE.MeshStandardMaterial({color:lc(S.render?(S.night?0x5a5148:0xc4bcb0):0x2e2924),roughness:1,envMapIntensity:0.2}));g.rotation.x=-Math.PI/2;g.position.set((gb.x0+gb.x1)/2,-groundDrop(),(gb.z0+gb.z1)/2);g.receiveShadow=true;room.add(g);   /* by day only as big as the shadows need, so nothing reaches the horizon */
+  const white=!S.night,gb=bounds(),gsz=Math.max(gb.x1-gb.x0,gb.z1-gb.z0)+(white?1400:8000),g=new THREE.Mesh(new THREE.PlaneGeometry(gsz,gsz),white?new THREE.ShadowMaterial({opacity:0.3}):new THREE.MeshStandardMaterial({color:lc(S.render?(S.night?0x0a0908:0xc4bcb0):0x0a0908),roughness:1,envMapIntensity:0.2}));g.rotation.x=-Math.PI/2;g.position.set((gb.x0+gb.x1)/2,-groundDrop(),(gb.z0+gb.z1)/2);g.receiveShadow=true;room.add(g);   /* by day only as big as the shadows need, so nothing reaches the horizon */
   /* the ground line: in the Front elevation the ground is edge-on, so it is drawn as one black hairline at y = 0 */
   {const b=bounds(),gl=new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(b.x0-4000,0,b.z1+600),new THREE.Vector3(b.x1+4000,0,b.z1+600)]),new THREE.LineBasicMaterial({color:S.night?0x9aa0ad:0x111111}));
    gl.visible=S.view==="front"&&camera===ortho;gl.name="groundLine";room.add(gl);}
@@ -829,8 +829,6 @@ function buildBuilding(bi,gap,lightBudget){
       for(let c=0;c<b.cols;c++)for(let r=0;r<b.deep;r++){let lm=-1;for(let l=b.levels-1;l>=0;l--)if(alive(b,c+":"+r+":"+l)){lm=l;break;}if(lm<0)continue;
         const rf=b.roof==="modern"?modernRoof(sb):slantRoof(sb);rf.position.set(mx(c),ys[lm]+H+gap*0.4,mz(r));g.add(rf);}}
     else{const rf=one();rf.position.set(0,top+gap*0.4,0);g.add(rf);}}
-  if(b.candles.some((c,l)=>c&&b.plates[l])){const n=b.candles.filter((c,l)=>c&&b.plates[l]).length,s=Math.max(b.cols,b.deep)*W*(2.2+0.25*Math.min(n,4)),pl=new THREE.Mesh(new THREE.PlaneGeometry(s,s),MAT.pool);
-    pl.rotation.x=-Math.PI/2;pl.position.y=0.4;pl.renderOrder=1;pl.userData={pool:bi};g.add(pl);}
   if(isSel(bi)){const pts=[[-hw-4,-hd-4],[hw+4,-hd-4],[hw+4,hd+4],[-hw-4,hd+4]].map(([x,z])=>new THREE.Vector3(x,0.6,z));const ln=new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(pts),MAT.sel);g.add(ln);}
   return g;}
 const flames=[];
@@ -847,7 +845,7 @@ const LPOOL=Array.from({length:MAX_LIGHTS},(_,i)=>{const L=new THREE.PointLight(
   L.shadow.camera.near=2;L.position.set(0,-500,0);L.userData.base=0;scene.add(L);return L;});
 /* candles share the pool: one real light per lit module, the selected building's first, then the lowest levels;
    a building left without one keeps its soft glow pool, a building with real light throws the shapes of its openings instead */
-const CANDLE_Y=14,CANDLE_I=5;
+const CANDLE_Y=14,CANDLE_I=5,BAKE_R=300;
 function placeLights(anchors){lights.length=0;LPOOL.forEach(L=>{L.userData.base=0;L.intensity=0;L.position.set(0,-500,0);});
   const pick=anchors.slice().sort((a,b)=>(isSel(b.userData.bi)-isSel(a.userData.bi))||(a.userData.l-b.userData.l)||(a.userData.bi-b.userData.bi)).slice(0,MAX_LIGHTS);
   const real=new Set();pick.forEach((a,i)=>{const L=LPOOL[i];a.getWorldPosition(L.position);L.userData.base=CANDLE_I;lights.push(L);real.add(a.userData.bi);});
@@ -855,6 +853,35 @@ function placeLights(anchors){lights.length=0;LPOOL.forEach(L=>{L.userData.base=
   /* a shadow-casting light also darkens wherever it can't see, even at zero intensity: spare lights sit on a used one,
      and candle shadows are off by day (so the white ground only carries the sun's shadows) */
   LPOOL.forEach((L,i)=>{if(i>=lights.length&&lights.length)L.position.copy(lights[i%lights.length].position);L.castShadow=!!(S.night&&lights.length)&&i<SHADOW_LIGHTS;});}
+/* baked candle light: every lit module's candle is rendered once, with a real shadow-casting point light, onto a
+   top-down light map of the ground (layer 1, seen only by the bake camera). Its walls (and its neighbours') block the
+   light, so each opening throws its own shape. The map is drawn over the night ground; it is re-baked only when the
+   city changes, a few candles a frame, so the editor never stalls. */
+const BAKE={rt:null,q:[],ov:null,n:0,scene:new THREE.Scene(),cam:new THREE.OrthographicCamera(-1,1,1,-1,1,3000),
+  light:new THREE.PointLight(0xffa04f,1,BAKE_R,2),plane:null};
+{const L=BAKE.light;L.castShadow=true;L.shadow.mapSize.set(512,512);L.shadow.radius=2;L.shadow.bias=-0.002;L.shadow.normalBias=0.35;L.shadow.camera.near=2;
+  L.layers.set(1);BAKE.cam.layers.enable(1);   /* the shadow pass draws what the bake camera's layers see, so it sees the buildings too: its near and far planes then cut everything but a thin slab just under the ground */
+  BAKE.cam.up.set(0,0,-1);BAKE.scene.add(L);
+  BAKE.plane=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshStandardMaterial({color:0xffffff,roughness:1,metalness:0,transparent:true,blending:THREE.AdditiveBlending,depthTest:false,depthWrite:false}));
+  BAKE.plane.rotation.x=-Math.PI/2;BAKE.plane.receiveShadow=true;BAKE.plane.layers.set(1);BAKE.scene.add(BAKE.plane);
+  BAKE.ov=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({transparent:true,blending:THREE.AdditiveBlending,depthWrite:false,toneMapped:false}));
+  BAKE.ov.rotation.x=-Math.PI/2;BAKE.ov.renderOrder=1;BAKE.ov.visible=false;scene.add(BAKE.ov);}
+function startBake(anchors){BAKE.q.length=0;BAKE.n=0;BAKE.ov.visible=false;
+  BAKE.scene.children.slice().forEach(o=>{if(o!==BAKE.light&&o!==BAKE.plane)BAKE.scene.remove(o);});
+  if(!S.night||!anchors.length)return;
+  BAKE.scene.add(built);built.updateMatrixWorld(true);
+  const b=bounds(),m=BAKE_R*0.75,x0=b.x0-m,x1=b.x1+m,z0=b.z0-m,z1=b.z1+m,w=x1-x0,d=z1-z0,cx=(x0+x1)/2,cz=(z0+z1)/2,gy=-groundDrop(),
+    px=Math.min(2048,Math.ceil(Math.max(w,d)/0.5)),sw=Math.max(64,Math.round(px*w/Math.max(w,d))),sh=Math.max(64,Math.round(px*d/Math.max(w,d)));
+  if(!BAKE.rt||BAKE.rt.width!==sw||BAKE.rt.height!==sh){if(BAKE.rt)BAKE.rt.dispose();BAKE.rt=new THREE.WebGLRenderTarget(sw,sh,{depthBuffer:false,type:THREE.HalfFloatType});BAKE.ov.material.map=BAKE.rt.texture;BAKE.ov.material.needsUpdate=true;}
+  Object.assign(BAKE.cam,{left:-w/2,right:w/2,top:d/2,bottom:-d/2});BAKE.cam.near=10.25;BAKE.cam.far=11;BAKE.cam.position.set(cx,gy+10,cz);BAKE.cam.lookAt(cx,gy-20,cz);BAKE.cam.updateProjectionMatrix();
+  [BAKE.plane,BAKE.ov].forEach(o=>{o.scale.set(w,d,1);o.position.set(cx,gy-0.5,cz);});BAKE.ov.position.y=gy+0.35;
+  const cc=renderer.getClearColor(new THREE.Color()),ca=renderer.getClearAlpha(),rt0=renderer.getRenderTarget();
+  renderer.setRenderTarget(BAKE.rt);renderer.setClearColor(0x000000,1);renderer.clear(true,false,false);renderer.setRenderTarget(rt0);renderer.setClearColor(cc,ca);
+  const p=new THREE.Vector3();anchors.forEach(a=>{a.getWorldPosition(p);BAKE.q.push(p.clone());});BAKE.ov.visible=true;}
+function bakeStep(max){const t0=performance.now(),rt0=renderer.getRenderTarget(),ac=renderer.autoClear,pend=renderer.shadowMap.needsUpdate;
+  renderer.setRenderTarget(BAKE.rt);renderer.autoClear=false;
+  while(BAKE.q.length&&performance.now()-t0<max){BAKE.light.position.copy(BAKE.q.shift());renderer.shadowMap.needsUpdate=true;renderer.render(BAKE.scene,BAKE.cam);BAKE.n++;}
+  renderer.setRenderTarget(rt0);renderer.autoClear=ac;renderer.shadowMap.needsUpdate=pend;}
 /* merge everything that shares a material into one mesh: a village goes from hundreds of draw calls to a handful.
    The separate wall meshes stay in `built` (not in the scene) for picking. */
 let merged=new THREE.Group();scene.add(merged);
@@ -884,7 +911,7 @@ function rebuildNow(){
   built.traverse(o=>{if(o.geometry&&!o.isLine&&!o.userData.shared)o.geometry.dispose();});merged.traverse(o=>{if(o.geometry&&o.isMesh&&o.material!==MAT.flame&&!o.userData.shared)o.geometry.dispose();});scene.remove(merged);
   built=new THREE.Group();pickable.length=0;flames.length=0;
   const gap=+S.explode,budget={anchors:[]};S.buildings.forEach((_,bi)=>built.add(buildBuilding(bi,gap,budget)));
-  merged=mergeGroup(built);scene.add(merged);placeLights(budget.anchors);buildRoom();applyNight();}
+  merged=mergeGroup(built);scene.add(merged);placeLights(budget.anchors);BAKE.anchors=budget.anchors;buildRoom();applyNight();}
 function applyNight(){const n=S.night,rd=S.render;scene.background=n?new THREE.Color(0x000000):new THREE.Color(0xffffff);   /* night is pitch black: only the candles light the city */view.classList.toggle("dark",!!(n||rd));   /* abstract: a seamless warm-white backdrop by day, a warm dusk at night */
   hemi.intensity=n?0.07:0.26;hemi.color.set(n?0x8890a8:0xfff4e6);hemi.groundColor.set(n?0x2a2018:0xc9bba8);   /* a constant soft fill, night included, so glazes always read */   /* night: a blue dusk sky */
   sun.intensity=n?0:1.5*(sun.userData.k||1);   /* day: a soft warm sky and one gentle key light; night: the candles */
@@ -910,6 +937,8 @@ function applyNight(){const n=S.night,rd=S.render;scene.background=n?new THREE.C
     if(bloom){bloom.strength=n?0.15:0.08;bloom.threshold=n?0.9:0.95;bloom.radius=0.45;}}
   else{scene.environment=envBasic;sun.shadow.normalBias=0;}
   if(sun.shadow.map&&sun.shadow.map.width!==sun.shadow.mapSize.x){sun.shadow.map.dispose();sun.shadow.map=null;}
+  if(S.night!==BAKE.night||BAKE.anchors!==BAKE.done){BAKE.night=S.night;BAKE.done=BAKE.anchors;startBake(BAKE.anchors||[]);}
+  BAKE.ov.material.color.setScalar(CANDLE_I*0.42*cs);
   renderer.shadowMap.needsUpdate=true;need();}
 let composer=null,ssao=null,bloom=null,finalPass=null,fxaa=null;
 const LIBS=["shaders/CopyShader.js","shaders/LuminosityHighPassShader.js","shaders/SSAOShader.js","shaders/FXAAShader.js","math/SimplexNoise.js",
@@ -945,8 +974,9 @@ let lastD=0;function fitDepth(){if(camera===ortho)return;const d=camera.position
 let tick=0,lastFlick=0;(function loop(now){requestAnimationFrame(loop);controls.update();fitDepth();
   /* candle flicker: about 15 frames a second (8 in Render mode), never faster than the screen needs */
   if(S.night&&flames.length&&now-lastFlick>(S.render?120:100)&&!document.hidden){lastFlick=now;tick+=0.4;
-    {const cs=S.candle===undefined?1:S.candle,k=0.96+Math.sin(tick*1.7)*0.03+Math.sin(tick*4.1)*0.015;MAT.glow.color.set(0xffb562).multiplyScalar(Math.min(1.4,1.05*cs)*k);MAT.pool.opacity=Math.min(0.9,0.42*cs)*k;}
+    {const cs=S.candle===undefined?1:S.candle,k=0.96+Math.sin(tick*1.7)*0.03+Math.sin(tick*4.1)*0.015;MAT.glow.color.set(0xffb562).multiplyScalar(Math.min(1.4,1.05*cs)*k);MAT.pool.opacity=Math.min(0.9,0.42*cs)*k;BAKE.ov.material.color.setScalar(CANDLE_I*0.42*cs*k);}
     lights.forEach((L,i)=>L.intensity=L.userData.base*(S.render?1.2:1)*(S.candle===undefined?1:S.candle)*(0.96+Math.sin(tick*1.7+i)*0.04+Math.sin(tick*4.1+i*2)*0.02));flames.forEach((f,i)=>f.scale.y=1.6+Math.sin(tick*3+i)*0.12);need();}
+  if(BAKE.q.length){bakeStep(BAKE.n?24:60);need();}
   const moving=now-lastMove<160;
   /* Render mode: ambient occlusion only once the view settles, so orbiting stays smooth */
   if(ssao&&camera===persp){if(moving&&ssao.enabled){ssao.enabled=false;}else if(!moving&&hqDue&&!ssao.enabled){ssao.enabled=true;hqDue=false;need();}}
