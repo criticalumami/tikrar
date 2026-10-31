@@ -836,10 +836,13 @@ function windToNormals(geo){const p=geo.attributes.position.array,n=geo.attribut
     if((ay*bz-az*by)*(n[t]+n[t+3]+n[t+6])+(az*bx-ax*bz)*(n[t+1]+n[t+4]+n[t+7])+(ax*by-ay*bx)*(n[t+2]+n[t+5]+n[t+8])<0){for(let k=0;k<3;k++){let q=p[t+3+k];p[t+3+k]=p[t+6+k];p[t+6+k]=q;q=n[t+3+k];n[t+3+k]=n[t+6+k];n[t+6+k]=q;}
       if(u){const i=t/3*2;for(let k=0;k<2;k++){const q=u[i+2+k];u[i+2+k]=u[i+4+k];u[i+4+k]=q;}}}}
   geo.computeBoundingSphere();}
-const FLAT_T=2.5;
-function modernRoof(b){const g=new THREE.Group(),nc=perMod(b)?1:b.cols,nd=perMod(b)?1:b.deep,hw=nc*W/2,hd=nd*W/2,mat=roofMat(b);
-  g.add(soft(rsq(-hw,-hd,hw,hd,radOf(b)),[circle(4)],FLAT_T,mat,0,1.2));   /* the slab sits on the wall tops, flush outside */
-  for(let c=0;c<nc;c++)for(let r=0;r<nd;r++){const x=(c-(nc-1)/2)*W,z=(r-(nd-1)/2)*W;g.add(lipRing(x,z,-LIP.h,mat,b),lipRing(x,z,FLAT_T,mat,b));}   /* lip under (inside the walls) and on top (to stack) */
+/* the flat roof IS a slab (owner request 31 Oct): the same piece as the plates between floors, same thickness, round edge,
+   Ø8 vent over each module, lips on both faces and the same colour; it just sits on the top level */
+const FLAT_T=PLATE_T;
+function modernRoof(b){const g=new THREE.Group(),nc=perMod(b)?1:b.cols,nd=perMod(b)?1:b.deep,hw=nc*W/2,hd=nd*W/2,mat=plateMat(b),xs=c=>(c-(nc-1)/2)*W,zs=r=>(r-(nd-1)/2)*W,vents=[];
+  for(let c=0;c<nc;c++)for(let r=0;r<nd;r++)vents.push(circle(4,xs(c),zs(r)));
+  g.add(soft(rsq(-hw,-hd,hw,hd,radOf(b)),vents,FLAT_T,mat,0,1.9));   /* sits on the wall tops, flush outside */
+  for(let c=0;c<nc;c++)for(let r=0;r<nd;r++)g.add(lipRing(xs(c),zs(r),-LIP.h,mat,b),lipRing(xs(c),zs(r),FLAT_T,mat,b));   /* lip under (inside the walls) and on top (to stack) */
   return g;}
 function buildBuilding(bi,gap,lightBudget){
   const b=S.buildings[bi],g=new THREE.Group(),{ys,top}=levelY(b,gap),hw=b.cols*W/2,hd=b.deep*W/2;
@@ -1100,7 +1103,7 @@ function techReview(b){const rows=[],R_=(ok,label,v,fx)=>rows.push({ok,label,v,f
   R_(plR<=30,"Plate flatness",`${span} mm span / ${PLATE_T} mm = ${plR.toFixed(0)} : 1`,plR<=30?"Fires flat on a flat batt with alumina wash.":`Long thin plates slump and curl in firing. Fire on a dead-flat batt with alumina, or split the plate per row of modules (${W} mm wide strips keyed by the rims).`);
   R_(baR<=30,"Base flatness",`${span} mm span / ${BASE_T} mm = ${baR.toFixed(0)} : 1`,baR<=30?"Thin enough to look like the roof slab, stiff enough to fire flat.":`Keep the visible edge at ${BASE_T} mm and fire it on a dead-flat batt. Its lower lips (one ring per module, ${FIT.rimW} × ${FIT.rimH} mm, set ${(T+FIT.clr).toFixed(1)} mm in) stiffen it and lift it off the table.`);
   const roofSeat=b.roof==="none"?"no roof":b.roof==="modern"?"slab with lips on both faces":"cast lid with rim";
-  R_(b.roof==="none"||true,"Roof seat",roofSeat,b.roof==="none"?"Open top: the top wall rims stay glazed-free so a roof can be added later.":`The roof has the same ${rim.toFixed(1)} mm rim on its underside, one per top module${perMod(b)?" (one lid each)":""}, so it can't slide off. ${b.roof==="modern"?`The flat roof also carries the same lip on its top face, so another piece can stack on it. It is a ${FLAT_T} mm slab, flush with the wall face.`:"It is a slip-cast shell as thick as the walls (3 mm), flush with the wall face, sitting ring on ring."}`);
+  R_(b.roof==="none"||true,"Roof seat",roofSeat,b.roof==="none"?"Open top: the top wall rims stay glazed-free so a roof can be added later.":`The roof has the same ${rim.toFixed(1)} mm rim on its underside, one per top module${perMod(b)?" (one lid each)":""}, so it can't slide off. ${b.roof==="modern"?`The flat roof also carries the same lip on its top face, so another piece can stack on it. It is the same ${FLAT_T} mm slab as the plates between floors, flush with the wall face.`:"It is a slip-cast shell as thick as the walls (3 mm), flush with the wall face, sitting ring on ring."}`);
   const flameGap=H-FIT.flameTop;
   R_(lit===0||flameGap>=25,"Candle heat: flame to plate above",lit?`${flameGap} mm`:"no candles",lit?`A tealight flame tops out about ${FIT.flameTop} mm above its plate, leaving ${flameGap} mm to the plate over it. Open the vent over each lit module from Ø8 to Ø${FIT.ventLit} so the heat and soot rise through instead of pooling under the plate; on lower levels of tall stacks use LED tealights.`:"Add a candle to a level with a plate to see the heat check.");
   let minOpen=100;liveKeys(b).forEach(kk=>{const [,,l]=keyParts(kk);if(!(b.candles[l]&&b.plates[l]))return;let a=0;FACES.forEach(f=>{const o=B.build(b.mods[kk][f]);a+=o.holes.reduce((s2,h)=>s2+B.area(h.p),0);});minOpen=Math.min(minOpen,a/(4*W*H)*100);});
