@@ -787,7 +787,7 @@ const plateT=l=>l===0?BASE_T:PLATE_T;
    BOTH faces, one ring per module, set in from the outer face by the wall (T) plus LIP.clr. The lip under a piece drops inside
    the walls below it, the lip on top holds the walls above it, so pieces locate and stack. Outer faces stay flush.
    The base rests on its lower lips, so a building with a base stands LIP.h off the table. */
-const LIP={clr:0.3,w:1.6,h:1.5};
+const LIP={clr:0.3,w:1.6,h:3};
 function lipRing(cx,cz,y,mat,b){const o=W/2-T-LIP.clr,i=o-LIP.w,r=Math.max(0.3,Math.min(radOf(b),W/2-1)-T-LIP.clr);
   return flat(rsq(cx-o,cz-o,cx+o,cz+o,r),[rsq(cx-i,cz-i,cx+i,cz+i,Math.max(0.2,r-LIP.w))],LIP.h,mat,y);}   /* the base is as thick as the roof slab (2.5 mm) with the same 1.2 mm round edge */
 function levelY(b,gap){const ys=[];let y=b.plates[0]?LIP.h:0;for(let l=0;l<b.levels;l++){if(b.plates[l])y+=plateT(l)+gap*0.5;ys.push(y);y+=H+gap;}return {ys,top:y-gap};}
