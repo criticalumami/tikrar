@@ -133,6 +133,12 @@ select{height:var(--ctl);background:var(--field);border:0;border-radius:0;paddin
 .opts label{display:flex;gap:6px;align-items:center;font-size:13px;cursor:pointer}
 .opts label.off{opacity:.45;cursor:not-allowed}
 .checks{display:grid;gap:0}
+.tr{display:grid;grid-template-columns:16px 1fr auto;column-gap:var(--u);font-size:12px;line-height:16px;padding:6px 0;border-bottom:1px solid var(--line)}
+.tr .s{font-weight:700}.tr .s.ok{color:var(--ok)}.tr .s.note{color:#b7791f}.tr .fx{grid-column:2/4;color:var(--mute,#777);font-size:11px;line-height:15px;margin-top:2px}
+.tdet{grid-column:1/-1;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--g);margin-top:var(--u)}
+.tdet figure{margin:0;border:1px solid var(--line);padding:8px}.tdet svg{width:100%;height:auto;display:block}.tdet figcaption{font-size:11px;line-height:15px;margin-top:6px}
+.tdet figcaption b{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px}
+@media (max-width:700px){.tdet{grid-template-columns:1fr}}
 .ck{display:grid;grid-template-columns:16px 1fr auto;gap:var(--u);font-size:12px;line-height:16px;align-items:baseline;padding:4px 0;border-bottom:1px solid var(--line)}
 .ck.lv{grid-template-columns:repeat(4,minmax(0,1fr));column-gap:var(--g);align-items:center;min-height:var(--ctl);padding:0}
 .ck.lv label{display:flex;gap:6px;align-items:center;font-size:12px;grid-column:span 1}
@@ -184,7 +190,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
 <header class="grid12">
   <h1>TIKRAR<small>Beirut Lantern Generator</small></h1>
   <span class="sub">porcelain modules 60 × 60 mm · 40 mm walls · houses, towers and city blocks · 1860–1925 and modernist openings</span>
-  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 31.10 · 15:10</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
+  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 31.10 · 15:25</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
   <button class="btn icon" id="themeBtn" type="button" aria-label="Toggle colour theme">◐</button></nav>
 </header>
 
@@ -271,6 +277,13 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
       <div class="f"><span class="lbl">Export</span><div class="v"><div class="seg"><button type="button" id="pdfBtn">Sheet (PDF)</button><button type="button" id="dlSvg">Elevations (SVG)</button></div></div></div>
       <div class="f"><span class="lbl">GIF</span><div class="v"><select id="gifMode" aria-label="Animation"><option value="orbit">Orbit</option><option value="sun">Sun, morning to evening</option><option value="explode">Explode and back</option><option value="rand">Randomize, same palette</option><option value="randall">Randomize, all palettes</option></select><select id="gifN" aria-label="Frames" style="flex:0 0 64px"><option>10</option><option>12</option><option selected>24</option><option>36</option></select><button class="btn" type="button" id="gifBtn">Make</button></div></div>
       <div class="f"><span class="lbl">Start over</span><div class="v"><button class="btn" type="button" id="reset" style="flex:1">Reset city block</button></div></div>
+    </div>
+
+    <div class="panel" id="techPanel">
+      <h2>Technical &amp; mechanical review <span class="meta" id="techMeta"></span></h2>
+      <p class="hint">How the fired pieces of the selected building fit together: dry-stacked porcelain, located by rims, held by gravity. Every figure is for the fired piece and updates with the design. <b style="color:var(--ok)">✓</b> fits as drawn, <b style="color:#b7791f">●</b> needs the detail described.</p>
+      <div class="checks" id="techRows"></div>
+      <div class="tdet" id="techDetails"></div>
     </div>
   </aside>
 </div>
@@ -820,7 +833,7 @@ function buildBuilding(bi,gap,lightBudget){
   const mx=c=>(c-(b.cols-1)/2)*(W+gap*0.4),mz=r=>-(r-(b.deep-1)/2)*(W+gap*0.4);
   for(let l=0;l<b.levels;l++){
     /* plate (or base) under the level: one piece for the whole floor, a vent over every module */
-    if(b.plates[l]){const vents=[];for(let c=0;c<b.cols;c++)for(let r=0;r<b.deep;r++)vents.push(circle(4,mx(c),-mz(r)));
+    if(b.plates[l]){const vents=[];for(let c=0;c<b.cols;c++)for(let r=0;r<b.deep;r++){if(!alive(b,c+":"+r+":"+l)){if(l>0&&courtOpen(b,c,r,l))vents.push(rsq(mx(c)-W/2+T,-mz(r)-W/2+T,mx(c)+W/2-T,-mz(r)+W/2-T,2).reverse());continue;}vents.push(circle(4,mx(c),-mz(r)));}   /* an upper plate is open over a courtyard */
       const p=soft(rsq(-hw,-hd,hw,hd,radOf(b)),l===0?[]:vents,plateT(l),l===0&&(b.plateCol||"same")==="same"?footMat(b):plateMat(b),ys[l]-plateT(l)-gap*0.5,l===0?1.2:1.9);g.add(p);
 }   /* the base is one piece: no separate foot layer under it */
     for(let c=0;c<b.cols;c++)for(let r=0;r<b.deep;r++){const k=c+":"+r+":"+l;if(!alive(b,k))continue;const mg=new THREE.Group();mg.position.set(mx(c),ys[l],mz(r));const bvs={};FACES.forEach(f=>{const w=buildWall(bi,k,f);bvs[f]=w.userData.bv;mg.add(w);});mg.add(cornerPieces(b,k,bvs));if(b.candles[l]&&b.plates[l])mg.traverse(o=>o.userData.lit=true);g.add(mg);
@@ -914,7 +927,12 @@ function mergeGroup(root){root.updateMatrixWorld(true);const buckets=new Map(),i
     geo.computeBoundingSphere();const mesh=new THREE.Mesh(geo,m);mesh.castShadow=cast;mesh.receiveShadow=recv;mesh.matrixAutoUpdate=false;out.add(mesh);});
   return out;}
 let rbq=0;function rebuild(){if(!rbq)rbq=requestAnimationFrame(()=>{rbq=0;rebuildNow();});}   /* a drag on a slider rebuilds once per frame, not once per pixel */
+/* a 3 × 3 building is built round an open courtyard: the middle module is left out on every level */
+function courtyards(){S.buildings.forEach(b=>{if(b.court||b.cols!==3||b.deep!==3||b.courtyard===false)return;for(let l=0;l<b.levels;l++){const k="1:1:"+l;if(b.mods[k]&&!b.mods[k].removed){b.mods[k].removed=true;b.mods[k].auto=true;}}});
+  S.buildings.forEach(b=>{if(b.cols===3&&b.deep===3)return;Object.keys(b.mods).forEach(k=>{if(b.mods[k].auto){delete b.mods[k].removed;delete b.mods[k].auto;}});});}
+const courtOpen=(b,c,r,l)=>b.mods[c+":"+r+":"+l]&&b.mods[c+":"+r+":"+l].auto;
 function rebuildNow(){
+  courtyards();
   /* buildings always move with their streets: after any change of size, levels, randomize or a new building the grid is
      laid out again (it is deterministic, so an unchanged city stays put); a saved design is only re-laid if buildings overlap */
   if(S.buildings.length>1&&(LAYOUT.G||S.buildings.some((b,i)=>overlaps(b,S.buildings.slice(i+1)))))gridLayout(S.buildings);
@@ -1051,6 +1069,54 @@ function renderEditor(){
     ed.innerHTML=h;}
 }
 const ck=c=>`<div class="ck"><span class="s ${c.ok?"ok":c.note?"note":"bad"}">${c.ok?"✓":c.note?"●":"✗"}</span><span>${c.label}</span><span class="v">${c.v}</span></div>`;
+/* ================= technical & mechanical review =================
+   The pieces: open module rings (4 walls cast as one, 60 × 60 × 40, 3 mm), plates (4 mm, Ø8 vent per module), the base
+   (2.5 mm, unglazed foot), the roof (a hollow cast lid or a 2.5 mm slab) and a Ø38 tealight. Everything is fired apart and
+   stacked dry. These are the details that make that work; the figures follow the selected building. */
+const FIT={clr:0.3,rimW:1.6,rimH:1.5,tol:0.5,ventLit:14,flameTop:20,rib:3};
+function techReview(b){const rows=[],R_=(ok,label,v,fx)=>rows.push({ok,label,v,fx});
+  const k=1/(1-shrinkOf(b)/100),inner=W-2*T,rim=inner-2*FIT.clr,n=Math.max(b.cols,b.deep),span=n*W,top=levelY(b,0).top+roofH(b),lit=b.candles.filter((c,l)=>c&&b.plates[l]).length;
+  R_(true,"Mould scale","× "+k.toFixed(3),`${shrinkOf(b)} % ${BODY[b.body||"porcelain"].name.toLowerCase()} shrinkage: a 60.0 mm module is cast at ${(W*k).toFixed(1)} mm. Pieces from one batch and one kiln shelf vary about ±${FIT.tol} %, so every fit below leaves at least ${FIT.clr} mm.`);
+  R_(true,"Module to plate: locating rim",`${rim.toFixed(1)} mm square, ${FIT.rimW} × ${FIT.rimH}`,`Each plate carries a rim on both faces, one per module, that drops inside the ${inner.toFixed(0)} mm clear opening with ${FIT.clr} mm all round (±${(W*FIT.tol/100).toFixed(2)} mm firing spread). Rims are separate per module, so small differences between modules never add up.`);
+  R_(true,"Glaze-free contact bands","3 mm wall rims · plate rims · roof seat",`Wax-resist every face that touches another piece: glaze adds 0.1–0.2 mm and would fuse pieces in the kiln or rock in use. These bands fire bare, the same sandy foot you see at the base.`);
+  const plR=span/PLATE_T,baR=span/BASE_T;
+  R_(plR<=30,"Plate flatness",`${span} mm span / ${PLATE_T} mm = ${plR.toFixed(0)} : 1`,plR<=30?"Fires flat on a flat batt with alumina wash.":`Long thin plates slump and curl in firing. Fire on a dead-flat batt with alumina, or split the plate per row of modules (${W} mm wide strips keyed by the rims).`);
+  R_(baR<=30,"Base flatness",`${span} mm span / ${BASE_T} mm = ${baR.toFixed(0)} : 1`,baR<=30?"Thin enough to look like the roof slab, stiff enough to fire flat.":`Keep the visible edge at ${BASE_T} mm and add ${FIT.rib} × ${FIT.rib} mm ribs underneath, under every wall line, set 4 mm back from the edge so they can't be seen. The ribs stiffen the base in the kiln and lift it off the table.`);
+  const roofSeat=b.roof==="none"?"no roof":b.roof==="modern"?"slab with rim":"cast lid with rim";
+  R_(b.roof==="none"||true,"Roof seat",roofSeat,b.roof==="none"?"Open top: the top wall rims stay glazed-free so a roof can be added later.":`The roof has the same ${rim.toFixed(1)} mm rim on its underside, one per top module${perMod(b)?" (one lid each)":""}, so it can't slide off. A hollow pitched roof is cast 3 mm thick and open underneath, with a ${FIT.ventLit} mm chimney at the apex.`);
+  const flameGap=H-FIT.flameTop;
+  R_(lit===0||flameGap>=25,"Candle heat: flame to plate above",lit?`${flameGap} mm`:"no candles",lit?`A tealight flame tops out about ${FIT.flameTop} mm above its plate, leaving ${flameGap} mm to the plate over it. Open the vent over each lit module from Ø8 to Ø${FIT.ventLit} so the heat and soot rise through instead of pooling under the plate; on lower levels of tall stacks use LED tealights.`:"Add a candle to a level with a plate to see the heat check.");
+  let minOpen=100;liveKeys(b).forEach(kk=>{const [,,l]=keyParts(kk);if(!(b.candles[l]&&b.plates[l]))return;let a=0;FACES.forEach(f=>{const o=B.build(b.mods[kk][f]);a+=o.holes.reduce((s2,h)=>s2+B.area(h.p),0);});minOpen=Math.min(minOpen,a/(4*W*H)*100);});
+  R_(lit===0||minOpen>=6,"Air for the flame",lit?`${minOpen.toFixed(0)} % open (least open lit module)`:"–",lit?(minOpen>=6?"Enough open wall for the tealight to draw air and burn clean.":"Below about 6 % open wall the flame starves and smokes: open one wall more on that module, or keep it unlit."):"–");
+  R_(true,"Lighting the candles","lift the stack above",`Tealights stand on the plates (Ø38 in a ${inner.toFixed(0)} mm square, ${((inner-38)/2).toFixed(0)} mm all round). To light a level, lift off everything above it as one piece; the rims re-locate it. A long match or lighter through an opening also works for openings ≥ 12 mm.`);
+  const slender=top/(Math.min(b.cols,b.deep)*W);
+  R_(slender<=4,"Stability of the stack",`${top.toFixed(0)} mm tall on ${Math.min(b.cols,b.deep)*W} mm = ${slender.toFixed(1)} : 1`,slender<=4?"Stands safely dry-stacked.":`Taller than 4 : 1 a dry stack can be knocked over. Keep the rims, add a heavier base (6 mm with ribs) or a felt pad, and don't light the top levels of such a tower.`);
+  if(b.cols*b.deep>1)R_(true,"Modules side by side",`${b.cols} × ${b.deep} rings, 6 mm party walls`,`Neighbouring modules are separate rings standing wall to wall (3 + 3 mm). The plate rims hold each one in its own place, and the outer faces line up within ±${(n*W*FIT.tol/100).toFixed(1)} mm across the building.`);
+  return rows;}
+function techDetails(b){const ink="var(--ink)",ln="var(--line)",hat="rgba(120,110,95,.22)",ft="rgba(194,180,158,.55)";
+  const sv=(w,h,body)=>`<svg viewBox="0 0 ${w+22} ${h}" xmlns="http://www.w3.org/2000/svg" font-family="inherit" font-size="2.9" fill="none" stroke="${ink}" stroke-width=".25">${body}</svg>`;
+  const rect=(x,y,w,h,f)=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${f||hat}"/>`,txt=(x,y,t,a)=>`<text x="${x}" y="${y}" fill="${ink}" stroke="none" text-anchor="${a||"start"}">${t}</text>`,
+    dim=(x0,y0,x1,y1,t)=>`<line x1="${x0}" y1="${y0}" x2="${x1}" y2="${y1}" stroke-width=".18"/>`+txt((x0+x1)/2+1,(y0+y1)/2-1,t);
+  const c=FIT.clr,rw=FIT.rimW,rh=FIT.rimH,S2=4;   /* drawn at 4 : 1 (1 unit = 0.25 mm) */
+  /* 1 stacking joint: lower wall, plate with rims both faces, upper wall */
+  const j=sv(80,62,rect(10,40,T*S2,20)+rect(2,40-PLATE_T*S2,60,PLATE_T*S2)+rect(10+(T+c)*S2,40,rw*S2,rh*S2,ft)+rect(10+(T+c)*S2,40-PLATE_T*S2-rh*S2,rw*S2,rh*S2,ft)+rect(10,6,T*S2,40-PLATE_T*S2-6-0)+
+    txt(66,46,"lower wall 3.0")+txt(66,34,"plate "+PLATE_T.toFixed(1))+txt(66,24,"upper wall 3.0")+txt(36,58,`rim ${rw} × ${rh}, ${c} clear`)+`<line x1="${10+T*S2}" y1="52" x2="${10+(T+c)*S2}" y2="52" stroke-width=".18"/>`);
+  /* 2 roof seat */
+  const rs=sv(80,62,rect(10,34,T*S2,24)+`<path d="M2 34 L2 26 Q2 20 8 19 L60 6" fill="${hat}"/>`+rect(2,30,62,4)+rect(10+(T+c)*S2,34,rw*S2,rh*S2,ft)+
+    txt(66,46,"top wall")+txt(40,14,"roof, cast 3.0")+txt(36,58,`seat rim ${rw} × ${rh}`));
+  /* 3 base with hidden ribs */
+  const bt=BASE_T*S2,bs=sv(80,62,rect(2,30,74,bt)+rect(10,30+bt,FIT.rib*S2,FIT.rib*S2,ft)+rect(56,30+bt,FIT.rib*S2,FIT.rib*S2,ft)+rect(10,6,T*S2,24)+rect(10+(T+c)*S2,30-rh*S2,rw*S2,rh*S2,ft)+
+    `<line x1="0" y1="${30+bt+FIT.rib*S2}" x2="80" y2="${30+bt+FIT.rib*S2}" stroke="${ln}"/>`+txt(66,24,"wall")+txt(20,52,`base ${BASE_T} at the edge`)+txt(20,57,`ribs ${FIT.rib} × ${FIT.rib}, 4 mm in, unglazed`));
+  /* 4 candle section at 1 : 1 */
+  const cs=sv(80,62,rect(8,12,3,44)+rect(69,12,3,44)+rect(4,56,72,3)+rect(4,9,72,3)+`<rect x="21" y="48" width="38" height="8" fill="${ln}"/>`+
+    `<path d="M40 48 q-2 -6 0 -${FIT.flameTop-8} q2 ${FIT.flameTop-14} 0 ${FIT.flameTop-8}" fill="rgba(240,163,58,.8)" stroke="none"/>`+`<rect x="${40-FIT.ventLit/2}" y="9" width="${FIT.ventLit}" height="3" fill="var(--bg,#fff)" stroke="none"/>`+
+    dim(62,56-FIT.flameTop,62,12,(H-FIT.flameTop)+" mm")+txt(40,7,"vent Ø"+FIT.ventLit,"middle")+txt(40,61.5,"Ø38 tealight on the plate","middle"));
+  const fig=(svg,t,d)=>`<figure>${svg}<figcaption><b>${t}</b>${d}</figcaption></figure>`;
+  return fig(j,"1 · Stacking joint, 4 : 1","Plates locate the module below and the module above with a bare rim on each face.")+fig(rs,"2 · Roof seat, 4 : 1","The roof drops onto the top rings with the same rim, so it can be lifted straight off.")+
+    fig(bs,"3 · Base, 4 : 1",`${BASE_T} mm at the edge like the roof slab; hidden ribs keep it flat in the kiln.`)+fig(cs,"4 · Candle in a module, 1 : 1","Flame, clearances and the enlarged vent over a lit module.");}
+function renderTech(b){const rows=techReview(b),bad=rows.filter(r=>!r.ok).length;
+  $("techRows").innerHTML=rows.map(r=>`<div class="tr"><span class="s ${r.ok?"ok":"note"}">${r.ok?"✓":"●"}</span><span>${r.label}</span><span class="v">${r.v}</span><span class="fx">${r.fx}</span></div>`).join("");
+  $("techDetails").innerHTML=techDetails(b);$("techMeta").textContent=bad?bad+" detail"+(bad>1?"s":"")+" to add":"fits as drawn";$("techMeta").style.color=bad?"#b7791f":"var(--ok)";}
 function renderUI(){
   fixSel();applyAccent();const b=Bs(),[sc,sr,sl]=keyParts(S.sel);
   $("bList").innerHTML=S.buildings.map((x,i)=>`<button type="button" class="${i===S.selB?"on":isSel(i)?"also":""}" data-b="${i}" aria-pressed="${isSel(i)}" title="Shift- or ⌘-click to add to the selection">${x.name}<span>${x.cols}×${x.deep}×${x.levels}</span></button>`).join("");
@@ -1088,6 +1154,7 @@ function renderUI(){
   const bad=sel.list.filter(c=>!c.ok).length+bc.hard.filter(c=>!c.ok).length+vc.filter(c=>!c.ok&&!c.note).length,notes=bc.notes.filter(c=>!c.ok).length;
   $("checks").innerHTML=`<span class="lbl">${FNAME[S.selFace]} wall</span>`+sel.list.map(ck).join("")+`<span class="lbl" style="margin-top:6px">${b.name}: porcelain</span>`+bc.hard.map(ck).join("")+
     `<span class="lbl" style="margin-top:6px">${b.name}: proportions</span>`+bc.notes.map(ck).join("")+`<span class="lbl" style="margin-top:6px">City block</span>`+vc.map(ck).join("");
+  renderTech(b);
   $("checkMeta").textContent=bad?bad+" to fix":notes?"porcelain ✓ · "+notes+" note"+(notes>1?"s":""):"all green";$("checkMeta").style.color=bad?"var(--bad)":notes?"#b7791f":"var(--ok)";
   rebuild();save();}
 

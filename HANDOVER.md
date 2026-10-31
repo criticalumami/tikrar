@@ -31,7 +31,7 @@ Steps for every push:
 1. In Dav's repo, run `git pull --rebase --autostash origin main` first, because Dav's own Claude pushes to main often. Never edit Dav's root `index.html` or his app files.
 2. Commit with `-c user.name=ss -c user.email=criticalumami@users.noreply.github.com`. Don't put model names in commit messages.
 3. Copy the changed files into the tikrar clone. Check that `git remote -v` shows `criticalumami/tikrar`, then push to main.
-4. Check that the "pages build and deployment" run finished (Actions tab), then confirm the version stamp next to the nav on the live page (currently `v 31.10 · 15:10`). Bump the stamp in module.html (`id="ver"`) with each release.
+4. Check that the "pages build and deployment" run finished (Actions tab), then confirm the version stamp next to the nav on the live page (currently `v 31.10 · 15:25`). Bump the stamp in module.html (`id="ver"`) with each release.
 
 Cloud sessions can't change repo settings or reach github.io directly. When settings need changing, do it through Remote Control on the owner's Mac (gh signed in as criticalumami), and only with the owner's go-ahead.
 
@@ -47,6 +47,8 @@ The whole app lives in one file, `docs/module.html` (about 1,350 lines). Three.j
 | Geometry | `buildBuilding()`, `buildWall()` (wall ends squared off at the corner), `softExtrude()` + `bevelNormals()` (true round-bevel normals), `fillet()`, `wallBv()`, `cornerPieces()` / `cornerGeo()` (the wall section swept round the corner, cached in `CGEO`), `slantRoof()`, `modernRoof()`, `courtOf()` | Rounded look: BV 0.9, filleted openings, corner rims 1.4, plates 1.9, base 2.8. `WGEO` caches wall geometry by openings and corner radius |
 | Rendering | `rebuild()` / `rebuildNow()`, `mergeGroup()`, `loop()`, `need()` | Renders on demand only. Meshes merge per material; repeated walls become `InstancedMesh`. Shared geometries are never disposed |
 | Materials and light | `matOf()`, `hqMatOf()`, `groundAO()`, `applyNight()`, `litOf()`, `placeLights()`, `setRender()` | ACES tone mapping. Day: exposure 0.95, hemi 0.26, sun 2.8·k. Night: black background, hemi 0.07, emissive candle tint `0xffa24c`, glow `0xffb562`, flicker every 100 ms. No live point lights (`MAX_LIGHTS=0`). Candle light on the ground is baked by `startBake()` / `bakeStep()`: one shadow-casting point light per lit module renders onto a top-down half-float light map (`BAKE.rt`), a few candles per frame, redone only on rebuild or night toggle, so every opening throws its shape |
+| Technical review | `FIT`, `techReview()`, `techDetails()`, `renderTech()` | Panel under Checks: fired fits (rims 53.4 mm, 1.6 × 1.5, 0.3 clear), glaze-free bands, plate/base span ratios, candle heat, air, stability, with four parametric SVG details |
+| Courtyards | `courtyards()`, `courtOpen()` | A 3 × 3 building drops its middle module on every level (flag `auto`); upper plates open over it, roofs go per module |
 | Baked candle light | `BAKE`, `startBake()`, `bakeStep()` | The shadow pass culls by the bake camera's layers, so that camera sees layers 0 and 1 and its near/far planes keep only the ground plane (at -0.5 mm) in view |
 | Palettes | `applyPalette()`, `applyAccent()`, `randPal()` | Roofs vary: 65% white, otherwise a palette colour |
 | UI | `renderUI()`, `renderEditor()`, `seg()`, `setCount()`, `randAll()` | Randomize All adds about 1 court per 10 buildings. The phone CSS block stays last in `<style>` |
