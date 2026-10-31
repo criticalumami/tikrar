@@ -190,7 +190,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
 <header class="grid12">
   <h1>TIKRAR<small>Beirut Lantern Generator</small></h1>
   <span class="sub">porcelain modules 60 × 60 mm · 40 mm walls · houses, towers and city blocks · 1860–1925 and modernist openings</span>
-  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 31.10 · 16:00</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
+  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 31.10 · 16:25</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
   <button class="btn icon" id="themeBtn" type="button" aria-label="Toggle colour theme">◐</button></nav>
 </header>
 
@@ -649,6 +649,8 @@ const MAT={glaze:new THREE.MeshStandardMaterial({color:0xf6f1e8,roughness:0.22,m
      (seen through its openings) and a soft warm pool spreads on the ground round a lit building */
   glow:new THREE.MeshBasicMaterial({color:0xffb562,side:THREE.BackSide,toneMapped:false}),
   pool:new THREE.MeshBasicMaterial({color:0xff9a48,transparent:true,opacity:0.5,blending:THREE.AdditiveBlending,depthWrite:false,toneMapped:false})};
+MAT.contact=new THREE.MeshBasicMaterial({color:0x000000,transparent:true,opacity:0.2,depthWrite:false});
+{const c=document.createElement("canvas");c.width=c.height=128;const g=c.getContext("2d");g.filter="blur(9px)";g.fillStyle="#fff";g.fillRect(22,22,84,84);MAT.contact.alphaMap=new THREE.CanvasTexture(c);}
 {const c=document.createElement("canvas");c.width=c.height=128;const g=c.getContext("2d"),r=g.createRadialGradient(64,64,0,64,64,64);r.addColorStop(0,"rgba(255,255,255,1)");r.addColorStop(0.35,"rgba(255,255,255,.45)");r.addColorStop(1,"rgba(255,255,255,0)");g.fillStyle=r;g.fillRect(0,0,128,128);MAT.pool.map=new THREE.CanvasTexture(c);}
 
 /* ---------- ground ---------- */
@@ -844,7 +846,7 @@ function buildBuilding(bi,gap,lightBudget){
     for(let c=0;c<b.cols;c++)for(let r=0;r<b.deep;r++){const k=c+":"+r+":"+l;if(!alive(b,k))continue;const mg=new THREE.Group();mg.position.set(mx(c),ys[l],mz(r));const bvs={};FACES.forEach(f=>{const w=buildWall(bi,k,f);bvs[f]=w.userData.bv;mg.add(w);});mg.add(cornerPieces(b,k,bvs));if(b.candles[l]&&b.plates[l])mg.traverse(o=>o.userData.lit=true);g.add(mg);
       if(b.candles[l]&&b.plates[l]){const tea=new THREE.Mesh(new THREE.CylinderGeometry(19,19,8,24),MAT.tea);tea.position.set(mx(c),ys[l]-gap*0.5+4,mz(r));g.add(tea);
         const fl=new THREE.Mesh(new THREE.SphereGeometry(2,10,8),MAT.flame);fl.scale.set(0.8,1.6,0.8);fl.position.set(mx(c),ys[l]-gap*0.5+11,mz(r));g.add(fl);flames.push(fl);
-        const gw=new THREE.Mesh(new THREE.BoxGeometry(W-2*T-0.6,H-0.6,W-2*T-0.6),MAT.glow);gw.position.set(mx(c),ys[l]+H/2,mz(r));g.add(gw);}}
+        const gw=new THREE.Mesh(GLOW_GEO,MAT.glow);gw.position.set(mx(c),ys[l]+H/2,mz(r));gw.userData.shared=true;g.add(gw);}}
     for(let c=0;c<b.cols;c++)for(let r=0;r<b.deep;r++)if(b.candles[l]&&b.plates[l]&&alive(b,c+":"+r+":"+l)){const a=new THREE.Object3D();a.position.set(mx(c),ys[l]-gap*0.5+CANDLE_Y,mz(r));a.userData={bi,l};g.add(a);lightBudget.anchors.push(a);}}
   if(b.roof!=="none"){const one=()=>b.roof==="modern"?modernRoof(b):slantRoof(b);
     /* a one-piece roof needs a complete top level; otherwise every column gets its own lid on its highest module */
@@ -852,9 +854,16 @@ function buildBuilding(bi,gap,lightBudget){
       for(let c=0;c<b.cols;c++)for(let r=0;r<b.deep;r++){let lm=-1;for(let l=b.levels-1;l>=0;l--)if(alive(b,c+":"+r+":"+l)){lm=l;break;}if(lm<0)continue;
         const lb=b.mods[c+":"+r+":"+lm]&&b.mods[c+":"+r+":"+lm].lid?Object.assign({},sb,{roofCol:b.mods[c+":"+r+":"+lm].lid}):sb,rf=b.roof==="modern"?modernRoof(lb):slantRoof(lb);rf.position.set(mx(c),ys[lm]+H+gap*0.4,mz(r));g.add(rf);}}
     else{const rf=one();rf.position.set(0,top+gap*0.4,0);g.add(rf);}}
+  {const cs=new THREE.Mesh(new THREE.PlaneGeometry(2*hw+14,2*hd+14),MAT.contact);cs.rotation.x=-Math.PI/2;cs.position.y=0.25-groundDrop();cs.renderOrder=1;g.add(cs);}   /* soft contact shadow where the piece meets the floor (Render) */
   if(isSel(bi)){const pts=[[-hw-4,-hd-4],[hw+4,-hd-4],[hw+4,hd+4],[-hw-4,hd+4]].map(([x,z])=>new THREE.Vector3(x,0.6,z));const ln=new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(pts),MAT.sel);g.add(ln);}
   return g;}
 const flames=[];
+/* the inside of a lit module: one shared box (drawn inside out, instanced), shaded by its distance to the flame, so the inner
+   walls glow warm next to the candle and fall off towards the corners and the top, as in the reference photos */
+const GLOW_GEO=new THREE.BoxGeometry(W-2*T-0.6,H-0.6,W-2*T-0.6,6,6,6);
+MAT.glow.onBeforeCompile=sh=>{sh.vertexShader=sh.vertexShader.replace("#include <common>","#include <common>\nvarying vec3 vLoc;").replace("#include <begin_vertex>","#include <begin_vertex>\nvLoc=position;");
+  sh.fragmentShader=sh.fragmentShader.replace("#include <common>","#include <common>\nvarying vec3 vLoc;").replace("vec4 diffuseColor = vec4( diffuse, opacity );",
+    "vec3 fl=vec3(0.0,"+(-(H/2)+CANDLE_Y-2).toFixed(1)+",0.0);float d=length(vLoc-fl);float k=2.3/(1.0+pow(d/22.0,2.0))+0.22;vec4 diffuseColor=vec4(diffuse*k*vec3(1.0,0.86+0.14*k,0.72+0.28*k),opacity);");};
 /* public court: a 6 mm porcelain tray with a 3 mm rounded rim (5 mm proud) and a round basin in the middle, one cast piece */
 const COURT_T=6,COURT_RIM=5;
 function courtOf(b,bi,g,hw,hd){const mat=plateMat(b),r=radOf(b),ri=Math.max(0.5,r-3);
@@ -962,10 +971,10 @@ function applyNight(){const n=S.night,rd=S.render;scene.background=new THREE.Col
    if(!n)hemi.color.set(0xffe2c4).lerp(new THREE.Color(0xfff4e6),Math.min(1,hi));}
   {const ext=Math.max(b.x1-b.x0,b.z1-b.z0,b.h)*0.75+200;Object.assign(sun.shadow.camera,{left:-ext,right:ext,top:ext,bottom:-ext,near:50,far:1200+ext*1.6});sun.shadow.camera.updateProjectionMatrix();}sun.target.position.set(cx,0,cz);
   const cs=S.candle===undefined?1:S.candle;lights.forEach(L=>L.intensity=n?L.userData.base*cs:0);flames.forEach(f=>f.visible=n);
-  MAT.glow.visible=MAT.pool.visible=n;MAT.glow.color.set(0xffb562).multiplyScalar(Math.min(1.4,1.05*cs));MAT.pool.opacity=Math.min(0.9,0.42*cs);$("nightBtn").setAttribute("aria-pressed",n);
+  MAT.glow.visible=MAT.pool.visible=n;MAT.contact.visible=!!S.render;MAT.glow.color.set(0xffb562).multiplyScalar(Math.min(1.4,1.05*cs));MAT.pool.opacity=Math.min(0.9,0.42*cs);$("nightBtn").setAttribute("aria-pressed",n);
   Object.values(MATS).forEach(m=>{m.emissiveIntensity=0;});
-  Object.values(LIT).forEach(m=>{m.emissiveIntensity=n?cs*(m.userData.translucent?(S.render?0.05:0.07):(S.render?0.02:0.03)):0;});   /* thin porcelain glows through; stoneware and terracotta only a little */   /* thin porcelain glows a little when lit from inside */
-  if(S.render){scene.environment=n?null:(envRoom||envBasic);   /* night: nothing but the candles and a dim room */hemi.intensity=n?0.9:0.38;sun.intensity=n?0:1.1*(sun.userData.k||1);sun.shadow.mapSize.set(2048,2048);sun.shadow.normalBias=0.4;
+  Object.values(LIT).forEach(m=>{m.emissiveIntensity=n?cs*(m.userData.translucent?(S.render?0.09:0.07):(S.render?0.02:0.03)):0;});   /* thin porcelain glows through; stoneware and terracotta only a little */   /* thin porcelain glows a little when lit from inside */
+  if(S.render){scene.environment=n?(envNight||null):(envRoom||envBasic);   /* night: nothing but the candles and a dim room */hemi.intensity=n?0.9:0.38;sun.intensity=n?0:1.1*(sun.userData.k||1);sun.shadow.mapSize.set(2048,2048);sun.shadow.normalBias=0.4;
     lights.forEach(L=>L.intensity=n?L.userData.base*1.2*cs:0);if(finalPass)finalPass.uniforms.exposure.value=n?1.05:0.8;
     if(bloom){bloom.strength=n?0.06:0.08;bloom.threshold=n?0.9:0.95;bloom.radius=0.45;}}
   else{scene.environment=envBasic;sun.shadow.normalBias=0.4;}   /* normal offset keeps flat walls free of shadow acne (the dotted diagonal along triangle seams) */
@@ -990,8 +999,16 @@ function setupComposer(){lastD=0;const r=view.getBoundingClientRect(),w=Math.max
   bloom=new THREE.UnrealBloomPass(new THREE.Vector2(w,h),0.12,0.55,0.92);composer.addPass(bloom);
   finalPass=new THREE.ShaderPass(FINAL);composer.addPass(finalPass);
   fxaa=new THREE.ShaderPass(THREE.FXAAShader);fxaa.uniforms.resolution.value.set(1/(w*pr),1/(h*pr));composer.addPass(fxaa);
-  const pm=new THREE.PMREMGenerator(renderer);envRoom=pm.fromScene(new THREE.RoomEnvironment(),0.04).texture;pm.dispose();}
-function setRender(on){S.render=on;$("renderBtn").setAttribute("aria-pressed",on);Object.keys(MATS).forEach(k=>delete MATS[k]);Object.keys(LIT).forEach(k=>delete LIT[k]);save();rebuild();}
+  const pm=new THREE.PMREMGenerator(renderer);envRoom=pm.fromScene(studioScene(1),0.02).texture;envNight=pm.fromScene(studioScene(0.08),0.02).texture;pm.dispose();}
+/* a photo studio for the glaze to reflect: a soft grey room, a big softbox to the front left, a strip light to the right and
+   a top panel; the long bright shapes give glazed walls and edges the soft streaks of a product shot */
+let envNight=null;
+function studioScene(k){const sc=new THREE.Scene(),room=new THREE.Mesh(new THREE.BoxGeometry(10,6,10),new THREE.MeshBasicMaterial({color:new THREE.Color(0x3a3936).multiplyScalar(k>0.5?1:0.35),side:THREE.BackSide}));room.position.y=2;sc.add(room);
+  const panel=(w,h,x,y,z,ry,rx,i)=>{const m=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshBasicMaterial({color:new THREE.Color(1,0.97,0.92).multiplyScalar(i*k),side:THREE.DoubleSide}));m.position.set(x,y,z);m.rotation.set(rx||0,ry||0,0);m.lookAt(0,0.6,0);sc.add(m);};
+  panel(3.2,2.4,-3.6,2.6,3.4,0,0,9);panel(0.7,4,4.6,2.2,-0.6,0,0,6);panel(4,4,0,4.9,0,0,0,3);panel(10,1.2,0,-0.6,-4.9,0,0,0.6);return sc;}
+function setRender(on){if(on&&!S.render&&S.ortho){S.wasOrtho=true;setOrtho(false);}else if(!on&&S.render&&S.wasOrtho){S.wasOrtho=false;setOrtho(true);}   /* Render looks through a lens (perspective), as a photograph does */
+  {const f=on?28:35;if(persp.fov!==f){const k=Math.tan(persp.fov*Math.PI/360)/Math.tan(f*Math.PI/360),v=persp.position.clone().sub(controls.target).multiplyScalar(k);persp.position.copy(controls.target).add(v);persp.fov=f;persp.updateProjectionMatrix();controls.update();}}   /* a longer lens, stepped back so the framing stays */
+  S.render=on;$("renderBtn").setAttribute("aria-pressed",on);Object.keys(MATS).forEach(k=>delete MATS[k]);Object.keys(LIT).forEach(k=>delete LIT[k]);save();rebuild();}
 function resize(){const r=view.getBoundingClientRect();renderer.setSize(r.width,r.height,false);persp.aspect=r.width/r.height;persp.updateProjectionMatrix();orthoFrustum();
   if(composer){composer.setSize(r.width,r.height);const pr=renderer.getPixelRatio();fxaa.uniforms.resolution.value.set(1/(r.width*pr),1/(r.height*pr));}}
 const draw=()=>{if(S.render&&S.night&&composer){finalPass.uniforms.time.value=tick%100;composer.render();}else renderer.render(scene,camera);};
