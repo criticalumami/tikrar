@@ -54,6 +54,7 @@ The whole app lives in one file, `docs/module.html` (about 1,350 lines). Three.j
 | UI | `renderUI()`, `renderEditor()`, `seg()`, `setCount()`, `randAll()` | Randomize All adds about 1 court per 10 buildings. The phone CSS block stays last in `<style>` |
 | Checks | `buildingChecks()`, `villageChecks()`, `wallSym()` | Porcelain rules: openings at most 40% of a wall, bars at least 2.5 mm |
 | Export | `gif15()`, `gifPalette()`, `gifLZW()`, `gifEncode()`, `makeSheet()` (jsPDF), JPG | GIF frames up to 1080 px with a median-cut palette |
+| Print pieces (STL) | `exportSTL()`, `piecesOf()`, `moduleSolid()`, `slabSolid()`, `lipSolid()`, `ventCut()`, `pitchedSolid()`, `courtSolid()`, `zipOf()` | Button "Pieces (STL)" under Checks: a zip of watertight STLs for the selected buildings, identical pieces once with a count, plus README.txt. Built with manifold-3d 3.2.1 (jsdelivr, loaded on first use) from the same constants as the view (T, `radOf`, `LIP`, `VENT_D`, `PLATE_T`). Base, plates and flat roof that come out identical share one `slab-…` file. "shrink %" scales up by 1/(1−s) for mould masters. Started from Gemini's `print/gemini_redux/tikrar_to_stl.mjs` (31 Oct), corrected to the slab rules. Test hook: `window.__stl` |
 
 Proposals (`proposals.html`) is a separate static page with its own nav linking to both editors.
 

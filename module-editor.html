@@ -190,7 +190,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
 <header class="grid12">
   <h1>TIKRAR<small>Beirut Lantern Generator</small></h1>
   <span class="sub">porcelain modules 60 × 60 mm · 40 mm walls · houses, towers and city blocks · 1860–1925 and modernist openings</span>
-  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 31.10 · 20:55</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
+  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 31.10 · 22:10</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
   <button class="btn icon" id="themeBtn" type="button" aria-label="Toggle colour theme">◐</button></nav>
 </header>
 
@@ -275,6 +275,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
       <div class="checks" id="checks"></div>
       <p class="hint"><b style="color:var(--bad)">✗</b> porcelain limits, to fix before casting. <b style="color:#b7791f">●</b> proportions from the two manuals: advice, not a rule.</p>
       <div class="f"><span class="lbl">Export</span><div class="v"><div class="seg"><button type="button" id="pdfBtn">Sheet (PDF)</button><button type="button" id="dlSvg">Elevations (SVG)</button></div></div></div>
+      <div class="f"><span class="lbl">Print</span><div class="v"><div class="seg" style="flex:1"><button type="button" id="stlBtn" title="Every piece of the selected buildings as watertight STL files in a zip: modules, base, plates and roof">Pieces (STL)</button></div><label class="meta" style="display:flex;align-items:center;gap:4px" title="0 = fired size. Enter the clay's shrinkage (e.g. 14) to scale the pieces up into mould masters">shrink <input id="stlShrink" type="number" min="0" max="40" step="0.5" value="0" style="width:4.2em"> %</label></div></div>
       <div class="f"><span class="lbl">GIF</span><div class="v"><select id="gifMode" aria-label="Animation"><option value="orbit">Orbit</option><option value="sun">Sun, morning to evening</option><option value="explode">Explode and back</option><option value="rand">Randomize, same palette</option><option value="randall">Randomize, all palettes</option></select><select id="gifN" aria-label="Frames" style="flex:0 0 64px"><option>10</option><option>12</option><option selected>24</option><option>36</option></select><button class="btn" type="button" id="gifBtn">Make</button></div></div>
       <div class="f"><span class="lbl">Start over</span><div class="v"><button class="btn" type="button" id="reset" style="flex:1">Reset city block</button></div></div>
     </div>
@@ -1588,6 +1589,129 @@ on("pdfBtn","click",()=>{const btn=$("pdfBtn"),t=btn.textContent;btn.textContent
 $("explode").value=S.explode;S.editSet=S.editSet||Bs().set;
 if(S.render){S.render=false;setTimeout(()=>$("renderBtn").click(),0);}
 $("candle").value=S.candle===undefined?1:S.candle;$("keepPal").setAttribute("aria-pressed",!!S.keepPal);setPanel(!S.nopanel);setLock(S.lock);setSpin(S.spin);$("sunT").value=S.sun===undefined?0.35:S.sun;resize();if(S.ortho)setOrtho(true);renderUI();fitView();
+/* ===== Print pieces (STL): every piece of the selected buildings as a clean, watertight solid, for the resin printer or
+   as mould masters. Started from Gemini's tikrar_to_stl.mjs (print/gemini_redux), corrected to TIKRAR's own pieces: the
+   same constants as the 3D view (walls T, corner radius, LIP, VENT_D, PLATE_T), so the files are what the editor shows.
+   Booleans by manifold-3d (WASM, loaded only when the button is pressed). Z is up, millimetres, fired size unless a
+   shrink % is given (then every piece is scaled up by 1/(1−s) to make a master). */
+const MF_URL="https://cdn.jsdelivr.net/npm/manifold-3d@3.2.1/manifold.js";let MFP=null;
+const manifoldLib=()=>MFP||(MFP=import(MF_URL).then(m=>m.default()).then(w=>{w.setup();return w;}));
+/* rounded rectangle centred on (cx,cy), half sizes hw×hd, corner r; always 4·n points so rings of a loft line up */
+function rrPts(cx,cy,hw,hd,r,n){r=Math.max(0.05,Math.min(r,hw-0.01,hd-0.01));const o=[];
+  [[hw-r,-hd+r,-Math.PI/2],[hw-r,hd-r,0],[-hw+r,hd-r,Math.PI/2],[-hw+r,-hd+r,Math.PI]].forEach(([x,y,a0])=>{for(let k=0;k<n;k++){const a=a0+k/(n-1)*Math.PI/2;o.push([cx+x+r*Math.cos(a),cy+y+r*Math.sin(a)]);}});return o;}
+/* a solid lofted through rounded rectangles [hw,hd,r,z] (bottom to top): smooth rounded edges, no steps */
+function loftRR(M,rings,n){n=n||12;const v=[],t=[],N=4*n,S=rings.length;
+  rings.forEach(([hw,hd,r,z])=>rrPts(0,0,hw,hd,r,n).forEach(([x,y])=>v.push(x,y,z)));
+  const bc=S*N,tc=bc+1;v.push(0,0,rings[0][3],0,0,rings[S-1][3]);
+  for(let k=0;k<N;k++){const kn=(k+1)%N;t.push(bc,kn,k);t.push((S-1)*N+k,(S-1)*N+kn,tc);
+    for(let s=0;s<S-1;s++){const a=s*N,b=(s+1)*N;t.push(a+k,a+kn,b+kn,a+k,b+kn,b+k);}}
+  const mesh=new M.Mesh({numProp:3,vertProperties:new Float32Array(v),triVerts:new Uint32Array(t)});mesh.merge();return new M.Manifold(mesh);}
+/* rings of a rounded block hw×hd×h (corner r) whose edges round over by bvB at the bottom and bvT at the top (quarter circles) */
+function blockRings(hw,hd,r,h,bvB,bvT,z0){z0=z0||0;const R=[],st=6,add=(i,z)=>{if(!R.length||z-R[R.length-1][3]>1e-4)R.push([hw-i,hd-i,Math.max(0.05,r-i),z]);};
+  if(bvB>0.01)for(let k=0;k<=st;k++){const a=k/st*Math.PI/2;add(bvB*(1-Math.sin(a)),z0+bvB*(1-Math.cos(a)));}else add(0,z0);
+  if(bvT>0.01)for(let k=0;k<=st;k++){const a=k/st*Math.PI/2;add(bvT*(1-Math.cos(a)),z0+h-bvT+bvT*Math.sin(a));}else add(0,z0+h);
+  return R;}
+/* rings of an opening whose rim flares out by bvB / bvT at its two faces (the inside of a ring or a module), overshooting both faces */
+function holeRings(hw,hd,r,h,bvB,bvT){const R=[],st=6,add=(i,z)=>{if(!R.length||z-R[R.length-1][3]>1e-4)R.push([hw+i,hd+i,Math.max(0.05,r+i),z]);};
+  add(bvB+0.3,-0.3);if(bvB>0.01)for(let k=0;k<=st;k++){const a=k/st*Math.PI/2;add(bvB*(1-Math.sin(a)),bvB*(1-Math.cos(a)));}else add(0,0);
+  if(bvT>0.01)for(let k=0;k<=st;k++){const a=k/st*Math.PI/2;add(bvT*(1-Math.cos(a)),h-bvT+bvT*Math.sin(a));}else add(0,h);
+  add(bvT+0.3,h+0.3);return R;}
+/* a locating lip: the ring of lipRing(), standing up from z=0 (where it fuses into the slab) to LIP.h, its free end rounded */
+function lipSolid(M,cx,cy,b,down,slabT){const o=W/2-T-LIP.clr,i=o-LIP.w,r=Math.max(1,Math.min(radOf(b),W/2-1)),ri=Math.max(0.6,r-LIP.w),bv=Math.min(BV,LIP.w/2-0.1),
+    sunk=0.4,out=loftRR(M,blockRings(o,o,r,LIP.h+sunk,0,bv,-sunk)),inn=loftRR(M,holeRings(i,i,ri,LIP.h+sunk,0,bv).map(q=>[q[0],q[1],q[2],q[3]-sunk]));
+  let s=out.subtract(inn);out.delete();inn.delete();
+  s=down?s.rotate([180,0,0]).translate([cx,cy,0]):s.translate([cx,cy,slabT]);return s;}
+/* the Ø VENT_D vent through a slab, its rims rounded like the slab's edge (bv) */
+function ventCut(M,cx,cy,t,bv){const r=VENT_D/2,p=[[0,-1],[r+bv,-1],[r+bv,0]],st=6;
+  for(let k=1;k<=st;k++){const a=k/st*Math.PI/2;p.push([r+bv-bv*Math.sin(a),bv-bv*Math.cos(a)]);}
+  for(let k=0;k<st;k++){const a=k/st*Math.PI/2;p.push([r+bv-bv*Math.cos(a),t-bv+bv*Math.sin(a)]);}
+  p.push([r+bv,t],[r+bv,t+1],[0,t+1]);
+  const cs=new M.CrossSection([p]),m=cs.revolve(48);cs.delete();return m.translate([cx,cy,0]);}
+/* base, plate or flat roof: ONE element, the same 4 mm slab with its round edge, a vent per module and lips on both faces.
+   cells: [{x,y,vent:"round"|"court"|null,up,dn}] in mm from the slab centre */
+function slabSolid(M,b,hw,hd,t,cells){const bv=Math.min(1.9,t/2-0.05);let s=loftRR(M,blockRings(hw,hd,radOf(b),t,bv,bv),16);
+  const cuts=[],adds=[];cells.forEach(c=>{if(c.vent==="round")cuts.push(ventCut(M,c.x,c.y,t,bv));
+    else if(c.vent==="court"){const cs=new M.CrossSection([rsq(c.x-W/2+T,c.y-W/2+T,c.x+W/2-T,c.y+W/2-T,2)]);cuts.push(cs.extrude(t+2).translate([0,0,-1]));cs.delete();}
+    if(c.up)adds.push(lipSolid(M,c.x,c.y,b,false,t));if(c.dn)adds.push(lipSolid(M,c.x,c.y,b,true,t));});
+  if(cuts.length){const u=M.Manifold.union(cuts),n=s.subtract(u);s.delete();u.delete();s=n;}
+  if(adds.length){const n=M.Manifold.union([s,...adds]);s.delete();s=n;}
+  return s;}
+/* one module: four walls and the rounded corners as one cast ring, edges softened like the walls, openings from openings.js */
+const FACE_DEG={front:0,right:90,back:180,left:-90};
+function moduleSolid(M,b,mod){const R=Math.min(radOf(b),W/2-1),holes={};let bv=BV;
+  FACES.forEach(f=>{holes[f]=B.build(mod[f]).holes.map(h=>fillet(h.p,0.8));if(holes[f].length)bv=Math.min(bv,wallBv(holes[f]));});bv=Math.min(bv,T/2-0.05);
+  const out=loftRR(M,blockRings(W/2,W/2,R,H,bv,bv),16),inn=loftRR(M,holeRings(W/2-T,W/2-T,Math.max(0.05,R-T),H,bv,bv),16);
+  let s=out.subtract(inn);out.delete();inn.delete();const cuts=[];
+  FACES.forEach(f=>{if(!holes[f].length)return;const cs=new M.CrossSection(holes[f],"NonZero");
+    cuts.push(cs.extrude(T+2).translate([0,0,W/2-T-1]).rotate([90,0,0]).translate([-W/2,0,0]).rotate([0,0,FACE_DEG[f]]));cs.delete();});
+  if(cuts.length){const u=M.Manifold.union(cuts),n=s.subtract(u);s.delete();u.delete();s=n;}
+  return s;}
+/* the pitched roof: the editor's own lofted shell (slantRoof), turned Z-up and welded shut along its seat ring */
+function pitchedSolid(M,b){const g=slantRoof(b).children[0].geometry,p=g.attributes.position.array,key=new Map(),v=[],t=[];
+  const id=(x,y,z)=>{if(y<0.02)y=0;const k=x.toFixed(4)+","+y.toFixed(4)+","+z.toFixed(4);let i=key.get(k);if(i===undefined){i=v.length/3;key.set(k,i);v.push(x,-z,y);}return i;};
+  for(let i=0;i<p.length;i+=9){const a=id(p[i],p[i+1],p[i+2]),c=id(p[i+3],p[i+4],p[i+5]),d=id(p[i+6],p[i+7],p[i+8]);if(a!==c&&c!==d&&a!==d)t.push(a,c,d);}
+  const mesh=new M.Mesh({numProp:3,vertProperties:new Float32Array(v),triVerts:new Uint32Array(t)});mesh.merge();
+  try{const m=new M.Manifold(mesh);if(m.status&&String(m.status()).match(/NoError|^0$/)&&!m.isEmpty())return m;}catch(e){}
+  return {raw:{v,t}};}   /* not closed: written as is (slicers still take it) */
+/* the plaza tray of a public court: 6 mm tray and its 3 mm rim, one piece */
+function courtSolid(M,b,hw,hd){const r=radOf(b),base=loftRR(M,blockRings(hw,hd,r,COURT_T,2.4,2.4),16),
+    ro=loftRR(M,blockRings(hw,hd,r,COURT_RIM,1.2,1.2,COURT_T-0.5),16),ri=loftRR(M,holeRings(hw-3,hd-3,Math.max(0.5,r-3),COURT_RIM,0,0).map(q=>[q[0],q[1],q[2],q[3]+COURT_T-0.5]),16);
+  const rim=ro.subtract(ri),s=M.Manifold.union([base,rim]);[base,ro,ri,rim].forEach(x=>x.delete());return s;}
+/* every piece of one building, identical pieces counted once: [{name,qty,desc,solid}] */
+function piecesOf(M,b){const out=new Map(),put=(k,name,desc,make,use)=>{const p=out.get(k);if(p){p.qty++;if(use)p.uses.add(use);return;}out.set(k,{name,desc,qty:1,uses:new Set(use?[use]:[]),solid:make()});};
+  const mx=c=>(c-(b.cols-1)/2)*W,my=r=>(r-(b.deep-1)/2)*W,hw=b.cols*W/2,hd=b.deep*W/2;
+  if(b.court){put("court","plaza-tray","public court tray "+COURT_T+" mm with a "+COURT_RIM+" mm rim",()=>courtSolid(M,b,hw,hd));return [...out.values()];}
+  let mi=0;const mname=new Map();
+  for(let l=0;l<b.levels;l++){
+    if(b.plates[l]){const cells=[];for(let c=0;c<b.cols;c++)for(let r=0;r<b.deep;r++){const up=alive(b,c+":"+r+":"+l),dn=l===0?up:alive(b,c+":"+r+":"+(l-1));
+        cells.push({x:mx(c),y:my(r),vent:up?"round":(l>0&&courtOpen(b,c,r,l)?"court":null),up,dn});}
+      const k="slab|"+b.cols+"x"+b.deep+"|"+plateT(l)+"|"+JSON.stringify(cells);put(k,l?"plate-L"+l:"base",b.cols+"×"+b.deep+" modules, "+plateT(l)+" mm, lips both faces",()=>slabSolid(M,b,hw,hd,plateT(l),cells),l?"plate L"+l:"base");}
+    for(let c=0;c<b.cols;c++)for(let r=0;r<b.deep;r++){const key=c+":"+r+":"+l;if(!alive(b,key))continue;const m=b.mods[key],spec={};FACES.forEach(f=>spec[f]=m[f]);const k="mod|"+JSON.stringify(spec);
+      if(!mname.has(k))mname.set(k,"module-"+String.fromCharCode(65+(mi++%26))+(mi>26?Math.floor((mi-1)/26):""));
+      put(k,mname.get(k),"module "+W+" × "+W+" × "+H+", walls "+T+" mm ("+FACES.map(f=>f+": "+(m[f].bays?m[f].bays.join("/"):m[f].id||m[f].mode)).join(", ")+")",()=>moduleSolid(M,b,m));}}
+  if(b.roof!=="none"){const one=!(perMod(b)||!topComplete(b)),nc=one?b.cols:1,nd=one?b.deep:1;
+    for(let c=0;c<(one?1:b.cols);c++)for(let r=0;r<(one?1:b.deep);r++){if(!one){let any=false;for(let l=0;l<b.levels;l++)if(alive(b,c+":"+r+":"+l))any=true;if(!any)continue;}
+      if(b.roof==="modern"){const cells=[];for(let i=0;i<nc;i++)for(let j=0;j<nd;j++)cells.push({x:(i-(nc-1)/2)*W,y:(j-(nd-1)/2)*W,vent:"round",up:true,dn:true});
+        put("slab|"+nc+"x"+nd+"|"+FLAT_T+"|"+JSON.stringify(cells),"roof-flat",nc+"×"+nd+" modules, "+FLAT_T+" mm, lips both faces",()=>slabSolid(M,b,nc*W/2,nd*W/2,FLAT_T,cells),"flat roof");}
+      else{const sb=Object.assign({},b,one?{}:{span:"module"});put("pitch|"+nc+"x"+nd+"|"+b.pitch,"roof-pitched","pitched roof, "+nc+"×"+nd+" modules, "+b.pitch+"°, "+T+" mm shell",()=>pitchedSolid(M,sb));}}}
+  /* the same slab cast for several jobs (base, plate, flat roof) is one file */
+  out.forEach(p=>{if(p.uses.size>1){p.name="slab-"+p.name.replace(/^(plate-L\d+|base|roof-flat)$/,"")+[...p.uses].map(u=>u.replace(/\s+/g,"")).join("-");}if(p.uses.size)p.desc="slab for "+[...p.uses].join(", ")+" · "+p.desc;});
+  return [...out.values()];}
+/* binary STL from a manifold (or a raw mesh), scaled */
+function stlBytes(sol,sc){let v,t;if(sol.raw){v=sol.raw.v;t=sol.raw.t;}else{const m=sol.getMesh(),np=m.numProp;v=[];for(let i=0;i<m.vertProperties.length;i+=np)v.push(m.vertProperties[i],m.vertProperties[i+1],m.vertProperties[i+2]);t=m.triVerts;}
+  let z0=1e9;for(let i=2;i<v.length;i+=3)z0=Math.min(z0,v[i]);   /* sits on z = 0 */
+  const n=t.length/3,buf=new ArrayBuffer(84+n*50),dv=new DataView(buf);dv.setUint32(80,n,true);let o=84;
+  for(let i=0;i<t.length;i+=3){const P=[t[i],t[i+1],t[i+2]].map(j=>[v[j*3]*sc,v[j*3+1]*sc,(v[j*3+2]-z0)*sc]),[a,b2,c]=P,
+      ux=b2[0]-a[0],uy=b2[1]-a[1],uz=b2[2]-a[2],wx=c[0]-a[0],wy=c[1]-a[1],wz=c[2]-a[2];let nx=uy*wz-uz*wy,ny=uz*wx-ux*wz,nz=ux*wy-uy*wx;const l=Math.hypot(nx,ny,nz)||1;
+    [nx/l,ny/l,nz/l,...a,...b2,...c].forEach(x=>{dv.setFloat32(o,x,true);o+=4;});o+=2;}
+  return new Uint8Array(buf);}
+/* a plain (stored) zip, so no library is needed */
+const CRC=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0;}return t;})();
+function zipOf(files){const enc=new TextEncoder(),parts=[],dir=[];let off=0;
+  files.forEach(({name,data})=>{let c=0xFFFFFFFF;for(let i=0;i<data.length;i++)c=CRC[(c^data[i])&255]^(c>>>8);c=(c^0xFFFFFFFF)>>>0;const nm=enc.encode(name);
+    const h=new DataView(new ArrayBuffer(30));[[0,0x04034b50,4],[4,20,2],[6,0x0800,2],[8,0,2],[10,0,2],[12,0x21,2],[14,c,4],[18,data.length,4],[22,data.length,4],[26,nm.length,2],[28,0,2]].forEach(([p,x,s])=>s===4?h.setUint32(p,x,true):h.setUint16(p,x,true));
+    const d=new DataView(new ArrayBuffer(46));[[0,0x02014b50,4],[4,20,2],[6,20,2],[8,0x0800,2],[10,0,2],[12,0,2],[14,0x21,2],[16,c,4],[20,data.length,4],[24,data.length,4],[28,nm.length,2],[30,0,2],[32,0,2],[34,0,2],[36,0,2],[38,0,4],[42,off,4]].forEach(([p,x,s])=>s===4?d.setUint32(p,x,true):d.setUint16(p,x,true));
+    parts.push(new Uint8Array(h.buffer),nm,data);dir.push(new Uint8Array(d.buffer),nm);off+=30+nm.length+data.length;});
+  const ds=dir.reduce((a,x)=>a+x.length,0),e=new DataView(new ArrayBuffer(22));[[0,0x06054b50,4],[8,files.length,2],[10,files.length,2],[12,ds,4],[16,off,4]].forEach(([p,x,s])=>s===4?e.setUint32(p,x,true):e.setUint16(p,x,true));
+  return new Blob([...parts,...dir,new Uint8Array(e.buffer)],{type:"application/zip"});}
+async function exportSTL(shrink){const M=await manifoldLib(),sc=shrink>0?1/(1-shrink/100):1,files=[],lines=[],slug=s=>s.replace(/\W+/g,"-").replace(/^-|-$/g,"").toLowerCase()||"building";
+  lines.push("TIKRAR print pieces · "+$("ver").textContent,"Millimetres, Z up, each piece standing on z = 0.",
+    sc===1?"Fired size (1 : 1).":"Mould masters: scaled ×"+sc.toFixed(4)+" for "+shrink+" % shrinkage.",
+    "Base, plates and flat roof are one element: a "+PLATE_T+" mm slab, round edge, Ø"+VENT_D+" vent per module, lips "+LIP.w+" × "+LIP.h+" mm on both faces, "+LIP.clr+" mm play.","");
+  for(const bi of selIdx()){const b=S.buildings[bi],dir=slug(b.name)+"-"+(bi+1);lines.push(b.name+" ("+b.cols+"×"+b.deep+"×"+b.levels+")");
+    for(const p of piecesOf(M,b)){const s=p.solid,ok=!s.raw,st=ok?String(s.status()):"open mesh",bb=ok?s.boundingBox():null,
+        size=bb?[0,1,2].map(i=>((bb.max[i]-bb.min[i])*sc).toFixed(1)).join(" × "):"",vol=ok?(s.volume()*sc*sc*sc/1000).toFixed(1)+" ml":"";
+      files.push({name:dir+"/"+p.name+".stl",data:stlBytes(s,sc)});
+      lines.push("  "+p.name+".stl  ×"+p.qty+"  "+size+" mm  "+vol+"  "+(ok?(st.match(/NoError|^0$/)?"watertight":"check: "+st):"open mesh")+"  · "+p.desc);if(ok)s.delete();}
+    lines.push("");}
+  files.push({name:"README.txt",data:new TextEncoder().encode(lines.join("\n"))});
+  return {blob:zipOf(files),lines};}
+window.__stl={exportSTL,piecesOf:b=>manifoldLib().then(M=>piecesOf(M,b))};
+on("stlBtn","click",async()=>{const btn=$("stlBtn"),t=btn.textContent,sh=Math.max(0,Math.min(40,parseFloat($("stlShrink").value)||0));btn.textContent="Building…";btn.disabled=true;
+  try{const {blob}=await exportSTL(sh),d=new Date(),z=n=>String(n).padStart(2,"0"),a=document.createElement("a");a.href=URL.createObjectURL(blob);
+    a.download=`tikrar-pieces-${d.getFullYear()}${z(d.getMonth()+1)}${z(d.getDate())}-${z(d.getHours())}${z(d.getMinutes())}${sh?"-master"+sh:""}.zip`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),2000);btn.textContent=t;}
+  catch(e){console.error(e);btn.textContent="STL failed";setTimeout(()=>btn.textContent=t,3000);}
+  btn.disabled=false;});
 })();
 </script>
 </body>
