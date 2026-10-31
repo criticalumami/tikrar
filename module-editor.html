@@ -190,7 +190,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
 <header class="grid12">
   <h1>TIKRAR<small>Beirut Lantern Generator</small></h1>
   <span class="sub">porcelain modules 60 × 60 mm · 40 mm walls · houses, towers and city blocks · 1860–1925 and modernist openings</span>
-  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 31.10 · 20:45</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
+  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 31.10 · 20:55</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
   <button class="btn icon" id="themeBtn" type="button" aria-label="Toggle colour theme">◐</button></nav>
 </header>
 
@@ -251,7 +251,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
       <div class="pals" id="palettes"></div>
       <div class="f"><span class="lbl">Levels</span><div class="v"><button class="btn" type="button" id="randLight">Randomize plates &amp; candles</button></div></div>
       <div class="checks" id="levelRows"></div>
-      <p class="hint">Each level can sit on its own porcelain plate (the base at ground level) and carry its own candles, one tealight per module; a candle needs a plate under it. The roof is one piece over the whole building or a small lid on every top module. Plates and roofs have Ø 8 mm vents.</p>
+      <p class="hint">Each level can sit on its own porcelain plate (the base at ground level) and carry its own candles, one tealight per module; a candle needs a plate under it. The roof is one piece over the whole building or a small lid on every top module. Plates and roofs have Ø 25 mm vents.</p>
     </div>
 
     <div class="panel">
@@ -792,6 +792,7 @@ const plateT=l=>l===0?BASE_T:PLATE_T;
    BOTH faces, one ring per module, set in from the outer face by the wall (T) plus LIP.clr. The lip under a piece drops inside
    the walls below it, the lip on top holds the walls above it, so pieces locate and stack. Outer faces stay flush.
    The base rests on its lower lips, so a building with a base stands LIP.h off the table. */
+const VENT_D=25;   /* round vent through every slab, one per module (owner request 31 Oct); the standard tealight is Ø38 */
 const LIP={clr:0.5,w:2.5,h:3};   /* 2.5 mm wide = the porcelain minimum bar; 0.5 mm play covers the ±0.3 mm firing spread */
 function lipRing(cx,cz,y,mat,b){const o=W/2-T-LIP.clr,i=o-LIP.w,r=Math.max(1,Math.min(radOf(b),W/2-1));   /* corners as round as the walls' outer corners, edges softened like the walls */
   return soft(rsq(cx-o,cz-o,cx+o,cz+o,r),[rsq(cx-i,cz-i,cx+i,cz+i,Math.max(0.6,r-LIP.w))],LIP.h,mat,y,Math.min(BV,LIP.w/2-0.1));}   /* base, plates and flat roof: one 4 mm slab with lips on both faces */
@@ -846,10 +847,10 @@ function windToNormals(geo){const p=geo.attributes.position.array,n=geo.attribut
       if(u){const i=t/3*2;for(let k=0;k<2;k++){const q=u[i+2+k];u[i+2+k]=u[i+4+k];u[i+4+k]=q;}}}}
   geo.computeBoundingSphere();}
 /* the flat roof IS a slab (owner request 31 Oct): the same piece as the plates between floors, same thickness, round edge,
-   Ø8 vent over each module, lips on both faces and the same colour; it just sits on the top level */
+   Ø25 vent over each module, lips on both faces and the same colour; it just sits on the top level */
 const FLAT_T=PLATE_T;
 function modernRoof(b){const g=new THREE.Group(),nc=perMod(b)?1:b.cols,nd=perMod(b)?1:b.deep,hw=nc*W/2,hd=nd*W/2,mat=plateMat(b),xs=c=>(c-(nc-1)/2)*W,zs=r=>(r-(nd-1)/2)*W,vents=[];
-  for(let c=0;c<nc;c++)for(let r=0;r<nd;r++)vents.push(circle(4,xs(c),zs(r)));
+  for(let c=0;c<nc;c++)for(let r=0;r<nd;r++)vents.push(circle(VENT_D/2,xs(c),zs(r)));
   g.add(soft(rsq(-hw,-hd,hw,hd,radOf(b)),vents,FLAT_T,mat,0,1.9));   /* sits on the wall tops, flush outside */
   for(let c=0;c<nc;c++)for(let r=0;r<nd;r++)g.add(lipRing(xs(c),zs(r),-LIP.h,mat,b),lipRing(xs(c),zs(r),FLAT_T,mat,b));   /* lip under (inside the walls) and on top (to stack) */
   return g;}
@@ -860,7 +861,7 @@ function buildBuilding(bi,gap,lightBudget){
   const mx=c=>(c-(b.cols-1)/2)*(W+gap*0.4),mz=r=>-(r-(b.deep-1)/2)*(W+gap*0.4);
   for(let l=0;l<b.levels;l++){
     /* plate (or base) under the level: one piece for the whole floor, a vent over every module */
-    if(b.plates[l]){const vents=[];for(let c=0;c<b.cols;c++)for(let r=0;r<b.deep;r++){if(!alive(b,c+":"+r+":"+l)){if(l>0&&courtOpen(b,c,r,l))vents.push(rsq(mx(c)-W/2+T,-mz(r)-W/2+T,mx(c)+W/2-T,-mz(r)+W/2-T,2).reverse());continue;}vents.push(circle(4,mx(c),-mz(r)));}   /* an upper plate is open over a courtyard */
+    if(b.plates[l]){const vents=[];for(let c=0;c<b.cols;c++)for(let r=0;r<b.deep;r++){if(!alive(b,c+":"+r+":"+l)){if(l>0&&courtOpen(b,c,r,l))vents.push(rsq(mx(c)-W/2+T,-mz(r)-W/2+T,mx(c)+W/2-T,-mz(r)+W/2-T,2).reverse());continue;}vents.push(circle(VENT_D/2,mx(c),-mz(r)));}   /* an upper plate is open over a courtyard */
       const pm=plateMat(b),py=ys[l]-plateT(l)-gap*0.5,p=soft(rsq(-hw,-hd,hw,hd,radOf(b)),vents,plateT(l),pm,py,1.9);   /* base, plates and flat roof are one element: the same slab with lips on both faces */g.add(p);
       for(let c=0;c<b.cols;c++)for(let r=0;r<b.deep;r++){const up=alive(b,c+":"+r+":"+l),dn=l===0?up:alive(b,c+":"+r+":"+(l-1));   /* lips: on top for the module above, underneath for the module below (the base: its feet) */
         if(up)g.add(lipRing(mx(c),-mz(r),py+plateT(l),pm,b));if(dn)g.add(lipRing(mx(c),-mz(r),py-LIP.h,pm,b));}
@@ -1112,10 +1113,10 @@ function renderEditor(){
 }
 const ck=c=>`<div class="ck"><span class="s ${c.ok?"ok":c.note?"note":"bad"}">${c.ok?"✓":c.note?"●":"✗"}</span><span>${c.label}</span><span class="v">${c.v}</span></div>`;
 /* ================= technical & mechanical review =================
-   The pieces: open module rings (4 walls cast as one, 60 × 60 × 40, 3 mm), plates (4 mm, Ø8 vent per module), the base
+   The pieces: open module rings (4 walls cast as one, 60 × 60 × 40, 3 mm), plates (4 mm, Ø25 vent per module), the base
    (2.5 mm, unglazed foot), the roof (a hollow cast lid or a 2.5 mm slab) and a Ø38 tealight. Everything is fired apart and
    stacked dry. These are the details that make that work; the figures follow the selected building. */
-const FIT={clr:LIP.clr,rimW:LIP.w,rimH:LIP.h,tol:0.5,ventLit:14,flameTop:20,rib:3};
+const FIT={clr:LIP.clr,rimW:LIP.w,rimH:LIP.h,tol:0.5,ventLit:VENT_D,flameTop:20,rib:3};
 function techReview(b){const rows=[],R_=(ok,label,v,fx)=>rows.push({ok,label,v,fx});
   const k=1/(1-shrinkOf(b)/100),inner=W-2*T,rim=inner-2*FIT.clr,n=Math.max(b.cols,b.deep),span=n*W,top=levelY(b,0).top+roofH(b),lit=b.candles.filter((c,l)=>c&&b.plates[l]).length;
   R_(true,"Mould scale","× "+k.toFixed(3),`${shrinkOf(b)} % ${BODY[b.body||"porcelain"].name.toLowerCase()} shrinkage: a 60.0 mm module is cast at ${(W*k).toFixed(1)} mm. Pieces from one batch and one kiln shelf vary about ±${FIT.tol} %, so every fit below leaves at least ${FIT.clr} mm.`);
@@ -1127,7 +1128,7 @@ function techReview(b){const rows=[],R_=(ok,label,v,fx)=>rows.push({ok,label,v,f
   const roofSeat=b.roof==="none"?"no roof":b.roof==="modern"?"slab with lips on both faces":"cast lid with rim";
   R_(b.roof==="none"||true,"Roof seat",roofSeat,b.roof==="none"?"Open top: the top wall rims stay glazed-free so a roof can be added later.":`The roof has the same ${rim.toFixed(1)} mm rim on its underside, one per top module${perMod(b)?" (one lid each)":""}, so it can't slide off. ${b.roof==="modern"?`The flat roof also carries the same lip on its top face, so another piece can stack on it. It is the same ${FLAT_T} mm slab as the plates between floors, flush with the wall face.`:"It is a slip-cast shell as thick as the walls (3 mm), flush with the wall face, sitting ring on ring."}`);
   const flameGap=H-FIT.flameTop;
-  R_(lit===0||flameGap>=25,"Candle heat: flame to plate above",lit?`${flameGap} mm`:"no candles",lit?`A tealight flame tops out about ${FIT.flameTop} mm above its plate, leaving ${flameGap} mm to the plate over it. Open the vent over each lit module from Ø8 to Ø${FIT.ventLit} so the heat and soot rise through instead of pooling under the plate; on lower levels of tall stacks use LED tealights.`:"Add a candle to a level with a plate to see the heat check.");
+  R_(lit===0||flameGap>=25,"Candle heat: flame to plate above",lit?`${flameGap} mm`:"no candles",lit?`A tealight flame tops out about ${FIT.flameTop} mm above its plate, leaving ${flameGap} mm to the plate over it. The Ø${FIT.ventLit} vent over each module lets the heat and soot rise through instead of pooling under the plate; on lower levels of tall stacks use LED tealights.`:"Add a candle to a level with a plate to see the heat check.");
   let minOpen=100;liveKeys(b).forEach(kk=>{const [,,l]=keyParts(kk);if(!(b.candles[l]&&b.plates[l]))return;let a=0;FACES.forEach(f=>{const o=B.build(b.mods[kk][f]);a+=o.holes.reduce((s2,h)=>s2+B.area(h.p),0);});minOpen=Math.min(minOpen,a/(4*W*H)*100);});
   R_(lit===0||minOpen>=6,"Air for the flame",lit?`${minOpen.toFixed(0)} % open (least open lit module)`:"–",lit?(minOpen>=6?"Enough open wall for the tealight to draw air and burn clean.":"Below about 6 % open wall the flame starves and smokes: open one wall more on that module, or keep it unlit."):"–");
   R_(true,"Lighting the candles","lift the stack above",`Tealights stand on the plates (Ø38 in a ${inner.toFixed(0)} mm square, ${((inner-38)/2).toFixed(0)} mm all round). To light a level, lift off everything above it as one piece; the rims re-locate it. A long match or lighter through an opening also works for openings ≥ 12 mm.`);
@@ -1457,15 +1458,15 @@ function makeSheet(jspdf){
   row("Candles",(b.candles.map((c,l)=>c?levelName(l):null).filter(Boolean).join(", ")||"none")+` · ${b.candles.filter(Boolean).length*b.cols*b.deep} × Ø38 tealight`);
   y+=2;TT("BILL OF PIECES",X,y,6.5);y+=1.5;
   const nPl=b.plates.filter(Boolean).length,nRoof=b.roof==="none"?0:perMod(b)?b.cols*b.deep:1;
-  const bom=[["Item","Qty","Description","Fired size (mm)"],["M",String(nMod),"module, 4 walls, open top/bottom","60 × 60 × 40, wall 3"],["P",String(nPl),"plate / base, Ø8 vent per module",`${b.cols*W} × ${b.deep*W} × ${BASE_T}/${PLATE_T}`],
-    ["R",String(nRoof),b.roof==="none"?"—":b.roof==="slant"?"hipped lid, Ø8 vent":"flat slab, Ø8 vent",b.roof==="none"?"—":`${perMod(b)?W+" × "+W:b.cols*W+" × "+b.deep*W} × ${roofH(b).toFixed(1)}`],["WT",String(types.length),"wall types = wall moulds / insert sets","sheets 4–"+NS]];
+  const bom=[["Item","Qty","Description","Fired size (mm)"],["M",String(nMod),"module, 4 walls, open top/bottom","60 × 60 × 40, wall 3"],["P",String(nPl),"plate / base, Ø"+VENT_D+" vent per module",`${b.cols*W} × ${b.deep*W} × ${BASE_T}/${PLATE_T}`],
+    ["R",String(nRoof),b.roof==="none"?"—":b.roof==="slant"?"hipped lid, 10 mm top opening":"flat slab, Ø"+VENT_D+" vent",b.roof==="none"?"—":`${perMod(b)?W+" × "+W:b.cols*W+" × "+b.deep*W} × ${roofH(b).toFixed(1)}`],["WT",String(types.length),"wall types = wall moulds / insert sets","sheets 4–"+NS]];
   const cx=[X,X+10,X+20,X+76];lw(0.12);bom.forEach((r,i)=>{y+=4;if(i===0){doc.setFillColor(238,234,226);doc.rect(X,y-3,PW-12-X,4,"F");}r.forEach((c,j)=>TT(c,cx[j]+0.8,y,5.4));doc.line(X,y+1,PW-12,y+1);});
   y+=6;TT("CHECKS",X,y,6.5);y+=1;
   bc.hard.concat(bc.notes).forEach(c=>{y+=3.6;if(c.ok)doc.setTextColor(47,138,74);else if(c.note)doc.setTextColor(183,121,31);else doc.setTextColor(194,65,45);TT(c.ok?"OK":c.note?"NOTE":"FIX",X,y,5.4);ink();const t=doc.splitTextToSize(tx(c.label+": "+c.v),PW-14-X-12);TT(t,X+11,y,5.4);y+=2.4*(t.length-1);});
   notes(12,ih+22,iw-4,[`All dimensions in mm at the fired size. Mould and resin-print sizes = fired × ${k.toFixed(3)} (${shrinkOf(b)} % shrinkage, ${BODY[b.body||"porcelain"].name.toLowerCase()}).`,
     `Walls 3.0 thick, vertical corners rounded R ${radOf(b)} (plates and roofs too). Openings cut through, ≥ ${Math.max(3,radOf(b))} from the corners`+" (mitre and radius) and from the scrape edge, ≥ 2.0 above the base lip; bars and columns ≥ 2.5; each wall ≤ 40 % open.",
     "Pieces are fired separately and stacked dry on 3 mm porcelain locating lips. No glue, no metal, no glass.",
-    "Every candle stands on a plate. Plates and roofs carry Ø 8 vents over each module.",
+    "Every candle stands on a plate. Plates and flat roofs carry Ø 25 vents over each module.",
     "Opening types from Houses of Beirut 1860–1925 (HoB) and Architectures de Beyrouth 1925–1970 (AdB); page references on the wall-type sheets."]);
 
   /* ================= sheet 2: elevations ================= */
@@ -1509,7 +1510,7 @@ function makeSheet(jspdf){
     lw(0.2);doc.lines([[0,-2.5],[-0.9,1.2],[1.8,0],[-0.9,-1.2]],ox-6,ax,[1,1],"F",true);doc.lines([[0,-2.5],[-0.9,1.2],[1.8,0],[-0.9,-1.2]],ox+hw*sp+9,ax,[1,1],"F",true);
     TT("A",ox-6,ax-3.6,6,{align:"center"});TT("A",ox+hw*sp+9,ax-3.6,6,{align:"center"});
     TT("STREET →  front elevation",ox+hw*sp/2,oy+14,5.4,{align:"center"});
-    grey();TT("Grey: 3.0 walls, two leaves where modules meet. Dashed: Ø38 tealight. Small circle: Ø8 plate vent.",ox-8,oy+18,4.8);ink();}
+    grey();TT("Grey: 3.0 walls, two leaves where modules meet. Dashed: Ø38 tealight. Circle: Ø25 plate vent.",ox-8,oy+18,4.8);ink();}
   {const ox=156,oy=18+fh*ss+4,r=Math.floor((b.deep-1)/2),fw=b.cols*W;TT("SECTION A–A",ox-4,14,6.5);
     let yy=0;const lv=[];
     for(let l=0;l<b.levels;l++){
@@ -1540,7 +1541,7 @@ function makeSheet(jspdf){
     hatch(ox,oy-(8+PLATE_T+8)*D,T*D,8*D,1);                  /* upper wall */
     lw(0.08);dash("center");doc.line(ox+T*D/2,oy+2,ox+T*D/2,oy-(8+PLATE_T+8)*D-2);dash();
     leader(ox+T*D/2,oy-(8+PLATE_T+4)*D,ox+11*D,oy-(8+PLATE_T+6)*D,"upper module wall 3.0");
-    leader(ox+8*D,oy-(8+PLATE_T/2)*D,ox+11*D,oy-(8+PLATE_T+1.5)*D,`plate ${PLATE_T}.0, Ø8 vent over each module`);
+    leader(ox+8*D,oy-(8+PLATE_T/2)*D,ox+11*D,oy-(8+PLATE_T+1.5)*D,`plate ${PLATE_T}.0, Ø25 vent over each module`);
     leader(ox+(T+1)*D,oy-(8-0.7)*D,ox+11*D,oy-(8-3)*D,"locating lip 1.6 × 1.5, 0.2 clearance");
     leader(ox+T*D/2,oy-3*D,ox+11*D,oy-1*D,"lower module wall 3.0");
     dimH(ox,ox+T*D,oy+4,"3.0");dimV(ox-6*D,oy-8*D,oy-(8+PLATE_T)*D,PLATE_T+".0");}
