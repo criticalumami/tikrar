@@ -190,7 +190,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
 <header class="grid12">
   <h1>TIKRAR<small>Beirut Lantern Generator</small></h1>
   <span class="sub">porcelain modules 60 × 60 mm · 40 mm walls · houses, towers and city blocks · 1860–1925 and modernist openings</span>
-  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 31.10 · 15:25</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
+  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 31.10 · 15:40</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
   <button class="btn icon" id="themeBtn" type="button" aria-label="Toggle colour theme">◐</button></nav>
 </header>
 
@@ -543,7 +543,7 @@ function setOrtho(on){const from=camera,to=on?ortho:persp;if(from===to)return;to
   if(composer){composer.passes.forEach(p=>{if(p.camera)p.camera=to;});if(ssao){ssao.enabled=!on;}}   /* ambient occlusion here works in perspective only */
   lastD=0;controls.update();save();need();}
 const hemi=new THREE.HemisphereLight(0xfff7ee,0xdcd0c0,0.62);scene.add(hemi);
-const sun=new THREE.DirectionalLight(0xfff0de,0.62);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.shadow.radius=8;sun.shadow.bias=-0.0004;
+const sun=new THREE.DirectionalLight(0xfff0de,0.62);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.shadow.radius=8;sun.shadow.bias=-0.0008;
 Object.assign(sun.shadow.camera,{left:-600,right:600,top:600,bottom:-600,near:10,far:3000});scene.add(sun);scene.add(sun.target);
 /* clay bodies (unglazed colour, firing shrinkage) and glaze colours */
 const BODY={porcelain:{name:"Porcelain",col:0xf1eee7,glow:true,shrink:14},stoneware:{name:"Stoneware",col:0xb7ad9f,glow:false,shrink:12},terracotta:{name:"Terracotta",col:0xc0673f,glow:false,shrink:8}};
@@ -655,7 +655,7 @@ let room=new THREE.Group();scene.add(room);
 const lc=h=>S.render?new THREE.Color(h).convertSRGBToLinear():new THREE.Color(h);
 function buildRoom(){scene.remove(room);room.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.isLine&&o.material!==MAT.line)o.material.dispose();});room=new THREE.Group();
   /* by day the ground is the page: pure white, with only the shadows drawn on it */
-  const white=!S.night&&!S.render,gb=bounds(),gsz=Math.max(gb.x1-gb.x0,gb.z1-gb.z0)+(white?1400:8000),g=new THREE.Mesh(new THREE.PlaneGeometry(gsz,gsz),white?new THREE.ShadowMaterial({opacity:0.3}):new THREE.MeshStandardMaterial({color:lc(S.render?(S.night?0x2c2925:0x48433c):0x0a0908),roughness:S.render?0.62:1,envMapIntensity:S.render?0.5:0.2,map:S.render?tableTex():null}));g.rotation.x=-Math.PI/2;g.position.set((gb.x0+gb.x1)/2,-groundDrop(),(gb.z0+gb.z1)/2);g.receiveShadow=true;room.add(g);if(S.render)tableTex().repeat.set(gsz/400,gsz/400);   /* by day only as big as the shadows need, so nothing reaches the horizon */
+  const white=!S.night,gb=bounds(),gsz=Math.max(gb.x1-gb.x0,gb.z1-gb.z0)+(white?1400:8000),g=new THREE.Mesh(new THREE.PlaneGeometry(gsz,gsz),white?new THREE.ShadowMaterial({opacity:0.3}):new THREE.MeshStandardMaterial({color:lc(0x161616),roughness:1,envMapIntensity:0}));g.rotation.x=-Math.PI/2;g.position.set((gb.x0+gb.x1)/2,-groundDrop(),(gb.z0+gb.z1)/2);g.receiveShadow=true;room.add(g);   /* by day only as big as the shadows need, so nothing reaches the horizon */
   /* the ground line: in the Front elevation the ground is edge-on, so it is drawn as one black hairline at y = 0 */
   {const b=bounds(),gl=new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(b.x0-4000,0,b.z1+600),new THREE.Vector3(b.x1+4000,0,b.z1+600)]),new THREE.LineBasicMaterial({color:S.night?0x9aa0ad:0x111111}));
    gl.visible=S.view==="front"&&camera===ortho;gl.name="groundLine";room.add(gl);}
@@ -801,6 +801,8 @@ const RGEO=new Map();
 function slantRoof(b){const g=new THREE.Group(),hw=(perMod(b)?1:b.cols)*W/2,hd=(perMod(b)?1:b.deep)*W/2,mat=roofMat(b),al=b.pitch*Math.PI/180,sa=Math.sin(al),ca=Math.cos(al),
     fas=2.5,rb=1.2,rr=3,rk=9,uR=Math.min(hw,hd),R0=Math.min(radOf(b),hw,hd),Rh=Math.max(R0,6),K=8,prof=[];   /* prof: [inset u, height y, normal nu (inward), ny] */
   const P=(u,y,nu,ny)=>prof.push([u,y,nu,ny]);
+  /* closed underside: a flat soffit from the middle out; a one-module lid also gets its locating rim (see the technical review) */
+  P(uR,0,0,-1);if(hw===W/2&&hd===W/2){const r0=T+FIT.clr,r1=r0+FIT.rimW;P(r1,0,0,-1);P(r1,0,1,0);P(r1,-FIT.rimH,1,0);P(r1,-FIT.rimH,0,-1);P(r0,-FIT.rimH,0,-1);P(r0,-FIT.rimH,-1,0);P(r0,0,-1,0);P(r0,0,0,-1);}
   P(T+0.2,0,0,-1);for(let k=0;k<=4;k++){const t=-Math.PI/2-k/4*Math.PI/2;P(rb+rb*Math.cos(t),rb+rb*Math.sin(t),Math.cos(t),Math.sin(t));}   /* underside, round bottom edge */
   for(let k=0;k<=6;k++){const t=Math.PI-k/6*(Math.PI/2-al);P(rr+rr*Math.cos(t),fas+rr*Math.sin(t),Math.cos(t),Math.sin(t));}   /* eave: up the face, rounding into the slope */
   const uE=rr-rr*sa,yE=fas+rr*ca,uS=uR-rk*sa,yTop=yE+(uS-uE)*Math.tan(al)+rk*(1-ca);
@@ -863,7 +865,7 @@ const LPOOL=Array.from({length:MAX_LIGHTS},(_,i)=>{const L=new THREE.PointLight(
   L.shadow.camera.near=2;L.position.set(0,-500,0);L.userData.base=0;scene.add(L);return L;});
 /* candles share the pool: one real light per lit module, the selected building's first, then the lowest levels;
    a building left without one keeps its soft glow pool, a building with real light throws the shapes of its openings instead */
-const CANDLE_Y=14,CANDLE_I=5,BAKE_R=300;
+const CANDLE_Y=14,CANDLE_I=5,BAKE_R=130,BAKE_SOFT=[[0,0,0],[1,1.5,0],[-1,1.5,0],[0,3,1],[0,3,-1]];   /* a flame is ~10 mm tall, not a point: each candle is baked from 5 close points over it, so the shapes have soft edges; candle light falls off fast, pooling round each lantern */
 function placeLights(anchors){lights.length=0;LPOOL.forEach(L=>{L.userData.base=0;L.intensity=0;L.position.set(0,-500,0);});
   const pick=anchors.slice().sort((a,b)=>(isSel(b.userData.bi)-isSel(a.userData.bi))||(a.userData.l-b.userData.l)||(a.userData.bi-b.userData.bi)).slice(0,MAX_LIGHTS);
   const real=new Set();pick.forEach((a,i)=>{const L=LPOOL[i];a.getWorldPosition(L.position);L.userData.base=CANDLE_I;lights.push(L);real.add(a.userData.bi);});
@@ -877,7 +879,7 @@ function placeLights(anchors){lights.length=0;LPOOL.forEach(L=>{L.userData.base=
    city changes, a few candles a frame, so the editor never stalls. */
 const BAKE={rt:null,q:[],ov:null,n:0,scene:new THREE.Scene(),cam:new THREE.OrthographicCamera(-1,1,1,-1,1,3000),
   light:new THREE.PointLight(0xffa04f,1,BAKE_R,2),plane:null};
-{const L=BAKE.light;L.castShadow=true;L.shadow.mapSize.set(512,512);L.shadow.radius=2;L.shadow.bias=-0.002;L.shadow.normalBias=0.35;L.shadow.camera.near=2;
+{const L=BAKE.light;L.castShadow=true;L.shadow.mapSize.set(512,512);L.shadow.radius=4;L.shadow.bias=-0.002;L.shadow.normalBias=0.35;L.shadow.camera.near=2;
   L.layers.set(1);BAKE.cam.layers.enable(1);   /* the shadow pass draws what the bake camera's layers see, so it sees the buildings too: its near and far planes then cut everything but a thin slab just under the ground */
   BAKE.cam.up.set(0,0,-1);BAKE.scene.add(L);
   BAKE.plane=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshStandardMaterial({color:0xffffff,roughness:1,metalness:0,transparent:true,blending:THREE.AdditiveBlending,depthTest:false,depthWrite:false}));
@@ -895,7 +897,7 @@ function startBake(anchors){BAKE.q.length=0;BAKE.n=0;BAKE.ov.visible=false;
   [BAKE.plane,BAKE.ov].forEach(o=>{o.scale.set(w,d,1);o.position.set(cx,gy-0.5,cz);});BAKE.ov.position.y=gy+0.35;
   const cc=renderer.getClearColor(new THREE.Color()),ca=renderer.getClearAlpha(),rt0=renderer.getRenderTarget();
   renderer.setRenderTarget(BAKE.rt);renderer.setClearColor(0x000000,1);renderer.clear(true,false,false);renderer.setRenderTarget(rt0);renderer.setClearColor(cc,ca);
-  const p=new THREE.Vector3();anchors.forEach(a=>{a.getWorldPosition(p);BAKE.q.push(p.clone());});BAKE.ov.visible=true;}
+  const p=new THREE.Vector3();anchors.forEach(a=>{a.getWorldPosition(p);BAKE_SOFT.forEach(([dx,dy,dz])=>BAKE.q.push(p.clone().add(new THREE.Vector3(dx,dy,dz))));});BAKE.light.intensity=1/BAKE_SOFT.length;BAKE.ov.visible=true;}
 /* a still (GIF frame, JPG, PDF) waits for every candle to be baked first */
 const settleLight=()=>{if(BAKE.q.length)bakeStep(1e9);};
 function bakeStep(max){const t0=performance.now(),rt0=renderer.getRenderTarget(),ac=renderer.autoClear,pend=renderer.shadowMap.needsUpdate;
@@ -940,7 +942,7 @@ function rebuildNow(){
   built=new THREE.Group();pickable.length=0;flames.length=0;
   const gap=+S.explode,budget={anchors:[]};S.buildings.forEach((_,bi)=>built.add(buildBuilding(bi,gap,budget)));
   merged=mergeGroup(built);scene.add(merged);placeLights(budget.anchors);BAKE.anchors=budget.anchors;buildRoom();applyNight();}
-function applyNight(){const n=S.night,rd=S.render;scene.background=new THREE.Color(rd?(n?0x060706:0x2f322d):n?0x000000:0xffffff);   /* Render: a dark studio backdrop, as in the reference photos */   /* night is pitch black: only the candles light the city */view.classList.toggle("dark",!!(n||rd));   /* abstract: a seamless warm-white backdrop by day, a warm dusk at night */
+function applyNight(){const n=S.night,rd=S.render;scene.background=new THREE.Color(n?0x000000:0xffffff);   /* the floor is one solid colour: white by day, near-black by night */   /* night is pitch black: only the candles light the city */view.classList.toggle("dark",!!(n||rd));   /* abstract: a seamless warm-white backdrop by day, a warm dusk at night */
   hemi.intensity=n?0.07:0.26;hemi.color.set(n?0x8890a8:0xfff4e6);hemi.groundColor.set(n?0x2a2018:0xc9bba8);   /* a constant soft fill, night included, so glazes always read */   /* night: a blue dusk sky */
   sun.intensity=n?0:1.5*(sun.userData.k||1);   /* day: a soft warm sky and one gentle key light; night: the candles */
   /* filmic tone mapping keeps white porcelain from blowing out (Render mode does its own in the final pass) */
@@ -960,13 +962,13 @@ function applyNight(){const n=S.night,rd=S.render;scene.background=new THREE.Col
   MAT.glow.visible=MAT.pool.visible=n;MAT.glow.color.set(0xffb562).multiplyScalar(Math.min(1.4,1.05*cs));MAT.pool.opacity=Math.min(0.9,0.42*cs);$("nightBtn").setAttribute("aria-pressed",n);
   Object.values(MATS).forEach(m=>{m.emissiveIntensity=0;});
   Object.values(LIT).forEach(m=>{m.emissiveIntensity=n?cs*(m.userData.translucent?(S.render?0.12:0.17):(S.render?0.03:0.04)):0;});   /* thin porcelain glows through; stoneware and terracotta only a little */   /* thin porcelain glows a little when lit from inside */
-  if(S.render){scene.environment=envRoom||envBasic;   /* night: nothing but the candles */hemi.intensity=n?0.8:0.38;sun.intensity=n?0:1.1*(sun.userData.k||1);sun.shadow.mapSize.set(2048,2048);sun.shadow.normalBias=0.4;
+  if(S.render){scene.environment=n?null:(envRoom||envBasic);   /* night: nothing but the candles and a dim room */hemi.intensity=n?0.45:0.38;sun.intensity=n?0:1.1*(sun.userData.k||1);sun.shadow.mapSize.set(2048,2048);sun.shadow.normalBias=0.4;
     lights.forEach(L=>L.intensity=n?L.userData.base*1.2*cs:0);if(finalPass)finalPass.uniforms.exposure.value=n?1.05:0.8;
-    if(bloom){bloom.strength=n?0.15:0.08;bloom.threshold=n?0.9:0.95;bloom.radius=0.45;}}
-  else{scene.environment=envBasic;sun.shadow.normalBias=0;}
+    if(bloom){bloom.strength=n?0.06:0.08;bloom.threshold=n?0.9:0.95;bloom.radius=0.45;}}
+  else{scene.environment=envBasic;sun.shadow.normalBias=0.4;}   /* normal offset keeps flat walls free of shadow acne (the dotted diagonal along triangle seams) */
   if(sun.shadow.map&&sun.shadow.map.width!==sun.shadow.mapSize.x){sun.shadow.map.dispose();sun.shadow.map=null;}
   if(S.night!==BAKE.night||BAKE.anchors!==BAKE.done){BAKE.night=S.night;BAKE.done=BAKE.anchors;startBake(BAKE.anchors||[]);}
-  BAKE.ov.material.color.setScalar(CANDLE_I*0.42*cs);
+  BAKE.ov.material.color.setScalar(CANDLE_I*0.9*cs);
   renderer.shadowMap.needsUpdate=true;need();}
 let composer=null,ssao=null,bloom=null,finalPass=null,fxaa=null;
 const LIBS=["shaders/CopyShader.js","shaders/LuminosityHighPassShader.js","shaders/SSAOShader.js","shaders/FXAAShader.js","math/SimplexNoise.js",
@@ -1002,7 +1004,7 @@ let lastD=0;function fitDepth(){if(camera===ortho)return;const d=camera.position
 let tick=0,lastFlick=0;(function loop(now){requestAnimationFrame(loop);controls.update();fitDepth();
   /* candle flicker: about 15 frames a second (8 in Render mode), never faster than the screen needs */
   if(S.night&&flames.length&&now-lastFlick>(S.render?120:100)&&!document.hidden){lastFlick=now;tick+=0.4;
-    {const cs=S.candle===undefined?1:S.candle,k=0.96+Math.sin(tick*1.7)*0.03+Math.sin(tick*4.1)*0.015;MAT.glow.color.set(0xffb562).multiplyScalar(Math.min(1.4,1.05*cs)*k);MAT.pool.opacity=Math.min(0.9,0.42*cs)*k;BAKE.ov.material.color.setScalar(CANDLE_I*0.42*cs*k);}
+    {const cs=S.candle===undefined?1:S.candle,k=0.96+Math.sin(tick*1.7)*0.03+Math.sin(tick*4.1)*0.015;MAT.glow.color.set(0xffb562).multiplyScalar(Math.min(1.4,1.05*cs)*k);MAT.pool.opacity=Math.min(0.9,0.42*cs)*k;BAKE.ov.material.color.setScalar(CANDLE_I*0.9*cs*k);}
     lights.forEach((L,i)=>L.intensity=L.userData.base*(S.render?1.2:1)*(S.candle===undefined?1:S.candle)*(0.96+Math.sin(tick*1.7+i)*0.04+Math.sin(tick*4.1+i*2)*0.02));flames.forEach((f,i)=>f.scale.y=1.6+Math.sin(tick*3+i)*0.12);need();}
   if(BAKE.q.length){bakeStep(BAKE.n?24:60);need();}
   const moving=now-lastMove<160;
