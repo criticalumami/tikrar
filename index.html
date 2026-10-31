@@ -184,7 +184,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
 <header class="grid12">
   <h1>TIKRAR<small>Beirut Lantern Generator</small></h1>
   <span class="sub">porcelain modules 60 × 60 mm · 40 mm walls · houses, towers and city blocks · 1860–1925 and modernist openings</span>
-  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 31.10 · 14:15</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
+  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 31.10 · 14:25</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
   <button class="btn icon" id="themeBtn" type="button" aria-label="Toggle colour theme">◐</button></nav>
 </header>
 
@@ -280,7 +280,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
 <script src="openings.js"></script>
 <script>
 (function(){
-const B=window.BeitOpenings,W=B.W,H=B.H,T=3,LIP=3,MAX_LEVELS=8,GRID=30,BASE_T=2.5,PLATE_T=4,MAX_LIGHTS=0,SHADOW_LIGHTS=0;   /* candle light is drawn per module (glow and ground pools), not by a pool of point lights */
+const B=window.BeitOpenings,W=B.W,H=B.H,T=3,LIP=3,MAX_LEVELS=8,GRID=30,BASE_T=2.5,PLATE_T=4,MAX_LIGHTS=6,SHADOW_LIGHTS=6;   /* up to 6 lit modules get a real shadow-casting candle light, so the openings throw their pattern on the ground; the rest get a soft glow pool */
 const FACES=["front","right","back","left"],FNAME={front:"Front",right:"Right",back:"Back",left:"Left"};
 const $=id=>document.getElementById(id);
 const root=document.documentElement;
@@ -637,7 +637,7 @@ let room=new THREE.Group();scene.add(room);
 const lc=h=>S.render?new THREE.Color(h).convertSRGBToLinear():new THREE.Color(h);
 function buildRoom(){scene.remove(room);room.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.isLine&&o.material!==MAT.line)o.material.dispose();});room=new THREE.Group();
   /* by day the ground is the page: pure white, with only the shadows drawn on it */
-  const white=!S.night,gb=bounds(),gsz=Math.max(gb.x1-gb.x0,gb.z1-gb.z0)+(white?1400:8000),g=new THREE.Mesh(new THREE.PlaneGeometry(gsz,gsz),white?new THREE.ShadowMaterial({opacity:0.3}):new THREE.MeshStandardMaterial({color:lc(S.render?(S.night?0x020202:0xc4bcb0):0x020202),roughness:1,envMapIntensity:0.2}));g.rotation.x=-Math.PI/2;g.position.set((gb.x0+gb.x1)/2,-groundDrop(),(gb.z0+gb.z1)/2);g.receiveShadow=true;room.add(g);   /* by day only as big as the shadows need, so nothing reaches the horizon */
+  const white=!S.night,gb=bounds(),gsz=Math.max(gb.x1-gb.x0,gb.z1-gb.z0)+(white?1400:8000),g=new THREE.Mesh(new THREE.PlaneGeometry(gsz,gsz),white?new THREE.ShadowMaterial({opacity:0.3}):new THREE.MeshStandardMaterial({color:lc(S.render?(S.night?0x5a5148:0xc4bcb0):0x2e2924),roughness:1,envMapIntensity:0.2}));g.rotation.x=-Math.PI/2;g.position.set((gb.x0+gb.x1)/2,-groundDrop(),(gb.z0+gb.z1)/2);g.receiveShadow=true;room.add(g);   /* by day only as big as the shadows need, so nothing reaches the horizon */
   /* the ground line: in the Front elevation the ground is edge-on, so it is drawn as one black hairline at y = 0 */
   {const b=bounds(),gl=new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(b.x0-4000,0,b.z1+600),new THREE.Vector3(b.x1+4000,0,b.z1+600)]),new THREE.LineBasicMaterial({color:S.night?0x9aa0ad:0x111111}));
    gl.visible=S.view==="front"&&camera===ortho;gl.name="groundLine";room.add(gl);}
@@ -779,7 +779,7 @@ function outward(geo){const p=geo.attributes.position.array,u=geo.attributes.uv&
    where the old fascia met the hips) and runs up the hips to a rounded ridge, with no flat cap on top. The section is
    lofted through rounded rectangles; their corner radius grows from the walls' radius at the eave so the hips stay soft.
    Normals come from the section itself, so every curve reads round. The Ø 8 mm vent is drawn on the ridge. */
-const RGEO=new Map(),VGEO=new Map(),VENT_MAT=new THREE.MeshStandardMaterial({color:0x1b1b1b,roughness:1,polygonOffset:true,polygonOffsetFactor:-4,polygonOffsetUnits:-8});
+const RGEO=new Map();
 function slantRoof(b){const g=new THREE.Group(),hw=(perMod(b)?1:b.cols)*W/2,hd=(perMod(b)?1:b.deep)*W/2,mat=roofMat(b),al=b.pitch*Math.PI/180,sa=Math.sin(al),ca=Math.cos(al),
     fas=2.5,rb=1.2,rr=3,rk=9,uR=Math.min(hw,hd),R0=Math.min(radOf(b),hw,hd),Rh=Math.max(R0,6),K=8,prof=[];   /* prof: [inset u, height y, normal nu (inward), ny] */
   const P=(u,y,nu,ny)=>prof.push([u,y,nu,ny]);
@@ -798,15 +798,7 @@ function slantRoof(b){const g=new THREE.Group(),hw=(perMod(b)?1:b.cols)*W/2,hd=(
   geo=new THREE.BufferGeometry();geo.setAttribute("position",new THREE.Float32BufferAttribute(pos,3));geo.setAttribute("normal",new THREE.Float32BufferAttribute(nor,3));
   geo.setAttribute("uv",new THREE.Float32BufferAttribute(pos.filter((_,i)=>i%3!==1),2));windToNormals(geo);if(RGEO.size>200)RGEO.clear();RGEO.set(key,geo);}
   const m=new THREE.Mesh(geo,mat);m.castShadow=true;m.receiveShadow=true;m.userData.shared=true;g.add(m);
-  /* the vent: a dark Ø 8 mm disc laid on the ridge (each point dropped onto the roof), cached per roof shape */
-  {let vg=VGEO.get(key);
-    if(!vg){const rc=new THREE.Raycaster(),down=new THREE.Vector3(0,-1,0),o=new THREE.Vector3(),hit=(x,z)=>{o.set(x,yTop+5,z);rc.set(o,down);const h=rc.intersectObject(m,false)[0];return (h?h.point.y:yTop)+0.15;};
-      const vp=[],N=36,M=8,Hc=new Map(),Y=(x,z)=>{const k=x.toFixed(3)+","+z.toFixed(3);if(!Hc.has(k))Hc.set(k,hit(x,z));return Hc.get(k);};
-      for(let k=0;k<N;k++){const a0=k/N*2*Math.PI,a1=(k+1)/N*2*Math.PI;for(let q=0;q<M;q++){const r0=4*q/M,r1=4*(q+1)/M,pt=(r,a)=>[r*Math.cos(a),r*Math.sin(a)];
-        const A=pt(r0,a0),B=pt(r1,a0),C=pt(r1,a1),D=pt(r0,a1);[A,B,C,A,C,D].forEach(v=>vp.push(v[0],Y(v[0],v[1]),v[1]));}}
-      vg=new THREE.BufferGeometry();vg.setAttribute("position",new THREE.Float32BufferAttribute(vp,3));vg.setAttribute("normal",new THREE.Float32BufferAttribute(vp.map((_,i)=>i%3===1?1:0),3));
-      vg.setAttribute("uv",new THREE.Float32BufferAttribute(new Array(vp.length/3*2).fill(0),2));windToNormals(vg);if(VGEO.size>200)VGEO.clear();VGEO.set(key,vg);}
-    const v=new THREE.Mesh(vg,VENT_MAT);v.userData.shared=true;g.add(v);}
+  /* no vent disc drawn on a pitched roof: the top stays one clean glazed surface */
   return g;}
 /* wind every triangle to face its own normal */
 function windToNormals(geo){const p=geo.attributes.position.array,n=geo.attributes.normal.array,u=geo.attributes.uv&&geo.attributes.uv.array;
@@ -827,10 +819,10 @@ function buildBuilding(bi,gap,lightBudget){
       const p=soft(rsq(-hw,-hd,hw,hd,radOf(b)),l===0?[]:vents,plateT(l),plateMat(b),ys[l]-plateT(l)-gap*0.5,l===0?1.2:1.9);g.add(p);
 }   /* the base is one piece: no separate foot layer under it */
     for(let c=0;c<b.cols;c++)for(let r=0;r<b.deep;r++){const k=c+":"+r+":"+l;if(!alive(b,k))continue;const mg=new THREE.Group();mg.position.set(mx(c),ys[l],mz(r));const bvs={};FACES.forEach(f=>{const w=buildWall(bi,k,f);bvs[f]=w.userData.bv;mg.add(w);});mg.add(cornerPieces(b,k,bvs));if(b.candles[l]&&b.plates[l])mg.traverse(o=>o.userData.lit=true);g.add(mg);
-      if(b.candles[l]&&b.plates[l]){const tea=new THREE.Mesh(new THREE.CylinderGeometry(19,19,8,24),MAT.tea);tea.position.set(mx(c),ys[l]+4,mz(r));g.add(tea);
-        const fl=new THREE.Mesh(new THREE.SphereGeometry(2,10,8),MAT.flame);fl.scale.set(0.8,1.6,0.8);fl.position.set(mx(c),ys[l]+11,mz(r));g.add(fl);flames.push(fl);
+      if(b.candles[l]&&b.plates[l]){const tea=new THREE.Mesh(new THREE.CylinderGeometry(19,19,8,24),MAT.tea);tea.position.set(mx(c),ys[l]-gap*0.5+4,mz(r));g.add(tea);
+        const fl=new THREE.Mesh(new THREE.SphereGeometry(2,10,8),MAT.flame);fl.scale.set(0.8,1.6,0.8);fl.position.set(mx(c),ys[l]-gap*0.5+11,mz(r));g.add(fl);flames.push(fl);
         const gw=new THREE.Mesh(new THREE.BoxGeometry(W-2*T-0.6,H-0.6,W-2*T-0.6),MAT.glow);gw.position.set(mx(c),ys[l]+H/2,mz(r));g.add(gw);}}
-    if(b.candles[l]&&b.plates[l]){const a=new THREE.Object3D();a.position.set(0,ys[l]+14,0);a.userData={bi,w:Math.sqrt(b.cols*b.deep)};g.add(a);lightBudget.anchors.push(a);}}
+    for(let c=0;c<b.cols;c++)for(let r=0;r<b.deep;r++)if(b.candles[l]&&b.plates[l]&&alive(b,c+":"+r+":"+l)){const a=new THREE.Object3D();a.position.set(mx(c),ys[l]-gap*0.5+CANDLE_Y,mz(r));a.userData={bi,l};g.add(a);lightBudget.anchors.push(a);}}
   if(b.roof!=="none"){const one=()=>b.roof==="modern"?modernRoof(b):slantRoof(b);
     /* a one-piece roof needs a complete top level; otherwise every column gets its own lid on its highest module */
     if(perMod(b)||!topComplete(b)){const sb=Object.assign({},b,{span:"module"});
@@ -838,7 +830,7 @@ function buildBuilding(bi,gap,lightBudget){
         const rf=b.roof==="modern"?modernRoof(sb):slantRoof(sb);rf.position.set(mx(c),ys[lm]+H+gap*0.4,mz(r));g.add(rf);}}
     else{const rf=one();rf.position.set(0,top+gap*0.4,0);g.add(rf);}}
   if(b.candles.some((c,l)=>c&&b.plates[l])){const n=b.candles.filter((c,l)=>c&&b.plates[l]).length,s=Math.max(b.cols,b.deep)*W*(2.2+0.25*Math.min(n,4)),pl=new THREE.Mesh(new THREE.PlaneGeometry(s,s),MAT.pool);
-    pl.rotation.x=-Math.PI/2;pl.position.y=0.4;pl.renderOrder=1;g.add(pl);}
+    pl.rotation.x=-Math.PI/2;pl.position.y=0.4;pl.renderOrder=1;pl.userData={pool:bi};g.add(pl);}
   if(isSel(bi)){const pts=[[-hw-4,-hd-4],[hw+4,-hd-4],[hw+4,hd+4],[-hw-4,hd+4]].map(([x,z])=>new THREE.Vector3(x,0.6,z));const ln=new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(pts),MAT.sel);g.add(ln);}
   return g;}
 const flames=[];
@@ -851,14 +843,15 @@ function courtOf(b,bi,g,hw,hd){const mat=plateMat(b),r=radOf(b),ri=Math.max(0.5,
   if(isSel(bi)){const pts=[[-hw-4,-hd-4],[hw+4,-hd-4],[hw+4,hd+4],[-hw-4,hd+4]].map(([x,z])=>new THREE.Vector3(x,0.6,z));g.add(new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(pts),MAT.sel));}
   return g;}
 /* a fixed pool of candle lights, so editing never changes the light count (which would recompile every shader and stutter) */
-const LPOOL=Array.from({length:MAX_LIGHTS},(_,i)=>{const L=new THREE.PointLight(0xffa04f,0,280,2);L.castShadow=i<SHADOW_LIGHTS;L.shadow.mapSize.set(256,256);L.shadow.radius=3;L.shadow.bias=-0.003;
+const LPOOL=Array.from({length:MAX_LIGHTS},(_,i)=>{const L=new THREE.PointLight(0xffa04f,0,420,2);L.castShadow=i<SHADOW_LIGHTS;L.shadow.mapSize.set(512,512);L.shadow.radius=2;L.shadow.bias=-0.002;L.shadow.normalBias=0.35;
   L.shadow.camera.near=2;L.position.set(0,-500,0);L.userData.base=0;scene.add(L);return L;});
-/* candles share the pool: one light per lit level while they fit, else one per building (at the middle of its lit levels), else the brightest buildings */
+/* candles share the pool: one real light per lit module, the selected building's first, then the lowest levels;
+   a building left without one keeps its soft glow pool, a building with real light throws the shapes of its openings instead */
+const CANDLE_Y=14,CANDLE_I=5;
 function placeLights(anchors){lights.length=0;LPOOL.forEach(L=>{L.userData.base=0;L.intensity=0;L.position.set(0,-500,0);});
-  let groups=anchors.map(a=>[a]);
-  if(groups.length>MAX_LIGHTS){const by={};anchors.forEach(a=>(by[a.userData.bi]=by[a.userData.bi]||[]).push(a));groups=Object.values(by).sort((x,y)=>y.length-x.length).slice(0,MAX_LIGHTS);}
-  groups.forEach((gr,i)=>{const L=LPOOL[i],v=new THREE.Vector3(),p=new THREE.Vector3();gr.forEach(a=>{a.getWorldPosition(p);v.add(p);});v.divideScalar(gr.length);
-    L.position.copy(v);L.userData.base=0.4*Math.sqrt(gr[0].userData.w*gr.length);lights.push(L);});
+  const pick=anchors.slice().sort((a,b)=>(isSel(b.userData.bi)-isSel(a.userData.bi))||(a.userData.l-b.userData.l)||(a.userData.bi-b.userData.bi)).slice(0,MAX_LIGHTS);
+  const real=new Set();pick.forEach((a,i)=>{const L=LPOOL[i];a.getWorldPosition(L.position);L.userData.base=CANDLE_I;lights.push(L);real.add(a.userData.bi);});
+  merged.traverse(o=>{if(o.userData.pool!==undefined)o.visible=!real.has(o.userData.pool);});
   /* a shadow-casting light also darkens wherever it can't see, even at zero intensity: spare lights sit on a used one,
      and candle shadows are off by day (so the white ground only carries the sun's shadows) */
   LPOOL.forEach((L,i)=>{if(i>=lights.length&&lights.length)L.position.copy(lights[i%lights.length].position);L.castShadow=!!(S.night&&lights.length)&&i<SHADOW_LIGHTS;});}
@@ -872,6 +865,7 @@ const LIT={};function litOf(m){if(LIT[m.uuid])return LIT[m.uuid];const c=m.clone
   c.emissive=new THREE.Color(0xffa24c).multiply(m.color.clone().lerp(new THREE.Color(1,1,1),0.3));return LIT[m.uuid]=c;}
 function mergeGroup(root){root.updateMatrixWorld(true);const buckets=new Map(),inst=new Map(),out=new THREE.Group();
   root.traverse(o=>{if(!o.isMesh)return;if(o.material===MAT.flame){const f=o.clone();o.getWorldPosition(f.position);out.add(f);flames.push(f);return;}
+    if(o.material===MAT.pool){const q=o.clone();q.matrixAutoUpdate=false;q.matrix.copy(o.matrixWorld);out.add(q);return;}   /* glow pools stay separate, so one can be hidden where a real light shines */
     const mat=o.userData.lit?litOf(o.material):o.material;
     if(o.userData.shared){const k=o.geometry.uuid+mat.uuid;if(!inst.has(k))inst.set(k,{g:o.geometry,m:mat,list:[]});inst.get(k).list.push(o);return;}
     const k=mat.uuid+(o.castShadow?"c":"")+(o.receiveShadow?"r":"");if(!buckets.has(k))buckets.set(k,{m:mat,cast:o.castShadow,recv:o.receiveShadow,list:[]});buckets.get(k).list.push(o);});
