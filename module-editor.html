@@ -203,7 +203,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
 <header class="grid12">
   <h1>TIKRAR<small>Beirut Lantern Generator</small></h1>
   <span class="sub"><span id="modSize">porcelain modules 60 × 60 mm · 40 mm walls</span> · houses, towers and city blocks · 1860–1925 and modernist openings</span>
-  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 01.11 · 18:40</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
+  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 01.11 · 18:55</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
   <button class="btn icon" id="themeBtn" type="button" aria-label="Toggle colour theme">◐</button></nav>
 </header>
 
@@ -776,7 +776,7 @@ const rInOf=R=>R<=0.05?0:Math.max(1.8,R-T*0.52);   /* concentric inner wall corn
    swept a quarter turn round the corner, outer radius R and concentric inner radius rInOf(R). It starts and ends
    exactly where the walls end, with the same section and the same normals, so wall and corner read as one cast piece. */
 const CSEG=24,KSEG=4,CGEO=new Map();
-function cornerGeo(R,ra,rb){const key=[R,ra,rb].map(v=>v.toFixed(3)).join("|");let geo=CGEO.get(key);if(geo)return geo;
+function cornerGeo(R,ra,rb,ox,oz){ox=ox||0;oz=oz||0;const key=[R,ra,rb,ox,oz].map(v=>v.toFixed(3)).join("|");let geo=CGEO.get(key);if(geo)return geo;
   const h=0,rIn=rInOf(R),prof=r=>{const o=[],P=(s,y,nr,ny)=>o.push([s,y,nr,ny]),Q=Math.PI/2;
     P(0,r,1,0);for(let k=0;k<=KSEG;k++){const a=k/KSEG*Q;P(r-r*Math.cos(a),H-r+r*Math.sin(a),Math.cos(a),Math.sin(a));}
     for(let k=0;k<=KSEG;k++){const a=k/KSEG*Q;P(T-r+r*Math.sin(a),H-r+r*Math.cos(a),-Math.sin(a),Math.cos(a));}
@@ -789,7 +789,7 @@ function cornerGeo(R,ra,rb){const key=[R,ra,rb].map(v=>v.toFixed(3)).join("|");l
   const pos=[],nor=[],uv=[],cd=[],sm=t=>t*t*(3-2*t),profs=[];for(let j=0;j<=CSEG;j++)profs.push(prof(ra+(rb-ra)*sm(j/CSEG)));
   for(let j=0;j<CSEG;j++){for(let i=0;i<profs[j].length-1;i++){
     const a=at(profs[j][i],j),b=at(profs[j][i+1],j),d=at(profs[j+1][i],j+1),e=at(profs[j+1][i+1],j+1);
-    [a,b,e,a,e,d].forEach(v=>{pos.push(v[0],v[1],v[2]);nor.push(v[3],v[4],v[5]);uv.push(v[6],v[7]);cd.push(v[0],v[1],v[2],v[8]);});}}
+    [a,b,e,a,e,d].forEach(v=>{pos.push(v[0],v[1],v[2]);nor.push(v[3],v[4],v[5]);uv.push(v[6],v[7]);cd.push(v[0]+ox,v[1],v[2]+oz,v[8]);});}}
   geo=new THREE.BufferGeometry();geo.setAttribute("position",new THREE.Float32BufferAttribute(pos,3));geo.setAttribute("normal",new THREE.Float32BufferAttribute(nor,3));
   geo.setAttribute("uv",new THREE.Float32BufferAttribute(uv,2));geo.setAttribute("aCandle",new THREE.Float32BufferAttribute(cd,4));
   /* wind every triangle to face its own normal */
@@ -801,7 +801,10 @@ function cornerGeo(R,ra,rb){const key=[R,ra,rb].map(v=>v.toFixed(3)).join("|");l
 /* corners in order: the +x+z corner turned 0, 90, 180, 270°; each joins the wall at its start (first) and its end (second) */
 const CORNERS=[[0,"right","front"],[Math.PI/2,"back","right"],[Math.PI,"left","back"],[-Math.PI/2,"front","left"]];
 function cornerPieces(b,k,bvs){const g=new THREE.Group(),R=Math.min(radOf(b),Math.min(WX,WZ)/2-1);if(R<=0.01)return g;const mat=modMat(b,k),bv=f=>Math.min(bvs&&bvs[f]||BV,T/2-0.05);
-  CORNERS.forEach(([a,f0,f1])=>{const m=new THREE.Mesh(cornerGeo(R,bv(f0),bv(f1)),mat);m.rotation.y=a;m.position.set(Math.round(Math.cos(a)+Math.sin(a))*WX/2,0,Math.round(Math.cos(a)-Math.sin(a))*WZ/2);m.castShadow=m.receiveShadow=true;m.userData.shared=true;g.add(m);});
+  /* the candle data (aCandle) must say where the corner stands in the module, not where it sits in its own frame: before, every corner
+     read as if it touched the candle and glowed brighter than the walls (owner report 1 Nov). The offset is the corner's position turned back into its frame. */
+  CORNERS.forEach(([a,f0,f1])=>{const px=Math.round(Math.cos(a)+Math.sin(a))*WX/2,pz=Math.round(Math.cos(a)-Math.sin(a))*WZ/2,c=Math.cos(a),s=Math.sin(a);
+    const m=new THREE.Mesh(cornerGeo(R,bv(f0),bv(f1),px*c-pz*s,px*s+pz*c),mat);m.rotation.y=a;m.position.set(px,0,pz);m.castShadow=m.receiveShadow=true;m.userData.shared=true;g.add(m);});
   return g;}
 /* wall geometry cache: identical walls (same openings, same corner radius) share one geometry, drawn instanced */
 const WGEO=new Map();
