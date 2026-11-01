@@ -85,6 +85,7 @@ aside{display:grid;gap:calc(4*var(--u))}
 .seg input.cnt::-webkit-inner-spin-button,.seg input.cnt::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
 #bodySel{flex:0 1 112px}#finishSeg button{padding:0 4px}
 .num{min-width:48px;text-align:right;font-size:11px;color:var(--muted)}
+.rng .num{cursor:text}.rng .num:hover{color:var(--ink,inherit);text-decoration:underline dotted}.numedit{width:56px;font:inherit;text-align:right;color:inherit;background:transparent;border:0;border-bottom:1px solid currentColor;padding:0;-moz-appearance:textfield}.numedit::-webkit-outer-spin-button,.numedit::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 .lbl{font:500 11px/16px var(--sans);text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
 .seg{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);border:1px solid var(--ink);min-width:0}
 .seg button{height:calc(var(--ctl) - 2px);border:0;background:transparent;color:var(--ink);font:500 13px/16px var(--sans);padding:0 8px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -201,7 +202,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
 <header class="grid12">
   <h1>TIKRAR<small>Beirut Lantern Generator</small></h1>
   <span class="sub"><span id="modSize">porcelain modules 60 × 60 mm · 40 mm walls</span> · houses, towers and city blocks · 1860–1925 and modernist openings</span>
-  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 01.11 · 13:20</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
+  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 01.11 · 13:50</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
   <button class="btn icon" id="themeBtn" type="button" aria-label="Toggle colour theme">◐</button></nav>
 </header>
 
@@ -1258,6 +1259,14 @@ function renderUI(){
 
 /* ================= events ================= */
 const on=(id,ev,fn)=>$(id).addEventListener(ev,fn);
+/* type a value: click any slider's number to edit it; Enter or leaving the field applies it, Esc cancels. Clamped to the slider's range and step */
+document.addEventListener("click",e=>{const sp=e.target.closest&&e.target.closest(".rng .num");if(!sp||sp.querySelector("input"))return;const r=sp.parentNode.querySelector("input[type=range]");if(!r||r.disabled)return;
+  const keep=sp.textContent,inp=document.createElement("input");inp.type="number";inp.className="numedit";inp.min=r.min;inp.max=r.max;inp.step=r.step||"any";inp.value=r.value;inp.setAttribute("aria-label",(r.id||"value")+" value");
+  let done=false;const end=ok=>{if(done)return;done=true;if(ok&&inp.value!==""){const mn=+r.min,mx=+r.max,st=+r.step||0.1;let v=Math.min(mx,Math.max(mn,+inp.value));v=mn+Math.round((v-mn)/st)*st;v=Math.min(mx,+v.toFixed(4));r.value=v;r.dispatchEvent(new Event("input",{bubbles:true}));r.dispatchEvent(new Event("change",{bubbles:true}));}
+    if(inp.parentNode===sp){sp.removeChild(inp);if(sp.textContent==="")sp.textContent=keep;}};
+  sp.textContent="";sp.appendChild(inp);inp.focus();inp.select();
+  inp.addEventListener("keydown",k=>{if(k.key==="Enter"){k.preventDefault();end(true);}else if(k.key==="Escape"){k.preventDefault();end(false);}k.stopPropagation();});inp.addEventListener("blur",()=>end(true));});
+
 /* ================= drawn walls: a facade board like a drafting sheet =================
    The big elevation is live: drag an opening to move it, drag a corner to size it. Any wall can be dragged; the first real move
    turns it into a drawn wall (mode "free", openings kept as they were). Sliders under the board size the selected opening. */
