@@ -200,8 +200,8 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
 <div id="gridOverlay" class="grid12" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
 <header class="grid12">
   <h1>TIKRAR<small>Beirut Lantern Generator</small></h1>
-  <span class="sub">porcelain modules 60 × 60 mm · 40 mm walls · houses, towers and city blocks · 1860–1925 and modernist openings</span>
-  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 01.11 · 12:40</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
+  <span class="sub"><span id="modSize">porcelain modules 60 × 60 mm · 40 mm walls</span> · houses, towers and city blocks · 1860–1925 and modernist openings</span>
+  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 01.11 · 12:55</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
   <button class="btn icon" id="themeBtn" type="button" aria-label="Toggle colour theme">◐</button></nav>
 </header>
 
@@ -419,7 +419,7 @@ const fp=b=>b.rot%2?{w:b.deep*WZ,d:b.cols*WX}:{w:b.cols*WX,d:b.deep*WZ};
    largest building (3 × 3) fills a field and every building sits flush to its field's back-left corner */
 /* the gutter between grid columns and rows is the user's choice (S.gutter, mm, in 30 mm steps) */
 let GUTTER=30;const gut=()=>GUTTER;
-const FIELD_OF=()=>3*W+gut();
+const FIELD_OF=()=>3*WX+gut();
 const fieldCols=n=>Math.max(2,Math.ceil(Math.sqrt(n*1.3)));
 function fieldXZ(i,cols,b){const f=fp(b),c=i%cols,r=Math.floor(i/cols),F=FIELD_OF();return {x:c*F+f.w/2,z:r*F+f.d/2};}
 const overlaps=(b,list)=>list.some(o=>{const fa=fp(b),fb=fp(o);return Math.abs(b.x-o.x)<(fa.w+fb.w)/2-0.1&&Math.abs(b.z-o.z)<(fa.d+fb.d)/2-0.1;});
@@ -433,7 +433,7 @@ function autoPlace(b,list){const cols=fieldCols(list.length+1),x0=list.length?Ma
    main streets between rows are twice as wide. */
 let AVENUE=60;const ave=()=>AVENUE;
 const GAPS=[];   /* the empty blocks' outlines from the last layout, for the block lines */
-let BLOCKM=6;const blockW=list=>Math.max(BLOCKM*W,...list.map(b=>b.cols*W));   /* block width: S.blockM modules, or the widest building */
+let BLOCKM=6;const blockW=list=>Math.max(BLOCKM*WX,...list.map(b=>b.cols*WX));   /* block width: S.blockM modules, or the widest building */
 /* street widths: side streets (between block columns) and main streets (between block rows), each in 15 mm steps;
    with Vary on, every street gets its own width from narrow lanes to wide avenues, kept until you vary again */
 const r15=v=>Math.max(0,Math.round(v/15)*15);
@@ -448,11 +448,11 @@ const ALLEY=15;
    the typed width, main streets between block rows. Clusters on: columns and rows come in groups of 1 to 3 blocks
    (superblocks) between continuous main streets, each column its own width in whole modules; some blocks hold one row,
    some are split by a 15 mm alley into two parcels. The pattern repeats, so the grid carries on past the city unchanged. */
-function streetGrid(list){const g=gut(),main=ave(),wide=Math.max(W,...list.map(b=>b.cols*W));let vary=false,mix=false,full=false;try{vary=!!(S.vary&&S.colGaps);mix=!!(S.mix&&S.dist);full=!!S.full;}catch(e){}   /* S is still being created while the default village is laid out; full: after Fill grid, no one-row blocks or alleys */
+function streetGrid(list){const g=gut(),main=ave(),wide=Math.max(WX,...list.map(b=>b.cols*WX));let vary=false,mix=false,full=false;try{vary=!!(S.vary&&S.colGaps);mix=!!(S.mix&&S.dist);full=!!S.full;}catch(e){}   /* S is still being created while the default village is laid out; full: after Fill grid, no one-row blocks or alleys */
   const at=(a,i)=>a[((i%a.length)+a.length)%a.length],sg=c=>vary?r15(g*at(S.colGaps,c)):g,sr=r=>vary?r15(g*at(S.rowGaps,r)):g;
-  if(!mix){const BW=Math.max(BLOCKM*W,wide);return {mix,cw:()=>BW,cg:sg,rg:r=>vary?r15(main*at(S.rowGaps,r)):main,ce:()=>false,re:()=>true,one:()=>false,alley:()=>false};}
+  if(!mix){const BW=Math.max(BLOCKM*WX,wide);return {mix,cw:()=>BW,cg:sg,rg:r=>vary?r15(main*at(S.rowGaps,r)):main,ce:()=>false,re:()=>true,one:()=>false,alley:()=>false};}
   const cols=[],rows=[];
-  for(let j=0;j<12;j++){const sp=S.dist[j%S.dist.length];sp.bw.forEach((m,q)=>cols.push({w:Math.max(m*W,wide),end:q===sp.bw.length-1}));}
+  for(let j=0;j<12;j++){const sp=S.dist[j%S.dist.length];sp.bw.forEach((m,q)=>cols.push({w:Math.max(m*WX,wide),end:q===sp.bw.length-1}));}
   for(let j=0;j<12;j++){const sp=S.dist[(j+12)%S.dist.length];for(let q=0;q<sp.rows;q++)rows.push({end:q===sp.rows-1});}
   const spec=i=>S.dist[((i*7)%S.dist.length+S.dist.length)%S.dist.length];
   return {mix,cw:c=>at(cols,c).w,cg:c=>at(cols,c).end?main:sg(c),rg:r=>at(rows,r).end?main:sr(r),ce:c=>at(cols,c).end,re:r=>at(rows,r).end,
@@ -462,14 +462,14 @@ function gridLayout(list){if(!list.length)return list;
   const gaps=new Set((()=>{try{return S.gaps||[];}catch(e){return [];}})());
   const pack=colOf=>{const blocks=[];let cur=null;const wOf=()=>cw(colOf(blocks.length));
     const nb=()=>{while(gaps.has(blocks.length)){const w=wOf();blocks.push({rows:[[],[]],w:[w,w],empty:true});}const i=blocks.length;cur={rows:[[],[]],w:[0,0],BW:wOf(),one:G.one(i),alley:G.alley(i)};blocks.push(cur);};nb();   /* empty blocks (plazas) keep their slot */
-    let solo=false;list.forEach(b=>{b.rot=0;const w=b.cols*W;if(solo){nb();solo=false;}
+    let solo=false;list.forEach(b=>{b.rot=0;const w=b.cols*WX;if(solo){nb();solo=false;}
       if(isLM(b)){if(cur.rows[0].length||cur.rows[1].length)nb();cur.rows[0].push(b);cur.w=[cur.BW,cur.BW];cur.solo=true;solo=true;return;}
       let r=cur.w[0]+w<=cur.BW?0:!cur.one&&cur.w[1]+w<=cur.BW?1:-1;if(r<0){nb();r=0;}cur.rows[r].push(b);cur.w[r]+=w;});
     {const mx=Math.max(0,...[...gaps].map(Number));while(blocks.length<=mx&&gaps.size){const w=wOf();blocks.push({rows:[[],[]],w:[w,w],empty:true});}}   /* trailing empty blocks */
-    blocks.forEach(k=>{k.d=k.rows.map(r=>r.length?Math.max(...r.map(b=>b.deep*W)):0);k.D=k.d[0]+k.d[1]+(k.alley&&k.d[1]?ALLEY:0);});
+    blocks.forEach(k=>{k.d=k.rows.map(r=>r.length?Math.max(...r.map(b=>b.deep*WZ)):0);k.D=k.d[0]+k.d[1]+(k.alley&&k.d[1]?ALLEY:0);});
     return blocks;};
   /* the number of block columns that makes the city about 1.3 times as wide as deep */
-  const rowsOf=(bl,n)=>Array.from({length:Math.ceil(bl.length/n)},(_,r)=>Math.max(2*W,...bl.slice(r*n,r*n+n).map(k=>k.D||0)));
+  const rowsOf=(bl,n)=>Array.from({length:Math.ceil(bl.length/n)},(_,r)=>Math.max(2*WZ,...bl.slice(r*n,r*n+n).map(k=>k.D||0)));
   const span=(bl,n)=>{let tw=0,td=0;for(let c=0;c<Math.min(n,bl.length);c++)tw+=cw(c)+(c?cg(c-1):0);rowsOf(bl,n).forEach((d,r)=>td+=d+(r?rg(r-1):0));return tw/td;};
   let bc=1,blocks=pack(()=>0),best=1e9;const fixed=(()=>{try{return S.gridCols||0;}catch(e){return 0;}})();   /* after Fill grid the column count stays, so the filled blocks keep their widths */
   if(fixed){bc=fixed;blocks=pack(i=>i%fixed);}else for(let n=1;n<=Math.min(24,list.length+gaps.size);n++){const bl=pack(i=>i%n),s=Math.abs(Math.log(span(bl,n)/1.3));if(s<best){best=s;bc=n;blocks=bl;}}
@@ -480,7 +480,7 @@ function gridLayout(list){if(!list.length)return list;
   blocks.forEach((k,i)=>{const c=i%bc,r=Math.floor(i/bc),x0=cx[c]-TW/2,zf=TD/2-rz[r],zb=zf-rowD[r];   /* zf: the block's street front, zb: its back street */
     if(k.empty)GAPS.push({x0,z0:zb,z1:zf});
     LAYOUT.blocks.push({c,r,x0,w:cw(c),z0:zb,z1:zf,empty:!!k.empty,alley:k.alley&&k.d[1]?zf-k.d[0]:null,k});
-    k.rows.forEach((row,ri)=>{let x=x0+(k.solo&&row.length?(cw(c)-row[0].cols*W)/2:0);row.forEach(b=>{const w=b.cols*W,d=b.deep*W;b.x=x+w/2;x+=w;b.blk=i;
+    k.rows.forEach((row,ri)=>{let x=x0+(k.solo&&row.length?(cw(c)-row[0].cols*WX)/2:0);row.forEach(b=>{const w=b.cols*WX,d=b.deep*WZ;b.x=x+w/2;x+=w;b.blk=i;
       if(ri===0)b.z=zf-d/2;else{b.z=zb+d/2;b.rot=2;}});});});   /* the front row lines its street, the back row is flush with the back street and faces it */
   return list;}
 /* Fill grid: every lot gets a building. Each block's two street fronts are filled wall to wall with new buildings
@@ -489,15 +489,15 @@ function gridLayout(list){if(!list.length)return list;
 const FILL_MAX=360;
 function fillGrid(){S.gridCols=0;S.full=true;gridLayout(S.buildings);const bc=LAYOUT.cols.length,br=LAYOUT.rows.length,G=LAYOUT.G,after=new Map(),tail=[];let left=FILL_MAX-S.buildings.length;
   const pal=b=>b&&b.palette&&PALETTES[b.palette]?b.palette:pick(Object.keys(PALETTES));
-  const row=(rem,maxDeep,p,into)=>{while(rem>=W&&left>0){const cols=Math.min(Math.floor(rem/W),pick([1,2,2,3,3])),deep=Math.max(1,maxDeep),b=randomFit({cols,deep,x:0,z:0,rot:0});
-      randPal(b,Math.random()<0.8?p:pick(Object.keys(PALETTES)));into.push(b);rem-=cols*W;left--;}};
+  const row=(rem,maxDeep,p,into)=>{while(rem>=WX&&left>0){const cols=Math.min(Math.floor(rem/WX),pick([1,2,2,3,3])),deep=Math.max(1,maxDeep),b=randomFit({cols,deep,x:0,z:0,rot:0});
+      randPal(b,Math.random()<0.8?p:pick(Object.keys(PALETTES)));into.push(b);rem-=cols*WX;left--;}};
   const idx=new Map(S.buildings.map((b,i)=>[b,i])),last=a=>a.reduce((m,b)=>idx.get(b)>idx.get(m)?b:m,a[0]);
   LAYOUT.blocks.forEach(B=>{const k=B.k;if(!k||k.empty||k.solo)return;const all=[...k.rows[0],...k.rows[1]];if(!all.length)return;const D=LAYOUT.rows[B.r].d,p=pal(all[0]),dk=r=>Math.max(...k.rows[r].map(b=>b.deep));
-    const f0=[],f1=[];row(k.BW-k.w[0],dk(0),p,f0);row(k.BW-k.w[1],Math.max(1,Math.min(3,Math.floor((D-k.d[0])/W))),p,f1);   /* the back row reaches through to the front row */
+    const f0=[],f1=[];row(k.BW-k.w[0],dk(0),p,f0);row(k.BW-k.w[1],Math.max(1,Math.min(3,Math.floor((D-k.d[0])/WZ))),p,f1);   /* the back row reaches through to the front row */
     const a0=last(k.rows[0]),a1=last(all);(after.get(a0)||after.set(a0,[]).get(a0)).push(...f0);(after.get(a1)||after.set(a1,[]).get(a1)).push(...f1);});
   /* the empty lots at the end of the last row of blocks */
-  for(let i=LAYOUT.blocks.length;i<bc*br&&left>0;i++){const c=i%bc,r=Math.floor(i/bc),D=LAYOUT.rows[r].d,p=pal(),md=Math.max(1,Math.min(3,Math.ceil(D/2/W)));
-    row(G.cw(c),md,p,tail);row(G.cw(c),Math.max(1,Math.min(3,Math.floor(D/W)-md)),p,tail);}
+  for(let i=LAYOUT.blocks.length;i<bc*br&&left>0;i++){const c=i%bc,r=Math.floor(i/bc),D=LAYOUT.rows[r].d,p=pal(),md=Math.max(1,Math.min(3,Math.ceil(D/2/WZ)));
+    row(G.cw(c),md,p,tail);row(G.cw(c),Math.max(1,Math.min(3,Math.floor(D/WZ)-md)),p,tail);}
   const out=[];S.buildings.forEach(b=>{out.push(b);if(after.has(b))out.push(...after.get(b));});out.push(...tail);
   S.buildings=out;S.gridCols=bc;gridLayout(S.buildings);}
 /* the whole city at once: a plate under every level, or a plate and a candle on every level (a candle needs a plate) */
@@ -1457,9 +1457,13 @@ on("roofSeg","click",e=>{const x=e.target.closest("button");if(!x)return;each(b=
 on("pitch","input",e=>{each(b=>b.pitch=+e.target.value);renderUI();});
 on("radius","input",e=>{each(b=>b.radius=+e.target.value);renderUI();});
 /* Module editor only: module height, wall and slab thickness. Every piece (view, checks, technical review, STL) reads H, T and the slab live */
-function applyDims(){if(MODE!=="module")return;WX=S.mw||60;WZ=S.ml||60;RGEO.clear();H=S.mh||40;T=S.mt||3;BASE_T=PLATE_T=FLAT_T=S.ms||4;B.setH(H);B.LIPS.in=T+LIP.clr;WGEO.clear();CGEO.clear();
+/* the module's size and thicknesses are set in the Module editor; the cluster editor reads them from its saved design and follows */
+const modDims=()=>{if(MODE==="module")return S;try{return JSON.parse(localStorage.getItem("tikrar-module-editor-v1"))||{};}catch(e){return {};}};
+function applyDims(){const D=modDims();WX=D.mw||60;WZ=D.ml||60;RGEO.clear();H=D.mh||40;T=D.mt||3;BASE_T=PLATE_T=FLAT_T=D.ms||4;
+  {const el=$("modSize");if(el)el.textContent=`porcelain modules ${WX} × ${WZ} mm · ${H} mm walls`;}B.setH(H);B.LIPS.in=T+LIP.clr;WGEO.clear();CGEO.clear();if(MODE!=="module"){const k=[WX,WZ,H,T,PLATE_T].join("|");if(S.dims!==k){S.dims=k;gridLayout(S.buildings);}return;}
   [["modW",WX,WX+" mm"],["modL",WZ,WZ+" mm"],["modH",H,H+" mm"],["modT",T,T.toFixed(1)+" mm"],["modS",PLATE_T,PLATE_T.toFixed(1)+" mm"]].forEach(([id,v,t])=>{if(document.activeElement!==$(id))$(id).value=v;$(id+"V").textContent=t;});}
 [["modW","mw"],["modL","ml"],["modH","mh"],["modT","mt"],["modS","ms"]].forEach(([id,k])=>on(id,"input",e=>{S[k]=+e.target.value;applyDims();renderUI();}));
+window.addEventListener("storage",e=>{if(MODE!=="module"&&e.key==="tikrar-module-editor-v1"){applyDims();renderUI();}});   /* a Module editor open in another tab: the city follows live */
 on("modO","input",e=>{scaleWall(+e.target.value);$("modOV").textContent=e.target.value+" %";});
 on("modO","change",e=>{FSCALE=null;e.target.value=100;$("modOV").textContent="100 %";renderUI();});
 on("spanSeg","click",e=>{const x=e.target.closest("button");if(!x)return;each(b=>b.span=x.dataset.v);renderUI();});
