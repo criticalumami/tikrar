@@ -203,7 +203,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
 <header class="grid12">
   <h1>TIKRAR<small>Beirut Lantern Generator</small></h1>
   <span class="sub"><span id="modSize">porcelain modules 60 × 60 mm · 40 mm walls</span> · houses, towers and city blocks · 1860–1925 and modernist openings</span>
-  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 01.11 · 16:05</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
+  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 01.11 · 16:40</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
   <button class="btn icon" id="themeBtn" type="button" aria-label="Toggle colour theme">◐</button></nav>
 </header>
 
@@ -818,9 +818,53 @@ function orbitFace(b,k,fname){const o=bld(b.mods[k][fname],fname);if(!ORBIT.on||
       if(x1<=lo||x0>=hi)continue;const c=(x0>=lo&&x1<=hi)?q:clipX(q,lo,hi);if(!c)continue;
       const cx=c.map(c2=>c2[0]);if(Math.max(...cx)-Math.min(...cx)<1.6)continue;holes.push({p:c,set:h.set});}});});
   return Object.assign({},o,{holes,relief:[],fins:[]});}
+
+/* Slide mode, round the corners: a module's four walls and four corners become ONE flat strip with the openings cut in it, so an
+   opening can straddle a corner; the strip is then bent onto the rounded-square wall path depth by depth, like the corner pieces
+   (depth s is a rounded rectangle inset by s with radius rs). The strip's seam goes in the largest gap between openings. */
+const RING_FACES=[[0,1,1,0],[1,0,0,-1],[0,-1,-1,0],[-1,0,0,1]];   /* per face: outward normal (x,z), then the direction (x,z) of the face's own x */
+const ringOn=b=>ORBIT.on&&ORBIT.mm>0&&Math.min(radOf(b),Math.min(WX,WZ)/2-1)>0.05;
+const ringFace=hit=>{const n=hit.face.normal;let bi=0,bd=-9;RING_FACES.forEach((f,i)=>{const d=n.x*f[0]+n.z*f[1];if(d>bd){bd=d;bi=i;}});return FACES[bi];};
+function ringBv(hs){let g=99;const bb=hs.map(h=>{let a=[1e9,1e9,-1e9,-1e9];h.forEach(([x,y])=>{a=[Math.min(a[0],x),Math.min(a[1],y),Math.max(a[2],x),Math.max(a[3],y)];});return a;});
+  bb.forEach((a,i)=>{g=Math.min(g,a[1],H-a[3]);for(let j=i+1;j<bb.length;j++){const c=bb[j];g=Math.min(g,Math.max(c[0]-a[2],a[0]-c[2],c[1]-a[3],a[1]-c[3]));}});
+  return Math.max(0.5,Math.min(BV,(g-0.8)/2));}
+function slideRing(bi,b,k){
+  const mod=(a,n)=>((a%n)+n)%n,R=Math.min(radOf(b),Math.min(WX,WZ)/2-1),rIn=rInOf(R),ws=FACES.map(fwOf),P=orbitP(),Arc=Math.PI*R/2,sq=ws.map(w=>w-2*R),
+    L=sq[0]+sq[1]+sq[2]+sq[3]+4*Arc,kk=L/P,st=[0,ws[0],ws[0]+ws[1],ws[0]+ws[1]+ws[2]],mm=ORBIT.mm%P,D=[WZ/2,WX/2,WZ/2,WX/2];
+  const key="ring|"+FACES.map(f=>JSON.stringify(b.mods[k][f])).join("")+"@"+ORBIT.mm+"|"+[R,T,H,WX,WZ].join("|");let geo=WGEO.get(key);
+  if(!geo){
+    /* the openings in strip units, one copy each, and the widest gap round the ring for the seam */
+    let hs=[];FACES.forEach((f,i)=>bld(b.mods[k][f],f).holes.forEach(h=>{const q=h.p.map(([x,y])=>[(st[i]+x+mm)*kk,y]),x0=Math.min(...q.map(c=>c[0])),w=Math.max(...q.map(c=>c[0]))-x0,s0=mod(x0,L);hs.push({q:q.map(([x,y])=>[x-x0+s0,y]),s0,w});}));
+    let us=0;if(hs.length){const iv=hs.map(h=>[h.s0,h.s0+h.w]).sort((a,c)=>a[0]-c[0]);let run=-1,best=-1;
+      iv.forEach((a,i)=>{run=Math.max(run,a[1]);const nx=i===iv.length-1?iv[0][0]+L:iv[i+1][0],gap=nx-run;if(gap>best){best=gap;us=mod(run+gap/2,L);}});}
+    const hp=hs.map(h=>{const sx=mod(h.s0-us,L);return fillet(h.q.map(([x,y])=>[x-h.s0+sx,y]),0.8);}),bv=ringBv(hp);
+    let g0=softExtrude([[0,0],[L,0],[L,H],[0,H]],hp,T,null,bv,KSEG).geometry;if(g0.index)g0=g0.toNonIndexed();
+    const Pa=g0.attributes.position.array,Na=g0.attributes.normal.array,Ua=g0.attributes.uv?g0.attributes.uv.array:null;
+    /* vertical cuts across the corner stretches, the same on every triangle so no cracks open, to bend them smoothly */
+    const cuts=[];for(let i=0,c0=0;i<4;i++){const x0=c0+sq[i]-us+Arc/2;for(const sh of [-L,0,L])for(let j=0;j<=8;j++)cuts.push(x0+sh+Arc*j/8);c0+=sq[i]+Arc;}
+    cuts.sort((a,c)=>a-c);
+    const lerp=(p,q,t)=>p.map((v,i)=>v+(q[i]-v)*t),side=(poly,v,sd)=>{const r=[];for(let i=0;i<poly.length;i++){const a=poly[i],c=poly[(i+1)%poly.length],da=sd*(a[0]-v),dc=sd*(c[0]-v);
+      if(da>=0)r.push(a);if((da>=0)!==(dc>=0)){const lo=a[0]<c[0]?a:c,hi=a[0]<c[0]?c:a,p=lerp(lo,hi,(v-lo[0])/(hi[0]-lo[0]));p[0]=v;r.push(p);}}return r;};
+    const V=i=>[Pa[3*i],Pa[3*i+1],Pa[3*i+2],Na[3*i],Na[3*i+1],Na[3*i+2],Ua?Ua[2*i]:0,Ua?Ua[2*i+1]:0],tris=[];
+    for(let t=0;t<Pa.length/9;t++){const A=V(3*t),B2=V(3*t+1),C=V(3*t+2),xa=Math.min(A[0],B2[0],C[0]),xb=Math.max(A[0],B2[0],C[0]),ln=[];{let lo=0,hi=cuts.length;while(lo<hi){const m=(lo+hi)>>1;if(cuts[m]<=xa+1e-4)lo=m+1;else hi=m;}for(let q=lo;q<cuts.length&&cuts[q]<xb-1e-4;q++)ln.push(cuts[q]);}
+      if(!ln.length){tris.push(A,B2,C);continue;}const bd=[-1e9,...ln,1e9];
+      for(let j=0;j<bd.length-1;j++){let q=side([A,B2,C],bd[j],1);if(q.length<3)continue;q=side(q,bd[j+1],-1);if(q.length<3)continue;for(let m=1;m<q.length-1;m++)tris.push(q[0],q[m],q[m+1]);}}
+    /* bend: strip x -> position along the wall path (list: straight 0, corner 0, straight 1, ...), depth -> inset and corner radius */
+    const pos=new Float32Array(tris.length*3),nor=new Float32Array(tris.length*3),uv=new Float32Array(tris.length*2),cd=new Float32Array(tris.length*4),ec=bv+0.02;
+    tris.forEach((v,n)=>{let x=v[0];if(x<ec)x=0;else if(x>L-ec)x=L;const y=v[1],s=Math.max(0,Math.min(T,T-v[2])),rs=R-(s/T)*(R-rIn),lp=mod(x+us-Arc/2,L);let c0=0,px=0,pz=0,ox=0,oz=0,tx=0,tz=0;
+      for(let i=0;i<4;i++){const [nx,nz,ux,uz]=RING_FACES[i],half=ws[i]/2-s-rs,dn=D[i]-s;
+        if(lp<=c0+sq[i]||i===3&&lp>=c0+sq[i]+Arc){const t=Math.min(1,(lp-c0)/sq[i]),al=(t-0.5)*2*half;px=nx*dn+ux*al;pz=nz*dn+uz*al;ox=nx;oz=nz;tx=ux;tz=uz;break;}
+        if(lp<=c0+sq[i]+Arc){const f=(lp-c0-sq[i])/Arc*Math.PI/2,cf=Math.cos(f),sf=Math.sin(f),cx=nx*(D[i]-s-rs)+ux*half,cz=nz*(D[i]-s-rs)+uz*half;ox=nx*cf+ux*sf;oz=nz*cf+uz*sf;px=cx+rs*ox;pz=cz+rs*oz;tx=-nx*sf+ux*cf;tz=-nz*sf+uz*cf;break;}
+        c0+=sq[i]+Arc;}
+      const a=v[3],bn=v[4],cn=v[5],wx=a*tx+cn*ox,wz=a*tz+cn*oz,ln=Math.hypot(wx,bn,wz)||1;
+      pos.set([px,y,pz],3*n);nor.set([wx/ln,bn/ln,wz/ln],3*n);uv.set([v[6],v[7]],2*n);cd.set([px,y,pz,cn],4*n);});
+    geo=new THREE.BufferGeometry();geo.setAttribute("position",new THREE.BufferAttribute(pos,3));geo.setAttribute("normal",new THREE.BufferAttribute(nor,3));geo.setAttribute("uv",new THREE.BufferAttribute(uv,2));geo.setAttribute("aCandle",new THREE.BufferAttribute(cd,4));
+    geo.userData.bv=bv;if(WGEO.size>300)WGEO.clear();WGEO.set(key,geo);}
+  const m=new THREE.Mesh(geo,modMat(b,k));m.castShadow=m.receiveShadow=true;m.userData={bi,k,fname:"front",ring:true,shared:true};pickable.push(m);return m;}
 function setSlide(on){ORBIT.on=!!on;ORBIT.mm=0;$("slideBtn").setAttribute("aria-pressed",ORBIT.on);rebuildNow();need();}
-let slideT=0;(function slideLoop(now){requestAnimationFrame(slideLoop);if(!ORBIT.on||ORBIT.busy||!now){slideT=0;return;}
-  const dt=slideT?Math.min(0.25,(now-slideT)/1000):0;slideT=now;if(!dt)return;ORBIT.mm=Math.round((ORBIT.mm+SLIDE_V*dt)%orbitP()*4)/4;rebuildNow();need();})();
+/* a big city takes longer to rebuild than a frame: the next step waits as long again, so the page stays responsive (the speed stays the same, the steps get bigger) */
+let slideT=0,slideNext=0;(function slideLoop(now){requestAnimationFrame(slideLoop);if(!ORBIT.on||ORBIT.busy||!now){slideT=0;return;}if(now<slideNext)return;
+  const dt=slideT?Math.min(1,(now-slideT)/1000):0;slideT=now;if(!dt)return;ORBIT.mm=Math.round((ORBIT.mm+SLIDE_V*dt)%orbitP()*4)/4;const t0=performance.now();rebuildNow();need();slideNext=now+(performance.now()-t0)*1.5;})();
 function buildWall(bi,k,fname){
   const fw=fwOf(fname),off=(fname==="front"||fname==="back"?WZ:WX)/2-T,o=orbitFace(S.buildings[bi],k,fname),g=new THREE.Group();g.rotation.y=ANG[fname];
   const Rr=Math.min(radOf(S.buildings[bi]),Math.min(WX,WZ)/2-1),rIn=rInOf(Rr);
@@ -925,7 +969,7 @@ function buildBuilding(bi,gap,lightBudget){
       for(let c=0;c<b.cols;c++)for(let r=0;r<b.deep;r++){const up=alive(b,c+":"+r+":"+l),dn=l===0?up:alive(b,c+":"+r+":"+(l-1));   /* lips: on top for the module above, underneath for the module below (the base: its feet) */
         if(up)g.add(lipRing(mx(c),-mz(r),py+plateT(l),pm,b,true));if(dn)g.add(lipRing(mx(c),-mz(r),py-LIP.h,pm,b));}
 }   /* the base is one piece: no separate foot layer under it */
-    for(let c=0;c<b.cols;c++)for(let r=0;r<b.deep;r++){const k=c+":"+r+":"+l;if(!alive(b,k))continue;const mg=new THREE.Group();mg.position.set(mx(c),ys[l],mz(r));const bvs={};FACES.forEach(f=>{const w=buildWall(bi,k,f);bvs[f]=w.userData.bv;mg.add(w);});mg.add(cornerPieces(b,k,bvs));if(b.candles[l]&&b.plates[l])mg.traverse(o=>o.userData.lit=true);g.add(mg);
+    for(let c=0;c<b.cols;c++)for(let r=0;r<b.deep;r++){const k=c+":"+r+":"+l;if(!alive(b,k))continue;const mg=new THREE.Group();mg.position.set(mx(c),ys[l],mz(r));if(ringOn(b))mg.add(slideRing(bi,b,k));else{const bvs={};FACES.forEach(f=>{const w=buildWall(bi,k,f);bvs[f]=w.userData.bv;mg.add(w);});mg.add(cornerPieces(b,k,bvs));}if(b.candles[l]&&b.plates[l])mg.traverse(o=>o.userData.lit=true);g.add(mg);
       if(b.candles[l]&&b.plates[l]){const tea=new THREE.Mesh(teaGeo().cup,MAT.tea);tea.position.set(mx(c),ys[l]-gap*0.5+(CH-0.5)/2,mz(r));tea.receiveShadow=true;tea.userData.shared=true;g.add(tea);
         const wax=new THREE.Mesh(teaGeo().wax,MAT.wax);wax.position.set(mx(c),ys[l]-gap*0.5+CH-0.6,mz(r));wax.userData.shared=true;g.add(wax);
         const fl=new THREE.Group();fl.position.set(mx(c),ys[l]-gap*0.5+CH+4.5,mz(r));
@@ -1150,7 +1194,7 @@ const ray=new THREE.Raycaster(),ptr=new THREE.Vector2();let down=null;
 renderer.domElement.addEventListener("pointerdown",e=>down=[e.clientX,e.clientY]);
 renderer.domElement.addEventListener("pointerup",e=>{if(!down||Math.hypot(e.clientX-down[0],e.clientY-down[1])>5)return;const r=renderer.domElement.getBoundingClientRect();
   ptr.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);ray.setFromCamera(ptr,camera);const hit=ray.intersectObjects(pickable,false)[0];
-  if(hit){const u=hit.object.userData;if(e.shiftKey||e.metaKey||e.ctrlKey){toggleSel(u.bi);renderUI();return;}S.selB=u.bi;S.multi=[];S.sel=u.k;S.selFace=u.fname;renderUI();}});
+  if(hit){const u=hit.object.userData;if(e.shiftKey||e.metaKey||e.ctrlKey){toggleSel(u.bi);renderUI();return;}S.selB=u.bi;S.multi=[];S.sel=u.k;S.selFace=u.ring?ringFace(hit):u.fname;renderUI();}});
 
 /* ================= checks ================= */
 const faceChecks=(b,k,fn)=>B.checkFace(bld(b.mods[k][fn],fn),shrinkOf(b),radOf(b));
