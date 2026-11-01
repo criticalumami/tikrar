@@ -203,7 +203,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
 <header class="grid12">
   <h1>TIKRAR<small>Beirut Lantern Generator</small></h1>
   <span class="sub"><span id="modSize">porcelain modules 60 × 60 mm · 40 mm walls</span> · houses, towers and city blocks · 1860–1925 and modernist openings</span>
-  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 01.11 · 17:15</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
+  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 01.11 · 18:40</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
   <button class="btn icon" id="themeBtn" type="button" aria-label="Toggle colour theme">◐</button></nav>
 </header>
 
@@ -994,6 +994,18 @@ function buildBuilding(bi,gap,lightBudget){
       for(let c=0;c<b.cols;c++)for(let r=0;r<b.deep;r++){let lm=-1;for(let l=b.levels-1;l>=0;l--)if(alive(b,c+":"+r+":"+l)){lm=l;break;}if(lm<0)continue;
         const lb=b.mods[c+":"+r+":"+lm]&&b.mods[c+":"+r+":"+lm].lid?Object.assign({},sb,{roofCol:b.mods[c+":"+r+":"+lm].lid}):sb,rf=b.roof==="modern"?modernRoof(lb):slantRoof(lb);rf.position.set(mx(c),ys[lm]+H+gap*0.4,mz(r));g.add(rf);}}
     else{const rf=one();rf.position.set(0,top+gap*0.4,0);g.add(rf);}}
+  /* plates, flat roofs and pitched roofs are the same cast porcelain as the walls, so they glow from the candle the same way:
+     the shader reads aCandle (position from the nearest candle, and which side of the shell the surface faces), which only the walls carried before */
+  {const cands=[];for(let l=0;l<b.levels;l++)if(b.candles[l]&&b.plates[l])for(let c=0;c<b.cols;c++)for(let r=0;r<b.deep;r++)if(alive(b,c+":"+r+":"+l))cands.push([mx(c),ys[l],mz(r)]);
+    if(cands.length)g.traverse(o=>{const mt=o.material;if(!o.isMesh||!mt||!mt.userData||!mt.userData.uLit||!o.geometry.attributes.normal||o.geometry.attributes.aCandle)return;
+      const M=new THREE.Matrix4();for(let p=o;p&&p!==g;p=p.parent){p.updateMatrix();M.premultiply(p.matrix);}
+      const geo=o.geometry.clone(),P=geo.attributes.position,N=geo.attributes.normal,NM=new THREE.Matrix3().getNormalMatrix(M),v=new THREE.Vector3(),n=new THREE.Vector3(),cd=new Float32Array(P.count*4);let hit=0;
+      for(let i=0;i<P.count;i++){v.fromBufferAttribute(P,i).applyMatrix4(M);n.fromBufferAttribute(N,i).applyMatrix3(NM).normalize();
+        let best=null,bd=1e9;cands.forEach(k=>{const d=Math.hypot(v.x-k[0],v.y-k[1]-CANDLE_Y,v.z-k[2]);if(d<bd){bd=d;best=k;}});
+        if(!best||bd>60){cd[4*i+3]=2;continue;}hit++;
+        const w=bd<1e-3?0:(n.x*(v.x-best[0])+n.y*(v.y-best[1]-CANDLE_Y)+n.z*(v.z-best[2]))/bd,ly=v.y-best[1];
+        cd[4*i]=v.x-best[0];cd[4*i+1]=w>0?Math.min(ly,36):ly;cd[4*i+2]=v.z-best[2];cd[4*i+3]=w;}   /* the outer skin of a roof sits above the wall tops: clamp its height so the outside glow still reaches it */
+      if(!hit)return;geo.setAttribute("aCandle",new THREE.BufferAttribute(cd,4));o.geometry=geo;o.userData.shared=false;o.userData.lit=true;});}
   {const cs=new THREE.Mesh(new THREE.PlaneGeometry(2*hw+18,2*hd+18),MAT.contact);cs.rotation.x=-Math.PI/2;cs.position.y=0.25-groundDrop();cs.renderOrder=1;g.add(cs);}   /* soft contact shadow where the piece meets the floor (Day Render) */
   if(isSel(bi)){const pts=[[-hw-4,-hd-4],[hw+4,-hd-4],[hw+4,hd+4],[-hw-4,hd+4]].map(([x,z])=>new THREE.Vector3(x,0.6,z));const ln=new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(pts),MAT.sel);g.add(ln);}
   return g;}
