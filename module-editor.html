@@ -62,6 +62,7 @@ body.nopanel .layout>aside{display:none}body.nopanel .layout>.viewer{grid-column
 .vbar button:hover{background:rgba(255,255,255,.1)}
 .vbar button[aria-pressed="true"]{background:var(--terra);color:#fff}
 .vbar input[type=range]{width:64px;margin-right:10px;accent-color:#fff}
+.vbar .grp.cutG button{padding:0 7px}.vbar .grp.cutG .cutS[hidden]{display:none}
 .tag{position:absolute;left:0;top:0;color:#111;padding:var(--g);font:500 11px/16px var(--sans);max-width:100%;pointer-events:none}
 .viewer.dark .tag{color:#f2f2f2}
 aside{display:grid;gap:calc(4*var(--u))}
@@ -202,7 +203,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
 <header class="grid12">
   <h1>TIKRAR<small>Beirut Lantern Generator</small></h1>
   <span class="sub"><span id="modSize">porcelain modules 60 × 60 mm · 40 mm walls</span> · houses, towers and city blocks · 1860–1925 and modernist openings</span>
-  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 01.11 · 13:50</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
+  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 01.11 · 14:30</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
   <button class="btn icon" id="themeBtn" type="button" aria-label="Toggle colour theme">◐</button></nav>
 </header>
 
@@ -215,6 +216,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
       <div class="grp"><label for="candle">Candles</label><input type="range" id="candle" min="0" max="2" step="0.05" value="1" title="Candle strength"><output id="candleV" for="candle"></output></div>
       <div class="grp"><label for="sunT" title="Time of day: morning (left) to evening (right)">Sun</label><input type="range" id="sunT" min="0" max="1" step="0.01" value="0.35" title="Sun: morning to evening"><output id="sunV" for="sunT"></output></div>
       <div class="grp"><label for="explode">Explode</label><input type="range" id="explode" min="0" max="30" step="1" value="0"><output id="explodeV" for="explode"></output></div>
+      <div class="grp cutG"><label title="Section plane: cut the model along X, Y (height) or Z and look inside">Cut</label><button type="button" data-cut="off" aria-pressed="true">Off</button><button type="button" data-cut="x" aria-pressed="false" title="Section across X (left to right)">X</button><button type="button" data-cut="y" aria-pressed="false" title="Section at a height (a plan cut)">Y</button><button type="button" data-cut="z" aria-pressed="false" title="Section across Z (front to back)">Z</button><span class="cutS" hidden><input type="range" id="cutT" min="0" max="1" step="0.005" value="0.5" title="Position of the section plane"><output id="cutV" for="cutT"></output><button type="button" id="cutFlip" aria-pressed="false" title="Keep the other side">⇄</button></span></div>
       <div class="grp"><button type="button" id="orthoBtn" aria-pressed="false" title="Orthographic: parallel lines, no perspective">Ortho</button><button type="button" data-view="axo" title="Axonometric view">Axo</button><button type="button" data-view="plan" title="Plan, from above">Plan</button><button type="button" data-view="front" title="Front elevation">Front</button></div>
       <div class="grp"><button type="button" id="spinBtn" aria-pressed="false" title="Keep turning the view around the model">Spin</button><button type="button" id="lockBtn" aria-pressed="false" title="Lock the camera: no orbit, pan or zoom">Lock</button><button type="button" id="resetView">Reset view</button><button type="button" id="jpgBtn" title="Save the 3D view as a JPG">JPG</button><button type="button" id="gifQuick" title="A randomize series as an animated GIF, from this exact view (frames: GIF, under Checks)">GIF</button><button type="button" id="panelBtn" aria-pressed="true" title="Show or hide the side panel (P)">Panel</button></div>
     </div>
@@ -998,6 +1000,35 @@ function mergeGroup(root){root.updateMatrixWorld(true);const buckets=new Map(),i
     const geo=new THREE.BufferGeometry();geo.setAttribute("position",new THREE.BufferAttribute(pos,3));geo.setAttribute("normal",new THREE.BufferAttribute(nor,3));geo.setAttribute("uv",new THREE.BufferAttribute(uv,2));geo.setAttribute("aCandle",new THREE.BufferAttribute(cd,4));
     geo.computeBoundingSphere();const mesh=new THREE.Mesh(geo,m);mesh.castShadow=cast;mesh.receiveShadow=recv;mesh.matrixAutoUpdate=false;out.add(mesh);});
   return out;}
+/* Section plane (Cut): clips every ceramic mesh with one plane (X, Y = height, or Z) and fills the cut faces: a back-face copy of each clipped mesh is drawn in a flat section colour, so the thickness of walls, slabs and lips reads as solid. Ground, lights and the picking meshes are untouched. */
+const CUT={plane:new THREE.Plane(new THREE.Vector3(1,0,0),0),cap:null,caps:[]};
+function cutOn(){return !!S.cut&&S.cut.a&&S.cut.a!=="off";}
+function cutRange(){const b=bounds(),a=S.cut.a;return a==="x"?[b.x0,b.x1]:a==="z"?[b.z0,b.z1]:[0,b.h-20];}
+function cutPos(){const r=cutRange(),t=S.cut.t===undefined?0.5:S.cut.t;return r[0]+(r[1]-r[0])*t;}
+function cutPlane(){if(!cutOn())return;const a=S.cut.a,p=cutPos(),sg=S.cut.flip?-1:1;   /* the plane keeps what is on its positive side: sg*(p - coord) >= 0 */
+  CUT.plane.normal.set(a==="x"?-sg:0,a==="y"?-sg:0,a==="z"?-sg:0);CUT.plane.constant=sg*p;}
+function cutHidden(o){if(!cutOn())return false;const a=S.cut.a,v=o.position[a];return CUT.plane.distanceToPoint(o.position)<0;}
+function applyClip(){
+  CUT.caps.forEach(c=>c.parent&&c.parent.remove(c));CUT.caps.length=0;
+  const on=cutOn();renderer.localClippingEnabled=on;
+  if(!CUT.cap){CUT.cap=new THREE.MeshBasicMaterial({color:0xb5562f,side:THREE.BackSide});}
+  if(on){cutPlane();CUT.cap.clippingPlanes=[CUT.plane];CUT.cap.clipShadows=true;
+    const list=[];merged.traverse(o=>{if((o.isMesh||o.isInstancedMesh)&&o.material&&o.material.isMeshStandardMaterial&&o.material!==MAT.pool)list.push(o);});
+    list.forEach(o=>{const m=o.material;if(!m.clippingPlanes||m.clippingPlanes[0]!==CUT.plane){m.clippingPlanes=[CUT.plane];m.clipShadows=true;m.needsUpdate=true;}
+      let c;if(o.isInstancedMesh){c=new THREE.InstancedMesh(o.geometry,CUT.cap,o.count);c.instanceMatrix=o.instanceMatrix;}else c=new THREE.Mesh(o.geometry,CUT.cap);
+      c.matrixAutoUpdate=false;c.matrix.copy(o.matrix);c.castShadow=c.receiveShadow=false;c.frustumCulled=false;c.userData.cap=true;o.parent.add(c);CUT.caps.push(c);});}
+  else{[...Object.values(MATS),...Object.values(LIT)].forEach(m=>{if(m.clippingPlanes){m.clippingPlanes=null;m.needsUpdate=true;}});}
+  flames.forEach(f=>{f.userData.cutHide=cutHidden(f);});
+  try{if(ssao&&ssao.normalMaterial)ssao.normalMaterial.clippingPlanes=on?[CUT.plane]:null;}catch(e){}   /* ssao is declared further down: not yet there on the first build */
+  renderer.shadowMap.needsUpdate=true;need();}
+function cutUI(){const c=S.cut||{a:"off"};document.querySelectorAll("[data-cut]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.cut===c.a));
+  document.querySelector(".cutS").hidden=!cutOn();$("cutT").value=c.t===undefined?0.5:c.t;$("cutFlip").setAttribute("aria-pressed",!!c.flip);
+  $("cutV").textContent=cutOn()?Math.round(cutPos())+" mm":"";}
+function setCut(patch){S.cut=Object.assign({a:"off",t:0.5,flip:false},S.cut||{},patch);cutUI();applyClip();flames.forEach(f=>{f.visible=S.night&&!f.userData.cutHide;});save();}
+function cutBind(){
+document.querySelectorAll("[data-cut]").forEach(b=>b.onclick=()=>setCut({a:b.dataset.cut,t:0.5}));
+on("cutT","input",e=>setCut({t:+e.target.value}));on("cutFlip","click",()=>setCut({flip:!(S.cut&&S.cut.flip)}));
+}
 let rbq=0;function rebuild(){if(!rbq)rbq=requestAnimationFrame(()=>{rbq=0;rebuildNow();});}   /* a drag on a slider rebuilds once per frame, not once per pixel */
 /* a 3 × 3 building is built round an open courtyard: the middle module is left out on every level */
 function courtyards(){S.buildings.forEach(b=>{if(b.court||b.cols!==3||b.deep!==3||b.courtyard===false)return;for(let l=0;l<b.levels;l++){const k="1:1:"+l;if(b.mods[k]&&!b.mods[k].removed){b.mods[k].removed=true;b.mods[k].auto=true;}}});
@@ -1011,7 +1042,7 @@ function rebuildNow(){
   built.traverse(o=>{if(o.geometry&&!o.isLine&&!o.userData.shared)o.geometry.dispose();});merged.traverse(o=>{if(o.geometry&&o.isMesh&&o.material!==MAT.flame&&o.material!==MAT.flameCore&&!o.userData.shared)o.geometry.dispose();});scene.remove(merged);
   built=new THREE.Group();pickable.length=0;flames.length=0;
   const gap=+S.explode,budget={anchors:[]};S.buildings.forEach((_,bi)=>built.add(buildBuilding(bi,gap,budget)));
-  merged=mergeGroup(built);scene.add(merged);placeLights(budget.anchors);BAKE.anchors=budget.anchors;buildRoom();applyNight();}
+  merged=mergeGroup(built);scene.add(merged);applyClip();placeLights(budget.anchors);BAKE.anchors=budget.anchors;buildRoom();applyNight();}
 function applyNight(){const n=S.night,rd=S.render;scene.background=new THREE.Color(n?0x09090b:0xffffff);   /* white gallery backdrop by day, deep studio charcoal-black at night */view.classList.toggle("dark",!!(n||rd));
   hemi.intensity=n?0.28:0.42;hemi.color.set(n?0xcfd8ea:0xfff7ed);hemi.groundColor.set(n?0x26221e:0xd8ccb9);
   fillLight.intensity=n?0.12:0.24;fillLight.color.set(n?0x9ab0d6:0xe3ecf8);
@@ -1026,7 +1057,7 @@ function applyNight(){const n=S.night,rd=S.render;scene.background=new THREE.Col
    sun.color.set(0xffa868).lerp(new THREE.Color(0xfff5e8),Math.min(1,hi));sun.userData.k=0.58+0.42*hi;sun.intensity=n?0:2.2*sun.userData.k;
    if(!n)hemi.color.set(0xffe4c8).lerp(new THREE.Color(0xfff7ed),Math.min(1,hi));}
   {const ext=Math.max(b.x1-b.x0,b.z1-b.z0,b.h)*0.75+200;Object.assign(sun.shadow.camera,{left:-ext,right:ext,top:ext,bottom:-ext,near:50,far:1200+ext*1.6});sun.shadow.camera.updateProjectionMatrix();}sun.target.position.set(cx,0,cz);
-  const cs=S.candle===undefined?1:S.candle;lights.forEach(L=>L.intensity=n?L.userData.base*cs:0);flames.forEach(f=>f.visible=n);
+  const cs=S.candle===undefined?1:S.candle;lights.forEach(L=>L.intensity=n?L.userData.base*cs:0);flames.forEach(f=>f.visible=n&&!f.userData.cutHide);
   MAT.wax.emissiveIntensity=n?0.45*cs:0;MAT.pool.visible=n;MAT.contact.visible=!!(S.render&&!n);MAT.pool.opacity=Math.min(0.85,0.38*cs);$("nightBtn").setAttribute("aria-pressed",n);
   Object.values(MATS).forEach(m=>{m.emissiveIntensity=0;if(m.userData.uLit)m.userData.uLit.value=0;});
   Object.values(LIT).forEach(m=>{m.emissiveIntensity=0;if(m.userData.uLit)m.userData.uLit.value=n?cs:0;});
@@ -1056,7 +1087,7 @@ const FINAL={uniforms:{tDiffuse:{value:null},exposure:{value:0.95},time:{value:0
 function setupComposer(){lastD=0;const r=view.getBoundingClientRect(),w=Math.max(1,r.width),h=Math.max(1,r.height),pr=renderer.getPixelRatio();
   const rt=new THREE.WebGLRenderTarget(Math.round(w*pr),Math.round(h*pr),{type:THREE.HalfFloatType});
   composer=new THREE.EffectComposer(renderer,rt);composer.setPixelRatio(pr);composer.addPass(new THREE.RenderPass(scene,camera));
-  ssao=new THREE.SSAOPass(scene,camera,w,h);ssao.kernelRadius=5;ssao.minDistance=0.0005;ssao.maxDistance=0.018;ssao.enabled=(camera===persp);composer.addPass(ssao);
+  ssao=new THREE.SSAOPass(scene,camera,w,h);ssao.kernelRadius=5;ssao.minDistance=0.0005;ssao.maxDistance=0.018;ssao.enabled=(camera===persp);composer.addPass(ssao);if(ssao.normalMaterial&&cutOn())ssao.normalMaterial.clippingPlanes=[CUT.plane];
   bloom=new THREE.UnrealBloomPass(new THREE.Vector2(w,h),0.12,0.52,0.82);composer.addPass(bloom);
   finalPass=new THREE.ShaderPass(FINAL);composer.addPass(finalPass);
   fxaa=new THREE.ShaderPass(THREE.FXAAShader);fxaa.uniforms.resolution.value.set(1/(w*pr),1/(h*pr));composer.addPass(fxaa);
@@ -1733,7 +1764,7 @@ on("pdfBtn","click",()=>{const btn=$("pdfBtn"),t=btn.textContent;btn.textContent
 
 $("explode").value=S.explode;S.editSet=S.editSet||Bs().set;
 if(S.render){S.render=false;setTimeout(()=>$("renderBtn").click(),0);}
-$("candle").value=S.candle===undefined?1:S.candle;$("keepPal").setAttribute("aria-pressed",!!S.keepPal);setPanel(!S.nopanel);setLock(S.lock);setSpin(S.spin);$("sunT").value=S.sun===undefined?0.35:S.sun;vbarVals();applyDims();resize();if(S.ortho)setOrtho(true);renderUI();fitView();
+$("candle").value=S.candle===undefined?1:S.candle;$("keepPal").setAttribute("aria-pressed",!!S.keepPal);setPanel(!S.nopanel);setLock(S.lock);setSpin(S.spin);$("sunT").value=S.sun===undefined?0.35:S.sun;vbarVals();cutBind();cutUI();applyDims();resize();if(S.ortho)setOrtho(true);renderUI();fitView();
 /* ===== Print pieces (STL): every piece of the selected buildings as a clean, watertight solid, for the resin printer or
    as mould masters. Started from Gemini's tikrar_to_stl.mjs (print/gemini_redux), corrected to TIKRAR's own pieces: the
    same constants as the 3D view (walls T, corner radius, LIP, VENT_D, PLATE_T), so the files are what the editor shows.
