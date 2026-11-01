@@ -2,7 +2,8 @@
    One printed module: 60 × 60 mm square, 40 mm walls, 3 mm thick, slanted roof. All sizes fired mm, 1:75
    (60 mm = a 4.5 m bay, 40 mm = a 3.0 m wall). Face coordinates: x from the wall's left edge seen from outside, y up from the floor. */
 (function(G){
-const W=60,PI=Math.PI,H0=40;let H=H0;   /* H: the module's wall height; the Module editor can change it (setH), catalogue openings stretch with it */
+const PI=Math.PI,H0=40,W0=60;let H=H0,W=W0;   /* W: the width of the face being built (setW): catalogue openings stretch with it, drawn walls are in real mm */
+   /* H: the module's wall height; the Module editor can change it (setH), catalogue openings stretch with it */
 /* for now everything is flush with the wall: no relief mouldings, balconies or sun-shades */
 const FLUSH=true;
 const LIM={edge:3,top:3,base:2,minOpen:1.6,minBar:2.5,maxOpen:40,reliefTop:1,maxPins:40,section:60,wall:3,minPin:1.4,canti:6,tealight:38};
@@ -253,7 +254,7 @@ function toFree(spec){const o=build(spec);
 function mirrorFree(spec){return {mode:"free",holes:(spec.holes||[]).map(q=>{const m=Object.assign({},q,{x:r2(W-q.x-q.w)});if(q.p)m.p=q.p.map(([u,v])=>[r2((1-u)*1e4)/1e4,v]);return m;})};}
 function build(spec){
   if(spec.mode==="free"){const o=F();(spec.holes||[]).forEach(q=>hole(o,(FREE[q.s]||FREE.rect).f(q.x,q.y,Math.max(.5,q.w),Math.max(.5,q.h),q),q.set||0));return o;}
-  if(H!==H0){const o=build0(spec),k=H/H0;o.holes.forEach(h=>{const p=h.p.map(([x,y])=>[x,y*k]);h.p=Object.assign(p,{kind:h.p.kind});});return o;}
+  if(H!==H0||W!==W0){const w=W,k=H/H0,kx=w/W0;W=W0;let o;try{o=build0(spec);}finally{W=w;}o.holes.forEach(h=>{const p=h.p.map(([x,y])=>[x*kx,y*k]);h.p=Object.assign(p,{kind:h.p.kind});});return o;}
   return build0(spec);}
 function build0(spec){
   if(spec.mode==="bays"){const o=F();(spec.bays||[]).forEach((b,i)=>(BAY[b]||BAY.none).build(o,BAY_X[i],i));if(FLUSH){o.relief=[];o.extras=[];}return o;}
@@ -294,18 +295,18 @@ function lipLines(x0,x1,l,r){const a=Math.max(x0,LIPS.in),b=Math.min(x1,W-LIPS.i
     if(l&&a>x0)s+=`<line x1="${a}" y1="${y}" x2="${a}" y2="${y2}" ${d}/>`;if(r&&b<x1)s+=`<line x1="${b}" y1="${y}" x2="${b}" y2="${y2}" ${d}/>`;});
   return s;}
 function lineSVG(o,opt){const pts=p=>p.map(([x,y])=>x.toFixed(2)+","+(H-y).toFixed(2)).join(" "),ns='vector-effect="non-scaling-stroke"';
-  let s=`<svg viewBox="${opt.dims?`-7 -4 74 ${H+14}`:`-1 -1 62 ${H+2}`}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${opt.label||"Wall elevation"}" fill="none" stroke="currentColor">`;
+  let s=`<svg viewBox="${opt.dims?`-7 -4 ${W+14} ${H+14}`:`-1 -1 ${W+2} ${H+2}`}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${opt.label||"Wall elevation"}" fill="none" stroke="currentColor">`;
   s+=`<rect x="0" y="0" width="${W}" height="${H}" stroke-width="1.5" ${ns}/>`;
   s+=lipLines(0,W,true,true);
   o.holes.forEach(h=>s+=`<polygon points="${pts(h.p)}" stroke-width="1" stroke-linejoin="round" ${ns}/>`);
   if(opt.dims){const t=(x,y,str,tr)=>`<text x="${x}" y="${y}" font-size="2.6" fill="currentColor" stroke="none" text-anchor="middle" font-family="Helvetica Neue,Helvetica,Arial,sans-serif"${tr?` transform="${tr}"`:""}>${str}</text>`;
-    s+=`<line x1="0" y1="${H+2.2}" x2="${W}" y2="${H+2.2}" stroke-width=".75" ${ns}/>`+t(30,H+5.6,"60 mm");
+    s+=`<line x1="0" y1="${H+2.2}" x2="${W}" y2="${H+2.2}" stroke-width=".75" ${ns}/>`+t(W/2,H+5.6,W+" mm");
     s+=`<line x1="-2.2" y1="0" x2="-2.2" y2="${H}" stroke-width=".75" ${ns}/>`+t(-3.6,H/2,H+" mm",`rotate(-90 -3.6 ${H/2})`);}
   return s+"</svg>";}
 function faceSVG(o,opt){opt=opt||{};if(opt.line)return lineSVG(o,opt);const night=!!opt.night;
   const wall=night?"#5a4a3d":"#f4efe6",edge=night?"#3b3129":"#b9ae9c",glow=night?"#ffbf66":"#2c2a28",rel=night?"#7a6654":"#e3dacb";
   const pts=p=>p.map(([x,y])=>x.toFixed(2)+","+(H-y).toFixed(2)).join(" ");
-  let s=`<svg viewBox="${opt.dims?`-7 -4 74 ${H+14}`:`-1 -1 62 ${H+2}`}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${opt.label||"Wall elevation"}">`;
+  let s=`<svg viewBox="${opt.dims?`-7 -4 ${W+14} ${H+14}`:`-1 -1 ${W+2} ${H+2}`}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${opt.label||"Wall elevation"}">`;
   s+=`<rect x="0" y="0" width="${W}" height="${H}" fill="${wall}" stroke="${edge}" stroke-width=".4"/>`;
   o.relief.forEach(r=>{s+=`<polygon points="${pts(r.o)}" fill="${rel}" stroke="${edge}" stroke-width=".25"/>`;if(r.i)s+=`<polygon points="${pts(r.i)}" fill="${wall}"/>`;});
   o.holes.forEach(h=>s+=`<polygon points="${pts(h.p)}" fill="${glow}"/>`);
@@ -313,9 +314,9 @@ function faceSVG(o,opt){opt=opt||{};if(opt.line)return lineSVG(o,opt);const nigh
     for(let bx=x.x+1.2;bx<x.x+x.w-1.5;bx+=4.3)s+=`<rect x="${bx.toFixed(2)}" y="${(y-8).toFixed(2)}" width="2.5" height="8" fill="${edge}" opacity=".85"/>`;
     s+=`<rect x="${x.x}" y="${y-9}" width="${x.w}" height="1.4" fill="${edge}"/>`;}});
   if(opt.dims){const t=(x,y,str,a)=>`<text x="${x}" y="${y}" font-size="2.6" fill="${night?"#c9bfae":"#6d665c"}" text-anchor="${a||"middle"}" font-family="JetBrains Mono,monospace">${str}</text>`;
-    s+=`<line x1="0" y1="${H+2.2}" x2="${W}" y2="${H+2.2}" stroke="${edge}" stroke-width=".3"/>`+t(30,H+5.6,"60 mm");
+    s+=`<line x1="0" y1="${H+2.2}" x2="${W}" y2="${H+2.2}" stroke="${edge}" stroke-width=".3"/>`+t(W/2,H+5.6,W+" mm");
     s+=`<line x1="-2.2" y1="0" x2="-2.2" y2="${H}" stroke="${edge}" stroke-width=".3"/>`+`<text x="-3.6" y="${H/2}" font-size="2.6" fill="${night?"#c9bfae":"#6d665c"}" text-anchor="middle" font-family="JetBrains Mono,monospace" transform="rotate(-90 -3.6 ${H/2})">${H} mm</text>`;}
   return s+"</svg>";}
 
-G.BeitOpenings={W,get H(){return H;},setH:h=>{H=h;},LIM,FLUSH,CAT,BY,BAYS,BAY,BAY_X,FREE,LIPS,toFree,mirrorFree,lipLines,optsOf,stylesOf,build,canOculus,checkFace,faceSVG,bbox,area,optLabel};
+G.BeitOpenings={get W(){return W;},setW:w=>{W=w||W0;},get H(){return H;},setH:h=>{H=h;},LIM,FLUSH,CAT,BY,BAYS,BAY,BAY_X,FREE,LIPS,toFree,mirrorFree,lipLines,optsOf,stylesOf,build,canOculus,checkFace,faceSVG,bbox,area,optLabel};
 })(window);
