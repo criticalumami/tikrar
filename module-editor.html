@@ -201,7 +201,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
 <header class="grid12">
   <h1>TIKRAR<small>Beirut Lantern Generator</small></h1>
   <span class="sub"><span id="modSize">porcelain modules 60 × 60 mm · 40 mm walls</span> · houses, towers and city blocks · 1860–1925 and modernist openings</span>
-  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 01.11 · 12:55</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
+  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 01.11 · 13:20</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
   <button class="btn icon" id="themeBtn" type="button" aria-label="Toggle colour theme">◐</button></nav>
 </header>
 
@@ -257,6 +257,8 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
       <div class="f modonly"><label class="lbl" for="modH" title="Wall height of every module (fired mm); catalogue openings stretch with it">Height</label><div class="v rng"><input type="range" id="modH" min="30" max="60" step="1"><span class="num" id="modHV"></span></div></div>
       <div class="f modonly"><label class="lbl" for="modT" title="Wall thickness of the cast ring">Walls</label><div class="v rng"><input type="range" id="modT" min="2" max="4" step="0.5"><span class="num" id="modTV"></span></div></div>
       <div class="f modonly"><label class="lbl" for="modS" title="Thickness of the base, plates and flat roof: one slab, lips on both faces">Slabs</label><div class="v rng"><input type="range" id="modS" min="3" max="6" step="0.5"><span class="num" id="modSV"></span></div></div>
+      <div class="f modonly"><label class="lbl" for="modCD" title="Candle (tealight) diameter, standard 38 mm">Candle Ø</label><div class="v rng"><input type="range" id="modCD" min="20" max="52" step="1"><span class="num" id="modCDV"></span></div></div>
+      <div class="f modonly"><label class="lbl" for="modCH" title="Candle (tealight) height, default 12 mm: double the first model">Candle height</label><div class="v rng"><input type="range" id="modCH" min="6" max="30" step="1"><span class="num" id="modCHV"></span></div></div>
       <div class="f modonly"><label class="lbl" for="modO" title="Grow or shrink every opening of the selected wall about its own centre (the wall becomes a drawn wall)">Openings</label><div class="v rng"><input type="range" id="modO" min="50" max="150" step="5" value="100"><span class="num" id="modOV">100 %</span></div></div>
       <div class="f"><label class="lbl" for="bodySel">Clay</label><div class="v"><select id="bodySel"><option value="porcelain">Porcelain</option><option value="stoneware">Stoneware</option><option value="terracotta">Terracotta</option></select>
         <div class="seg" id="finishSeg" title="Glaze finish: matte (default), glossy, or bare clay"><button type="button" data-v="glazed">Matte</button><button type="button" data-v="gloss">Gloss</button><button type="button" data-v="unglazed">Bare</button></div></div></div>
@@ -312,7 +314,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
 <script src="openings.js"></script>
 <script>
 (function(){
-const B=window.BeitOpenings,W=60,MAX_LEVELS=8,GRID=30,MAX_LIGHTS=12,SHADOW_LIGHTS=6;let H=B.H,T=3,BASE_T=4,PLATE_T=4,WX=60,WZ=60;   /* WX: module width (front and back walls), WZ: module length (side walls); 60 × 60 in the cluster editor */
+const B=window.BeitOpenings,W=60,MAX_LEVELS=8,GRID=30,MAX_LIGHTS=12,SHADOW_LIGHTS=6;let CD=38,CH=12,H=B.H,T=3,BASE_T=4,PLATE_T=4,WX=60,WZ=60;   /* WX: module width (front and back walls), WZ: module length (side walls); 60 × 60 in the cluster editor */
 const fwOf=f=>f==="front"||f==="back"?WX:WZ,bld=(spec,f)=>{B.setW(fwOf(f||S.selFace));return B.build(spec);};   /* H, T and the slab: fixed in the cluster editor, sliders in the Module editor (applyDims) */   /* real 3D candle lights + per-pixel subsurface porcelain shader + 16-sample soft ground caustics */
 const FACES=["front","right","back","left"],FNAME={front:"Front",right:"Right",back:"Back",left:"Left"};
 const $=id=>document.getElementById(id);
@@ -655,9 +657,9 @@ function matOf(body,glaze,gloss){const k=(S.render?"R|":"")+body+"|"+glaze+(glos
     :new THREE.MeshPhysicalMaterial({color:lin,map:body==="porcelain"?null:speckleTex(body,true),normalMap:glazeN(),normalScale:new THREE.Vector2(0.02,0.02),roughness:0.46,metalness:0,clearcoat:0.45,clearcoatRoughness:0.16,envMapIntensity:0.48});        /* satin-matte ceramic glaze */
   m.userData.translucent=bd.glow;m.userData.uLit={value:0};m.userData.uTrans={value:bd.glow?1:0.22};m.emissive=new THREE.Color(0xff9a3c).convertSRGBToLinear();m.emissiveIntensity=0;m.onBeforeCompile=function(sh){groundAO(sh,this);};return MATS[k]=m;}
 /* ground contact occlusion + real per-pixel 3D candle radiance (interior cavity bounce, 3 mm opening reveal rim light, and radial subsurface porcelain transmission) */
-function groundAO(sh,mat){if(mat&&mat.userData&&mat.userData.uLit){sh.uniforms.uLit=mat.userData.uLit;sh.uniforms.uTrans=mat.userData.uTrans;}else{sh.uniforms.uLit={value:0};sh.uniforms.uTrans={value:1};}
+function groundAO(sh,mat){sh.uniforms.uCY=UCY;if(mat&&mat.userData&&mat.userData.uLit){sh.uniforms.uLit=mat.userData.uLit;sh.uniforms.uTrans=mat.userData.uTrans;}else{sh.uniforms.uLit={value:0};sh.uniforms.uTrans={value:1};}
   sh.vertexShader=sh.vertexShader.replace("#include <common>","#include <common>\nattribute vec4 aCandle;\nvarying float vAOy;\nvarying vec4 vCandle;").replace("#include <worldpos_vertex>","#include <worldpos_vertex>\nvCandle=aCandle;\n#ifdef USE_INSTANCING\nvAOy=(modelMatrix*instanceMatrix*vec4(transformed,1.0)).y;\n#else\nvAOy=(modelMatrix*vec4(transformed,1.0)).y;\n#endif");
-  sh.fragmentShader=sh.fragmentShader.replace("#include <common>","#include <common>\nuniform float uLit;\nuniform float uTrans;\nvarying float vAOy;\nvarying vec4 vCandle;").replace("#include <aomap_fragment>","#include <aomap_fragment>\n{float g=smoothstep(0.0,26.0,vAOy);reflectedLight.indirectDiffuse*=mix(0.48,1.0,g);reflectedLight.directDiffuse*=mix(0.76,1.0,g);}\nif(uLit>0.001&&vCandle.w<1.5){vec3 fl=vec3(0.0,14.0,0.0);float d=length(vCandle.xyz-fl);float inW=smoothstep(-0.1, -0.7, vCandle.w);float revW=(1.0-abs(vCandle.w))*smoothstep(0.85,-0.25,vCandle.w);float outW=smoothstep(-0.05,0.65,vCandle.w);float attIn=1.85/(1.0+pow(d/23.0,2.05))+0.20;float attRev=1.35/(1.0+pow(d/24.0,1.95))+0.14;float attOut=1.0/(1.0+pow(max(0.0,d-26.0)/15.5,2.0))*smoothstep(0.0,3.2,vCandle.y)*smoothstep(40.0,34.5,vCandle.y);vec3 tint=mix(diffuseColor.rgb,vec3(1.0,0.82,0.52),0.58);totalEmissiveRadiance+=tint*(vec3(1.0,0.75,0.38)*attIn*inW+vec3(1.0,0.70,0.34)*attRev*revW+vec3(1.0,0.56,0.20)*(0.035+0.42*attOut)*outW*uTrans)*uLit;}");}
+  sh.fragmentShader=sh.fragmentShader.replace("#include <common>","#include <common>\nuniform float uLit;\nuniform float uTrans;\nuniform float uCY;\nvarying float vAOy;\nvarying vec4 vCandle;").replace("#include <aomap_fragment>","#include <aomap_fragment>\n{float g=smoothstep(0.0,26.0,vAOy);reflectedLight.indirectDiffuse*=mix(0.48,1.0,g);reflectedLight.directDiffuse*=mix(0.76,1.0,g);}\nif(uLit>0.001&&vCandle.w<1.5){vec3 fl=vec3(0.0,uCY,0.0);float d=length(vCandle.xyz-fl);float inW=smoothstep(-0.1, -0.7, vCandle.w);float revW=(1.0-abs(vCandle.w))*smoothstep(0.85,-0.25,vCandle.w);float outW=smoothstep(-0.05,0.65,vCandle.w);float attIn=1.85/(1.0+pow(d/23.0,2.05))+0.20;float attRev=1.35/(1.0+pow(d/24.0,1.95))+0.14;float attOut=1.0/(1.0+pow(max(0.0,d-26.0)/15.5,2.0))*smoothstep(0.0,3.2,vCandle.y)*smoothstep(40.0,34.5,vCandle.y);vec3 tint=mix(diffuseColor.rgb,vec3(1.0,0.82,0.52),0.58);totalEmissiveRadiance+=tint*(vec3(1.0,0.75,0.38)*attIn*inW+vec3(1.0,0.70,0.34)*attRev*revW+vec3(1.0,0.56,0.20)*(0.035+0.42*attOut)*outW*uTrans)*uLit;}");}
 const gl=b=>b.finish==="gloss";
 const bodyMat=b=>matOf(b.body||"porcelain",(b.finish||"glazed")==="unglazed"?"unglazed":(b.glazeCol||"white"),gl(b));
 /* a module may carry its own glaze colour (or be left unglazed); otherwise it follows the building */
@@ -881,7 +883,9 @@ function modernRoof(b){const g=new THREE.Group(),nc=perMod(b)?1:b.cols,nd=perMod
   g.add(soft(rsq(-hw,-hd,hw,hd,radOf(b)),vents,FLAT_T,mat,0,1.9));   /* sits on the wall tops, flush outside */
   for(let c=0;c<nc;c++)for(let r=0;r<nd;r++)g.add(lipRing(xs(c),zs(r),-LIP.h,mat,b),lipRing(xs(c),zs(r),FLAT_T,mat,b));   /* lip under (inside the walls) and on top (to stack) */
   return g;}
-const TEA_CUP_GEO=new THREE.CylinderGeometry(18.5,18.5,5.5,32),TEA_WAX_GEO=new THREE.CylinderGeometry(17.6,17.6,1.2,32),FLAME_OUT_GEO=new THREE.SphereGeometry(2.05,24,18),FLAME_IN_GEO=new THREE.SphereGeometry(1.15,20,14);
+/* the candle (a tealight): diameter CD (default 38 mm) and height CH (default 12 mm, double the first 6 mm model), set in the Module editor; the flame sits on top of it */
+const TEA={};function teaGeo(){const k=CD+"|"+CH;if(!TEA[k]){Object.keys(TEA).forEach(x=>{TEA[x].cup.dispose();TEA[x].wax.dispose();delete TEA[x];});TEA[k]={cup:new THREE.CylinderGeometry(CD/2-0.5,CD/2-0.5,CH-0.5,32),wax:new THREE.CylinderGeometry(CD/2-1.4,CD/2-1.4,1.2,32)};}return TEA[k];}
+const FLAME_OUT_GEO=new THREE.SphereGeometry(2.05,24,18),FLAME_IN_GEO=new THREE.SphereGeometry(1.15,20,14);
 function buildBuilding(bi,gap,lightBudget){
   const b=S.buildings[bi],g=new THREE.Group(),{ys,top}=levelY(b,gap),hw=b.cols*WX/2,hd=b.deep*WZ/2;
   g.position.set(b.x,0,b.z);g.rotation.y=-b.rot*Math.PI/2;
@@ -895,9 +899,9 @@ function buildBuilding(bi,gap,lightBudget){
         if(up)g.add(lipRing(mx(c),-mz(r),py+plateT(l),pm,b));if(dn)g.add(lipRing(mx(c),-mz(r),py-LIP.h,pm,b));}
 }   /* the base is one piece: no separate foot layer under it */
     for(let c=0;c<b.cols;c++)for(let r=0;r<b.deep;r++){const k=c+":"+r+":"+l;if(!alive(b,k))continue;const mg=new THREE.Group();mg.position.set(mx(c),ys[l],mz(r));const bvs={};FACES.forEach(f=>{const w=buildWall(bi,k,f);bvs[f]=w.userData.bv;mg.add(w);});mg.add(cornerPieces(b,k,bvs));if(b.candles[l]&&b.plates[l])mg.traverse(o=>o.userData.lit=true);g.add(mg);
-      if(b.candles[l]&&b.plates[l]){const tea=new THREE.Mesh(TEA_CUP_GEO,MAT.tea);tea.position.set(mx(c),ys[l]-gap*0.5+2.75,mz(r));tea.receiveShadow=true;tea.userData.shared=true;g.add(tea);
-        const wax=new THREE.Mesh(TEA_WAX_GEO,MAT.wax);wax.position.set(mx(c),ys[l]-gap*0.5+5.4,mz(r));wax.userData.shared=true;g.add(wax);
-        const fl=new THREE.Group();fl.position.set(mx(c),ys[l]-gap*0.5+10.5,mz(r));
+      if(b.candles[l]&&b.plates[l]){const tea=new THREE.Mesh(teaGeo().cup,MAT.tea);tea.position.set(mx(c),ys[l]-gap*0.5+(CH-0.5)/2,mz(r));tea.receiveShadow=true;tea.userData.shared=true;g.add(tea);
+        const wax=new THREE.Mesh(teaGeo().wax,MAT.wax);wax.position.set(mx(c),ys[l]-gap*0.5+CH-0.6,mz(r));wax.userData.shared=true;g.add(wax);
+        const fl=new THREE.Group();fl.position.set(mx(c),ys[l]-gap*0.5+CH+4.5,mz(r));
         const flOut=new THREE.Mesh(FLAME_OUT_GEO,MAT.flame);flOut.scale.set(0.78,1.75,0.78);fl.add(flOut);
         const flIn=new THREE.Mesh(FLAME_IN_GEO,MAT.flameCore);flIn.scale.set(0.7,1.45,0.7);flIn.position.y=-0.5;fl.add(flIn);
         g.add(fl);flames.push(fl);}}
@@ -924,7 +928,7 @@ const LPOOL=Array.from({length:MAX_LIGHTS},(_,i)=>{const L=new THREE.PointLight(
   L.shadow.camera.near=3;L.shadow.camera.far=380;L.position.set(0,-500,0);L.userData.base=0;scene.add(L);return L;});
 /* candles share the pool: one real light per lit module, the selected building's first, then the lowest levels;
    real 3D point lights illuminate the 3 mm opening reveals, interior walls, locating lips, plates and neighbouring modules */
-const CANDLE_Y=14,CANDLE_I=1.45,BAKE_R=145,BAKE_SOFT=[
+let CANDLE_Y=CH+8;const UCY={value:CH+8},CANDLE_I=1.45,BAKE_R=145,BAKE_SOFT=[
   [0,0,0],[0,2.2,0],[0,4.2,0],[0,-1.2,0],
   [1.3,1.0,0],[-1.3,1.0,0],[0,1.0,1.3],[0,1.0,-1.3],
   [1.1,2.8,1.1],[-1.1,2.8,1.1],[1.1,2.8,-1.1],[-1.1,2.8,-1.1],
@@ -1103,7 +1107,7 @@ function buildingChecks(b){const hard=[],notes=[];const H_=(ok,label,v)=>hard.pu
   H_(!floating.length,"Every module stands on a module or a plate",floating.length?floating.map(k=>{const [c,r,l]=keyParts(k);return levelName(l)+" "+(c+1)+"ABC"[r];}).join(", "):"✓");
   if(b.roof!=="none"&&!perMod(b)&&!topComplete(b))N(false,"One-piece roof needs a complete top level","lids per column instead");
   H_(true,"Fired pieces ≤ "+B.LIM.section+" mm","modules "+H+" · roof "+roofH(b).toFixed(1)+" · plates "+BASE_T+"/"+PLATE_T);
-  H_(b.candles.every((c,l)=>!c||b.plates[l]),"Every candle stands on a plate","Ø 38 tealight, 54 mm inside");
+  H_(b.candles.every((c,l)=>!c||b.plates[l]),"Every candle stands on a plate",`Ø ${CD} × ${CH} mm tealight, ${Math.min(WX,WZ)-2*T} mm inside`);
   const dark=[];for(let l=0;l<b.levels;l++){let lit=false;for(let m=l;m>=0;m--){if(b.candles[m]){lit=true;break;}if(b.plates[m])break;}if(!lit)dark.push(levelName(l));}
   N(!dark.length,"Every level gets candlelight",dark.length?"dark: "+dark.join(", "):"✓");
   if(b.set==="ottoman"){
@@ -1157,9 +1161,9 @@ function renderEditor(){
 const ck=c=>`<div class="ck"><span class="s ${c.ok?"ok":c.note?"note":"bad"}">${c.ok?"✓":c.note?"●":"✗"}</span><span>${c.label}</span><span class="v">${c.v}</span></div>`;
 /* ================= technical & mechanical review =================
    The pieces: open module rings (4 walls cast as one, 60 × 60 × 40, 3 mm), plates (4 mm, Ø25 vent per module), the base
-   (2.5 mm, unglazed foot), the roof (a hollow cast lid or a 2.5 mm slab) and a Ø38 tealight. Everything is fired apart and
+   (2.5 mm, unglazed foot), the roof (a hollow cast lid or a 2.5 mm slab) and a tealight. Everything is fired apart and
    stacked dry. These are the details that make that work; the figures follow the selected building. */
-const FIT={clr:LIP.clr,rimW:LIP.w,rimH:LIP.h,tol:0.5,ventLit:VENT_D,flameTop:20,rib:3};
+const FIT={clr:LIP.clr,rimW:LIP.w,rimH:LIP.h,tol:0.5,ventLit:VENT_D,get flameTop(){return CH+14;},rib:3};
 function techReview(b){const rows=[],R_=(ok,label,v,fx)=>rows.push({ok,label,v,fx});
   const k=1/(1-shrinkOf(b)/100),inner=Math.min(WX,WZ)-2*T,rim=inner-2*FIT.clr,n=Math.max(b.cols,b.deep),span=Math.max(b.cols*WX,b.deep*WZ),top=levelY(b,0).top+roofH(b),lit=b.candles.filter((c,l)=>c&&b.plates[l]).length;
   R_(true,"Mould scale","× "+k.toFixed(3),`${shrinkOf(b)} % ${BODY[b.body||"porcelain"].name.toLowerCase()} shrinkage: a 60.0 mm module is cast at ${(W*k).toFixed(1)} mm. Pieces from one batch and one kiln shelf vary about ±${FIT.tol} %, so every fit below leaves at least ${FIT.clr} mm.`);
@@ -1174,7 +1178,7 @@ function techReview(b){const rows=[],R_=(ok,label,v,fx)=>rows.push({ok,label,v,f
   R_(lit===0||flameGap>=25,"Candle heat: flame to plate above",lit?`${flameGap} mm`:"no candles",lit?`A tealight flame tops out about ${FIT.flameTop} mm above its plate, leaving ${flameGap} mm to the plate over it. The Ø${FIT.ventLit} vent over each module lets the heat and soot rise through instead of pooling under the plate; on lower levels of tall stacks use LED tealights.`:"Add a candle to a level with a plate to see the heat check.");
   let minOpen=100;liveKeys(b).forEach(kk=>{const [,,l]=keyParts(kk);if(!(b.candles[l]&&b.plates[l]))return;let a=0;FACES.forEach(f=>{const o=bld(b.mods[kk][f],f);a+=o.holes.reduce((s2,h)=>s2+B.area(h.p),0);});minOpen=Math.min(minOpen,a/(4*W*H)*100);});
   R_(lit===0||minOpen>=6,"Air for the flame",lit?`${minOpen.toFixed(0)} % open (least open lit module)`:"–",lit?(minOpen>=6?"Enough open wall for the tealight to draw air and burn clean.":"Below about 6 % open wall the flame starves and smokes: open one wall more on that module, or keep it unlit."):"–");
-  R_(true,"Lighting the candles","lift the stack above",`Tealights stand on the plates (Ø38 in a ${inner.toFixed(0)} mm square, ${((inner-38)/2).toFixed(0)} mm all round). To light a level, lift off everything above it as one piece; the rims re-locate it. A long match or lighter through an opening also works for openings ≥ 12 mm.`);
+  R_(true,"Lighting the candles","lift the stack above",`Tealights stand on the plates (Ø${CD} in a ${inner.toFixed(0)} mm square, ${((inner-CD)/2).toFixed(0)} mm all round). To light a level, lift off everything above it as one piece; the rims re-locate it. A long match or lighter through an opening also works for openings ≥ 12 mm.`);
   const slender=top/(Math.min(b.cols*WX,b.deep*WZ));
   R_(slender<=4,"Stability of the stack",`${top.toFixed(0)} mm tall on ${Math.min(b.cols*WX,b.deep*WZ)} mm = ${slender.toFixed(1)} : 1`,slender<=4?"Stands safely dry-stacked.":`Taller than 4 : 1 a dry stack can be knocked over. Keep the rims, add a heavier base (6 mm with ribs) or a felt pad, and don't light the top levels of such a tower.`);
   if(b.cols*b.deep>1)R_(true,"Modules side by side",`${b.cols} × ${b.deep} rings, 6 mm party walls`,`Neighbouring modules are separate rings standing wall to wall (3 + 3 mm). The plate rims hold each one in its own place, and the outer faces line up within ±${(n*W*FIT.tol/100).toFixed(1)} mm across the building.`);
@@ -1199,9 +1203,9 @@ function techDetails(b){const ink="var(--ink)",ln="var(--line)",hat="rgba(120,11
     slab=y=>rect(X0,y,vx0-X0,PLATE_T)+rect(vx1,y,X1-vx1,PLATE_T)+`<line x1="${vx0}" y1="${y}" x2="${vx1}" y2="${y}" stroke-width=".12" stroke-dasharray=".8 .8"/><line x1="${vx0}" y1="${y+PLATE_T}" x2="${vx1}" y2="${y+PLATE_T}" stroke-width=".12" stroke-dasharray=".8 .8"/>`,
     lips=y=>rect(X0+li,y,rw,rh,ft)+rect(X1-li-rw,y,rw,rh,ft);
   const cs=sv(80,62,slab(yT)+slab(yB)+rect(X0,yW,T,H)+rect(X1-T,yW,T,H)+lips(yT-rh)+lips(yW)+lips(yB-rh)+lips(yB+PLATE_T)+
-    `<rect x="${X0+W/2-19}" y="${yB-8}" width="38" height="8" fill="${ln}"/>`+
-    `<path d="M${X0+W/2} ${yB-8} q-2 -6 0 -${FIT.flameTop-8} q2 ${FIT.flameTop-14} 0 ${FIT.flameTop-8}" fill="rgba(240,163,58,.8)" stroke="none"/>`+
-    dim(X1-li-rw-3,yB-FIT.flameTop,X1-li-rw-3,yW,(H-FIT.flameTop)+" mm")+txt(X0+W/2,3.4,"vent Ø"+FIT.ventLit+" in every slab","middle")+txt(X0+W/2,61.6,"Ø38 tealight on the slab","middle")+
+    `<rect x="${X0+W/2-CD/2}" y="${yB-CH}" width="${CD}" height="${CH}" fill="${ln}"/>`+
+    `<path d="M${X0+W/2} ${yB-CH} q-2 -6 0 -${FIT.flameTop-CH} q2 ${FIT.flameTop-CH-6} 0 ${FIT.flameTop-CH}" fill="rgba(240,163,58,.8)" stroke="none"/>`+
+    dim(X1-li-rw-3,yB-FIT.flameTop,X1-li-rw-3,yW,(H-FIT.flameTop)+" mm")+txt(X0+W/2,3.4,"vent Ø"+FIT.ventLit+" in every slab","middle")+txt(X0+W/2,61.6,`Ø${CD} × ${CH} tealight on the slab`,"middle")+
     txt(X1+2,yT+3,"slab "+PLATE_T)+txt(X1+2,yB+3,"slab "+PLATE_T)+txt(X1+2,yW+H/2,"wall "+T)+txt(X1+2,yB+PLATE_T+1.6,`lips ${rw} × ${rh}`)+txt(X1+2,yB+PLATE_T+4.9,`${c} play`));
   const fig=(svg,t,d)=>`<figure>${svg}<figcaption><b>${t}</b>${d}</figcaption></figure>`;
   return fig(j,"1 · Stacking joint, 4 : 1","Plates locate the module below and the module above with a bare rim on each face.")+fig(rs,"2 · Roof seat, 4 : 1","The roof sits flush with the outer wall face, no overhang. A rim under it drops inside the top ring, so it locates and lifts straight off.")+
@@ -1459,10 +1463,10 @@ on("radius","input",e=>{each(b=>b.radius=+e.target.value);renderUI();});
 /* Module editor only: module height, wall and slab thickness. Every piece (view, checks, technical review, STL) reads H, T and the slab live */
 /* the module's size and thicknesses are set in the Module editor; the cluster editor reads them from its saved design and follows */
 const modDims=()=>{if(MODE==="module")return S;try{return JSON.parse(localStorage.getItem("tikrar-module-editor-v1"))||{};}catch(e){return {};}};
-function applyDims(){const D=modDims();WX=D.mw||60;WZ=D.ml||60;RGEO.clear();H=D.mh||40;T=D.mt||3;BASE_T=PLATE_T=FLAT_T=D.ms||4;
+function applyDims(){const D=modDims();WX=D.mw||60;WZ=D.ml||60;RGEO.clear();H=D.mh||40;T=D.mt||3;BASE_T=PLATE_T=FLAT_T=D.ms||4;CD=D.cd||38;CH=D.ch||12;CANDLE_Y=CH+8;UCY.value=CH+8;
   {const el=$("modSize");if(el)el.textContent=`porcelain modules ${WX} × ${WZ} mm · ${H} mm walls`;}B.setH(H);B.LIPS.in=T+LIP.clr;WGEO.clear();CGEO.clear();if(MODE!=="module"){const k=[WX,WZ,H,T,PLATE_T].join("|");if(S.dims!==k){S.dims=k;gridLayout(S.buildings);}return;}
-  [["modW",WX,WX+" mm"],["modL",WZ,WZ+" mm"],["modH",H,H+" mm"],["modT",T,T.toFixed(1)+" mm"],["modS",PLATE_T,PLATE_T.toFixed(1)+" mm"]].forEach(([id,v,t])=>{if(document.activeElement!==$(id))$(id).value=v;$(id+"V").textContent=t;});}
-[["modW","mw"],["modL","ml"],["modH","mh"],["modT","mt"],["modS","ms"]].forEach(([id,k])=>on(id,"input",e=>{S[k]=+e.target.value;applyDims();renderUI();}));
+  [["modW",WX,WX+" mm"],["modL",WZ,WZ+" mm"],["modH",H,H+" mm"],["modT",T,T.toFixed(1)+" mm"],["modS",PLATE_T,PLATE_T.toFixed(1)+" mm"],["modCD",CD,CD+" mm"],["modCH",CH,CH+" mm"]].forEach(([id,v,t])=>{if(document.activeElement!==$(id))$(id).value=v;$(id+"V").textContent=t;});}
+[["modW","mw"],["modL","ml"],["modH","mh"],["modT","mt"],["modS","ms"],["modCD","cd"],["modCH","ch"]].forEach(([id,k])=>on(id,"input",e=>{S[k]=+e.target.value;applyDims();renderUI();}));
 window.addEventListener("storage",e=>{if(MODE!=="module"&&e.key==="tikrar-module-editor-v1"){applyDims();renderUI();}});   /* a Module editor open in another tab: the city follows live */
 on("modO","input",e=>{scaleWall(+e.target.value);$("modOV").textContent=e.target.value+" %";});
 on("modO","change",e=>{FSCALE=null;e.target.value=100;$("modOV").textContent="100 %";renderUI();});
@@ -1588,7 +1592,7 @@ function makeSheet(jspdf){
   row("Colours",`walls ${b.finish==="unglazed"?"unglazed":GLAZE[b.glazeCol||"white"].name.toLowerCase()} · plates ${(b.plateCol||"same")==="same"?"as walls":b.plateCol==="unglazed"?"unglazed":GLAZE[b.plateCol].name.toLowerCase()}`+(nAcc?` · ${nAcc} accent module${nAcc>1?"s":""}`:"")+(b.palette?` · ${PALETTES[b.palette].name}`:""));
   row("Roof",b.roof==="none"?"none":(b.roof==="slant"?`hipped ${b.pitch}°`:"flat slab")+`, ${perMod(b)?"one per module":"one piece"}, ${roofH(b).toFixed(1)} mm`);
   row("Plates",b.plates.map((p,l)=>p?(l?"L"+l+" "+PLATE_T:"base "+BASE_T)+" mm":null).filter(Boolean).join(", ")||"none");
-  row("Candles",(b.candles.map((c,l)=>c?levelName(l):null).filter(Boolean).join(", ")||"none")+` · ${b.candles.filter(Boolean).length*b.cols*b.deep} × Ø38 tealight`);
+  row("Candles",(b.candles.map((c,l)=>c?levelName(l):null).filter(Boolean).join(", ")||"none")+` · ${b.candles.filter(Boolean).length*b.cols*b.deep} × Ø${CD} × ${CH} tealight`);
   y+=2;TT("BILL OF PIECES",X,y,6.5);y+=1.5;
   const nPl=b.plates.filter(Boolean).length,nRoof=b.roof==="none"?0:perMod(b)?b.cols*b.deep:1;
   const bom=[["Item","Qty","Description","Fired size (mm)"],["M",String(nMod),"module, 4 walls, open top/bottom","60 × 60 × 40, wall 3"],["P",String(nPl),"plate / base, Ø"+VENT_D+" vent per module",`${b.cols*W} × ${b.deep*W} × ${BASE_T}/${PLATE_T}`],
@@ -1633,7 +1637,7 @@ function makeSheet(jspdf){
   frame("PLAN · SECTION A–A · DETAIL 1",`plan ${sp.toFixed(2)}:1 · section ${ss.toFixed(2)}:1 · detail 3:1`);
   {const ox=24,oy=18+b.deep*W*sp+6,hw=b.cols*W,hd=b.deep*W;TT("PLAN AT GROUND LEVEL",ox-8,14,6.5);
     for(let c=0;c<b.cols;c++)for(let r=0;r<b.deep;r++){const x0=ox+c*W*sp,y0=oy-(r+1)*W*sp;if(!alive(b,c+":"+r+":0")){dash("hidden");lw(0.12);doc.rect(x0,y0,W*sp,W*sp,"S");dash();continue;}doc.setFillColor(214,206,192);lw(0.3);const rr=radOf(b)*sp;if(rr>0.05)doc.roundedRect(x0,y0,W*sp,W*sp,rr,rr,"FD");else doc.rect(x0,y0,W*sp,W*sp,"FD");doc.setFillColor(255,255,255);lw(0.15);const ri=Math.max(0,radOf(b)-T)*sp;if(ri>0.05)doc.roundedRect(x0+T*sp,y0+T*sp,(W-2*T)*sp,(W-2*T)*sp,ri,ri,"FD");else doc.rect(x0+T*sp,y0+T*sp,(W-2*T)*sp,(W-2*T)*sp,"FD");
-      const cxm=x0+W*sp/2,cym=y0+W*sp/2;if(b.candles[0]){dash("hidden");lw(0.12);doc.circle(cxm,cym,19*sp,"S");dash();}
+      const cxm=x0+W*sp/2,cym=y0+W*sp/2;if(b.candles[0]){dash("hidden");lw(0.12);doc.circle(cxm,cym,CD/2*sp,"S");dash();}
       if(b.levels>1&&b.plates.slice(1).some(Boolean)){lw(0.12);doc.circle(cxm,cym,4*sp,"S");}}
     for(let c=0;c<b.cols;c++){const x=ox+(c+0.5)*W*sp;dash("center");lw(0.08);doc.line(x,oy+2,x,oy-hd*sp-2);dash();bubble(x,oy-hd*sp-5,String(c+1));}
     for(let r=0;r<b.deep;r++){const yq=oy-(r+0.5)*W*sp;dash("center");lw(0.08);doc.line(ox-2,yq,ox+hw*sp+2,yq);dash();bubble(ox-5,yq,"ABC"[r]);}
@@ -1643,7 +1647,7 @@ function makeSheet(jspdf){
     lw(0.2);doc.lines([[0,-2.5],[-0.9,1.2],[1.8,0],[-0.9,-1.2]],ox-6,ax,[1,1],"F",true);doc.lines([[0,-2.5],[-0.9,1.2],[1.8,0],[-0.9,-1.2]],ox+hw*sp+9,ax,[1,1],"F",true);
     TT("A",ox-6,ax-3.6,6,{align:"center"});TT("A",ox+hw*sp+9,ax-3.6,6,{align:"center"});
     TT("STREET →  front elevation",ox+hw*sp/2,oy+14,5.4,{align:"center"});
-    grey();TT("Grey: 3.0 walls, two leaves where modules meet. Dashed: Ø38 tealight. Circle: Ø25 plate vent.",ox-8,oy+18,4.8);ink();}
+    grey();TT("Grey: 3.0 walls, two leaves where modules meet. Dashed: Ø"+CD+" tealight. Circle: Ø25 plate vent.",ox-8,oy+18,4.8);ink();}
   {const ox=156,oy=18+fh*ss+4,r=Math.floor((b.deep-1)/2),fw=b.cols*W;TT("SECTION A–A",ox-4,14,6.5);
     let yy=0;const lv=[];
     for(let l=0;l<b.levels;l++){
@@ -1653,7 +1657,7 @@ function makeSheet(jspdf){
         /* the back wall of this row, seen beyond the cut (its inside face, so mirrored) */
         const o=bld(b.mods[c+":"+r+":"+l].back,"back");lw(0.1);doc.setDrawColor(150,144,136);o.holes.forEach(h=>poly(h.p,x0,oy-yy*ss,ss,"S",W));ink();
         hatch(x0,oy-(yy+H)*ss,T*ss,H*ss,0.9);hatch(x0+(W-T)*ss,oy-(yy+H)*ss,T*ss,H*ss,0.9);
-        if(b.candles[l]&&b.plates[l]){dash("hidden");lw(0.12);doc.rect(x0+11*ss,oy-(yy+8)*ss,38*ss,8*ss,"S");dash();doc.setFillColor(240,163,58);doc.ellipse(x0+30*ss,oy-(yy+11)*ss,0.8*ss*1.5,1.6*ss*1.5,"F");}}
+        if(b.candles[l]&&b.plates[l]){dash("hidden");lw(0.12);doc.rect(x0+(W-CD)/2*ss,oy-(yy+CH)*ss,CD*ss,CH*ss,"S");dash();doc.setFillColor(240,163,58);doc.ellipse(x0+W/2*ss,oy-(yy+CH+3)*ss,0.8*ss*1.5,1.6*ss*1.5,"F");}}
       yy+=H;}
     if(b.roof!=="none"){const rh=roofH(b),pw=perMod(b)?W:fw,half=pw/2-roofRun(b);
       for(let x0=0;x0<fw-0.1;x0+=pw){const XX=ox+x0*ss;
