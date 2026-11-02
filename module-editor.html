@@ -39,6 +39,7 @@ html[data-mode=module] aside>.panel:first-child{display:none}
 /* v 02.11 review: collapsible panels, toast, "more controls" chevron, history buttons */
 .panel>h2[role=button]{cursor:pointer;user-select:none}.panel>h2[role=button]::before{content:"\25BE";font-size:12px;color:var(--muted);width:12px;flex:none}
 .panel.closed>h2[role=button]::before{content:"\25B8"}.panel.closed>*:not(h2){display:none}
+.cutS[hidden]{display:none}.btn.icon[aria-pressed=true]{background:var(--terra);border-color:var(--terra);color:#fff}
 .vbar .vmore{position:sticky;right:0;flex:none;width:32px;padding:0;font-size:18px;line-height:16px;background:linear-gradient(90deg,rgba(17,17,17,0),#111 45%);text-transform:none}.vbar .vmore[hidden]{display:none}
 #toast{position:fixed;left:50%;bottom:64px;transform:translateX(-50%);z-index:50;max-width:min(560px,calc(100vw - 32px));background:var(--ink);color:var(--bg);padding:8px 16px;font:500 13px/16px var(--sans);opacity:0;pointer-events:none;transition:opacity .2s}#toast.on{opacity:1}
 @media (prefers-reduced-motion:reduce){#toast{transition:none}}
@@ -210,8 +211,8 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
 <header class="grid12">
   <h1>TIKRAR<small>Beirut Lantern Generator</small></h1>
   <span class="sub"><span id="modSize">porcelain modules 60 × 60 mm · 40 mm walls</span> · houses, towers and city blocks · 1860–1925 and modernist openings</span>
-  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 02.11 · 14:25</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
-  <button class="btn icon" id="themeBtn" type="button" aria-label="Toggle colour theme">◐</button></nav>
+  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 02.11 · 15:30</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
+  </nav>
 </header>
 
 <div class="layout grid12">
@@ -219,11 +220,9 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
   <div class="viewer" id="viewer">
     <div class="tag" id="tag"></div>
     <div class="vbar">
-      <div class="grp"><button type="button" id="nightBtn" aria-pressed="true">Night</button><button type="button" id="renderBtn" aria-pressed="false" title="Realistic render: ceramic textures, ambient occlusion, bloom, filmic tone">Render</button></div>
-      <div class="grp"><label for="candle">Candles</label><input type="range" id="candle" min="0" max="2" step="0.05" value="1" title="Candle strength"><output id="candleV" for="candle"></output></div>
-      <div class="grp"><label for="sunT" title="Time of day: morning (left) to evening (right)">Sun</label><input type="range" id="sunT" min="0" max="1" step="0.01" value="0.35" title="Sun: morning to evening"><output id="sunV" for="sunT"></output></div>
-      <div class="grp"><label for="explode">Explode</label><input type="range" id="explode" min="0" max="30" step="1" value="0"><output id="explodeV" for="explode"></output></div>
-      <div class="grp cutG"><label title="Section plane: cut the model along X, Y (height) or Z and look inside">Cut</label><button type="button" data-cut="off" aria-pressed="true">Off</button><button type="button" data-cut="x" aria-pressed="false" title="Section across X (left to right)">X</button><button type="button" data-cut="y" aria-pressed="false" title="Section at a height (a plan cut)">Y</button><button type="button" data-cut="z" aria-pressed="false" title="Section across Z (front to back)">Z</button><span class="cutS" hidden><input type="range" id="cutT" min="0" max="1" step="0.005" value="0.5" title="Position of the section plane"><output id="cutV" for="cutT"></output><button type="button" id="cutFlip" aria-pressed="false" title="Keep the other side">⇄</button></span></div>
+      <div class="grp"><button type="button" id="dayBtn" aria-pressed="true" title="Daylight: the site turns light">Day</button><button type="button" id="nightBtn" aria-pressed="false" title="Night, candles lit: the site turns dark">Night</button><button type="button" id="renderBtn" aria-pressed="false" title="Realistic render: ceramic textures, ambient occlusion, bloom, filmic tone">Render</button></div>
+      <div class="grp"><button type="button" id="candleBtn" aria-pressed="true" title="Candles on or off (strength: View panel)">Candles</button><button type="button" id="sunBtn" aria-pressed="true" title="Sunlight and shadows on or off (time of day: View panel)">Sun</button><button type="button" id="explodeBtn" aria-pressed="false" title="Explode the pieces on or off (distance: View panel)">Explode</button><button type="button" id="cutBtn" aria-pressed="false" title="Section cut on or off (axis and position: View panel)">Cut</button></div>
+      <div class="grp"><button type="button" id="randBar" title="Randomize the whole city (the Randomize row in the panel has more)">Randomize</button></div>
       <div class="grp"><button type="button" id="orthoBtn" aria-pressed="false" title="Orthographic: parallel lines, no perspective">Ortho</button><button type="button" data-view="axo" title="Axonometric view">Axo</button><button type="button" data-view="plan" title="Plan, from above">Plan</button><button type="button" data-view="front" title="Front elevation">Front</button></div>
       <div class="grp"><button type="button" id="spinBtn" aria-pressed="false" title="Keep turning the view around the model">Spin</button><button type="button" id="slideBtn" aria-pressed="false" title="Keep the model still and slide the openings round the walls, over the corners onto the next wall; you can still change elements while it runs (also a GIF: see GIF, under Checks)">Slide</button><button type="button" id="lockBtn" aria-pressed="false" title="Lock the camera: no orbit, pan or zoom">Lock</button><button type="button" id="resetView" title="Reset the view">Reset</button><button type="button" id="jpgBtn" title="Save the 3D view as a JPG">JPG</button><button type="button" id="gifQuick" title="A randomize series as an animated GIF, from this exact view (frames: GIF, under Checks)">GIF</button><button type="button" id="panelBtn" aria-pressed="true" title="Show or hide the side panel (P)">Panel</button></div>
       <button type="button" class="vmore" id="vmore" aria-label="More controls" hidden>&#8250;</button>
@@ -250,6 +249,15 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
       <div class="f"><span class="lbl">Landmarks</span><div class="v"><div class="seg" id="lmSeg" title="Randomize All with or without landmarks; each landmark stands alone on its own block"><button type="button" data-v="0">Without</button><button type="button" data-v="1">With</button></div></div></div>
       <div class="f"><span class="lbl">Randomize</span><div class="v"><div class="seg"><button type="button" id="randBlock" title="New buildings in the selected building's block only, on the same footprints: the other blocks stay as they are">Block</button><button type="button" id="randVillage" title="New buildings everywhere">All</button><button type="button" id="rand10" title="10 random shots as a GIF: ten randomized cities as one GIF (Keep palette keeps the palette in every shot); your design comes back afterwards">GIF ×10</button></div><button class="btn" type="button" id="keepPal" aria-pressed="false" title="Randomize with the selected building's palette">Keep palette</button></div></div>
       <p class="hint">Arrange on grid packs the buildings wall to wall into city blocks of equal width (Block width, 6 modules by default; type any number in the fields), two rows back to back, each row facing its own street. Side streets run between block columns, main streets between block rows; − / + re-lays the blocks live. Vary gives every street its own width, from narrow lanes to wide avenues (turn it off and on for a new mix; Randomize All mixes them again too and lays the city out in clusters (Clusters button: groups of blocks between main streets, each with its own subgrid); Randomize Block renews only the selected building's block). Arrows move one building in 30 mm steps. Blocks: Lines draws the blocks' outlines on the ground (main streets heavier); Plots turns each block into a flat 4 mm porcelain tray the buildings stand on, so streets are the gaps between trays and an empty block is a public space.</p>
+    </div>
+
+    <div class="panel" id="viewPanel">
+      <h2>View <span class="meta">light, sun, explode, cut</span></h2>
+      <div class="f"><label class="lbl" for="candle">Candles</label><div class="v rng"><input type="range" id="candle" min="0" max="2" step="0.05" value="1" title="Candle strength"><span class="num" id="candleV"></span></div></div>
+      <div class="f"><label class="lbl" for="sunT" title="Time of day: morning (left) to evening (right)">Sun</label><div class="v rng"><input type="range" id="sunT" min="0" max="1" step="0.01" value="0.35" title="Sun: morning to evening"><span class="num" id="sunV"></span></div></div>
+      <div class="f"><label class="lbl" for="explode">Explode</label><div class="v rng"><input type="range" id="explode" min="0" max="30" step="1" value="0"><span class="num" id="explodeV"></span></div></div>
+      <div class="f"><span class="lbl" title="Section plane: cut the model along X, Y (height) or Z and look inside">Cut</span><div class="v"><div class="seg" id="cutSeg"><button type="button" data-cut="off" aria-pressed="true">Off</button><button type="button" data-cut="x" aria-pressed="false" title="Section across X (left to right)">X</button><button type="button" data-cut="y" aria-pressed="false" title="Section at a height (a plan cut)">Y</button><button type="button" data-cut="z" aria-pressed="false" title="Section across Z (front to back)">Z</button></div></div></div>
+      <div class="f cutS" hidden><label class="lbl" for="cutT">Position</label><div class="v rng"><input type="range" id="cutT" min="0" max="1" step="0.005" value="0.5" title="Position of the section plane"><span class="num" id="cutV"></span><button type="button" class="btn icon" id="cutFlip" aria-pressed="false" title="Keep the other side">⇄</button></div></div>
     </div>
 
     <div class="panel">
@@ -334,10 +342,10 @@ const fwOf=f=>f==="front"||f==="back"?WX:WZ,bld=(spec,f)=>{B.setW(fwOf(f||S.selF
 const FACES=["front","right","back","left"],FNAME={front:"Front",right:"Right",back:"Back",left:"Left"};
 const $=id=>document.getElementById(id);
 const root=document.documentElement;
-try{const t=localStorage.getItem("beit-proposals-theme");if(t)root.dataset.theme=t;}catch(e){}
+/* the site theme follows Day and Night (applyNight); until the design is loaded it is light */
+root.dataset.theme="light";
 {const g=on=>{document.body.classList.toggle("showgrid",on);$("gridBtn").setAttribute("aria-pressed",on);};$("gridBtn").onclick=()=>g(!document.body.classList.contains("showgrid"));
   addEventListener("keydown",e=>{if((e.key==="g"||e.key==="G")&&!/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName)&&!e.metaKey&&!e.ctrlKey)g(!document.body.classList.contains("showgrid"));});}
-$("themeBtn").onclick=()=>{const dark=root.dataset.theme?root.dataset.theme==="dark":matchMedia("(prefers-color-scheme: dark)").matches;root.dataset.theme=dark?"light":"dark";try{localStorage.setItem("beit-proposals-theme",root.dataset.theme);}catch(e){}renderUI();};
 
 /* ================= model =================
    village = buildings on a 30 mm grid; building = cols × deep × levels modules, each with four walls,
@@ -563,13 +571,15 @@ function defaultVillage(){return gridLayout(["central","stair","modernTower","li
 function defaults(){return {buildings:MODE==="module"?[KINDS.liwan()]:defaultVillage(),selB:0,sel:"0:0:0",selFace:"front",editSet:"ottoman",night:false,explode:0,gridded:3,gutter:30,avenue:60,multi:[]};}
 let S=defaults();
 try{const v=JSON.parse(localStorage.getItem(KEY)||"null");if(v&&Array.isArray(v.buildings)&&v.buildings.length)S=Object.assign(defaults(),v);}catch(e){}
+S.night=false;   /* the site opens in Day */
+S.noSel=false;
 S.buildings.forEach(b=>{if(b.set==='grid')b.set='modern';Object.values(b.mods).forEach(m=>FACES.forEach(f=>{const w=m[f];if(w&&((w.type&&!B.BY[w.type])||(w.bays&&w.bays.some(x=>!B.BAY[x]))))m[f]=randomWall(b.set);}));});   /* the retired grid openings become a fresh wall of the building's book */if(S.editSet==='grid')S.editSet='modern';if(S.gutter===undefined)S.gutter=30;GUTTER=S.gutter;if(S.avenue===undefined)S.avenue=60;AVENUE=S.avenue;if(S.blockM===undefined)S.blockM=6;BLOCKM=S.blockM;if((S.gridded||0)<3){gridLayout(S.buildings);S.gridded=3;}   /* designs saved before the village grid are laid out on it once */
 LAYOUT.blocks.length=0;   /* the block lines are worked out again for the design just loaded */
 S.buildings.forEach(b=>{if(b.glaze){if(!b.roofCol)b.roofCol=b.glaze==="terra"?"terra":"same";delete b.glaze;}});
 /* saving and history (v 02.11 review): the design is written to localStorage once the editing pauses (and when the page is left),
    and every settled change is one Undo step; a slider drag is one step. Only the design is in the history: night, sun, explode,
    candle strength, cut and camera are view settings and stay as they are. */
-const VIEWK=new Set(["night","explode","candle","sun","render","ortho","lock","spin","nopanel","cut","view","gifWhat","dims"]);
+const VIEWK=new Set(["noSel","sunOff","explodePrev","candlePrev","cutLast","night","explode","candle","sun","render","ortho","lock","spin","nopanel","cut","view","gifWhat","dims"]);
 const hSnap=()=>{const o={};for(const k in S)if(!VIEWK.has(k))o[k]=S[k];return JSON.stringify(o);};
 let hCur="",hU=[],hR=[],hSz=0,hSkip=false,hT=0,lsT=0,hLive=false;   /* hLive: set by the first touch; until then settling only re-bases */const HMAX=60,HBYTES=40e6;
 const persist=()=>{lsT=0;try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}};
@@ -1082,7 +1092,7 @@ function buildBuilding(bi,gap,lightBudget){
         if(up)g.add(lipRing(mx(c),-mz(r),py+plateT(l),pm,b,true));if(dn)g.add(lipRing(mx(c),-mz(r),py-LIP.h,pm,b));}
 }   /* the base is one piece: no separate foot layer under it */
     for(let c=0;c<b.cols;c++)for(let r=0;r<b.deep;r++){const k=c+":"+r+":"+l;if(!alive(b,k))continue;const mg=new THREE.Group();mg.position.set(mx(c),ys[l],mz(r));if(ringOn(b,k))mg.add(slideRing(bi,b,k));else{const bvs={};FACES.forEach(f=>{const w=buildWall(bi,k,f);bvs[f]=w.userData.bv;mg.add(w);});mg.add(cornerPieces(b,k,bvs));}if(litMod(b,c,r,l))mg.traverse(o=>o.userData.lit=true);g.add(mg);
-      if(bi===S.selB&&k===S.sel&&b.cols*b.deep*b.levels>1){const eg=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(WX+3,H+3,WZ+3)),MAT.selMod);eg.position.set(mx(c),ys[l]+H/2,mz(r));eg.renderOrder=5;eg.userData.shared=true;g.add(eg);}   /* the selected module of the selected building: bright box (cluster editor) */
+      if(!S.noSel&&bi===S.selB&&k===S.sel&&b.cols*b.deep*b.levels>1){const eg=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(WX+3,H+3,WZ+3)),MAT.selMod);eg.position.set(mx(c),ys[l]+H/2,mz(r));eg.renderOrder=5;eg.userData.shared=true;g.add(eg);}   /* the selected module of the selected building: bright box (cluster editor) */
       if(litMod(b,c,r,l)){const tea=new THREE.Mesh(teaGeo().cup,MAT.tea);tea.position.set(mx(c),ys[l]-gap*0.5+(CH-0.5)/2,mz(r));tea.receiveShadow=true;tea.userData.shared=true;g.add(tea);
         const wax=new THREE.Mesh(teaGeo().wax,MAT.wax);wax.position.set(mx(c),ys[l]-gap*0.5+CH-0.6,mz(r));wax.userData.shared=true;g.add(wax);
         const fl=new THREE.Group();fl.position.set(mx(c),ys[l]-gap*0.5+CH+4.5,mz(r));
@@ -1110,7 +1120,7 @@ function buildBuilding(bi,gap,lightBudget){
         cd[4*i]=v.x-best[0];cd[4*i+1]=w>0?Math.min(ly,H-3.2):ly;cd[4*i+2]=v.z-best[2];cd[4*i+3]=w;}   /* the outer skin of a roof sits above the wall tops: clamp its height so the outside glow still reaches it */
       if(!hit)return;geo.setAttribute("aCandle",new THREE.BufferAttribute(cd,4));o.geometry=geo;o.userData.shared=false;o.userData.lit=true;});}
   {const cs=new THREE.Mesh(new THREE.PlaneGeometry(2*hw+18,2*hd+18),MAT.contact);cs.rotation.x=-Math.PI/2;cs.position.y=0.25-groundDrop();cs.renderOrder=1;g.add(cs);}   /* soft contact shadow where the piece meets the floor (Day Render) */
-  if(isSel(bi)){const pts=[[-hw-4,-hd-4],[hw+4,-hd-4],[hw+4,hd+4],[-hw-4,hd+4]].map(([x,z])=>new THREE.Vector3(x,0.6,z));const ln=new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(pts),MAT.sel);g.add(ln);}
+  if(!S.noSel&&isSel(bi)){const pts=[[-hw-4,-hd-4],[hw+4,-hd-4],[hw+4,hd+4],[-hw-4,hd+4]].map(([x,z])=>new THREE.Vector3(x,0.6,z));const ln=new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(pts),MAT.sel);g.add(ln);}
   return g;}
 const flames=[];
 /* public court: a 6 mm porcelain tray with a 3 mm rounded rim (5 mm proud), one cast piece, an empty plaza */
@@ -1118,7 +1128,7 @@ const COURT_T=6,COURT_RIM=5;
 function courtOf(b,bi,g,hw,hd){const mat=plateMat(b),r=radOf(b),ri=Math.max(0.5,r-3);
   const base=soft(rsq(-hw,-hd,hw,hd,r),[],COURT_T,mat,0,2.4);base.userData={bi,k:"0:0:0",fname:"front"};pickable.push(base);g.add(base);
   g.add(soft(rsq(-hw,-hd,hw,hd,r),[rsq(-hw+3,-hd+3,hw-3,hd-3,ri)],COURT_RIM,mat,COURT_T-0.5,1.2));
-  if(isSel(bi)){const pts=[[-hw-4,-hd-4],[hw+4,-hd-4],[hw+4,hd+4],[-hw-4,hd+4]].map(([x,z])=>new THREE.Vector3(x,0.6,z));g.add(new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(pts),MAT.sel));}
+  if(!S.noSel&&isSel(bi)){const pts=[[-hw-4,-hd-4],[hw+4,-hd-4],[hw+4,hd+4],[-hw-4,hd+4]].map(([x,z])=>new THREE.Vector3(x,0.6,z));g.add(new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(pts),MAT.sel));}
   return g;}
 /* a fixed pool of real 3D candle lights, so editing never changes the light count (which would recompile every shader and stutter) */
 const LPOOL=Array.from({length:MAX_LIGHTS},(_,i)=>{const L=new THREE.PointLight(0xffa44a,0,380,1.85);L.castShadow=i<SHADOW_LIGHTS;L.shadow.mapSize.set(1024,1024);L.shadow.radius=3.2;L.shadow.bias=-0.0015;L.shadow.normalBias=0.28;
@@ -1276,7 +1286,7 @@ function applyClip(){
   flames.forEach(f=>{f.userData.cutHide=cutHidden(f);});
   try{if(ssao&&ssao.normalMaterial)ssao.normalMaterial.clippingPlanes=on?[CUT.plane]:null;}catch(e){}   /* ssao is declared further down: not yet there on the first build */
   renderer.shadowMap.needsUpdate=true;need();}
-function cutUI(){const c=S.cut||{a:"off"};document.querySelectorAll("[data-cut]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.cut===c.a));
+function cutUI(){const c=S.cut||{a:"off"};barSync();document.querySelectorAll("[data-cut]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.cut===c.a));
   document.querySelector(".cutS").hidden=!cutOn();$("cutT").value=c.t===undefined?0.5:c.t;$("cutFlip").setAttribute("aria-pressed",!!c.flip);
   $("cutV").textContent=cutOn()?Math.round(cutPos())+" mm":"";}
 function setCut(patch){S.cut=Object.assign({a:"off",t:0.5,flip:false},S.cut||{},patch);cutUI();applyClip();flames.forEach(f=>{f.visible=S.night&&!f.userData.cutHide;});save();}
@@ -1298,7 +1308,7 @@ function rebuildNow(){
   built=new THREE.Group();pickable.length=0;flames.length=0;
   const gap=+S.explode,budget={anchors:[]};S.buildings.forEach((_,bi)=>built.add(buildBuilding(bi,gap,budget)));
   merged=mergeGroup(built);scene.add(merged);applyClip();placeLights(budget.anchors);BAKE.anchors=budget.anchors;buildRoom();applyNight();}
-function applyNight(){const n=S.night,rd=S.render;scene.background=new THREE.Color(n?0x000000:0xffffff);   /* white gallery backdrop by day, deep studio charcoal-black at night */view.classList.toggle("dark",!!(n||rd));
+function applyNight(){const n=S.night,rd=S.render;siteTheme(n);scene.background=new THREE.Color(n?0x000000:0xffffff);   /* white gallery backdrop by day, deep studio charcoal-black at night */view.classList.toggle("dark",!!(n||rd));
   hemi.intensity=n?0.28:0.42;hemi.color.set(n?0xcfd8ea:0xfff7ed);hemi.groundColor.set(n?0x000000:0xd8ccb9);
   fillLight.intensity=n?0.12:0.24;fillLight.color.set(n?0x9ab0d6:0xe3ecf8);
   /* Unified color management: when post-processing composer runs (Render mode), FINAL pass performs ACES + sRGB; otherwise WebGLRenderer outputs ACES + sRGB directly */
@@ -1324,7 +1334,8 @@ function applyNight(){const n=S.night,rd=S.render;scene.background=new THREE.Col
   if(sun.shadow.map&&sun.shadow.map.width!==sun.shadow.mapSize.x){sun.shadow.map.dispose();sun.shadow.map=null;}
   if(S.night!==BAKE.night||BAKE.anchors!==BAKE.done){BAKE.night=S.night;BAKE.done=BAKE.anchors;startBake(BAKE.anchors||[]);}
   BAKE.gain.value=GL_GAIN*cs;
-  renderer.shadowMap.needsUpdate=true;need();}
+  if(S.sunOff)sun.intensity=0;   /* Sun switch off: no direct light, no shadows */
+  barSync();renderer.shadowMap.needsUpdate=true;need();}
 let composer=null,ssao=null,bloom=null,finalPass=null,fxaa=null;
 const LIBS=["shaders/CopyShader.js","shaders/LuminosityHighPassShader.js","shaders/SSAOShader.js","shaders/FXAAShader.js","math/SimplexNoise.js",
   "postprocessing/EffectComposer.js","postprocessing/MaskPass.js","postprocessing/RenderPass.js","postprocessing/ShaderPass.js","postprocessing/SSAOPass.js","postprocessing/UnrealBloomPass.js","environments/RoomEnvironment.js"];
@@ -1378,11 +1389,13 @@ let tick=0,lastFlick=0;(function loop(now){requestAnimationFrame(loop);controls.
     flames.forEach((f,i)=>{const s=1+Math.sin(tick*3+i)*0.07;f.scale.set(1,s,1);});need();}
   if(BAKE.q.length){bakeStep(BAKE.n?24:60);need();}
   if(dirty>0){dirty--;draw();}})(0);
+const selKey=()=>S.selB+"|"+S.sel+"|"+(S.multi||[]).join(",");let SELKEY="";
 const ray=new THREE.Raycaster(),ptr=new THREE.Vector2();let down=null;
 renderer.domElement.addEventListener("pointerdown",e=>down=[e.clientX,e.clientY]);
 renderer.domElement.addEventListener("pointerup",e=>{if(!down||Math.hypot(e.clientX-down[0],e.clientY-down[1])>5)return;const r=renderer.domElement.getBoundingClientRect();
   ptr.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);ray.setFromCamera(ptr,camera);const hit=ray.intersectObjects(pickable,false)[0];
-  if(hit){const u=hit.object.userData;if(e.shiftKey||e.metaKey||e.ctrlKey){toggleSel(u.bi);renderUI();return;}S.selB=u.bi;S.multi=[];S.sel=u.k;S.selFace=u.ring?ringFace(hit):u.fname;renderUI();}});
+  if(!hit){if(!S.noSel){S.noSel=true;SELKEY=selKey();rebuild();}return;}
+  if(hit){S.noSel=false;const u=hit.object.userData;if(e.shiftKey||e.metaKey||e.ctrlKey){toggleSel(u.bi);renderUI();return;}S.selB=u.bi;S.multi=[];S.sel=u.k;S.selFace=u.ring?ringFace(hit):u.fname;renderUI();}});
 
 /* ================= checks ================= */
 const faceChecks=(b,k,fn)=>B.checkFace(bld(b.mods[k][fn],fn),shrinkOf(b),radOf(b));
@@ -1508,7 +1521,8 @@ function renderTech(b){const rows=techReview(b),bad=rows.filter(r=>!r.ok).length
   $("techRows").innerHTML=rows.map(r=>`<div class="tr"><span class="s ${r.ok?"ok":"note"}">${r.ok?"✓":"●"}</span><span>${r.label}</span><span class="v">${r.v}</span><span class="fx">${r.fx}</span></div>`).join("");
   $("techDetails").innerHTML=techDetails(b);$("techMeta").textContent=bad?bad+" detail"+(bad>1?"s":"")+" to add":"fits as drawn";$("techMeta").style.color=bad?"#b7791f":"var(--ok)";}
 function renderUI(){
-  fixSel();applyAccent();const b=Bs(),[sc,sr,sl]=keyParts(S.sel);
+  fixSel();if(S.noSel&&selKey()!==SELKEY)S.noSel=false;   /* a new selection shows its highlight again */
+applyAccent();const b=Bs(),[sc,sr,sl]=keyParts(S.sel);
   $("bList").innerHTML=S.buildings.map((x,i)=>`<button type="button" class="${i===S.selB?"on":isSel(i)?"also":""}" data-b="${i}" aria-pressed="${isSel(i)}" title="Shift- or ⌘-click to add to the selection">${x.name}<span>${x.cols}×${x.deep}×${x.levels}</span></button>`).join("");
   $("villageMeta").textContent=S.buildings.length+" building"+(S.buildings.length>1?"s":"")+" · "+S.buildings.reduce((a,x)=>a+x.cols*x.deep*x.levels,0)+" modules";
   seg($("setSeg"),b.set);{const a=document.activeElement;if(a!==$("gutV"))$("gutV").value=gut();if(a!==$("aveV"))$("aveV").value=ave();if(a!==$("bwV"))$("bwV").value=BLOCKM;$("gapV").textContent=(S.gaps||[]).length;$("mixBtn").setAttribute("aria-pressed",!!S.mix);seg($("lmSeg"),S.landmarks?"1":"0");}$("varyBtn").setAttribute("aria-pressed",!!S.vary);if(document.activeElement!==$("countV"))$("countV").value=S.buildings.length;seg($("blocksSeg"),String(blkMode()));seg($("colsSeg"),b.cols);{const m=S.rmax;$("capC").textContent="across"+(m?" · max "+m.c:"");$("capD").textContent="deep"+(m?" · max "+m.d:"");$("capL").textContent="levels"+(m?" · max "+m.l:"");}seg($("deepSeg"),b.deep);$("levelsV").textContent=b.levels;seg($("roofSeg"),b.roof);seg($("spanSeg"),b.span||"whole");$("radius").value=radOf(b);$("radiusV").textContent="R "+radOf(b)+" mm";$("levelsV").textContent=b.levels;
@@ -1816,13 +1830,18 @@ on("modTools","click",e=>{const x=e.target.closest("button");if(!x)return;const 
       b.mods[nk][opp]=m.removed?clone(b.mods[nk][f]):INNER();});renderUI();return;}
   if(x.dataset.mc!==undefined){if(x.dataset.mc)m.col=x.dataset.mc;else delete m.col;renderUI();}});
 on("randWall","click",()=>{Bs().mods[S.sel][S.selFace]=randomWall(S.editSet);renderUI();});
-on("nightBtn","click",()=>{S.night=!S.night;save();rebuild();});
+on("nightBtn","click",()=>{if(S.night)return;S.night=true;save();rebuild();});on("dayBtn","click",()=>{if(!S.night)return;S.night=false;save();rebuild();});
 on("renderBtn","click",()=>{const b=$("renderBtn");if(S.render){setRender(false);return;}
   if(composer){setRender(true);return;}b.textContent="Loading…";loadLibs().then(()=>{setupComposer();setRender(true);}).catch(e=>alert("Render mode could not load: "+e.message)).finally(()=>b.textContent="Render");});
 on("candle","input",e=>{S.candle=+e.target.value;applyNight();save();vbarVals();});
 on("explode","input",e=>{S.explode=+e.target.value;rebuild();vbarVals();});
 /* every viewer slider shows its value beside it: candle strength in %, the sun as a clock time (6:00 morning to 18:00 evening), explode in mm */
-function vbarVals(){const c=S.candle===undefined?1:S.candle,t=S.sun===undefined?0.35:S.sun,m=Math.round((6+12*t)*60/15)*15;
+/* the site theme follows the lantern light: Day is a light page, Night a dark one (the proposals page reads the same setting) */
+function siteTheme(n){const t=n?"dark":"light";if(root.dataset.theme!==t)root.dataset.theme=t;try{localStorage.setItem("beit-proposals-theme",t);}catch(e){}}
+/* the bar's switches show what is on; the sliders and the cut axis live in the View panel */
+function barSync(){const set=(id,v)=>{const e=$(id);if(e)e.setAttribute("aria-pressed",String(!!v));};
+  set("dayBtn",!S.night);set("nightBtn",S.night);set("candleBtn",(S.candle===undefined?1:S.candle)>0);set("sunBtn",!S.sunOff);set("explodeBtn",(S.explode||0)>0);set("cutBtn",cutOn());}
+function vbarVals(){barSync();const c=S.candle===undefined?1:S.candle,t=S.sun===undefined?0.35:S.sun,m=Math.round((6+12*t)*60/15)*15;
   $("candleV").textContent=Math.round(c*100)+" %";$("sunV").textContent=Math.floor(m/60)+":"+String(m%60).padStart(2,"0");$("explodeV").textContent=(S.explode||0)+" mm";}
 on("resetView","click",()=>{controls.minPolarAngle=0;controls.maxPolarAngle=Math.PI;S.view="";const gl=room.getObjectByName("groundLine");if(gl)gl.visible=false;fitView();});
 on("orthoBtn","click",()=>setOrtho(!S.ortho));document.querySelectorAll("[data-view]").forEach(x=>x.onclick=()=>viewPreset(x.dataset.view));
@@ -2037,6 +2056,12 @@ on("pdfBtn","click",()=>{const btn=$("pdfBtn"),t=btn.textContent;btn.textContent
 $("explode").value=S.explode;S.editSet=S.editSet||Bs().set;
 if(S.render){S.render=false;setTimeout(()=>$("renderBtn").click(),0);}
 $("candle").value=S.candle===undefined?1:S.candle;$("keepPal").setAttribute("aria-pressed",!!S.keepPal);setPanel(!S.nopanel);setLock(S.lock);setSpin(S.spin);$("sunT").value=S.sun===undefined?0.35:S.sun;vbarVals();cutBind();cutUI();applyDims();resize();if(S.ortho)setOrtho(true);renderUI();fitView();
+/* ===== bar switches: on/off only; strength, time, distance and axis are in the View panel ===== */
+on("candleBtn","click",()=>{const c=S.candle===undefined?1:S.candle;if(c>0){S.candlePrev=c;S.candle=0;}else S.candle=S.candlePrev||1;$("candle").value=S.candle;applyNight();save();vbarVals();});
+on("sunBtn","click",()=>{S.sunOff=!S.sunOff;applyNight();save();vbarVals();});
+on("explodeBtn","click",()=>{const v=S.explode||0;if(v>0){S.explodePrev=v;S.explode=0;}else S.explode=S.explodePrev||12;$("explode").value=S.explode;rebuild();vbarVals();});
+on("cutBtn","click",()=>{if(cutOn()){S.cutLast=S.cut.a;setCut({a:"off"});}else setCut({a:S.cutLast||"x",t:0.5});});
+on("randBar","click",()=>$(MODE==="module"?"randWall":"randVillage").click());
 /* ===== v 02.11 review: toast, Undo/Redo, share link and JSON, collapsible panels, "more controls" chevron ===== */
 let toastT=0;function toast(msg){const t=$("toast");if(!t)return;t.textContent=msg;t.classList.add("on");clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove("on"),3800);}
 /* put a design (a snapshot string) back: the design keys are replaced, the view settings stay */

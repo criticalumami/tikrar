@@ -145,3 +145,9 @@ From the review doc https://claude.ai/artifact/1ZcYsG4tDJdifEm739Ktzw. Render en
 - **UI:** panel headings fold (kept per browser in `tikrar-panels-v1`); a ‹ › chevron on the viewer bar when it overflows; check failures name the wall ("Level 2 1A front") and list them in the tooltip; toast `#toast` (role=status).
 - **Performance:** post-processing scripts download in parallel and run in order; candle flicker is skipped for `prefers-reduced-motion` and when the view is scrolled off screen; `openings.js?v=0211b` (bump the query with each release that changes openings.js).
 - **Not done yet (round 2):** per-building rebuild cache, dynamic resolution while orbiting, self-hosting three with SRI, merging the three entry pages, collapsing the city layout controls under "Advanced".
+
+## 2 Nov, bar and theme (v 02.11 · 15:30)
+- Viewer bar now holds switches only: Day | Night, Render, Candles, Sun, Explode, Cut, Randomize (whole city; Module editor: this wall). The sliders (candle strength, time of day, explode distance) and the cut axis/position/flip moved to the new **View** panel; element ids are unchanged, so the old handlers still drive them. `barSync()` keeps the switches in step. Sun off = `S.sunOff` (sun intensity 0, no shadows).
+- The site theme follows the lantern light (`siteTheme()` in `applyNight`): Day = light page, Night = dark page. The ◐ button is gone. The page always opens in Day.
+- A click on empty space hides the selection highlight (yellow module box, red footprint) with `S.noSel`; picking anything, or any selection change, shows it again. The panels still edit the selected building.
+- Keys in `VIEWK` (not undoable): noSel, sunOff, explodePrev, candlePrev, cutLast.
