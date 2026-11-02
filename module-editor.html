@@ -211,7 +211,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
 <header class="grid12">
   <h1>TIKRAR<small>Beirut Lantern Generator</small></h1>
   <span class="sub"><span id="modSize">porcelain modules 60 × 60 mm · 40 mm walls</span> · houses, towers and city blocks · 1860–1925 and modernist openings</span>
-  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 02.11 · 17:50</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
+  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 02.11 · 18:05</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
   </nav>
 </header>
 
@@ -1796,7 +1796,8 @@ on("radius","input",e=>{each(b=>b.radius=+e.target.value);renderUI();});
 /* Module editor only: module height, wall and slab thickness. Every piece (view, checks, technical review, STL) reads H, T and the slab live */
 /* the module's size and thicknesses are set in the Module editor; the cluster editor reads them from its saved design and follows */
 const modDims=()=>{if(MODE==="module")return S;try{return JSON.parse(localStorage.getItem("tikrar-module-editor-v1"))||{};}catch(e){return {};}};
-function applyDims(){const D=modDims();WX=D.mw||60;WZ=D.ml||60;RGEO.clear();H=D.mh||40;UH.value=H;T=D.mt||3;BASE_T=PLATE_T=FLAT_T=D.ms||4;VDROP=+D.vent||0;CD=D.cd||38;CH=D.ch||12;CANDLE_Y=CH+8;UCY.value=CH+8;
+function applyDims(){if(MODE==="module"&&S.vent===undefined){const o=S.buildings.find(x=>x.vent);S.vent=o?+o.vent:0;}   /* v 17:30 kept the cut per building: adopt it */
+  const D=modDims();WX=D.mw||60;WZ=D.ml||60;RGEO.clear();H=D.mh||40;UH.value=H;T=D.mt||3;BASE_T=PLATE_T=FLAT_T=D.ms||4;VDROP=+D.vent||0;CD=D.cd||38;CH=D.ch||12;CANDLE_Y=CH+8;UCY.value=CH+8;
   {const el=$("modSize");if(el)el.textContent=`porcelain modules ${WX} × ${WZ} mm · ${H} mm walls`;}B.setH(H);B.LIPS.in=T+LIP.clr;WGEO.clear();CGEO.clear();if(MODE!=="module"){const k=[WX,WZ,H,T,PLATE_T].join("|");if(S.dims!==k){S.dims=k;gridLayout(S.buildings);}return;}
   [["modW",WX,WX+" mm"],["modL",WZ,WZ+" mm"],["modH",H,H+" mm"],["modT",T,T.toFixed(1)+" mm"],["modS",PLATE_T,PLATE_T.toFixed(1)+" mm"],["modCD",CD,CD+" mm"],["modCH",CH,CH+" mm"]].forEach(([id,v,t])=>{if(document.activeElement!==$(id))$(id).value=v;$(id+"V").textContent=t;});}
 [["modW","mw"],["modL","ml"],["modH","mh"],["modT","mt"],["modS","ms"],["modCD","cd"],["modCH","ch"]].forEach(([id,k])=>on(id,"input",e=>{S[k]=+e.target.value;applyDims();renderUI();}));
