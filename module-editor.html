@@ -211,7 +211,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
 <header class="grid12">
   <h1>TIKRAR<small>Beirut Lantern Generator</small></h1>
   <span class="sub"><span id="modSize">porcelain modules 60 × 60 mm · 40 mm walls</span> · houses, towers and city blocks · 1860–1925 and modernist openings</span>
-  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 02.11 · 15:30</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
+  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 02.11 · 16:25</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
   </nav>
 </header>
 
@@ -755,8 +755,8 @@ const MAT={glaze:new THREE.MeshStandardMaterial({color:0xf6f1e8,roughness:0.22,m
   terra:new THREE.MeshStandardMaterial({color:0xb8603c,roughness:0.35}),
   tea:new THREE.MeshStandardMaterial({color:new THREE.Color(0xd8d2c7).convertSRGBToLinear(),roughness:0.42,metalness:0.35}),
   wax:new THREE.MeshStandardMaterial({color:new THREE.Color(0xfff1d6).convertSRGBToLinear(),emissive:new THREE.Color(0xff9c38).convertSRGBToLinear(),emissiveIntensity:0.45,roughness:0.35}),
-  flame:new THREE.MeshBasicMaterial({color:0xffbe55,toneMapped:false}),
-  flameCore:new THREE.MeshBasicMaterial({color:0xfff7e0,toneMapped:false}),
+  flame:new THREE.MeshBasicMaterial({color:0xffbe55,toneMapped:false,transparent:true}),
+  flameCore:new THREE.MeshBasicMaterial({color:0xfff7e0,toneMapped:false,transparent:true}),
   flameHalo:new THREE.SpriteMaterial({color:0xff9c3b,transparent:true,opacity:0.48,blending:THREE.AdditiveBlending,depthWrite:false,toneMapped:false}),
   sel:new THREE.LineBasicMaterial({color:0xe2231a}),selMod:new THREE.LineBasicMaterial({color:0xffc400,depthTest:false,transparent:true}),line:new THREE.LineBasicMaterial({color:0xe2231a}),band:new THREE.MeshBasicMaterial({color:0xe2231a,side:THREE.DoubleSide}),
   glow:new THREE.MeshBasicMaterial({color:0xffb562,side:THREE.BackSide,toneMapped:false}),
@@ -804,19 +804,19 @@ function buildRoom(){scene.remove(room);room.traverse(o=>{if(o.geometry)o.geomet
      with the single module's width, depth and height marked in red. All of it sits outside the city's footprint and height. Labels are flat
      planes that run along the axis they measure: lying on the ground for plan / axo / high views, standing just below the ground line
      for the front and low views (updateRuler swaps them by camera height). Drawn on top, sized to their text, so nothing clips. */
-  if(blkMode()&&!S.render){const b=bounds(),ry=0.4-groundDrop(),rc=S.night?0xcfd3dc:0x111111,rd=S.night?0xff6a5c:0xe2231a,rg=new THREE.Group(),pts=[],dpt=[],off=70,V=(x,y,z)=>new THREE.Vector3(x,y,z);
+  if((blkMode()||MODE==="module")&&!S.render){const ruler=blkMode()>0,b=bounds(),ry=0.4-groundDrop(),rc=S.night?0xcfd3dc:0x111111,rd=S.night?0xff6a5c:0xe2231a,rg=new THREE.Group(),pts=[],dpt=[],off=70,V=(x,y,z)=>new THREE.Vector3(x,y,z);
     rg.name="rulerGroup";rg.userData={g:[],s:[]};
     const RL=window.__rulerTex||(window.__rulerTex=new Map()),lab=(t,x,y,z,col,sc,mode)=>{col=col||rc;const k=t+col;let m=RL.get(k);if(!m){const c=document.createElement("canvas"),g=c.getContext("2d"),F="bold 64px sans-serif";g.font=F;const tw=Math.ceil(g.measureText(t).width)+32;c.width=tw;c.height=112;g.font=F;g.fillStyle="#"+col.toString(16).padStart(6,"0");g.textAlign="center";g.textBaseline="middle";g.fillText(t,tw/2,56);const tx=new THREE.CanvasTexture(c);tx.anisotropy=8;m=new THREE.MeshBasicMaterial({map:tx,transparent:true,depthTest:false,depthWrite:false,toneMapped:false,side:THREE.DoubleSide});m.userData.ar=tw/112;RL.set(k,m);}
       const h=(sc||1)*17,p=new THREE.Mesh(new THREE.PlaneGeometry(h*m.userData.ar,h),m);p.position.set(x,y,z);p.renderOrder=20;
       if(mode==="g")p.rotation.x=-Math.PI/2;else if(mode==="gz")p.rotation.set(-Math.PI/2,0,Math.PI/2);else if(mode==="sz")p.rotation.y=-Math.PI/2;else if(mode==="v")p.rotation.z=Math.PI/2;
       (mode==="g"||mode==="gz"?rg.userData.g:mode==="s"||mode==="sz"?rg.userData.s:[]).push(p);rg.add(p);};
-    const w=b.x1-b.x0,d=b.z1-b.z0,hh=Math.max(b.h-40,H),zf=b.z1+off,xl=b.x0-off,tk=o=>o%100===0?16:o%50===0?11:6,SY=-34,hp=[];
+    const w=ruler?b.x1-b.x0:-1,d=ruler?b.z1-b.z0:-1,hh=ruler?Math.max(b.h-40,H):-1,zf=b.z1+off,xl=b.x0-off,tk=o=>o%100===0?16:o%50===0?11:6,SY=-34,hp=[];
     const lx=(t,x,z,col,sc)=>{lab(t,x,ry+0.6,z,col,sc,"g");lab(t,x,SY,zf,col,sc,"s");},lz=(t,x,z,col,sc)=>{lab(t,x,ry+0.6,z,col,sc,"gz");lab(t,xl,SY,z,col,sc,"sz");};
-    pts.push(V(b.x0,ry,zf),V(b.x0+Math.floor(w/10)*10,ry,zf),V(xl,ry,b.z1),V(xl,ry,b.z1-Math.floor(d/10)*10),V(xl,ry,zf),V(xl,Math.floor(hh/10)*10,zf));
+    if(ruler)pts.push(V(b.x0,ry,zf),V(b.x0+Math.floor(w/10)*10,ry,zf),V(xl,ry,b.z1),V(xl,ry,b.z1-Math.floor(d/10)*10),V(xl,ry,zf),V(xl,Math.floor(hh/10)*10,zf));
     for(let o=0;o<=w;o+=10){pts.push(V(b.x0+o,ry,zf),V(b.x0+o,ry,zf+tk(o)));hp.push(V(b.x0+o,ry,zf),V(b.x0+o,-tk(o),zf));if(o%100===0)lx(o+"",b.x0+o,zf+tk(o)+14);}
     for(let o=0;o<=d;o+=10){pts.push(V(xl,ry,b.z1-o),V(xl-tk(o),ry,b.z1-o));hp.push(V(xl,ry,b.z1-o),V(xl,-tk(o),b.z1-o));if(o%100===0)lz(o+"",xl-tk(o)-14,b.z1-o);}
     for(let o=0;o<=hh;o+=10){pts.push(V(xl,o,zf),V(xl-tk(o),o,zf));if(o%100===0&&o>0)lab(o+"",xl-tk(o)-9,o,zf,rc,1,"v");}
-    lx("mm",b.x0+Math.floor(w/100)*100+55,zf+16);lz("mm",xl-16,b.z1-Math.floor(d/100)*100-45);lab("mm",xl-10,Math.floor(hh/100)*100+34,zf,rc,1,"v");
+    if(ruler){lx("mm",b.x0+Math.floor(w/100)*100+55,zf+16);lz("mm",xl-16,b.z1-Math.floor(d/100)*100-45);lab("mm",xl-10,Math.floor(hh/100)*100+34,zf,rc,1,"v");}
     /* the single module nearest the ruler origin (front-left corner): its own edges dimensioned in red, outside its walls, each along its axis */
     {let best=null,bd=1e18;S.buildings.forEach(q=>{const f=fp(q),fx=q.x-f.w/2,fz=q.z+f.d/2,dd=Math.hypot(fx-b.x0,fz-b.z1);if(dd<bd){bd=dd;best=[fx,fz];}});
       if(best){const mx=best[0],mz=best[1],o=7;
@@ -824,7 +824,7 @@ function buildRoom(){scene.remove(room);room.traverse(o=>{if(o.geometry)o.geomet
         lab(WX+"",mx+WX/2,ry+0.6,mz+o+11,rd,1.15,"g");lab(WX+"",mx+WX/2,SY,mz+o+11,rd,1.15,"s");
         lab(WZ+"",mx-o-11,ry+0.6,mz-WZ/2,rd,1.15,"gz");lab(WZ+"",mx-o-11,SY,mz-WZ/2,rd,1.15,"sz");
         lab(H+"",mx-o-11,H/2,mz+o,rd,1.15,"v");}}
-    hp.push(V(b.x0,ry,zf),V(b.x0+Math.floor(w/10)*10,ry,zf),V(xl,ry,b.z1),V(xl,ry,b.z1-Math.floor(d/10)*10));   /* the same graduations hanging below the ground line, for Front and low views where the ground is edge-on */
+    if(ruler)hp.push(V(b.x0,ry,zf),V(b.x0+Math.floor(w/10)*10,ry,zf),V(xl,ry,b.z1),V(xl,ry,b.z1-Math.floor(d/10)*10));   /* the same graduations hanging below the ground line, for Front and low views where the ground is edge-on */
     {const hl=new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(hp),new THREE.LineBasicMaterial({color:rc}));rg.userData.s.push(hl);rg.add(hl);}
     const rl=new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(pts),new THREE.LineBasicMaterial({color:rc}));rl.name="ruler";rg.add(rl);
     rg.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(dpt),new THREE.LineBasicMaterial({color:rd})));room.add(rg);updateRuler();}
@@ -1289,7 +1289,7 @@ function applyClip(){
 function cutUI(){const c=S.cut||{a:"off"};barSync();document.querySelectorAll("[data-cut]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.cut===c.a));
   document.querySelector(".cutS").hidden=!cutOn();$("cutT").value=c.t===undefined?0.5:c.t;$("cutFlip").setAttribute("aria-pressed",!!c.flip);
   $("cutV").textContent=cutOn()?Math.round(cutPos())+" mm":"";}
-function setCut(patch){S.cut=Object.assign({a:"off",t:0.5,flip:false},S.cut||{},patch);cutUI();applyClip();flames.forEach(f=>{f.visible=S.night&&!f.userData.cutHide;});save();}
+function setCut(patch){S.cut=Object.assign({a:"off",t:0.5,flip:false},S.cut||{},patch);cutUI();applyClip();flames.forEach(f=>{f.visible=!f.userData.cutHide;});save();}
 function cutBind(){
 document.querySelectorAll("[data-cut]").forEach(b=>b.onclick=()=>setCut({a:b.dataset.cut,t:0.5}));
 on("cutT","input",e=>setCut({t:+e.target.value}));on("cutFlip","click",()=>setCut({flip:!(S.cut&&S.cut.flip)}));
@@ -1322,7 +1322,7 @@ function applyNight(){const n=S.night,rd=S.render;siteTheme(n);scene.background=
    sun.color.set(0xffa868).lerp(new THREE.Color(0xfff5e8),Math.min(1,hi));sun.userData.k=0.58+0.42*hi;sun.intensity=n?0:2.2*sun.userData.k;
    if(!n)hemi.color.set(0xffe4c8).lerp(new THREE.Color(0xfff7ed),Math.min(1,hi));}
   {const ext=Math.max(b.x1-b.x0,b.z1-b.z0,b.h)*0.75+200;Object.assign(sun.shadow.camera,{left:-ext,right:ext,top:ext,bottom:-ext,near:50,far:1200+ext*1.6});sun.shadow.camera.updateProjectionMatrix();}sun.target.position.set(cx,0,cz);
-  const cs=S.candle===undefined?1:S.candle;lights.forEach(L=>L.intensity=n?L.userData.base*cs:0);flames.forEach(f=>f.visible=n&&!f.userData.cutHide);
+  const cs=S.candle===undefined?1:S.candle;lights.forEach(L=>L.intensity=n?L.userData.base*cs:0);flames.forEach(f=>f.visible=!f.userData.cutHide);MAT.flame.opacity=n?1:0.5;MAT.flameCore.opacity=n?1:0.65;   /* by day the flame is still there, only fainter */
   MAT.wax.emissiveIntensity=n?0.45*cs:0;MAT.pool.visible=n;MAT.contact.visible=!!(S.render&&!n);MAT.pool.opacity=Math.min(0.85,0.38*cs);$("nightBtn").setAttribute("aria-pressed",n);
   Object.values(MATS).forEach(m=>{m.emissiveIntensity=0;if(m.userData.uLit)m.userData.uLit.value=0;});
   Object.values(LIT).forEach(m=>{m.emissiveIntensity=0;if(m.userData.uLit)m.userData.uLit.value=n?cs:0;});
