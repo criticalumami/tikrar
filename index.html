@@ -211,7 +211,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
 <header class="grid12">
   <h1>TIKRAR<small>Beirut Lantern Generator</small></h1>
   <span class="sub"><span id="modSize">porcelain modules 60 × 60 mm · 40 mm walls</span> · houses, towers and city blocks · 1860–1925 and modernist openings</span>
-  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 02.11 · 20:55</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
+  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 02.11 · 21:15</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
   </nav>
 </header>
 
@@ -234,7 +234,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
       <h2>City block <span class="meta" id="villageMeta"></span></h2>
       <div class="blist" id="bList"></div>
       <div class="f"><span class="lbl">Select</span><div class="v"><div class="seg"><button type="button" id="selAll">All</button><button type="button" id="selNone">Clear</button></div><span class="hint">shift or ⌘ click to pick several</span></div></div>
-      <div class="f"><span class="lbl">Add</span><div class="v"><select id="addKind" aria-label="Building to add"><option value="central">Central-hall house</option><option value="liwan">Līwān house</option><option value="photo">Arches &amp; keyholes</option><option value="stair">Stair tower</option><option value="modernRow">Modernist block</option><option value="modernTower">Modernist tower</option><option value="court">Public court (flat tray)</option><option value="olive">Wild olive bonsai (pot 2 × 1)</option><option value="random">Random</option><optgroup label="Landmarks, true size at 1:75"><option value="holiday">Holiday Inn · 26 storeys</option><option value="gefinor">Gefinor Center · 15 storeys</option><option value="edl">Électricité du Liban · 15 storeys</option><option value="saroulla">Saroulla building · 10 storeys</option><option value="egg">The Egg · cinema</option><option value="museum">National Museum</option></optgroup></select><button class="btn" type="button" id="addBtn">Add</button></div></div>
+      <div class="f"><span class="lbl">Add</span><div class="v"><select id="addKind" aria-label="Building to add"><option value="central">Central-hall house</option><option value="liwan">Līwān house</option><option value="photo">Arches &amp; keyholes</option><option value="stair">Stair tower</option><option value="modernRow">Modernist block</option><option value="modernTower">Modernist tower</option><option value="court">Public court (flat tray)</option><option value="olive">Wild olive bonsai (pot 1 × 1)</option><option value="random">Random</option><optgroup label="Landmarks, true size at 1:75"><option value="holiday">Holiday Inn · 26 storeys</option><option value="gefinor">Gefinor Center · 15 storeys</option><option value="edl">Électricité du Liban · 15 storeys</option><option value="saroulla">Saroulla building · 10 storeys</option><option value="egg">The Egg · cinema</option><option value="museum">National Museum</option></optgroup></select><button class="btn" type="button" id="addBtn">Add</button></div></div>
       <div class="f"><span class="lbl">Move</span><div class="v"><div class="seg" id="moveSeg"><button type="button" data-mv="-1,0" aria-label="Move left">←</button><button type="button" data-mv="1,0" aria-label="Move right">→</button><button type="button" data-mv="0,-1" aria-label="Move back">↑</button><button type="button" data-mv="0,1" aria-label="Move forward">↓</button><button type="button" id="rotBtn" aria-label="Turn 90°">⟳</button></div></div></div>
       <div class="f"><span class="lbl">Edit</span><div class="v"><div class="seg"><button type="button" id="dupB">Duplicate</button><button type="button" id="delB">Remove</button></div></div></div>
       <div class="f"><span class="lbl">Buildings</span><div class="v"><div class="seg" id="countSeg" title="Grow or shrink the city block (1 to 120): type a number or use − / +; new buildings take the next block slots"><button type="button" data-d="-1" aria-label="One building fewer">−</button><input class="cnt" id="countV" type="number" min="1" max="120" step="1" inputmode="numeric" aria-label="Number of buildings"><button type="button" data-d="1" aria-label="One building more">+</button></div></div></div>
@@ -396,7 +396,7 @@ const KINDS={
       return f==="left"?wall("portholes",{style:"tower"}):wall("glassblock");}),
   /* public court: a flat porcelain tray (no walls, no roof) for a square, a courtyard or a plot left open */
   court:()=>make("Public court","modern",2,2,1,"none",()=>INNER(),{court:true,candles:[false],plates:[true]}),
-  olive:(v)=>make("Wild olive bonsai","modern",v?1:2,v?2:1,1,"none",()=>INNER(),{court:true,tree:true,candles:[false],plates:[true],seed:1+Math.floor(Math.random()*1e6)}),
+  olive:()=>make("Wild olive bonsai","modern",1,1,1,"none",()=>INNER(),{court:true,tree:true,candles:[false],plates:[true],seed:1+Math.floor(Math.random()*1e6)}),
   modernTower:()=>make("Modernist tower","modern",1,1,6,"modern",(c,r,l,f)=>{
       if(l===0)return f==="front"?wall("pilotis"):f==="back"?wall("picture"):wall("glassblock");
       if(f==="front")return [null,wall("eggcrate"),wall("ribbon"),wall("claustra",{style:"crosses"}),wall("eggcrate"),wall("ribbon",{style:"two"})][l];
@@ -670,13 +670,13 @@ const GLAZE={clear:{name:"Clear",col:null},white:{name:"White",col:0xf6f3ee},cel
    cobalt, deep green and cream, each read as a glaze */
 const PALETTES={
   sea:{name:"Mediterranean",accent:0x2f5c9e,walls:"white",accents:["turquoise","cobalt","sky"],plates:"sky",roof:"cobalt"},
-  swiss:{name:"Black, white, red",accent:0xd52b1e,walls:"white",accents:["black","red"],plates:"black",roof:"red"},
+  swiss:{name:"Black, white, red",accent:0xd52b1e,leafK:0.07,walls:"white",accents:["black","red"],plates:"black",roof:"red"},
   concert:{name:"Concert poster",accent:0x1f3b8f,walls:"cream",accents:["ultramarine","red","yellow"],plates:"black",roof:"ultramarine"},
   ochre:{name:"Ochre and black",accent:0x9a6a14,walls:"cream",accents:["ochre","black"],plates:"grey",roof:"black"},
   ultra:{name:"Ultramarine",accent:0x1f3b8f,walls:"white",accents:["ultramarine","cobalt","sky"],plates:"ultramarine",roof:"white"},
-  grey:{name:"Warm grey and red",accent:0xd52b1e,walls:"grey",accents:["white","red"],plates:"white",roof:"grey"},
+  grey:{name:"Warm grey and red",accent:0xd52b1e,leafK:0.07,walls:"grey",accents:["white","red"],plates:"white",roof:"grey"},
   green:{name:"Green and cream",accent:0x1e5a40,walls:"cream",accents:["green","ochre"],plates:"green",roof:"green"},
-  gray:{name:"Grayscale",accent:0x5e5e5c,walls:"white",accents:["pale","mid","charcoal"],plates:"charcoal",roof:"mid"},
+  gray:{name:"Grayscale",accent:0x5e5e5c,leaf:0x7a8a74,leafK:0.4,walls:"white",accents:["pale","mid","charcoal"],plates:"charcoal",roof:"mid"},
   xmas:{name:"Christmas",accent:0xa3202a,walls:"cream",accents:["holly","pine","gold"],plates:"pine",roof:"holly"},
   white:{name:"All white",accent:0xe2231a,walls:"white",accents:["white"],plates:"white",roof:"white"}};
 function applyPalette(b,key,accentShare,keepRoofs){const p=PALETTES[key];if(b.finish==="unglazed"||!b.finish)b.finish="glazed";b.glazeCol=p.walls;b.plateCol=p.plates;b.palette=key;
@@ -1149,11 +1149,21 @@ function courtOf(b,bi,g,hw,hd){const mat=plateMat(b),r=radOf(b),ri=Math.max(0.5,
    material, so a whole city of them costs next to nothing. Re-rolling changes b.seed. */
 const POT_BASE=4;
 const MS=(c,o)=>new THREE.MeshStandardMaterial(Object.assign({color:new THREE.Color(c).convertSRGBToLinear(),roughness:0.85},o||{}));   /* sRGB hex, like MAT.tea */
+const GREEN=0x3a8226;
+/* leaves, soil, bark and deadwood follow the building's palette: leaves are a green drawn toward the palette's accent (stronger for the greys),
+   the soil is the plate glaze darkened toward earth, the bark a darkened wall glaze, the deadwood a pale wash of it; cached per palette */
+const TMATS={};
+function treeMats(b){const key=b.palette||"sea";if(TMATS[key])return TMATS[key];const p=PALETTES[key]||PALETTES.sea,C=h=>new THREE.Color(h),gc=k=>C((GLAZE[k]&&GLAZE[k].col)||0xcfc8bb),
+    leaf=C(p.leaf!==undefined?p.leaf:GREEN).lerp(C(p.accent),p.leafK!==undefined?p.leafK:0.2),k0=new THREE.Color(0),k1=new THREE.Color(0xffffff),
+    soil=gc(p.plates).multiplyScalar(0.42).lerp(C(0x3a2d24),0.45),bark=gc(p.walls).multiplyScalar(0.5).lerp(C(0x6a6258),0.5),dead=gc(p.walls).lerp(C(0xeee6d2),0.6);
+  return TMATS[key]={l1:MS(leaf.clone().lerp(k0,0.4).getHex(),{roughness:0.7,flatShading:true}),l2:MS(leaf.getHex(),{roughness:0.7,flatShading:true}),l3:MS(leaf.clone().lerp(k1,0.1).getHex(),{roughness:0.65,flatShading:true}),
+    soil:MS(soil.getHex(),{roughness:1}),bark:MS(bark.getHex(),{roughness:0.95}),dead:MS(dead.getHex(),{roughness:0.9})};}
+let TM=null;
 const OLV={bark:MS(0x80786c,{roughness:0.95}),dead:MS(0xeee6d2,{roughness:0.9}),l1:MS(0x2c6a22,{roughness:0.7,flatShading:true}),l2:MS(0x3f8c2c,{roughness:0.7,flatShading:true}),
   l3:MS(0x66ad3e,{roughness:0.65,flatShading:true}),soil:MS(0x3a2d24,{roughness:1}),moss:MS(0x5c9a38,{roughness:1})};
 const rngOf=s=>{s=(s|0)||1;return()=>{s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};};
 /* a tapered tube along a spline; o.rid = bark ridges, o.tw = twist, o.flare = root flare; with a0..a1 / t0..t1 only a strip of the same surface, pushed out a little (deadwood) */
-function tube(pts,r0,r1,o,rnd){o=Object.assign({N:14,K:9,flare:0,tw:0,rid:0,a0:0,a1:Math.PI*2,t0:0,t1:1,strip:false,mat:OLV.bark,ph:rnd()*6},o);
+function tube(pts,r0,r1,o,rnd){o=Object.assign({N:14,K:9,flare:0,tw:0,rid:0,a0:0,a1:Math.PI*2,t0:0,t1:1,strip:false,mat:TM.bark,ph:rnd()*6},o);
   const cv=new THREE.CatmullRomCurve3(pts),N=o.N,K=o.K,fr=cv.computeFrenetFrames(N,false),pos=[],idx=[],i0=Math.floor(o.t0*N),i1=Math.min(N,Math.ceil(o.t1*N)),cols=K+1;
   for(let i=i0;i<=i1;i++){const t=i/N,p=cv.getPoint(t),n=fr.normals[i],bn=fr.binormals[i],fl=1+o.flare*Math.pow(Math.max(0,1-t*3.2),2);
     for(let j=0;j<=K;j++){const a=o.a0+(o.a1-o.a0)*j/K+o.tw*t,rg=1+o.rid*(Math.sin(3*a+o.ph)+0.5*Math.sin(5*a-t*7+o.ph*2)),
@@ -1162,37 +1172,37 @@ function tube(pts,r0,r1,o,rnd){o=Object.assign({N:14,K:9,flare:0,tw:0,rid:0,a0:0
   for(let i=0;i<i1-i0;i++)for(let j=0;j<K;j++){const a=i*cols+j,b=a+cols;idx.push(a,b,a+1,b,b+1,a+1);}
   const g=new THREE.BufferGeometry();g.setAttribute("position",new THREE.Float32BufferAttribute(pos,3));g.setAttribute("uv",new THREE.Float32BufferAttribute(new Float32Array(pos.length/3*2),2));g.setIndex(idx);g.computeVertexNormals();
   const m=new THREE.Mesh(g,o.mat);m.castShadow=true;m.receiveShadow=true;return {m,cv,ph:o.ph};}
-function treeOf(b,bi,g,HW,HD){const vert=HD>HW,hw=vert?HD:HW,hd=vert?HW:HD,mat=plateMat(b),r=radOf(b),ph=H/2,tw=Math.max(1.5,T),ri=Math.max(0.5,r-tw),rnd=rngOf(b.seed||7),R=(a,c)=>a+(c-a)*rnd(),V=(x,y,z)=>new THREE.Vector3(x,y,z);
+function treeOf(b,bi,g,HW,HD){TM=treeMats(b);const vert=HD>HW,hw=vert?HD:HW,hd=vert?HW:HD,mat=plateMat(b),r=radOf(b),ph=H/3,tw=Math.max(1.5,T),ri=Math.max(0.5,r-tw),rnd=rngOf(b.seed||7),R=(a,c)=>a+(c-a)*rnd(),V=(x,y,z)=>new THREE.Vector3(x,y,z);
   const base=soft(rsq(-HW,-HD,HW,HD,r),[],POT_BASE,mat,0,1.2);base.userData={bi,k:"0:0:0",fname:"front"};pickable.push(base);g.add(base);
   g.add(soft(rsq(-HW,-HD,HW,HD,r),[rsq(-HW+tw,-HD+tw,HW-tw,HD-tw,ri)],ph-POT_BASE+0.5,mat,POT_BASE-0.5,1));   /* blind walls, one piece with the base */
-  const soilY=ph-2.5;g.add(soft(rsq(-HW+tw,-HD+tw,HW-tw,HD-tw,ri),[],1,OLV.soil,soilY-1,0.3));
-  const U=ph,s=rnd()<0.5?-1:1,roll=rnd(),st=roll<0.3?"up":roll<0.6?"wind":roll<0.77?"cascade":"broom",grp=new THREE.Group(),pads=[];   /* pads: {p,r,t} foliage cloud, and the trunk point it hangs from */
+  const soilY=ph-2.5;g.add(soft(rsq(-HW+tw,-HD+tw,HW-tw,HD-tw,ri),[],1,TM.soil,soilY-1,0.3));
+  const U=H/2,s=rnd()<0.5?-1:1,roll=rnd(),st=roll<0.3?"up":roll<0.6?"wind":roll<0.77?"cascade":"broom",grp=new THREE.Group(),pads=[];   /* pads: {p,r,t} foliage cloud, and the trunk point it hangs from */
   let hT,tp,r0=R(5,7),r1;
   if(st==="up"){hT=R(2.4,3)*U;tp=[V(0,-1,0),V(s*R(3,7),.22*hT,R(-3,3)),V(-s*R(4,9),.46*hT,R(-4,4)),V(s*R(2,8),.73*hT,R(-3,3)),V(s*R(-4,6),hT,R(-3,3))];r1=1.6;
-    pads.push({p:V(tp[4].x,hT+2,tp[4].z),r:R(12,15),t:1},{p:V(tp[3].x-s*R(9,14),.7*hT+R(0,4),R(-6,6)),r:R(8,11),t:.72},{p:V(tp[2].x+s*R(10,16),.5*hT+R(0,4),R(-6,6)),r:R(8,11),t:.5});if(rnd()<.6)pads.push({p:V(tp[3].x+s*R(8,12),.9*hT,R(-8,8)),r:R(7,9),t:.85});}
+    pads.push({p:V(tp[4].x,hT+2,tp[4].z),r:R(14,18),t:1},{p:V(tp[3].x-s*R(9,14),.7*hT+R(0,4),R(-6,6)),r:R(10,13),t:.72},{p:V(tp[2].x+s*R(10,16),.5*hT+R(0,4),R(-6,6)),r:R(10,13),t:.5});if(rnd()<.6)pads.push({p:V(tp[3].x+s*R(8,12),.9*hT,R(-8,8)),r:R(8,11),t:.85});}
   else if(st==="wind"){hT=R(2.1,2.5)*U;tp=[V(0,-1,0),V(s*3,.2*hT,R(-2,2)),V(s*R(8,11),.45*hT,R(-3,3)),V(s*R(16,20),.66*hT,R(-3,3)),V(s*R(26,32),.8*hT,R(-2,2))];r1=1.5;
-    [[.6,.04],[.74,.02],[.88,.0],[1,-.02]].forEach(([t,dy],i)=>{const q=new THREE.CatmullRomCurve3(tp).getPoint(t);pads.push({p:V(q.x+s*R(0,5),q.y+3+i*R(-1,2)+dy*U,q.z+R(-5,5)),r:R(9,13),t});});
-    pads.push({p:V(tp[2].x+s*R(8,12),.35*hT,R(-6,6)),r:R(7,10),t:.4});}
+    [[.6,.04],[.74,.02],[.88,.0],[1,-.02]].forEach(([t,dy],i)=>{const q=new THREE.CatmullRomCurve3(tp).getPoint(t);pads.push({p:V(q.x+s*R(0,5),q.y+3+i*R(-1,2)+dy*U,q.z+R(-5,5)),r:R(11,16),t});});
+    pads.push({p:V(tp[2].x+s*R(8,12),.35*hT,R(-6,6)),r:R(8,12),t:.4});}
   else if(st==="cascade"){hT=R(2,2.4)*U;tp=[V(0,-1,0),V(-s*2,.26*hT,R(-2,2)),V(-s*R(4,7),.5*hT,R(-3,3)),V(s*R(2,6),.72*hT,R(-3,3)),V(s*R(16,20),.66*hT,R(-3,3)),V(s*R(27,31),.36*hT,R(-3,3)),V(s*R(33,38),.04*hT,R(-2,2))];r1=1.3;
-    pads.push({p:V(tp[3].x-s*3,.8*hT,R(-5,5)),r:R(10,13),t:.5},{p:V(tp[4].x+s*3,tp[4].y+3,R(-5,5)),r:R(9,12),t:.7},{p:V(tp[5].x+s*2,tp[5].y+1,R(-5,5)),r:R(8,11),t:.88},{p:V(tp[6].x,tp[6].y+1,R(-4,4)),r:R(7,9),t:1});}
+    pads.push({p:V(tp[3].x-s*3,.8*hT,R(-5,5)),r:R(12,16),t:.5},{p:V(tp[4].x+s*3,tp[4].y+3,R(-5,5)),r:R(11,14),t:.7},{p:V(tp[5].x+s*2,tp[5].y+1,R(-5,5)),r:R(10,13),t:.88},{p:V(tp[6].x,tp[6].y+1,R(-4,4)),r:R(8,11),t:1});}
   else{hT=R(1.45,1.8)*U;r0=R(6,8);tp=[V(0,-1,0),V(s*R(2,4),.3*hT,R(-2,2)),V(-s*R(2,4),.65*hT,R(-2,2)),V(s*R(0,3),hT,R(-2,2))];r1=2.2;
-    pads.push({p:V(tp[3].x,hT+R(3,5),tp[3].z),r:R(13,16),t:1});const n=5+Math.floor(rnd()*2);for(let i=0;i<n;i++){const a=i/n*6.283+R(0,1),rr=R(15,19);pads.push({p:V(tp[3].x+Math.cos(a)*rr,hT-R(0,7)-(i%2)*3,tp[3].z+Math.sin(a)*rr*.5),r:R(9,12),t:R(.72,1)});}}
-  pads.slice().forEach(q=>{if(q.t>=.5&&rnd()<.8)pads.push({p:V(q.p.x*R(.55,.8),q.p.y-R(2,6),q.p.z*.6+R(-4,4)),r:q.r*R(.6,.8),t:Math.max(.3,q.t-.2)});});   /* lush: a second layer of pads between the outer clouds and the trunk */
+    pads.push({p:V(tp[3].x,hT+R(3,5),tp[3].z),r:R(16,19),t:1});const n=5+Math.floor(rnd()*2);for(let i=0;i<n;i++){const a=i/n*6.283+R(0,1),rr=R(15,19);pads.push({p:V(tp[3].x+Math.cos(a)*rr,hT-R(0,7)-(i%2)*3,tp[3].z+Math.sin(a)*rr*.5),r:R(11,14),t:R(.72,1)});}}
+  pads.slice().forEach(q=>{if(q.t>=.4&&rnd()<.9)pads.push({p:V(q.p.x*R(.55,.8),q.p.y-R(2,6),q.p.z*.6+R(-4,4)),r:q.r*R(.6,.8),t:Math.max(.3,q.t-.2)});});   /* lush: a second layer of pads between the outer clouds and the trunk */
   /* where the base stands so the canopy sits over the pot */
   let lo=1e9,hi=-1e9;pads.forEach(q=>{lo=Math.min(lo,q.p.x-q.r);hi=Math.max(hi,q.p.x+q.r);});
   const bmin=-hw+tw+9,bmax=hw-tw-9,ox0=-(lo+hi)/2,ox=Math.max(bmin,Math.min(bmax,Math.max(-hw-4-lo,Math.min(hw+4-hi,ox0)))),oz=R(-0.12,0.12)*hd;
   grp.position.set(ox,0,oz);const root=new THREE.Group();root.position.y=soilY;root.rotation.y=vert?Math.PI/2:0;root.add(grp);   /* a pot standing along z turns its tree with it */
   /* trunk: thick, ridged, twisted, flared, with pale deadwood strips down it */
   const tO={flare:R(1,1.8),tw:R(-2.4,2.4),rid:R(0.07,0.12),K:10},T0=tube(tp,r0,r1,tO,rnd);grp.add(T0.m);
-  const ns=1+Math.floor(rnd()*2);for(let i=0;i<ns;i++){const a0=R(0,6.28),t0=R(0.02,0.2);grp.add(tube(tp,r0,r1,Object.assign({},tO,{a0,a1:a0+R(0.8,1.5),t0,t1:t0+R(0.35,0.65),strip:true,mat:OLV.dead,ph:T0.ph}),rnd).m);}
+  const ns=1+Math.floor(rnd()*2);for(let i=0;i<ns;i++){const a0=R(0,6.28),t0=R(0.02,0.2);grp.add(tube(tp,r0,r1,Object.assign({},tO,{a0,a1:a0+R(0.8,1.5),t0,t1:t0+R(0.35,0.65),strip:true,mat:TM.dead,ph:T0.ph}),rnd).m);}
   /* surface roots (nebari) */
   const nr=3+Math.floor(rnd()*2);for(let i=0;i<nr;i++){const a=i/nr*6.283+R(-.4,.4),L=R(8,13);grp.add(tube([V(0,3,0),V(Math.cos(a)*L*.5,1.4,Math.sin(a)*L*.5*.6),V(Math.cos(a)*L,0.2,Math.sin(a)*L*.6)],R(2.3,3),0.8,{N:6,K:6,rid:0.05},rnd).m);}
   /* limbs and foliage pads; an olive's leaves are small, so each pad is a flat cluster of low-poly lumps */
   pads.forEach(q=>{const a=T0.cv.getPoint(q.t),mid=V((a.x+q.p.x)/2,(a.y+q.p.y)/2-R(0,3),(a.z+q.p.z)/2+R(-2,2));if(q.t<1||st==="broom")grp.add(tube([a,mid,V(q.p.x,q.p.y-2,q.p.z)],R(1.5,2.2),0.6,{N:8,K:6,rid:0.06},rnd).m);
-    const k=10+Math.floor(rnd()*3);for(let i=0;i<k;i++){const m=new THREE.Mesh(PADGEO,rnd()<.35?OLV.l1:rnd()<.7?OLV.l2:OLV.l3),sc=q.r*R(.42,.62);m.scale.set(sc*R(1.3,1.7),sc*R(.5,.7),sc*R(1,1.3));
-      m.position.set(q.p.x+R(-1,1)*q.r*.75,q.p.y+R(-.35,.55)*q.r*.4,q.p.z+R(-1,1)*q.r*.6);m.rotation.set(R(-.2,.2),R(0,6.28),R(-.2,.2));m.castShadow=true;m.receiveShadow=true;grp.add(m);}});
+    const k=12+Math.floor(rnd()*3);for(let i=0;i<k;i++){const m=new THREE.Mesh(PADGEO,rnd()<.35?TM.l1:rnd()<.7?TM.l2:TM.l3),sc=q.r*R(.44,.64);m.scale.set(sc*R(1.3,1.7),sc*R(.5,.7),sc*R(1,1.3));
+      m.position.set(q.p.x+R(-1,1)*q.r*.75,q.p.y+4+R(-.35,.55)*q.r*.4,q.p.z+R(-1,1)*q.r*.6);m.rotation.set(R(-.2,.2),R(0,6.28),R(-.2,.2));m.castShadow=true;m.receiveShadow=true;grp.add(m);}});
   /* a pale deadwood snag (jin) and a patch of moss */
-  if(rnd()<0.65){const q=T0.cv.getPoint(R(.45,.7)),d=-s*R(7,11);grp.add(tube([q,V(q.x+d*.5,q.y+R(3,5),q.z+R(-2,2)),V(q.x+d,q.y+R(5,9),q.z+R(-3,3))],R(1.4,1.9),0.3,{N:6,K:6,mat:OLV.dead,rid:0.1},rnd).m);}
+  if(rnd()<0.65){const q=T0.cv.getPoint(R(.45,.7)),d=-s*R(7,11);grp.add(tube([q,V(q.x+d*.5,q.y+R(3,5),q.z+R(-2,2)),V(q.x+d,q.y+R(5,9),q.z+R(-3,3))],R(1.4,1.9),0.3,{N:6,K:6,mat:TM.dead,rid:0.1},rnd).m);}
   
   g.add(root);
   if(!S.noSel&&isSel(bi)){const pts=[[-HW-4,-HD-4],[HW+4,-HD-4],[HW+4,HD+4],[-HW-4,HD+4]].map(([x,z])=>new THREE.Vector3(x,0.6,z));g.add(new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(pts),MAT.sel));}
@@ -1203,7 +1213,7 @@ const PADGEO=new THREE.IcosahedronGeometry(1,0);
 function applyTrees(p){S.buildings=S.buildings.filter(b=>!b.tree);gridLayout(S.buildings);if(S.word)return 0;let n=0;
   for(let i=0,guard=0;i<LAYOUT.blocks.length&&guard<200&&S.buildings.length<MAX_B;i++,guard++){const k=LAYOUT.blocks[i].k;if(!k||k.empty||k.solo)continue;
     const all=[...k.rows[0],...k.rows[1]];if(!all.length||all.some(b=>b.tree)||Math.random()>=p)continue;
-    const j=Math.min(...all.map(b=>S.buildings.indexOf(b))),t=KINDS.olive(k.d[0]>=2*WZ-0.1&&Math.random()<0.5),ref=all.find(b=>!b.court)||all[0];t.seed=1+Math.floor(Math.random()*1e6);    if(ref.palette&&PALETTES[ref.palette])applyPalette(t,ref.palette);S.buildings.splice(j,0,t);gridLayout(S.buildings);
+    const j=Math.min(...all.map(b=>S.buildings.indexOf(b))),t=KINDS.olive(),ref=all.find(b=>!b.court)||all[0];t.seed=1+Math.floor(Math.random()*1e6);    if(ref.palette&&PALETTES[ref.palette])applyPalette(t,ref.palette);S.buildings.splice(j,0,t);gridLayout(S.buildings);
     if(S.buildings.some(o=>o.tree&&o!==t&&o.blk===t.blk)){S.buildings.splice(S.buildings.indexOf(t),1);gridLayout(S.buildings);}else n++;}   /* it slipped into the room left in an earlier block that already has one: take it back */
   return n;}
 /* a fixed pool of real 3D candle lights, so editing never changes the light count (which would recompile every shader and stutter) */
@@ -2291,7 +2301,7 @@ function pitchedSolid(M,b){const g=slantRoof(b).children[0].geometry,p=g.attribu
       fo=loftRR(M,blockRings(hw-T+0.4,hd-T+0.4,rf,SEAT_T,0,0.5,0),16),fi=loftRR(M,holeRings(d.i-0.05,d.iz-0.05,d.ri,SEAT_T,0,0.5),16);
     const lip=lo.subtract(li),fl=fo.subtract(fi),u=M.Manifold.union([m,lip,fl]);[lo,li,fo,fi,lip,fl,m].forEach(x=>x.delete());return u;}}catch(e){}
   return {raw:{v,t}};}   /* not closed: written as is (slicers still take it) */
-function potSolid(M,b,hw,hd){const r=radOf(b),tw=Math.max(1.5,T),ph=H/2,base=loftRR(M,blockRings(hw,hd,r,POT_BASE,1.2,1.2),16),
+function potSolid(M,b,hw,hd){const r=radOf(b),tw=Math.max(1.5,T),ph=H/3,base=loftRR(M,blockRings(hw,hd,r,POT_BASE,1.2,1.2),16),
     ro=loftRR(M,blockRings(hw,hd,r,ph-POT_BASE+0.5,1,1,POT_BASE-0.5),16),ri=loftRR(M,holeRings(hw-tw,hd-tw,Math.max(0.5,r-tw),ph-POT_BASE+0.5,0,0).map(q=>[q[0],q[1],q[2],q[3]+POT_BASE-0.5]),16);
   const wall=ro.subtract(ri),s=M.Manifold.union([base,wall]);[base,ro,ri,wall].forEach(x=>x.delete());return s;}
 /* the plaza tray of a public court: 6 mm tray and its 3 mm rim, one piece */
@@ -2307,7 +2317,7 @@ function piecesOf(M,b,cache){const kp=cache?[radOf(b),b.roof,b.pitch,b.span].joi
       let solid=cache&&cache.get(kp+k);if(!solid){solid=make();if(cache)cache.set(kp+k,solid);}   /* cache: solids shared between buildings (GLB scene); at: where each copy stands, for the GLB */
       out.set(k,{name,desc,qty:1,uses:new Set(use?[use]:[]),at:at?[at]:[],solid,gkey:kp+k});};
   const mx=c=>(c-(b.cols-1)/2)*WX,my=r=>(r-(b.deep-1)/2)*WZ,hw=b.cols*WX/2,hd=b.deep*WZ/2;
-  if(b.tree){put("pot","olive-pot","one-piece pot, "+(H/2)+" mm tall, blind walls "+T+" mm on a "+POT_BASE+" mm base (the tree is not printed)",()=>potSolid(M,b,hw,hd),null,{p:[0,0,0],m:glzPlate(b,0),lab:"pot"});return [...out.values()];}
+  if(b.tree){put("pot","olive-pot","one-piece pot, "+(H/3)+" mm tall, blind walls "+T+" mm on a "+POT_BASE+" mm base (the tree is not printed)",()=>potSolid(M,b,hw,hd),null,{p:[0,0,0],m:glzPlate(b,0),lab:"pot"});return [...out.values()];}
   if(b.court){put("court","plaza-tray","public court tray "+COURT_T+" mm with a "+COURT_RIM+" mm rim",()=>courtSolid(M,b,hw,hd),null,{p:[0,0,0],m:glzPlate(b,0),lab:"tray"});return [...out.values()];}
   const LY=levelY(b,0);let mi=0;const mname=new Map();
   for(let l=0;l<b.levels;l++){
