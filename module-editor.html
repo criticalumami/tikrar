@@ -204,7 +204,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
 <header class="grid12">
   <h1>TIKRAR<small>Beirut Lantern Generator</small></h1>
   <span class="sub"><span id="modSize">porcelain modules 60 × 60 mm · 40 mm walls</span> · houses, towers and city blocks · 1860–1925 and modernist openings</span>
-  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 02.11 · 07:00</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
+  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 02.11 · 08:10</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
   <button class="btn icon" id="themeBtn" type="button" aria-label="Toggle colour theme">◐</button></nav>
 </header>
 
@@ -661,9 +661,9 @@ function matOf(body,glaze,gloss){const k=(S.render?"R|":"")+body+"|"+glaze+(glos
     :new THREE.MeshPhysicalMaterial({color:lin,map:body==="porcelain"?null:speckleTex(body,true),normalMap:glazeN(),normalScale:new THREE.Vector2(0.02,0.02),roughness:0.46,metalness:0,clearcoat:0.45,clearcoatRoughness:0.16,envMapIntensity:0.48});        /* satin-matte ceramic glaze */
   m.userData.translucent=bd.glow;m.userData.uLit={value:0};m.userData.uTrans={value:bd.glow?1:0.22};m.emissive=new THREE.Color(0xff9a3c).convertSRGBToLinear();m.emissiveIntensity=0;m.onBeforeCompile=function(sh){groundAO(sh,this);};return MATS[k]=m;}
 /* ground contact occlusion + real per-pixel 3D candle radiance (interior cavity bounce, 3 mm opening reveal rim light, and radial subsurface porcelain transmission) */
-function groundAO(sh,mat){sh.uniforms.uCY=UCY;if(mat&&mat.userData&&mat.userData.uLit){sh.uniforms.uLit=mat.userData.uLit;sh.uniforms.uTrans=mat.userData.uTrans;}else{sh.uniforms.uLit={value:0};sh.uniforms.uTrans={value:1};}
+function groundAO(sh,mat){sh.uniforms.uCY=UCY;sh.uniforms.uH=UH;if(mat&&mat.userData&&mat.userData.uLit){sh.uniforms.uLit=mat.userData.uLit;sh.uniforms.uTrans=mat.userData.uTrans;}else{sh.uniforms.uLit={value:0};sh.uniforms.uTrans={value:1};}
   sh.vertexShader=sh.vertexShader.replace("#include <common>","#include <common>\nattribute vec4 aCandle;\nvarying float vAOy;\nvarying vec4 vCandle;").replace("#include <worldpos_vertex>","#include <worldpos_vertex>\nvCandle=aCandle;\n#ifdef USE_INSTANCING\nvAOy=(modelMatrix*instanceMatrix*vec4(transformed,1.0)).y;\n#else\nvAOy=(modelMatrix*vec4(transformed,1.0)).y;\n#endif");
-  sh.fragmentShader=sh.fragmentShader.replace("#include <common>","#include <common>\nuniform float uLit;\nuniform float uTrans;\nuniform float uCY;\nvarying float vAOy;\nvarying vec4 vCandle;").replace("#include <aomap_fragment>","#include <aomap_fragment>\n{float g=smoothstep(0.0,26.0,vAOy);reflectedLight.indirectDiffuse*=mix(0.48,1.0,g);reflectedLight.directDiffuse*=mix(0.76,1.0,g);}\nif(uLit>0.001&&vCandle.w<1.5){vec3 fl=vec3(0.0,uCY,0.0);float d=length(vCandle.xyz-fl);float inW=smoothstep(-0.1, -0.7, vCandle.w);float revW=(1.0-abs(vCandle.w))*smoothstep(0.85,-0.25,vCandle.w);float outW=smoothstep(-0.05,0.65,vCandle.w);float attIn=1.85/(1.0+pow(d/23.0,2.05))+0.20;float attRev=1.35/(1.0+pow(d/24.0,1.95))+0.14;float attOut=1.0/(1.0+pow(max(0.0,d-26.0)/15.5,2.0))*smoothstep(0.0,3.2,vCandle.y)*smoothstep(40.0,34.5,vCandle.y);vec3 tint=mix(diffuseColor.rgb,vec3(1.0,0.82,0.52),0.58);totalEmissiveRadiance+=tint*(vec3(1.0,0.75,0.38)*attIn*inW+vec3(1.0,0.70,0.34)*attRev*revW+vec3(1.0,0.56,0.20)*(0.035+0.42*attOut)*outW*uTrans)*uLit;}");}
+  sh.fragmentShader=sh.fragmentShader.replace("#include <common>","#include <common>\nuniform float uLit;\nuniform float uTrans;\nuniform float uCY;\nuniform float uH;\nvarying float vAOy;\nvarying vec4 vCandle;").replace("#include <aomap_fragment>","#include <aomap_fragment>\n{float g=smoothstep(0.0,26.0,vAOy);reflectedLight.indirectDiffuse*=mix(0.48,1.0,g);reflectedLight.directDiffuse*=mix(0.76,1.0,g);}\nif(uLit>0.001&&vCandle.w<1.5){vec3 fl=vec3(0.0,uCY,0.0);float d=length(vCandle.xyz-fl);float inW=smoothstep(-0.1, -0.7, vCandle.w);float revW=(1.0-abs(vCandle.w))*smoothstep(0.85,-0.25,vCandle.w);float outW=smoothstep(-0.05,0.65,vCandle.w);float attIn=1.85/(1.0+pow(d/23.0,2.05))+0.20;float attRev=1.35/(1.0+pow(d/24.0,1.95))+0.14;float attOut=smoothstep(0.0,3.2,vCandle.y)*smoothstep(uH,uH-3.2,vCandle.y);   /* even glow all over the shell, darker only at the ends where parts stack */vec3 tint=mix(diffuseColor.rgb,vec3(1.0,0.82,0.52),0.58);totalEmissiveRadiance+=tint*(vec3(1.0,0.75,0.38)*attIn*inW+vec3(1.0,0.70,0.34)*attRev*revW+vec3(1.0,0.56,0.20)*(0.035+0.42*attOut)*outW*uTrans)*uLit;}");}
 const gl=b=>b.finish==="gloss";
 const bodyMat=b=>matOf(b.body||"porcelain",(b.finish||"glazed")==="unglazed"?"unglazed":(b.glazeCol||"white"),gl(b));
 /* a module may carry its own glaze colour (or be left unglazed); otherwise it follows the building */
@@ -1006,9 +1006,9 @@ function buildBuilding(bi,gap,lightBudget){
       const geo=o.geometry.clone(),P=geo.attributes.position,N=geo.attributes.normal,NM=new THREE.Matrix3().getNormalMatrix(M),v=new THREE.Vector3(),n=new THREE.Vector3(),cd=new Float32Array(P.count*4);let hit=0;
       for(let i=0;i<P.count;i++){v.fromBufferAttribute(P,i).applyMatrix4(M);n.fromBufferAttribute(N,i).applyMatrix3(NM).normalize();
         let best=null,bd=1e9;cands.forEach(k=>{const d=Math.hypot(v.x-k[0],v.y-k[1]-CANDLE_Y,v.z-k[2]);if(d<bd){bd=d;best=k;}});
-        if(!best||bd>60){cd[4*i+3]=2;continue;}hit++;
+        if(!best||bd>400){cd[4*i+3]=2;continue;}hit++;
         const w=bd<1e-3?0:(n.x*(v.x-best[0])+n.y*(v.y-best[1]-CANDLE_Y)+n.z*(v.z-best[2]))/bd,ly=v.y-best[1];
-        cd[4*i]=v.x-best[0];cd[4*i+1]=w>0?Math.min(ly,36):ly;cd[4*i+2]=v.z-best[2];cd[4*i+3]=w;}   /* the outer skin of a roof sits above the wall tops: clamp its height so the outside glow still reaches it */
+        cd[4*i]=v.x-best[0];cd[4*i+1]=w>0?Math.min(ly,H-3.2):ly;cd[4*i+2]=v.z-best[2];cd[4*i+3]=w;}   /* the outer skin of a roof sits above the wall tops: clamp its height so the outside glow still reaches it */
       if(!hit)return;geo.setAttribute("aCandle",new THREE.BufferAttribute(cd,4));o.geometry=geo;o.userData.shared=false;o.userData.lit=true;});}
   {const cs=new THREE.Mesh(new THREE.PlaneGeometry(2*hw+18,2*hd+18),MAT.contact);cs.rotation.x=-Math.PI/2;cs.position.y=0.25-groundDrop();cs.renderOrder=1;g.add(cs);}   /* soft contact shadow where the piece meets the floor (Day Render) */
   if(isSel(bi)){const pts=[[-hw-4,-hd-4],[hw+4,-hd-4],[hw+4,hd+4],[-hw-4,hd+4]].map(([x,z])=>new THREE.Vector3(x,0.6,z));const ln=new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(pts),MAT.sel);g.add(ln);}
@@ -1026,7 +1026,7 @@ const LPOOL=Array.from({length:MAX_LIGHTS},(_,i)=>{const L=new THREE.PointLight(
   L.shadow.camera.near=3;L.shadow.camera.far=380;L.position.set(0,-500,0);L.userData.base=0;scene.add(L);return L;});
 /* candles share the pool: one real light per lit module, the selected building's first, then the lowest levels;
    real 3D point lights illuminate the 3 mm opening reveals, interior walls, locating lips, plates and neighbouring modules */
-let CANDLE_Y=CH+8;const UCY={value:CH+8},CANDLE_I=1.45,BAKE_R=145,BAKE_SOFT=[
+let CANDLE_Y=CH+8;const UCY={value:CH+8},UH={value:H},CANDLE_I=1.45,BAKE_R=145,BAKE_SOFT=[
   [0,0,0],[0,2.2,0],[0,4.2,0],[0,-1.2,0],
   [1.3,1.0,0],[-1.3,1.0,0],[0,1.0,1.3],[0,1.0,-1.3],
   [1.1,2.8,1.1],[-1.1,2.8,1.1],[1.1,2.8,-1.1],[-1.1,2.8,-1.1],
@@ -1605,7 +1605,7 @@ on("radius","input",e=>{each(b=>b.radius=+e.target.value);renderUI();});
 /* Module editor only: module height, wall and slab thickness. Every piece (view, checks, technical review, STL) reads H, T and the slab live */
 /* the module's size and thicknesses are set in the Module editor; the cluster editor reads them from its saved design and follows */
 const modDims=()=>{if(MODE==="module")return S;try{return JSON.parse(localStorage.getItem("tikrar-module-editor-v1"))||{};}catch(e){return {};}};
-function applyDims(){const D=modDims();WX=D.mw||60;WZ=D.ml||60;RGEO.clear();H=D.mh||40;T=D.mt||3;BASE_T=PLATE_T=FLAT_T=D.ms||4;CD=D.cd||38;CH=D.ch||12;CANDLE_Y=CH+8;UCY.value=CH+8;
+function applyDims(){const D=modDims();WX=D.mw||60;WZ=D.ml||60;RGEO.clear();H=D.mh||40;UH.value=H;T=D.mt||3;BASE_T=PLATE_T=FLAT_T=D.ms||4;CD=D.cd||38;CH=D.ch||12;CANDLE_Y=CH+8;UCY.value=CH+8;
   {const el=$("modSize");if(el)el.textContent=`porcelain modules ${WX} × ${WZ} mm · ${H} mm walls`;}B.setH(H);B.LIPS.in=T+LIP.clr;WGEO.clear();CGEO.clear();if(MODE!=="module"){const k=[WX,WZ,H,T,PLATE_T].join("|");if(S.dims!==k){S.dims=k;gridLayout(S.buildings);}return;}
   [["modW",WX,WX+" mm"],["modL",WZ,WZ+" mm"],["modH",H,H+" mm"],["modT",T,T.toFixed(1)+" mm"],["modS",PLATE_T,PLATE_T.toFixed(1)+" mm"],["modCD",CD,CD+" mm"],["modCH",CH,CH+" mm"]].forEach(([id,v,t])=>{if(document.activeElement!==$(id))$(id).value=v;$(id+"V").textContent=t;});}
 [["modW","mw"],["modL","ml"],["modH","mh"],["modT","mt"],["modS","ms"],["modCD","cd"],["modCH","ch"]].forEach(([id,k])=>on(id,"input",e=>{S[k]=+e.target.value;applyDims();renderUI();}));
