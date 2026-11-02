@@ -204,7 +204,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
 <header class="grid12">
   <h1>TIKRAR<small>Beirut Lantern Generator</small></h1>
   <span class="sub"><span id="modSize">porcelain modules 60 × 60 mm · 40 mm walls</span> · houses, towers and city blocks · 1860–1925 and modernist openings</span>
-  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 02.11 · 11:10</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
+  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 02.11 · 09:40</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
   <button class="btn icon" id="themeBtn" type="button" aria-label="Toggle colour theme">◐</button></nav>
 </header>
 
@@ -1088,7 +1088,7 @@ const LPOOL=Array.from({length:MAX_LIGHTS},(_,i)=>{const L=new THREE.PointLight(
   L.shadow.camera.near=3;L.shadow.camera.far=380;L.position.set(0,-500,0);L.userData.base=0;scene.add(L);return L;});
 /* candles share the pool: one real light per lit module, the selected building's first, then the lowest levels;
    real 3D point lights illuminate the 3 mm opening reveals, interior walls, locating lips, plates and neighbouring modules */
-let CANDLE_Y=CH+8;const UCY={value:CH+8},UH={value:H},CANDLE_I=1.45,BAKE_R=145,BAKE_SOFT=[
+let CANDLE_Y=CH+8;const SPREAD=4.5,UCY={value:CH+8},UH={value:H},CANDLE_I=1.45,BAKE_R=145,BAKE_SOFT=[
   [0,0,0],[0,2.2,0],[0,4.2,0],[0,-1.2,0],
   [1.3,1.0,0],[-1.3,1.0,0],[0,1.0,1.3],[0,1.0,-1.3],
   [1.1,2.8,1.1],[-1.1,2.8,1.1],[1.1,2.8,-1.1],[-1.1,2.8,-1.1],
@@ -1105,7 +1105,7 @@ function placeLights(anchors){lights.length=0;LPOOL.forEach(L=>{L.userData.base=
    light, so each opening throws its own soft caustic shape across the tabletop. */
 const BAKE={rt:null,q:[],ov:null,n:0,scene:new THREE.Scene(),cam:new THREE.OrthographicCamera(-1,1,1,-1,1,3000),
   light:new THREE.PointLight(0xffa44b,1,BAKE_R,1.9),plane:null};
-{const L=BAKE.light;L.castShadow=true;L.shadow.mapSize.set(1024,1024);L.shadow.radius=5.2;L.shadow.bias=-0.0018;L.shadow.normalBias=0.3;L.shadow.camera.near=2;
+{const L=BAKE.light;L.castShadow=true;L.shadow.mapSize.set(1024,1024);L.shadow.radius=9;L.shadow.bias=-0.0018;L.shadow.normalBias=0.3;L.shadow.camera.near=2;
   L.layers.set(1);BAKE.cam.layers.enable(1);   /* the shadow pass draws what the bake camera's layers see, so it sees the buildings too: its near and far planes then cut everything but a thin slab just under the ground */
   BAKE.cam.up.set(0,0,-1);BAKE.scene.add(L);
   BAKE.plane=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshStandardMaterial({color:0xffe4bc,roughness:1,metalness:0,transparent:true,blending:THREE.AdditiveBlending,depthTest:false,depthWrite:false}));
@@ -1123,7 +1123,7 @@ function startBake(anchors){BAKE.q.length=0;BAKE.n=0;BAKE.ov.visible=false;
   [BAKE.plane,BAKE.ov].forEach(o=>{o.scale.set(w,d,1);o.position.set(cx,gy-0.5,cz);});BAKE.ov.position.y=gy+0.35;
   const cc=renderer.getClearColor(new THREE.Color()),ca=renderer.getClearAlpha(),rt0=renderer.getRenderTarget();
   renderer.setRenderTarget(BAKE.rt);renderer.setClearColor(0x000000,1);renderer.clear(true,false,false);renderer.setRenderTarget(rt0);renderer.setClearColor(cc,ca);
-  const p=new THREE.Vector3();anchors.forEach(a=>{a.getWorldPosition(p);BAKE_SOFT.forEach(([dx,dy,dz])=>BAKE.q.push(p.clone().add(new THREE.Vector3(dx,dy,dz))));});BAKE.light.intensity=1/BAKE_SOFT.length;BAKE.ov.visible=true;}
+  const p=new THREE.Vector3();anchors.forEach(a=>{a.getWorldPosition(p);BAKE_SOFT.forEach(([dx,dy,dz])=>BAKE.q.push(p.clone().add(new THREE.Vector3(dx*SPREAD,dy*1.5,dz*SPREAD))));});BAKE.light.intensity=1/BAKE_SOFT.length;BAKE.ov.visible=true;}
 /* a still (GIF frame, JPG, PDF) waits for every candle to be baked first */
 const settleLight=()=>{if(BAKE.q.length)bakeStep(1e9);};
 function bakeStep(max){const t0=performance.now(),rt0=renderer.getRenderTarget(),ac=renderer.autoClear,pend=renderer.shadowMap.needsUpdate,enc0=renderer.outputEncoding,tm0=renderer.toneMapping;
@@ -1225,7 +1225,7 @@ function applyNight(){const n=S.night,rd=S.render;scene.background=new THREE.Col
   else{scene.environment=n?envDark():envBasic;sun.shadow.normalBias=0.35;}   /* normal offset keeps flat walls free of shadow acne */
   if(sun.shadow.map&&sun.shadow.map.width!==sun.shadow.mapSize.x){sun.shadow.map.dispose();sun.shadow.map=null;}
   if(S.night!==BAKE.night||BAKE.anchors!==BAKE.done){BAKE.night=S.night;BAKE.done=BAKE.anchors;startBake(BAKE.anchors||[]);}
-  BAKE.ov.material.color.setRGB(1.0*CANDLE_I*0.85*cs,0.72*CANDLE_I*0.85*cs,0.38*CANDLE_I*0.85*cs);
+  BAKE.ov.material.color.setRGB(1.0*CANDLE_I*0.5*cs,0.58*CANDLE_I*0.5*cs,0.24*CANDLE_I*0.5*cs);
   renderer.shadowMap.needsUpdate=true;need();}
 let composer=null,ssao=null,bloom=null,finalPass=null,fxaa=null;
 const LIBS=["shaders/CopyShader.js","shaders/LuminosityHighPassShader.js","shaders/SSAOShader.js","shaders/FXAAShader.js","math/SimplexNoise.js",
@@ -1274,7 +1274,7 @@ let tick=0,lastFlick=0;(function loop(now){requestAnimationFrame(loop);controls.
   if(S.night&&flames.length&&now-lastFlick>(S.render?80:70)&&!document.hidden){lastFlick=now;tick+=0.32;
     {const cs=S.candle===undefined?1:S.candle,k=0.97+Math.sin(tick*1.7)*0.025+Math.sin(tick*4.1)*0.012;
       Object.values(LIT).forEach(m=>{if(m.userData.uLit)m.userData.uLit.value=cs*k;});
-      MAT.pool.opacity=Math.min(0.85,0.38*cs)*k;BAKE.ov.material.color.setRGB(1.0*CANDLE_I*0.85*cs*k,0.72*CANDLE_I*0.85*cs*k,0.38*CANDLE_I*0.85*cs*k);}
+      MAT.pool.opacity=Math.min(0.85,0.38*cs)*k;BAKE.ov.material.color.setRGB(1.0*CANDLE_I*0.5*cs*k,0.58*CANDLE_I*0.5*cs*k,0.24*CANDLE_I*0.5*cs*k);}
     lights.forEach((L,i)=>L.intensity=L.userData.base*(S.render?1.15:1)*(S.candle===undefined?1:S.candle)*(0.96+Math.sin(tick*1.7+i)*0.035+Math.sin(tick*4.1+i*2)*0.018));
     flames.forEach((f,i)=>{const s=1+Math.sin(tick*3+i)*0.07;f.scale.set(1,s,1);});need();}
   if(BAKE.q.length){bakeStep(BAKE.n?24:60);need();}
