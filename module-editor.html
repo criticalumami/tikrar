@@ -743,11 +743,13 @@ function buildRoom(){scene.remove(room);room.traverse(o=>{if(o.geometry)o.geomet
     for(let o=0;o<=d;o+=10){pts.push(V(xl,ry,b.z1-o),V(xl-tk(o),ry,b.z1-o));if(o%100===0)lz(o+"",xl-tk(o)-14,b.z1-o);}
     for(let o=0;o<=hh;o+=10){pts.push(V(xl,o,zf),V(xl-tk(o),o,zf));if(o%100===0&&o>0)lab(o+"",xl-tk(o)-9,o,zf,rc,1,"v");}
     lx("mm",b.x0+Math.floor(w/100)*100+55,zf+16);lz("mm",xl-16,b.z1-Math.floor(d/100)*100-45);lab("mm",xl-10,Math.floor(hh/100)*100+34,zf,rc,1,"v");
-    /* the single module: red dimension lines run along their own axis, outside the city */
-    const dl=(p,q)=>dpt.push(p,q);
-    dl(V(b.x0,ry,zf+36),V(b.x0+WX,ry,zf+36));lx(WX+"",b.x0+WX/2,zf+52,rd,1.15);
-    dl(V(xl-36,ry,b.z1),V(xl-36,ry,b.z1-WZ));lz(WZ+"",xl-52,b.z1-WZ/2,rd,1.15);
-    dl(V(xl-36,0,zf),V(xl-36,H,zf));lab(H+"",xl-48,H/2,zf,rd,1.15,"v");
+    /* the single module nearest the ruler origin (front-left corner): its own edges dimensioned in red, outside its walls, each along its axis */
+    {let best=null,bd=1e18;S.buildings.forEach(q=>{const f=fp(q),fx=q.x-f.w/2,fz=q.z+f.d/2,dd=Math.hypot(fx-b.x0,fz-b.z1);if(dd<bd){bd=dd;best=[fx,fz];}});
+      if(best){const mx=best[0],mz=best[1],o=7;
+        dpt.push(V(mx,ry,mz+o),V(mx+WX,ry,mz+o),V(mx-o,ry,mz),V(mx-o,ry,mz-WZ),V(mx-o,0,mz+o),V(mx-o,H,mz+o));
+        lab(WX+"",mx+WX/2,ry+0.6,mz+o+11,rd,1.15,"g");lab(WX+"",mx+WX/2,SY,mz+o+11,rd,1.15,"s");
+        lab(WZ+"",mx-o-11,ry+0.6,mz-WZ/2,rd,1.15,"gz");lab(WZ+"",mx-o-11,SY,mz-WZ/2,rd,1.15,"sz");
+        lab(H+"",mx-o-11,H/2,mz+o,rd,1.15,"v");}}
     const rl=new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(pts),new THREE.LineBasicMaterial({color:rc}));rl.name="ruler";rg.add(rl);
     rg.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(dpt),new THREE.LineBasicMaterial({color:rd})));room.add(rg);updateRuler();}
   scene.add(room);}
