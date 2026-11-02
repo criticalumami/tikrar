@@ -204,7 +204,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
 <header class="grid12">
   <h1>TIKRAR<small>Beirut Lantern Generator</small></h1>
   <span class="sub"><span id="modSize">porcelain modules 60 × 60 mm · 40 mm walls</span> · houses, towers and city blocks · 1860–1925 and modernist openings</span>
-  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 02.11 · 13:40</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
+  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 02.11 · 14:10</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
   <button class="btn icon" id="themeBtn" type="button" aria-label="Toggle colour theme">◐</button></nav>
 </header>
 
@@ -724,7 +724,7 @@ const MAT={glaze:new THREE.MeshStandardMaterial({color:0xf6f1e8,roughness:0.22,m
   flame:new THREE.MeshBasicMaterial({color:0xffbe55,toneMapped:false}),
   flameCore:new THREE.MeshBasicMaterial({color:0xfff7e0,toneMapped:false}),
   flameHalo:new THREE.SpriteMaterial({color:0xff9c3b,transparent:true,opacity:0.48,blending:THREE.AdditiveBlending,depthWrite:false,toneMapped:false}),
-  sel:new THREE.LineBasicMaterial({color:0xe2231a}),line:new THREE.LineBasicMaterial({color:0xe2231a}),band:new THREE.MeshBasicMaterial({color:0xe2231a,side:THREE.DoubleSide}),
+  sel:new THREE.LineBasicMaterial({color:0xe2231a}),selMod:new THREE.LineBasicMaterial({color:0xffc400,depthTest:false,transparent:true}),line:new THREE.LineBasicMaterial({color:0xe2231a}),band:new THREE.MeshBasicMaterial({color:0xe2231a,side:THREE.DoubleSide}),
   glow:new THREE.MeshBasicMaterial({color:0xffb562,side:THREE.BackSide,toneMapped:false}),
   pool:new THREE.MeshBasicMaterial({color:0xff9a48,transparent:true,opacity:0.5,blending:THREE.AdditiveBlending,depthWrite:false,toneMapped:false})};
 MAT.contact=new THREE.MeshBasicMaterial({color:0x000000,transparent:true,opacity:0.12,depthWrite:false});
@@ -1058,6 +1058,7 @@ function buildBuilding(bi,gap,lightBudget){
         if(up)g.add(lipRing(mx(c),-mz(r),py+plateT(l),pm,b,true));if(dn)g.add(lipRing(mx(c),-mz(r),py-LIP.h,pm,b));}
 }   /* the base is one piece: no separate foot layer under it */
     for(let c=0;c<b.cols;c++)for(let r=0;r<b.deep;r++){const k=c+":"+r+":"+l;if(!alive(b,k))continue;const mg=new THREE.Group();mg.position.set(mx(c),ys[l],mz(r));if(ringOn(b,k))mg.add(slideRing(bi,b,k));else{const bvs={};FACES.forEach(f=>{const w=buildWall(bi,k,f);bvs[f]=w.userData.bv;mg.add(w);});mg.add(cornerPieces(b,k,bvs));}if(litMod(b,c,r,l))mg.traverse(o=>o.userData.lit=true);g.add(mg);
+      if(bi===S.selB&&k===S.sel&&b.cols*b.deep*b.levels>1){const eg=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(WX+3,H+3,WZ+3)),MAT.selMod);eg.position.set(mx(c),ys[l]+H/2,mz(r));eg.renderOrder=5;eg.userData.shared=true;g.add(eg);}   /* the selected module of the selected building: bright box (cluster editor) */
       if(litMod(b,c,r,l)){const tea=new THREE.Mesh(teaGeo().cup,MAT.tea);tea.position.set(mx(c),ys[l]-gap*0.5+(CH-0.5)/2,mz(r));tea.receiveShadow=true;tea.userData.shared=true;g.add(tea);
         const wax=new THREE.Mesh(teaGeo().wax,MAT.wax);wax.position.set(mx(c),ys[l]-gap*0.5+CH-0.6,mz(r));wax.userData.shared=true;g.add(wax);
         const fl=new THREE.Group();fl.position.set(mx(c),ys[l]-gap*0.5+CH+4.5,mz(r));
