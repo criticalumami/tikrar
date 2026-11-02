@@ -204,7 +204,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
 <header class="grid12">
   <h1>TIKRAR<small>Beirut Lantern Generator</small></h1>
   <span class="sub"><span id="modSize">porcelain modules 60 × 60 mm · 40 mm walls</span> · houses, towers and city blocks · 1860–1925 and modernist openings</span>
-  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 02.11 · 13:20</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
+  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 02.11 · 13:40</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
   <button class="btn icon" id="themeBtn" type="button" aria-label="Toggle colour theme">◐</button></nav>
 </header>
 
@@ -350,6 +350,9 @@ function make(name,set,cols,deep,levels,roof,fn,o){
 function sharedOf(b,c,r,f,l){const n=f==="right"?(c<b.cols-1?[c+1,r]:null):f==="left"?(c>0?[c-1,r]:null):f==="front"?(r>0?[c,r-1]:null):(r<b.deep-1?[c,r+1]:null);
   if(!n)return false;if(l===undefined||!b.mods)return true;return alive(b,n[0]+":"+n[1]+":"+l);}
 const alive=(b,k)=>!!(b.mods[k]&&!b.mods[k].removed);
+/* candles are per module: a level's candle box lights all its modules, except the ones listed in b.noCandle (randomize leaves some dark) */
+const litCount=(b,l)=>{let n=0;for(let c=0;c<b.cols;c++)for(let r=0;r<b.deep;r++)if(litMod(b,c,r,l))n++;return n;};
+const litMod=(b,c,r,l)=>{const k=c+":"+r+":"+l;return !!(b.candles[l]&&b.plates[l]&&alive(b,k)&&!(b.noCandle&&b.noCandle[k]));};
 const liveKeys=b=>Object.keys(b.mods).filter(k=>alive(b,k));
 const INNER=()=>bays("none","door","none");
 const KINDS={
@@ -409,8 +412,12 @@ function randomizeBuilding(b){
 const mirror=w=>w.mode==="bays"?bays(w.bays[2],w.bays[1],w.bays[0]):w.mode==="free"?B.mirrorFree(w):clone(w);
 /* random light: some levels lit, a plate under every lit level, the odd plate on its own; never a fully dark building */
 function randomizeLight(b){
-  b.candles=Array.from({length:b.levels},(_,l)=>Math.random()<(l===0?0.7:0.4));if(!b.candles.some(Boolean))b.candles[Math.floor(Math.random()*b.levels)]=true;
-  b.plates=b.candles.map(()=>true);}   /* a slab under every level by default */
+  b.plates=Array.from({length:b.levels},()=>true);b.noCandle={};b.candles=Array.from({length:b.levels},()=>false);const keys=[];   /* a slab under every level by default */
+  /* each module is lit or dark on its own (not whole floors): more often on the ground floor */
+  for(let l=0;l<b.levels;l++)for(let c=0;c<b.cols;c++)for(let r=0;r<b.deep;r++){const k=c+":"+r+":"+l;if(!alive(b,k))continue;keys.push([k,l]);if(Math.random()<(l===0?0.7:0.45))b.candles[l]=true;else b.noCandle[k]=1;}
+  if(!keys.length){b.candles[0]=true;return;}
+  if(!keys.some(([k])=>!b.noCandle[k])){const [k,l]=pick(keys);delete b.noCandle[k];b.candles[l]=true;}
+  keys.forEach(([k,l])=>{if(!b.candles[l])delete b.noCandle[k];});}   /* a level with no lit module is simply unticked */   /* a slab under every level by default */
 /* a new random building on the same footprint and spot, so the other blocks stay where they are */
 function randomFit(o){const tower=o.cols*o.deep===1&&Math.random()<0.6,set=tower?(Math.random()<0.75?"modern":"ottoman"):(Math.random()<0.6?"ottoman":"modern"),
   levels=o.levels||(tower?pick([3,4,5,6]):pick([1,2,3])),b=make(set==="modern"?(tower?"Modernist tower":"Modernist block"):(tower?"Stair tower":"House"),set,o.cols,o.deep,levels,set==="ottoman"?"slant":"modern",()=>wall("blank"));
@@ -1050,14 +1057,14 @@ function buildBuilding(bi,gap,lightBudget){
       for(let c=0;c<b.cols;c++)for(let r=0;r<b.deep;r++){const up=alive(b,c+":"+r+":"+l),dn=l===0?up:alive(b,c+":"+r+":"+(l-1));   /* lips: on top for the module above, underneath for the module below (the base: its feet) */
         if(up)g.add(lipRing(mx(c),-mz(r),py+plateT(l),pm,b,true));if(dn)g.add(lipRing(mx(c),-mz(r),py-LIP.h,pm,b));}
 }   /* the base is one piece: no separate foot layer under it */
-    for(let c=0;c<b.cols;c++)for(let r=0;r<b.deep;r++){const k=c+":"+r+":"+l;if(!alive(b,k))continue;const mg=new THREE.Group();mg.position.set(mx(c),ys[l],mz(r));if(ringOn(b,k))mg.add(slideRing(bi,b,k));else{const bvs={};FACES.forEach(f=>{const w=buildWall(bi,k,f);bvs[f]=w.userData.bv;mg.add(w);});mg.add(cornerPieces(b,k,bvs));}if(b.candles[l]&&b.plates[l])mg.traverse(o=>o.userData.lit=true);g.add(mg);
-      if(b.candles[l]&&b.plates[l]){const tea=new THREE.Mesh(teaGeo().cup,MAT.tea);tea.position.set(mx(c),ys[l]-gap*0.5+(CH-0.5)/2,mz(r));tea.receiveShadow=true;tea.userData.shared=true;g.add(tea);
+    for(let c=0;c<b.cols;c++)for(let r=0;r<b.deep;r++){const k=c+":"+r+":"+l;if(!alive(b,k))continue;const mg=new THREE.Group();mg.position.set(mx(c),ys[l],mz(r));if(ringOn(b,k))mg.add(slideRing(bi,b,k));else{const bvs={};FACES.forEach(f=>{const w=buildWall(bi,k,f);bvs[f]=w.userData.bv;mg.add(w);});mg.add(cornerPieces(b,k,bvs));}if(litMod(b,c,r,l))mg.traverse(o=>o.userData.lit=true);g.add(mg);
+      if(litMod(b,c,r,l)){const tea=new THREE.Mesh(teaGeo().cup,MAT.tea);tea.position.set(mx(c),ys[l]-gap*0.5+(CH-0.5)/2,mz(r));tea.receiveShadow=true;tea.userData.shared=true;g.add(tea);
         const wax=new THREE.Mesh(teaGeo().wax,MAT.wax);wax.position.set(mx(c),ys[l]-gap*0.5+CH-0.6,mz(r));wax.userData.shared=true;g.add(wax);
         const fl=new THREE.Group();fl.position.set(mx(c),ys[l]-gap*0.5+CH+4.5,mz(r));
         const flOut=new THREE.Mesh(FLAME_OUT_GEO,MAT.flame);flOut.scale.set(0.78,1.75,0.78);fl.add(flOut);
         const flIn=new THREE.Mesh(FLAME_IN_GEO,MAT.flameCore);flIn.scale.set(0.7,1.45,0.7);flIn.position.y=-0.5;fl.add(flIn);
         g.add(fl);flames.push(fl);}}
-    for(let c=0;c<b.cols;c++)for(let r=0;r<b.deep;r++)if(b.candles[l]&&b.plates[l]&&alive(b,c+":"+r+":"+l)){const a=new THREE.Object3D();a.position.set(mx(c),ys[l]-gap*0.5+CANDLE_Y,mz(r));a.userData={bi,l,c,r,k:c+":"+r+":"+l,mod:[mx(c),ys[l],mz(r)]};g.add(a);lightBudget.anchors.push(a);}}
+    for(let c=0;c<b.cols;c++)for(let r=0;r<b.deep;r++)if(litMod(b,c,r,l)){const a=new THREE.Object3D();a.position.set(mx(c),ys[l]-gap*0.5+CANDLE_Y,mz(r));a.userData={bi,l,c,r,k:c+":"+r+":"+l,mod:[mx(c),ys[l],mz(r)]};g.add(a);lightBudget.anchors.push(a);}}
   if(b.roof!=="none"){const one=()=>b.roof==="modern"?modernRoof(b):slantRoof(b);
     /* a one-piece roof needs a complete top level; otherwise every column gets its own lid on its highest module */
     if(perMod(b)||!topComplete(b)){const sb=Object.assign({},b,{span:"module"});
@@ -1066,13 +1073,14 @@ function buildBuilding(bi,gap,lightBudget){
     else{const rf=one();rf.position.set(0,top+gap*0.4,0);g.add(rf);}}
   /* plates, flat roofs and pitched roofs are the same cast porcelain as the walls, so they glow from the candle the same way:
      the shader reads aCandle (position from the nearest candle, and which side of the shell the surface faces), which only the walls carried before */
-  {const cands=[];for(let l=0;l<b.levels;l++)if(b.candles[l]&&b.plates[l])for(let c=0;c<b.cols;c++)for(let r=0;r<b.deep;r++)if(alive(b,c+":"+r+":"+l))cands.push([mx(c),ys[l],mz(r)]);
+  {const cands=[];for(let l=0;l<b.levels;l++)for(let c=0;c<b.cols;c++)for(let r=0;r<b.deep;r++)if(litMod(b,c,r,l))cands.push([mx(c),ys[l],mz(r)]);
     if(cands.length)g.traverse(o=>{const mt=o.material;if(!o.isMesh||!mt||!mt.userData||!mt.userData.uLit||!o.geometry.attributes.normal||o.geometry.attributes.aCandle)return;
       const M=new THREE.Matrix4();for(let p=o;p&&p!==g;p=p.parent){p.updateMatrix();M.premultiply(p.matrix);}
       const geo=o.geometry.clone(),P=geo.attributes.position,N=geo.attributes.normal,NM=new THREE.Matrix3().getNormalMatrix(M),v=new THREE.Vector3(),n=new THREE.Vector3(),cd=new Float32Array(P.count*4);let hit=0;
       for(let i=0;i<P.count;i++){v.fromBufferAttribute(P,i).applyMatrix4(M);n.fromBufferAttribute(N,i).applyMatrix3(NM).normalize();
-        let best=null,bd=1e9;cands.forEach(k=>{const d=Math.hypot(v.x-k[0],v.y-k[1]-CANDLE_Y,v.z-k[2]);if(d<bd){bd=d;best=k;}});
-        if(!best||bd>400){cd[4*i+3]=2;continue;}hit++;
+        let best=null,bd=1e9;cands.forEach(k=>{const dy=v.y-k[1];if(Math.abs(v.x-k[0])>WX/2+2||Math.abs(v.z-k[2])>WZ/2+2||dy<-(PLATE_T+LIP.h+2)||dy>H+90)return;   /* only the candle in the module this piece covers or carries: a top lid stays dark over a dark module */
+          const d=Math.hypot(v.x-k[0],dy-CANDLE_Y,v.z-k[2]);if(d<bd){bd=d;best=k;}});
+        if(!best){cd[4*i+3]=2;continue;}hit++;
         const w=bd<1e-3?0:(n.x*(v.x-best[0])+n.y*(v.y-best[1]-CANDLE_Y)+n.z*(v.z-best[2]))/bd,ly=v.y-best[1];
         cd[4*i]=v.x-best[0];cd[4*i+1]=w>0?Math.min(ly,H-3.2):ly;cd[4*i+2]=v.z-best[2];cd[4*i+3]=w;}   /* the outer skin of a roof sits above the wall tops: clamp its height so the outside glow still reaches it */
       if(!hit)return;geo.setAttribute("aCandle",new THREE.BufferAttribute(cd,4));o.geometry=geo;o.userData.shared=false;o.userData.lit=true;});}
@@ -1430,7 +1438,7 @@ function techReview(b){const rows=[],R_=(ok,label,v,fx)=>rows.push({ok,label,v,f
   R_(b.roof==="none"||true,"Roof seat",roofSeat,b.roof==="none"?"Open top: the top wall rims stay glazed-free so a roof can be added later.":`The roof runs in over the wall top and turns down as a ${FIT.rimW} × ${FIT.rimH} mm lip inside the top ring (${FIT.clr} mm clear), cast as one with the shell${perMod(b)?" (one lid each)":""}, so it can't slide off. ${b.roof==="modern"?`The flat roof also carries the same lip on its top face, so another piece can stack on it. It is the same ${FLAT_T} mm slab as the plates between floors, flush with the wall face.`:"It is a slip-cast shell as thick as the walls (3 mm), flush with the wall face, sitting ring on ring."}`);
   const flameGap=H-FIT.flameTop;
   R_(lit===0||flameGap>=25,"Candle heat: flame to plate above",lit?`${flameGap} mm`:"no candles",lit?`A tealight flame tops out about ${FIT.flameTop} mm above its plate, leaving ${flameGap} mm to the plate over it. The Ø${FIT.ventLit} vent over each module lets the heat and soot rise through instead of pooling under the plate; on lower levels of tall stacks use LED tealights.`:"Add a candle to a level with a plate to see the heat check.");
-  let minOpen=100;liveKeys(b).forEach(kk=>{const [,,l]=keyParts(kk);if(!(b.candles[l]&&b.plates[l]))return;let a=0;FACES.forEach(f=>{const o=bld(b.mods[kk][f],f);a+=o.holes.reduce((s2,h)=>s2+B.area(h.p),0);});minOpen=Math.min(minOpen,a/(4*W*H)*100);});
+  let minOpen=100;liveKeys(b).forEach(kk=>{const [c,r,l]=keyParts(kk);if(!litMod(b,c,r,l))return;let a=0;FACES.forEach(f=>{const o=bld(b.mods[kk][f],f);a+=o.holes.reduce((s2,h)=>s2+B.area(h.p),0);});minOpen=Math.min(minOpen,a/(4*W*H)*100);});
   R_(lit===0||minOpen>=6,"Air for the flame",lit?`${minOpen.toFixed(0)} % open (least open lit module)`:"–",lit?(minOpen>=6?"Enough open wall for the tealight to draw air and burn clean.":"Below about 6 % open wall the flame starves and smokes: open one wall more on that module, or keep it unlit."):"–");
   R_(true,"Lighting the candles","lift the stack above",`Tealights stand on the plates (Ø${CD} in a ${inner.toFixed(0)} mm square, ${((inner-CD)/2).toFixed(0)} mm all round). To light a level, lift off everything above it as one piece; the rims re-locate it. A long match or lighter through an opening also works for openings ≥ 12 mm.`);
   const slender=top/(Math.min(b.cols*WX,b.deep*WZ));
@@ -1485,7 +1493,7 @@ function renderUI(){
   const bd=BODY[b.body||"porcelain"];$("matHint").textContent=`${bd.name}, ${b.finish==="unglazed"?"unglazed":(GLAZE[b.glazeCol||"white"].name.toLowerCase()+" glaze")}: shrinks about ${bd.shrink} % in firing, so moulds are ×${(1/(1-bd.shrink/100)).toFixed(3)} the fired size. `+(bd.glow?(b.finish==="unglazed"?"Unglazed porcelain stays matte and still glows through thin walls.":"Porcelain glows through thin walls."):"Not translucent: the light comes only through the openings.");
   $("levelRows").innerHTML=Array.from({length:b.levels},(_,i)=>b.levels-1-i).map(l=>`<div class="ck lv"><span class="lbl">${levelName(l)}</span>
     <label><input type="checkbox" data-plate="${l}"${b.plates[l]?" checked":""}> ${l?"plate "+PLATE_T+" mm":"base "+BASE_T+" mm"}</label>
-    <label><input type="checkbox" data-candle="${l}"${b.candles[l]?" checked":""}> candle${b.cols*b.deep>1?"s ×"+b.cols*b.deep:""}</label></div>`).join("");
+    <label><input type="checkbox" data-candle="${l}"${b.candles[l]?" checked":""}> candle${b.cols*b.deep>1?"s "+(b.candles[l]?litCount(b,l)+"/":"×")+b.cols*b.deep:""}</label></div>`).join("");
   $("levelPick").innerHTML=`<span class="lbl">Level</span><div class="v"><div class="seg" id="lvSeg">${Array.from({length:b.levels},(_,l)=>`<button type="button" data-lv="${l}" aria-pressed="${l===sl}">${l?l:"G"}</button>`).join("")}</div></div>`;
   {let pp=`<span class="lbl">Module</span><div class="v" style="display:grid;grid-template-columns:repeat(${b.cols},minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line)">`;
     for(let r=b.deep-1;r>=0;r--)for(let c=0;c<b.cols;c++){const k=c+":"+r+":"+sl,gn=!alive(b,k),ok=gn||FACES.every(fn=>faceChecks(b,k,fn).ok);pp+=`<button type="button" class="btn" data-k="${k}" title="${gn?"removed · ":""}${r===0?"street row":r===b.deep-1?"back row":"middle row"}" style="border:0;${k===S.sel?"background:var(--ink);color:var(--paper)":"background:var(--bg)"}${ok?"":";border-color:var(--bad)"}${gn?";border-style:dashed;opacity:.55":""}">${gn?"×":c+1+"·"+(r===0?"st":r===b.deep-1?"bk":"mid")}</button>`;}
@@ -1760,7 +1768,7 @@ on("finishSeg","click",e=>{const x=e.target.closest("button");if(!x)return;each(
 on("glazeSw","click",e=>{const x=e.target.closest("button");if(!x)return;each(b=>b.glazeCol=x.dataset.g);renderUI();});
 on("levelRows","change",e=>{const t=e.target;each(b=>{
   if(t.dataset.plate!==undefined){const l=+t.dataset.plate;if(l>=b.levels)return;b.plates[l]=t.checked;if(!t.checked)b.candles[l]=false;}
-  if(t.dataset.candle!==undefined){const l=+t.dataset.candle;if(l>=b.levels)return;b.candles[l]=t.checked;if(t.checked)b.plates[l]=true;}});   /* a candle needs a plate to stand on */
+  if(t.dataset.candle!==undefined){const l=+t.dataset.candle;if(l>=b.levels)return;b.candles[l]=t.checked;if(b.noCandle)Object.keys(b.noCandle).forEach(k=>{if(+k.split(":")[2]===l)delete b.noCandle[k];});if(t.checked)b.plates[l]=true;}});   /* a candle needs a plate to stand on */
   renderUI();});
 on("levelPick","click",e=>{const x=e.target.closest("button");if(!x)return;const [c,r]=keyParts(S.sel);S.sel=c+":"+r+":"+x.dataset.lv;renderUI();});
 on("planPick","click",e=>{const x=e.target.closest("button");if(!x||!x.dataset.k)return;S.sel=x.dataset.k;renderUI();});
