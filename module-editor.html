@@ -211,7 +211,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
 <header class="grid12">
   <h1>TIKRAR<small>Beirut Lantern Generator</small></h1>
   <span class="sub"><span id="modSize">porcelain modules 60 × 60 mm · 40 mm walls</span> · houses, towers and city blocks · 1860–1925 and modernist openings</span>
-  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 02.11 · 19:38</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
+  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 02.11 · 19:46</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
   </nav>
 </header>
 
@@ -1726,7 +1726,9 @@ on("gifBtn","click",async()=>{const btn=$("gifBtn");if(btn.disabled)return;if(MO
   const PK=Object.keys(PALETTES),p0=Math.floor(Math.random()*PK.length),palAt=i=>PK[(p0+i)%PK.length];   /* all palettes: one palette per frame, each frame the next */
   const what=MODE==="module"?"look":(S.gifWhat||"both"),src=JSON.parse(JSON.stringify(S.buildings));   /* Look / Layout / Both (cluster editor only; a module has no plan) */
   const pose={p:camera.position.clone(),t:controls.target.clone()},sun0=S.sun,ex0=S.explode,sl0={on:ORBIT.on,mm:ORBIT.mm},snap=/^rand/.test(mode)?JSON.stringify({b:S.buildings,sel:S.selB,m:S.multi,s:S.sel,plan:["colGaps","rowGaps","dist","gridCols","full","mix","word"].map(k=>[k,S[k]])}):null,frames=[];
+  const spinGif=!!S.spin&&/^rand/.test(mode);if(spinGif)controls.autoRotate=false;   /* Spin on: a randomize GIF keeps turning, one full lap over the frames (in the same direction as Spin), so it loops */
   ORBIT.busy=true;try{for(let i=0;i<N;i++){btn.textContent=(i+1)+"/"+N;
+      if(spinGif){const v=pose.p.clone().sub(pose.t);v.applyAxisAngle(new THREE.Vector3(0,1,0),2*Math.PI*i/N);camera.position.copy(pose.t).add(v);camera.lookAt(pose.t);}
       if(mode==="orbit"){const a=2*Math.PI*i/N,v=pose.p.clone().sub(pose.t);v.applyAxisAngle(new THREE.Vector3(0,1,0),a);camera.position.copy(pose.t).add(v);camera.lookAt(pose.t);}
       else if(mode==="sun"){S.sun=0.04+0.92*i/(N-1);applyNight();}
       else if(mode==="slide"){ORBIT.on=true;ORBIT.mm=Math.round(orbitP()*i/N*100)/100;rebuildNow();}   /* one full lap of the ring in N equal steps, so the GIF loops */
@@ -1738,7 +1740,7 @@ on("gifBtn","click",async()=>{const btn=$("gifBtn");if(btn.disabled)return;if(MO
     btn.textContent="…";await nextFrame();const {pal,lut}=gifPalette(hist,sum),ixs=frames.map(f=>{const o=new Uint8Array(f.length);for(let i=0;i<f.length;i++)o[i]=lut[f[i]];return o;});
     const blob=new Blob([gifEncode(ixs,w,h,mode==="orbit"?4:mode==="sun"?6:mode==="explode"?5:mode==="slide"?6:25,pal)],{type:"image/gif"}),a=document.createElement("a"),d=new Date(),z=n=>String(n).padStart(2,"0");
     a.href=URL.createObjectURL(blob);a.download=`tikrar-${mode}-${d.getFullYear()}${z(d.getMonth()+1)}${z(d.getDate())}-${z(d.getHours())}${z(d.getMinutes())}.gif`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);}
-  finally{ORBIT.busy=false;if(ORBIT.on!==sl0.on||ORBIT.mm!==sl0.mm){ORBIT.on=sl0.on;ORBIT.mm=sl0.mm;$("slideBtn").setAttribute("aria-pressed",ORBIT.on);rebuildNow();}camera.position.copy(pose.p);controls.target.copy(pose.t);controls.update();S.sun=sun0;if(S.explode!==ex0){S.explode=ex0;rebuildNow();}   /* the design and the view come back as they were */
+  finally{ORBIT.busy=false;controls.autoRotate=S.spin;if(ORBIT.on!==sl0.on||ORBIT.mm!==sl0.mm){ORBIT.on=sl0.on;ORBIT.mm=sl0.mm;$("slideBtn").setAttribute("aria-pressed",ORBIT.on);rebuildNow();}camera.position.copy(pose.p);controls.target.copy(pose.t);controls.update();S.sun=sun0;if(S.explode!==ex0){S.explode=ex0;rebuildNow();}   /* the design and the view come back as they were */
     if(snap){const v=JSON.parse(snap);S.buildings=v.b;S.selB=v.sel;S.multi=v.m;S.sel=v.s;v.plan.forEach(([k,x])=>{if(x===undefined)delete S[k];else S[k]=x;});renderUI();}else applyNight();btn.textContent="Make";btn.disabled=false;need();}});
 /* the 3D view as a JPG, drawn fresh at the view's size and pixel density */
 /* the toolbar GIF is always a randomize series from the current view: same palette unless the menu says all palettes (the panel's GIF settings set the frame count) */
@@ -1759,7 +1761,7 @@ function randAll(){const n=Math.max(1,Math.min(MAX_B,S.buildings.length)),list=[
 function rxApply(list,all,palFix){const wl=!!S.rxL&&all,wo=S.rxO!==false,wp=S.rxP!==false;
   const keep=S.keepPal&&PALETTES[Bs().palette],pal=palFix||(keep?Bs().palette:pick(Object.keys(PALETTES))),mix=!!S.rxM;if(wp)usePal(pal);
   list.forEach(b=>{if(wo&&!b.court&&!isLM(b)){const old=b.mods;randomizeBuilding(b);Object.keys(b.mods).forEach(k=>{const o=old[k];if(o&&o.lid)b.mods[k].lid=o.lid;});
-      if(b.roof!=="none"){b.roof=Math.random()<0.5?"slant":"modern";if(!b.pitch)b.pitch=30;pickSpan(b);}}   /* Openings also re-deal the roof type (slanted or flat) and whether it is one roof or a lid per module */
+      if(b.roof!=="none"){b.roof=Math.random()<0.5?"slant":"modern";if(!b.pitch)b.pitch=30;b.span=b.cols*b.deep>1&&Math.random()<0.5?"module":"whole";}}   /* Openings also re-deal the roof type (slanted or flat) and the roof piece, whole or per module, 50/50 on any building of more than one module */
     if(wp)applyPalette(b,mix?pick(Object.keys(PALETTES)):pal,undefined,S.rxR===false);});
   if(wl){const l=S.buildings.slice().sort(()=>Math.random()-0.5);S.word=null;if(S.vary)varyStreets();S.mix=true;rollBlocks();S.buildings=gridLayout(l);S.selB=0;S.multi=[];S.sel="0:0:0";}
   return [wl&&"Layout",wo&&"Openings",wp&&(mix?"Colours (mix)":"Colours")+(S.rxR===false?", roofs kept":"")].filter(Boolean);}
