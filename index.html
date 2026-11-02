@@ -204,7 +204,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
 <header class="grid12">
   <h1>TIKRAR<small>Beirut Lantern Generator</small></h1>
   <span class="sub"><span id="modSize">porcelain modules 60 × 60 mm · 40 mm walls</span> · houses, towers and city blocks · 1860–1925 and modernist openings</span>
-  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 02.11 · 09:00</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
+  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 02.11 · 10:30</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
   <button class="btn icon" id="themeBtn" type="button" aria-label="Toggle colour theme">◐</button></nav>
 </header>
 
@@ -237,6 +237,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
       <div class="f"><span class="lbl">Main streets</span><div class="v"><div class="seg" id="aveSeg" title="Streets between block rows"><button type="button" data-d="-15" aria-label="Narrower main streets">−</button><input class="cnt" id="aveV" type="number" min="0" max="360" step="15" aria-label="Main street width, mm" title="mm, in 15 mm steps"><button type="button" data-d="15" aria-label="Wider main streets">+</button></div><button class="btn" type="button" id="varyBtn" aria-pressed="false" title="Give every street its own width, from narrow lanes to wide avenues; press again for a new mix">Vary</button></div></div>
       <div class="f"><span class="lbl">Grid</span><div class="v"><div class="seg" id="blocksSeg" title="The grid on the ground (the city blocks). Lines: outlines and a millimetre ruler drawn along the front and left edges of the city. Plots: each block is a flat porcelain tray (4 mm, rounded) that the buildings stand on; an empty block becomes a public space; the streets are the gaps between trays"><button type="button" data-v="0">Hidden</button><button type="button" data-v="1">Lines</button><button type="button" data-v="2">Plots</button></div></div></div>
       <div class="f"><span class="lbl">Layout</span><div class="v"><button class="btn" type="button" id="gridVillage" style="flex:1">Arrange on grid</button><button class="btn" type="button" id="fillGrid" style="flex:1" title="Every lot gets a building: each block's street fronts are filled wall to wall and the last row of blocks is completed (up to 360 buildings)">Fill grid</button></div></div>
+      <div class="f"><span class="lbl">Spell a word</span><div class="v"><input type="text" id="wordIn" maxlength="16" placeholder="TIKRAR" autocomplete="off" spellcheck="false" style="flex:1;min-width:0;font:13px var(--sans);padding:6px 8px;border:1px solid var(--ink);background:transparent;color:var(--ink);text-transform:uppercase"><button class="btn" type="button" id="wordGo" title="Arrange the buildings so that, seen in Plan, they spell the word: one module per pixel of a 5 × 7 letter (A–Z, 0–9, - . ! &amp;)">Spell</button></div></div>
       <div class="f"><span class="lbl">All levels</span><div class="v"><div class="seg"><button type="button" id="allSlabs" title="A porcelain plate under every level of every building">Slabs everywhere</button><button type="button" id="lightAll" title="A plate and a candle on every level of every building: every lantern lit">Light all</button></div></div></div>
       <div class="f"><span class="lbl">Plazas</span><div class="v"><div class="seg" id="gapSeg" title="Plazas (empty blocks, public space): + leaves the block after the selected building's block empty, − fills the last one. With Blocks on Plots each plaza is an empty porcelain tray"><button type="button" data-d="-1" aria-label="One empty block fewer">−</button><button type="button" id="gapV" disabled style="cursor:default" title="Empty blocks">0</button><button type="button" data-d="1" aria-label="Add an empty block">+</button></div></div></div>
       <div class="f"><span class="lbl">Landmarks</span><div class="v"><div class="seg" id="lmSeg" title="Randomize All with or without landmarks; each landmark stands alone on its own block"><button type="button" data-v="0">Without</button><button type="button" data-v="1">With</button></div></div></div>
@@ -412,7 +413,7 @@ function randomizeLight(b){
   b.plates=b.candles.map(()=>true);}   /* a slab under every level by default */
 /* a new random building on the same footprint and spot, so the other blocks stay where they are */
 function randomFit(o){const tower=o.cols*o.deep===1&&Math.random()<0.6,set=tower?(Math.random()<0.75?"modern":"ottoman"):(Math.random()<0.6?"ottoman":"modern"),
-  levels=tower?pick([3,4,5,6]):pick([1,2,3]),b=make(set==="modern"?(tower?"Modernist tower":"Modernist block"):(tower?"Stair tower":"House"),set,o.cols,o.deep,levels,set==="ottoman"?"slant":"modern",()=>wall("blank"));
+  levels=o.levels||(tower?pick([3,4,5,6]):pick([1,2,3])),b=make(set==="modern"?(tower?"Modernist tower":"Modernist block"):(tower?"Stair tower":"House"),set,o.cols,o.deep,levels,set==="ottoman"?"slant":"modern",()=>wall("blank"));
   randomizeLight(b);randomizeBuilding(b);Object.assign(b,{x:o.x,z:o.z,rot:o.rot,blk:o.blk});return pickSpan(b);}
 /* random roofs: a whole hipped roof only on small footprints (up to two modules), otherwise one lid per module */
 const pickSpan=b=>{b.span=b.roof==="slant"&&b.cols*b.deep>2?"module":b.cols*b.deep>1&&Math.random()<0.6?"module":"whole";return b;};
@@ -463,7 +464,7 @@ function streetGrid(list){const g=gut(),main=ave(),wide=Math.max(WX,...list.map(
   const spec=i=>S.dist[((i*7)%S.dist.length+S.dist.length)%S.dist.length];
   return {mix,cw:c=>at(cols,c).w,cg:c=>at(cols,c).end?main:sg(c),rg:r=>at(rows,r).end?main:sr(r),ce:c=>at(cols,c).end,re:r=>at(rows,r).end,
     one:i=>!full&&!!spec(i).one[0],alley:i=>!full&&!!spec(i).alley[0]&&!spec(i).one[0]};}
-function gridLayout(list){if(!list.length)return list;
+function gridLayout(list){if(!list.length)return list;if(wordLayout(list))return list;
   const G=streetGrid(list),{cw,cg,rg}=G;
   const gaps=new Set((()=>{try{return S.gaps||[];}catch(e){return [];}})());
   const pack=colOf=>{const blocks=[];let cur=null;const wOf=()=>cw(colOf(blocks.length));
@@ -489,11 +490,31 @@ function gridLayout(list){if(!list.length)return list;
     k.rows.forEach((row,ri)=>{let x=x0+(k.solo&&row.length?(cw(c)-row[0].cols*WX)/2:0);row.forEach(b=>{const w=b.cols*WX,d=b.deep*WZ;b.x=x+w/2;x+=w;b.blk=i;
       if(ri===0)b.z=zf-d/2;else{b.z=zb+d/2;b.rot=2;}});});});   /* the front row lines its street, the back row is flush with the back street and faces it */
   return list;}
+
+/* Spell a word: a 5 × 7 pixel font, one pixel = one module footprint. Buildings fill every lit pixel (1 row deep, up to 3 modules wide),
+   so in Plan the city reads as the letters. The cell of every building is stored (b.wc, b.wr), so the layout is deterministic. */
+const FONT5={A:".###.|#...#|#...#|#####|#...#|#...#|#...#",B:"####.|#...#|#...#|####.|#...#|#...#|####.",C:".####|#....|#....|#....|#....|#....|.####",D:"####.|#...#|#...#|#...#|#...#|#...#|####.",E:"#####|#....|#....|####.|#....|#....|#####",F:"#####|#....|#....|####.|#....|#....|#....",G:".####|#....|#....|#..##|#...#|#...#|.####",H:"#...#|#...#|#...#|#####|#...#|#...#|#...#",I:"#####|..#..|..#..|..#..|..#..|..#..|#####",J:"..###|...#.|...#.|...#.|...#.|#..#.|.##..",K:"#...#|#..#.|#.#..|##...|#.#..|#..#.|#...#",L:"#....|#....|#....|#....|#....|#....|#####",M:"#...#|##.##|#.#.#|#.#.#|#...#|#...#|#...#",N:"#...#|##..#|#.#.#|#..##|#...#|#...#|#...#",O:".###.|#...#|#...#|#...#|#...#|#...#|.###.",P:"####.|#...#|#...#|####.|#....|#....|#....",Q:".###.|#...#|#...#|#...#|#.#.#|#..#.|.##.#",R:"####.|#...#|#...#|####.|#.#..|#..#.|#...#",S:".####|#....|#....|.###.|....#|....#|####.",T:"#####|..#..|..#..|..#..|..#..|..#..|..#..",U:"#...#|#...#|#...#|#...#|#...#|#...#|.###.",V:"#...#|#...#|#...#|#...#|#...#|.#.#.|..#..",W:"#...#|#...#|#...#|#.#.#|#.#.#|##.##|#...#",X:"#...#|#...#|.#.#.|..#..|.#.#.|#...#|#...#",Y:"#...#|#...#|.#.#.|..#..|..#..|..#..|..#..",Z:"#####|....#|...#.|..#..|.#...|#....|#####",
+0:".###.|#...#|#..##|#.#.#|##..#|#...#|.###.",1:"..#..|.##..|..#..|..#..|..#..|..#..|.###.",2:".###.|#...#|....#|...#.|..#..|.#...|#####",3:"####.|....#|....#|.###.|....#|....#|####.",4:"...#.|..##.|.#.#.|#..#.|#####|...#.|...#.",5:"#####|#....|####.|....#|....#|#...#|.###.",6:".###.|#....|#....|####.|#...#|#...#|.###.",7:"#####|....#|...#.|..#..|.#...|.#...|.#...",8:".###.|#...#|#...#|.###.|#...#|#...#|.###.",9:".###.|#...#|#...#|.####|....#|....#|.###.",
+"-":".....|.....|.....|#####|.....|.....|.....",".":".....|.....|.....|.....|.....|.##..|.##..","!":"..#..|..#..|..#..|..#..|..#..|.....|..#..","&":".##..|#..#.|#.#..|.#...|#.#.#|#..#.|.##.#"};
+const wordCells=t=>{const rows=Array.from({length:7},()=>[]);let x=0;[...String(t).toUpperCase()].forEach(ch=>{if(ch===" "){x+=3;return;}const g=FONT5[ch];if(!g)return;g.split("|").forEach((r,y)=>{[...r].forEach((c,i)=>{if(c==="#")rows[y].push(x+i);});});x+=6;});return {rows,w:Math.max(0,x-1)};};
+const WORD_MAX=360;
+function spellWord(text){const {rows,w}=wordCells(text);if(!w)return 0;const n=rows.reduce((a,r)=>a+r.length,0);if(n>WORD_MAX)return -n;
+  /* new low buildings (one or two levels, one palette): the letters read from above, with short shadows */
+  const pal0=S.word&&S.word.pal&&PALETTES[S.word.pal]?S.word.pal:S.buildings[0]&&S.buildings[0].palette&&PALETTES[S.buildings[0].palette]?S.buildings[0].palette:"swiss";
+  const out=[];
+  rows.forEach((cells,wr)=>{let i=0;while(i<cells.length){let run=1;while(i+run<cells.length&&cells[i+run]===cells[i+run-1]+1)run++;   /* a run of lit pixels in this row */
+    let at=cells[i],rem=run;while(rem>0){const b=randomFit({cols:Math.min(rem,pick([1,2,3])),deep:1,x:0,z:0,rot:0,levels:pick([1,1,2])});randPal(b,pal0);
+      b.wc=at;b.wr=wr;at+=b.cols;rem-=b.cols;out.push(b);}
+    i+=run;}});
+  S.buildings=out;S.word={text:String(text).toUpperCase(),w,h:7,pal:pal0};S.gridCols=0;S.full=false;S.selB=0;S.multi=[];S.sel="0:0:0";gridLayout(S.buildings);return out.length;}
+function wordLayout(list){const W=(()=>{try{return S.word;}catch(e){return null;}})();if(!W)return false;if(list.some(b=>b.wc===undefined)){S.word=null;return false;}
+  GAPS.length=0;Object.assign(LAYOUT,{cols:[],rows:[],blocks:[],G:{word:true}});
+  list.forEach(b=>{b.rot=0;b.blk=0;b.x=(b.wc+b.cols/2)*WX-W.w*WX/2;b.z=(b.wr+b.deep/2)*WZ-W.h*WZ/2;});return true;}
 /* Fill grid: every lot gets a building. Each block's two street fronts are filled wall to wall with new buildings
    no deeper than the row already is, and the last row of blocks is completed, so the city is a full rectangle of
    blocks. The new buildings go into the list right where the packer expects them, so nothing else moves. */
 const FILL_MAX=360;
-function fillGrid(){S.gridCols=0;S.full=true;gridLayout(S.buildings);const bc=LAYOUT.cols.length,br=LAYOUT.rows.length,G=LAYOUT.G,after=new Map(),tail=[];let left=FILL_MAX-S.buildings.length;
+function fillGrid(){S.word=null;S.gridCols=0;S.full=true;gridLayout(S.buildings);const bc=LAYOUT.cols.length,br=LAYOUT.rows.length,G=LAYOUT.G,after=new Map(),tail=[];let left=FILL_MAX-S.buildings.length;
   const pal=b=>b&&b.palette&&PALETTES[b.palette]?b.palette:pick(Object.keys(PALETTES));
   const row=(rem,maxDeep,p,into)=>{while(rem>=WX&&left>0){const cols=Math.min(Math.floor(rem/WX),pick([1,2,2,3,3])),deep=Math.max(1,maxDeep),b=randomFit({cols,deep,x:0,z:0,rot:0});
       randPal(b,Math.random()<0.8?p:pick(Object.keys(PALETTES)));into.push(b);rem-=cols*WX;left--;}};
@@ -1597,12 +1618,14 @@ function randAll(){const n=Math.max(1,Math.min(MAX_B,S.buildings.length)),list=[
   /* public courts: about one in ten (at least one from six buildings up), in place of ordinary buildings, never of a landmark */
   {const nc=n>=6?Math.max(1,Math.round(n/10)):0;for(let i=0;i<nc;i++){const idx=list.map((b,j)=>j).filter(j=>!isLM(list[j])&&!list[j].court);if(!idx.length)break;
      const j=pick(idx),b=KINDS.court();randPal(b,keep||Math.random()<0.7?pal:pick(Object.keys(PALETTES)));list[j]=b;}}
-  if(S.vary)varyStreets();S.mix=true;S.gridCols=0;rollBlocks();S.buildings=gridLayout(list);S.selB=0;S.multi=[];S.sel="0:0:0";}
+  S.word=null;if(S.vary)varyStreets();S.mix=true;S.gridCols=0;rollBlocks();S.buildings=gridLayout(list);S.selB=0;S.multi=[];S.sel="0:0:0";}
 on("randVillage","click",()=>{randAll();renderUI();});   /* the camera stays exactly where it is (Reset view refits) */
 on("gapSeg","click",e=>{const x=e.target.closest("button");if(!x||!x.dataset.d)return;S.gaps=S.gaps||[];
   if(+x.dataset.d>0){const at=(Bs().blk===undefined?0:Bs().blk)+1;S.gaps=S.gaps.map(g=>g>=at?g+1:g);S.gaps.push(at);}else S.gaps.pop();
   gridLayout(S.buildings);renderUI();});
-on("gridVillage","click",()=>{S.gridCols=0;S.full=false;gridLayout(S.buildings);renderUI();fitView();});
+on("gridVillage","click",()=>{S.word=null;S.gridCols=0;S.full=false;gridLayout(S.buildings);renderUI();fitView();});
+on("wordGo","click",()=>{const t=$("wordIn").value.trim();if(!t)return;const n=spellWord(t);if(n<=0){alert(n?"Too long: that word needs "+(-n)+" modules (most 360).":"Nothing to spell: use letters, digits, - . ! &");return;}renderUI();viewPreset("plan");fitView();});
+on("wordIn","keydown",e=>{if(e.key==="Enter")$("wordGo").click();});
 on("fillGrid","click",()=>{fillGrid();renderUI();});
 on("allSlabs","click",()=>{allSlabs();renderUI();});
 on("lightAll","click",()=>{lightAll();renderUI();});
