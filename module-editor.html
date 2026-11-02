@@ -204,7 +204,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
 <header class="grid12">
   <h1>TIKRAR<small>Beirut Lantern Generator</small></h1>
   <span class="sub"><span id="modSize">porcelain modules 60 × 60 mm · 40 mm walls</span> · houses, towers and city blocks · 1860–1925 and modernist openings</span>
-  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 02.11 · 08:30</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
+  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 02.11 · 09:00</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
   <button class="btn icon" id="themeBtn" type="button" aria-label="Toggle colour theme">◐</button></nav>
 </header>
 
@@ -598,6 +598,8 @@ const PALETTES={
   xmas:{name:"Christmas",accent:0xa3202a,walls:"cream",accents:["holly","pine","gold"],plates:"pine",roof:"holly"},
   white:{name:"All white",accent:0xe2231a,walls:"white",accents:["white"],plates:"white",roof:"white"}};
 function applyPalette(b,key,accentShare){const p=PALETTES[key];if(b.finish==="unglazed"||!b.finish)b.finish="glazed";b.glazeCol=p.walls;b.plateCol=p.plates;b.palette=key;
+  /* every slab (base, each plate, flat roof) gets its own colour from the palette: mostly the palette's plate colour, sometimes an accent or the wall colour */
+  b.slabCol=Array.from({length:(b.levels||1)+1},()=>Math.random()<0.5?p.plates:pick([p.plates,p.walls,...p.accents]));
   /* roofs vary with the palette, building by building: white about two times in three, otherwise the palette's roof colour or one of its accents */
   b.roofCol=Math.random()<0.2?"white":pick([p.roof,p.roof,...p.accents]);
   Object.keys(b.mods).forEach(k=>{if(Math.random()<0.6)b.mods[k].lid=Math.random()<0.2?"white":pick([p.roof,...p.accents]);else delete b.mods[k].lid;});   /* lids on a per-module roof get their own colours from the palette */
@@ -671,7 +673,7 @@ const bodyMat=b=>matOf(b.body||"porcelain",(b.finish||"glazed")==="unglazed"?"un
 /* a module may carry its own glaze colour (or be left unglazed); otherwise it follows the building */
 const modMat=(b,k)=>{const c=b.mods[k]&&b.mods[k].col;return c?matOf(b.body||"porcelain",c,gl(b)):bodyMat(b);};
 const roofMat=b=>{const rc=b.roofCol||"same";return rc==="same"?bodyMat(b):matOf(b.body||"porcelain",rc,gl(b));};
-const plateMat=b=>{const rc=b.plateCol||"same";return rc==="same"?bodyMat(b):matOf(b.body||"porcelain",rc,gl(b));};
+const plateMat=(b,l)=>{const rc=(b.slabCol&&l!==undefined&&b.slabCol[l])||b.plateCol||"same";return rc==="same"?bodyMat(b):matOf(b.body||"porcelain",rc,gl(b));};
 const footMat=b=>matOf(b.body||"porcelain","foot");
 const shrinkOf=b=>(BODY[b.body]||BODY.porcelain).shrink;
 const MAT={glaze:new THREE.MeshStandardMaterial({color:0xf6f1e8,roughness:0.22,metalness:0}),
@@ -991,7 +993,7 @@ function windToNormals(geo){const p=geo.attributes.position.array,n=geo.attribut
 /* the flat roof IS a slab (owner request 31 Oct): the same piece as the plates between floors, same thickness, round edge,
    Ø25 vent over each module, lips on both faces and the same colour; it just sits on the top level */
 let FLAT_T=PLATE_T;
-function modernRoof(b){const g=new THREE.Group(),nc=perMod(b)?1:b.cols,nd=perMod(b)?1:b.deep,hw=nc*WX/2,hd=nd*WZ/2,mat=plateMat(b),xs=c=>(c-(nc-1)/2)*WX,zs=r=>(r-(nd-1)/2)*WZ,vents=[];
+function modernRoof(b){const g=new THREE.Group(),nc=perMod(b)?1:b.cols,nd=perMod(b)?1:b.deep,hw=nc*WX/2,hd=nd*WZ/2,mat=plateMat(b,b.levels),xs=c=>(c-(nc-1)/2)*WX,zs=r=>(r-(nd-1)/2)*WZ,vents=[];
   for(let c=0;c<nc;c++)for(let r=0;r<nd;r++)vents.push(circle(VENT_D/2,xs(c),zs(r)));
   g.add(soft(rsq(-hw,-hd,hw,hd,radOf(b)),vents,FLAT_T,mat,0,1.9));   /* sits on the wall tops, flush outside */
   for(let c=0;c<nc;c++)for(let r=0;r<nd;r++)g.add(lipRing(xs(c),zs(r),-LIP.h,mat,b),lipRing(xs(c),zs(r),FLAT_T,mat,b,true));   /* lip under (inside the walls) and on top (to stack) */
@@ -1007,7 +1009,7 @@ function buildBuilding(bi,gap,lightBudget){
   for(let l=0;l<b.levels;l++){
     /* plate (or base) under the level: one piece for the whole floor, a vent over every module */
     if(b.plates[l]){const vents=[];for(let c=0;c<b.cols;c++)for(let r=0;r<b.deep;r++){if(!alive(b,c+":"+r+":"+l)){if(l>0&&courtOpen(b,c,r,l))vents.push(rsq(mx(c)-WX/2+T,-mz(r)-WZ/2+T,mx(c)+WX/2-T,-mz(r)+WZ/2-T,2).reverse());continue;}vents.push(circle(VENT_D/2,mx(c),-mz(r)));}   /* an upper plate is open over a courtyard */
-      const pm=plateMat(b),py=ys[l]-plateT(l)-gap*0.5,p=soft(rsq(-hw,-hd,hw,hd,radOf(b)),vents,plateT(l),pm,py,1.9);   /* base, plates and flat roof are one element: the same slab with lips on both faces */g.add(p);
+      const pm=plateMat(b,l),py=ys[l]-plateT(l)-gap*0.5,p=soft(rsq(-hw,-hd,hw,hd,radOf(b)),vents,plateT(l),pm,py,1.9);   /* base, plates and flat roof are one element: the same slab with lips on both faces */g.add(p);
       for(let c=0;c<b.cols;c++)for(let r=0;r<b.deep;r++){const up=alive(b,c+":"+r+":"+l),dn=l===0?up:alive(b,c+":"+r+":"+(l-1));   /* lips: on top for the module above, underneath for the module below (the base: its feet) */
         if(up)g.add(lipRing(mx(c),-mz(r),py+plateT(l),pm,b,true));if(dn)g.add(lipRing(mx(c),-mz(r),py-LIP.h,pm,b));}
 }   /* the base is one piece: no separate foot layer under it */
@@ -1641,7 +1643,7 @@ on("modO","input",e=>{scaleWall(+e.target.value);$("modOV").textContent=e.target
 on("modO","change",e=>{FSCALE=null;e.target.value=100;$("modOV").textContent="100 %";renderUI();});
 on("spanSeg","click",e=>{const x=e.target.closest("button");if(!x)return;each(b=>b.span=x.dataset.v);renderUI();});
 on("roofCol","change",e=>{each(b=>b.roofCol=e.target.value);renderUI();});
-on("plateCol","change",e=>{each(b=>b.plateCol=e.target.value);renderUI();});
+on("plateCol","change",e=>{each(b=>{b.plateCol=e.target.value;delete b.slabCol;});renderUI();});
 let palScope="b";on("palScopeSeg","click",e=>{const x=e.target.closest("button");if(!x)return;palScope=x.dataset.v;seg($("palScopeSeg"),palScope);});
 /* palette scope: the selected buildings, every building in their blocks, or all */
 const scopeB=()=>palScope==="v"?S.buildings:palScope==="k"?(()=>{const ks=new Set(SELB().map(b=>b.blk));return S.buildings.filter(b=>ks.has(b.blk));})():SELB();
