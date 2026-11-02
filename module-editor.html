@@ -211,7 +211,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
 <header class="grid12">
   <h1>TIKRAR<small>Beirut Lantern Generator</small></h1>
   <span class="sub"><span id="modSize">porcelain modules 60 × 60 mm · 40 mm walls</span> · houses, towers and city blocks · 1860–1925 and modernist openings</span>
-  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 02.11 · 16:25</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
+  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 02.11 · 20:15</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
   </nav>
 </header>
 
@@ -222,9 +222,9 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
     <div class="vbar">
       <div class="grp"><button type="button" id="dayBtn" aria-pressed="true" title="Daylight: the site turns light">Day</button><button type="button" id="nightBtn" aria-pressed="false" title="Night, candles lit: the site turns dark">Night</button><button type="button" id="renderBtn" aria-pressed="false" title="Realistic render: ceramic textures, ambient occlusion, bloom, filmic tone">Render</button></div>
       <div class="grp"><button type="button" id="candleBtn" aria-pressed="true" title="Candles on or off (strength: View panel)">Candles</button><button type="button" id="sunBtn" aria-pressed="true" title="Sunlight and shadows on or off (time of day: View panel)">Sun</button><button type="button" id="explodeBtn" aria-pressed="false" title="Explode the pieces on or off (distance: View panel)">Explode</button><button type="button" id="cutBtn" aria-pressed="false" title="Section cut on or off (axis and position: View panel)">Cut</button></div>
-      <div class="grp"><button type="button" id="randBar" title="Randomize the whole city (the Randomize row in the panel has more)">Randomize</button></div>
+      <div class="grp"><button type="button" id="randBar" title="Re-roll the whole city with the panel's Re-roll switches (Layout, Openings, Colours)">Randomize</button></div>
       <div class="grp"><button type="button" id="orthoBtn" aria-pressed="false" title="Orthographic: parallel lines, no perspective">Ortho</button><button type="button" data-view="axo" title="Axonometric view">Axo</button><button type="button" data-view="plan" title="Plan, from above">Plan</button><button type="button" data-view="front" title="Front elevation">Front</button></div>
-      <div class="grp"><button type="button" id="spinBtn" aria-pressed="false" title="Keep turning the view around the model">Spin</button><button type="button" id="slideBtn" aria-pressed="false" title="Keep the model still and slide the openings round the walls, over the corners onto the next wall; you can still change elements while it runs (also a GIF: see GIF, under Checks)">Slide</button><button type="button" id="lockBtn" aria-pressed="false" title="Lock the camera: no orbit, pan or zoom">Lock</button><button type="button" id="resetView" title="Reset the view">Reset</button><button type="button" id="jpgBtn" title="Save the 3D view as a JPG">JPG</button><button type="button" id="gifQuick" title="A randomize series as an animated GIF, from this exact view (frames: GIF, under Checks)">GIF</button><button type="button" id="panelBtn" aria-pressed="true" title="Show or hide the side panel (P)">Panel</button></div>
+      <div class="grp"><button type="button" id="spinBtn" aria-pressed="false" title="Keep turning the view around the model">Spin</button><button type="button" id="slideBtn" aria-pressed="false" title="Keep the model still and slide the openings round the walls, over the corners onto the next wall; you can still change elements while it runs (also a GIF: see GIF, under Checks)">Slide</button><button type="button" id="lockBtn" aria-pressed="false" title="Lock the camera: no orbit, pan or zoom">Lock</button><button type="button" id="resetView" title="Reset the view">Reset</button><button type="button" id="jpgBtn" title="Save the 3D view as a JPG">JPG</button><button type="button" id="gifQuick" title="A re-roll series as an animated GIF, from this exact view, following the panel's Re-roll switches (frames: GIF, under Checks)">GIF</button><button type="button" id="panelBtn" aria-pressed="true" title="Show or hide the side panel (P)">Panel</button></div>
       <button type="button" class="vmore" id="vmore" aria-label="More controls" hidden>&#8250;</button>
     </div>
   </div>
@@ -244,10 +244,14 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
       <div class="f"><span class="lbl">Grid</span><div class="v"><div class="seg" id="blocksSeg" title="The grid on the ground (the city blocks). Lines: outlines and a millimetre ruler drawn along the front and left edges of the city. Plots: each block is a flat porcelain tray (4 mm, rounded) that the buildings stand on; an empty block becomes a public space; the streets are the gaps between trays"><button type="button" data-v="0">Hidden</button><button type="button" data-v="1">Lines</button><button type="button" data-v="2">Plots</button></div></div></div>
       <div class="f"><span class="lbl">Layout</span><div class="v"><button class="btn" type="button" id="gridVillage" style="flex:1">Arrange on grid</button><button class="btn" type="button" id="fillGrid" style="flex:1" title="Every lot gets a building: each block's street fronts are filled wall to wall and the last row of blocks is completed (up to 360 buildings)">Fill grid</button></div></div>
       <div class="f"><span class="lbl">Spell a word</span><div class="v"><input type="text" id="wordIn" maxlength="16" placeholder="TIKRAR / تكرار" dir="auto" autocomplete="off" spellcheck="false" style="flex:1;min-width:0;font:13px var(--sans);padding:6px 8px;border:1px solid var(--ink);background:transparent;color:var(--ink);text-transform:uppercase"><button class="btn" type="button" id="wordGo" title="Arrange the buildings so that, seen in Plan, they spell the word: one module per pixel of a 5 × 7 letter in the Pixel AE font, Latin or Arabic (joined, right to left): one font pixel per module">Spell</button></div></div>
+      <div class="f"><label class="lbl" for="pitchAll" title="Slope of every slanted roof in the block (flat roofs are not touched)">Roof slope</label><div class="v rng"><input type="range" id="pitchAll" min="10" max="55" step="1" title="Slope of every slanted roof in the block (flat roofs are not touched)"><span class="num" id="pitchAllV"></span></div></div>
       <div class="f"><span class="lbl">All levels</span><div class="v"><div class="seg"><button type="button" id="allSlabs" title="A porcelain plate under every level of every building">Slabs everywhere</button><button type="button" id="lightAll" title="A plate and a candle on every level of every building: every lantern lit">Light all</button></div></div></div>
       <div class="f"><span class="lbl">Plazas</span><div class="v"><div class="seg" id="gapSeg" title="Plazas (empty blocks, public space): + leaves the block after the selected building's block empty, − fills the last one. With Blocks on Plots each plaza is an empty porcelain tray"><button type="button" data-d="-1" aria-label="One empty block fewer">−</button><button type="button" id="gapV" disabled style="cursor:default" title="Empty blocks">0</button><button type="button" data-d="1" aria-label="Add an empty block">+</button></div></div></div>
       <div class="f"><span class="lbl">Landmarks</span><div class="v"><div class="seg" id="lmSeg" title="Randomize All with or without landmarks; each landmark stands alone on its own block"><button type="button" data-v="0">Without</button><button type="button" data-v="1">With</button></div></div></div>
       <div class="f"><span class="lbl">Randomize</span><div class="v"><div class="seg"><button type="button" id="randBlock" title="New buildings in the selected building's block only, on the same footprints: the other blocks stay as they are">Block</button><button type="button" id="randVillage" title="New buildings everywhere">All</button><button type="button" id="rand10" title="10 random shots as a GIF: ten randomized cities as one GIF (Keep palette keeps the palette in every shot); your design comes back afterwards">GIF ×10</button></div><button class="btn" type="button" id="keepPal" aria-pressed="false" title="Randomize with the selected building's palette">Keep palette</button></div></div>
+      <div class="f"><span class="lbl">Re-roll</span><div class="v"><button class="btn" type="button" id="rxL" aria-pressed="false" title="Layout: deal the same buildings into a new city plan (their footprints and floor levels stay)">Layout</button><button class="btn" type="button" id="rxO" aria-pressed="true" title="Openings: new walls and openings on every module, and a new roof type (slanted or flat)">Openings</button><button class="btn" type="button" id="rxP" aria-pressed="true" title="Colours: new glazes and slabs (and roofs, if Roofs is on)">Colours</button><button class="btn" type="button" id="rxR" aria-pressed="true" title="Roofs: Colours also re-deals roof and lid colours. Off: roofs keep their colours">Roofs</button></div></div>
+      <div class="f"><span class="lbl">Colours from</span><div class="v"><div class="seg" id="rxMSeg" title="One palette for the whole re-roll, or a mix of palettes building by building"><button type="button" data-v="0">One palette</button><button type="button" data-v="1">Mix</button></div></div></div>
+      <div class="f"><span class="lbl"></span><div class="v"><div class="seg"><button type="button" id="rxSel" title="Re-roll the selected building(s) with the switches above (Layout needs the whole city). Floor levels and the number of buildings never change">Selected</button><button type="button" id="rxAll" title="Re-roll the whole city with the switches above. Floor levels and the number of buildings never change">Whole city</button></div></div></div>
       <p class="hint">Arrange on grid packs the buildings wall to wall into city blocks of equal width (Block width, 6 modules by default; type any number in the fields), two rows back to back, each row facing its own street. Side streets run between block columns, main streets between block rows; − / + re-lays the blocks live. Vary gives every street its own width, from narrow lanes to wide avenues (turn it off and on for a new mix; Randomize All mixes them again too and lays the city out in clusters (Clusters button: groups of blocks between main streets, each with its own subgrid); Randomize Block renews only the selected building's block). Arrows move one building in 30 mm steps. Blocks: Lines draws the blocks' outlines on the ground (main streets heavier); Plots turns each block into a flat 4 mm porcelain tray the buildings stand on, so streets are the gaps between trays and an empty block is a public space.</p>
     </div>
 
@@ -270,7 +274,8 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
       <div class="f"><span class="lbl"></span><div class="v trio cap" title="Randomize deals up to the size you last chose here"><span id="capC">across</span><span id="capD">deep</span><span id="capL">levels</span></div></div>
       <div class="f"><span class="lbl">Roof</span><div class="v"><div class="seg" id="roofSeg"><button type="button" data-v="slant">Slanted</button><button type="button" data-v="modern">Flat</button><button type="button" data-v="none">Off</button></div></div></div>
       <div class="f"><span class="lbl">Roof piece</span><div class="v"><div class="seg" id="spanSeg" title="One roof piece over the whole building, or a small lid on every top module"><button type="button" data-v="whole">Whole</button><button type="button" data-v="module">Per module</button></div></div></div>
-      <div class="f"><label class="lbl" for="pitch">Pitch</label><div class="v rng"><input type="range" id="pitch" min="20" max="40" step="1"><span class="num" id="pitchV"></span></div></div>
+      <div class="f"><label class="lbl" for="pitch">Pitch</label><div class="v rng"><input type="range" id="pitch" min="10" max="55" step="1"><span class="num" id="pitchV"></span></div></div>
+      <div class="f modonly"><label class="lbl" for="ventD" title="Lower the cut at the top of a slanted roof: the lower it is cut, the bigger the opening">Roof opening</label><div class="v rng"><input type="range" id="ventD" min="0" max="20" step="0.5"><span class="num" id="ventDV"></span></div></div>
       <div class="f"><label class="lbl" for="radius">Corners</label><div class="v rng"><input type="range" id="radius" min="0" max="6" step="0.5" title="Corner radius: concentric outer &amp; inner walls and locating lips"><span class="num" id="radiusV"></span></div></div>
       <div class="f modonly"><label class="lbl" for="modW" title="Module width: the front and back walls (fired mm); base, plates and roof follow">Width</label><div class="v rng"><input type="range" id="modW" min="45" max="120" step="1"><span class="num" id="modWV"></span></div></div>
       <div class="f modonly"><label class="lbl" for="modL" title="Module length: the side walls (fired mm); base, plates and roof follow">Length</label><div class="v rng"><input type="range" id="modL" min="45" max="120" step="1"><span class="num" id="modLV"></span></div></div>
@@ -316,7 +321,8 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
       <p class="hint"><b style="color:var(--bad)">✗</b> porcelain limits, to fix before casting. <b style="color:#b7791f">●</b> proportions from the two manuals: advice, not a rule.</p>
       <div class="f"><span class="lbl">Export</span><div class="v"><div class="seg"><button type="button" id="pdfBtn">Sheet (PDF)</button><button type="button" id="dlSvg">Elevations (SVG)</button></div></div></div>
       <div class="f"><span class="lbl">Print</span><div class="v"><div class="seg" style="flex:1"><button type="button" id="stlBtn" title="Every piece of the selected buildings as watertight STL files in a zip: modules, base, plates and roof">Pieces (STL)</button></div><label class="meta" style="display:flex;align-items:center;gap:4px" title="0 = fired size. Enter the clay's shrinkage (e.g. 14) to scale the pieces up into mould masters">shrink <input id="stlShrink" type="number" min="0" max="40" step="0.5" value="0" style="width:4.2em"> %</label></div></div>
-      <div class="f"><span class="lbl">GIF</span><div class="v"><select id="gifMode" aria-label="Animation"><option value="orbit">Orbit</option><option value="sun">Sun, morning to evening</option><option value="explode">Explode and back</option><option value="slide">Openings slide round the walls</option><option value="rand">Randomize, same palette</option><option value="randall">Randomize, all palettes</option></select><select id="gifWhat" aria-label="What a randomize GIF changes" title="Randomize GIFs (also the toolbar GIF): Both = a new city plan and new walls and colours each frame; Look = same plan, new walls and colours; Layout = the same buildings, rearranged into a new plan" style="flex:0 0 84px"><option value="both">Both</option><option value="look">Look</option><option value="layout">Layout</option></select><select id="gifN" aria-label="Frames" style="flex:0 0 64px"><option>10</option><option>12</option><option selected>24</option><option>36</option><option>48</option></select><button class="btn" type="button" id="gifBtn">Make</button></div></div>
+      <div class="f"><span class="lbl">Blender</span><div class="v"><div class="seg" style="flex:1"><button type="button" id="glbBtn" title="The whole city in place as one .glb for Blender (named pieces, glaze colours as named materials, candle markers) plus a .json with the dimensions. For renders only: print from the STL zip">Scene (GLB)</button></div><label class="meta" style="display:flex;align-items:center;gap:4px" title="Tick to export only the selected buildings; untick for the whole city"><input id="glbSel" type="checkbox"> selected only</label></div></div>
+      <div class="f"><span class="lbl">GIF</span><div class="v"><select id="gifMode" aria-label="Animation"><option value="orbit">Orbit</option><option value="sun">Sun, morning to evening</option><option value="explode">Explode and back</option><option value="slide">Openings slide round the walls</option><option value="rand">Randomize, same palette</option><option value="randall">Randomize, all palettes</option></select><select id="gifWhat" hidden aria-label="What a randomize GIF changes" title="Randomize GIFs (also the toolbar GIF): Both = a new city plan and new walls and colours each frame; Look = same plan, new walls and colours; Layout = the same buildings, rearranged into a new plan" style="flex:0 0 84px"><option value="both">Both</option><option value="look">Look</option><option value="layout">Layout</option></select><select id="gifN" aria-label="Frames" style="flex:0 0 64px"><option>10</option><option>12</option><option selected>24</option><option>36</option><option>48</option></select><button class="btn" type="button" id="gifBtn">Make</button></div></div>
       <div class="f"><span class="lbl">Share</span><div class="v"><div class="seg" style="flex:1"><button type="button" id="shareLink" title="Copy a link that opens this design in any browser">Copy link</button><button type="button" id="saveJson" title="Download this design as a .json file">Save JSON</button><button type="button" id="openJson" title="Open a design saved as .json">Open JSON</button></div><input type="file" id="jsonFile" accept=".json,application/json" hidden></div></div>
       <div class="f"><span class="lbl">History</span><div class="v"><div class="seg" style="flex:1"><button type="button" id="undoBtn" title="Undo the last change (Ctrl or \u2318 + Z)" disabled>Undo</button><button type="button" id="redoBtn" title="Redo (Shift + Ctrl or \u2318 + Z)" disabled>Redo</button></div></div></div>
       <div class="f"><span class="lbl">Start over</span><div class="v"><button class="btn" type="button" id="reset" style="flex:1">Reset city block</button></div></div>
@@ -671,12 +677,12 @@ const PALETTES={
   gray:{name:"Grayscale",accent:0x5e5e5c,walls:"white",accents:["pale","mid","charcoal"],plates:"charcoal",roof:"mid"},
   xmas:{name:"Christmas",accent:0xa3202a,walls:"cream",accents:["holly","pine","gold"],plates:"pine",roof:"holly"},
   white:{name:"All white",accent:0xe2231a,walls:"white",accents:["white"],plates:"white",roof:"white"}};
-function applyPalette(b,key,accentShare){const p=PALETTES[key];if(b.finish==="unglazed"||!b.finish)b.finish="glazed";b.glazeCol=p.walls;b.plateCol=p.plates;b.palette=key;
+function applyPalette(b,key,accentShare,keepRoofs){const p=PALETTES[key];if(b.finish==="unglazed"||!b.finish)b.finish="glazed";b.glazeCol=p.walls;b.plateCol=p.plates;b.palette=key;
   /* every slab (base, each plate, flat roof) gets its own colour from the palette: mostly the palette's plate colour, sometimes an accent or the wall colour */
   b.slabCol=Array.from({length:(b.levels||1)+1},()=>Math.random()<0.5?p.plates:pick([p.plates,p.walls,...p.accents]));
   /* roofs vary with the palette, building by building: white about two times in three, otherwise the palette's roof colour or one of its accents */
-  b.roofCol=Math.random()<0.2?"white":pick([p.roof,p.roof,...p.accents]);
-  Object.keys(b.mods).forEach(k=>{if(Math.random()<0.6)b.mods[k].lid=Math.random()<0.2?"white":pick([p.roof,...p.accents]);else delete b.mods[k].lid;});   /* lids on a per-module roof get their own colours from the palette */
+  if(!keepRoofs)b.roofCol=Math.random()<0.2?"white":pick([p.roof,p.roof,...p.accents]);
+  if(!keepRoofs)Object.keys(b.mods).forEach(k=>{if(Math.random()<0.6)b.mods[k].lid=Math.random()<0.2?"white":pick([p.roof,...p.accents]);else delete b.mods[k].lid;});   /* lids on a per-module roof get their own colours from the palette */
   const share=accentShare===undefined?0.3:accentShare;Object.keys(b.mods).forEach(k=>{if(Math.random()<share)b.mods[k].col=pick(p.accents);else delete b.mods[k].col;});}
 /* the site accent follows the palette in use: the last palette applied (or the city's most common one) gives the
    colour of highlights, active buttons, the grid overlay, the selection outline and the block lines */
@@ -768,7 +774,7 @@ MAT.contact=new THREE.MeshBasicMaterial({color:0x000000,transparent:true,opacity
 /* ---------- ground ---------- */
 let room=new THREE.Group();scene.add(room);
 const lc=h=>new THREE.Color(h).convertSRGBToLinear();
-function updateRuler(){const rg=room&&room.getObjectByName("rulerGroup");if(!rg)return;const c=camera.position,t=controls.target,el=Math.atan2(c.y-t.y,Math.hypot(c.x-t.x,c.z-t.z)),hi=el>0.55&&S.view!=="front";rg.userData.g.forEach(p=>p.visible=hi);rg.userData.s.forEach(p=>p.visible=!hi);}
+function updateRuler(){const rg=room&&room.getObjectByName("rulerGroup");if(!rg)return;const c=camera.position,t=controls.target,el=Math.atan2(c.y,Math.hypot(c.x-t.x,c.z-t.z)),hi=el>0.3&&S.view!=="front";rg.userData.g.forEach(p=>p.visible=hi);rg.userData.s.forEach(p=>p.visible=!hi);}
 function buildRoom(){scene.remove(room);room.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.isLine&&o.material!==MAT.line)o.material.dispose();});room=new THREE.Group();
   /* by day the ground is the page: pure white, with only the shadows drawn on it; at night a honed dark stone tabletop */
   const white=!S.night,gb=bounds(),gsz=Math.max(gb.x1-gb.x0,gb.z1-gb.z0)+(white?1400:8000),g=new THREE.Mesh(new THREE.PlaneGeometry(gsz,gsz),white?new THREE.ShadowMaterial({opacity:S.render?0.34:0.26}):new THREE.MeshBasicMaterial({color:0x000000}));g.rotation.x=-Math.PI/2;g.position.set((gb.x0+gb.x1)/2,-groundDrop(),(gb.z0+gb.z1)/2);g.receiveShadow=true;room.add(g);   /* by day only as big as the shadows need, so nothing reaches the horizon */
@@ -806,7 +812,7 @@ function buildRoom(){scene.remove(room);room.traverse(o=>{if(o.geometry)o.geomet
      for the front and low views (updateRuler swaps them by camera height). Drawn on top, sized to their text, so nothing clips. */
   if((blkMode()||MODE==="module")&&!S.render){const ruler=blkMode()>0,b=bounds(),ry=0.4-groundDrop(),rc=S.night?0xcfd3dc:0x111111,rd=S.night?0xff6a5c:0xe2231a,rg=new THREE.Group(),pts=[],dpt=[],off=70,V=(x,y,z)=>new THREE.Vector3(x,y,z);
     rg.name="rulerGroup";rg.userData={g:[],s:[]};
-    const RL=window.__rulerTex||(window.__rulerTex=new Map()),lab=(t,x,y,z,col,sc,mode)=>{col=col||rc;const k=t+col;let m=RL.get(k);if(!m){const c=document.createElement("canvas"),g=c.getContext("2d"),F="bold 64px sans-serif";g.font=F;const tw=Math.ceil(g.measureText(t).width)+32;c.width=tw;c.height=112;g.font=F;g.fillStyle="#"+col.toString(16).padStart(6,"0");g.textAlign="center";g.textBaseline="middle";g.fillText(t,tw/2,56);const tx=new THREE.CanvasTexture(c);tx.anisotropy=8;m=new THREE.MeshBasicMaterial({map:tx,transparent:true,depthTest:false,depthWrite:false,toneMapped:false,side:THREE.DoubleSide});m.userData.ar=tw/112;RL.set(k,m);}
+    const RL=window.__rulerTex||(window.__rulerTex=new Map()),lab=(t,x,y,z,col,sc,mode)=>{col=col||rc;const dt=true,k=t+col+(dt?"d":"");let m=RL.get(k);if(!m){const c=document.createElement("canvas"),g=c.getContext("2d"),F="bold 64px sans-serif";g.font=F;const tw=Math.ceil(g.measureText(t).width)+32;c.width=tw;c.height=112;g.font=F;g.fillStyle="#"+col.toString(16).padStart(6,"0");g.textAlign="center";g.textBaseline="middle";g.fillText(t,tw/2,56);const tx=new THREE.CanvasTexture(c);tx.anisotropy=8;m=new THREE.MeshBasicMaterial({map:tx,transparent:true,depthTest:dt,depthWrite:false,toneMapped:false,side:THREE.DoubleSide});m.userData.ar=tw/112;RL.set(k,m);}
       const h=(sc||1)*17,p=new THREE.Mesh(new THREE.PlaneGeometry(h*m.userData.ar,h),m);p.position.set(x,y,z);p.renderOrder=20;
       if(mode==="g")p.rotation.x=-Math.PI/2;else if(mode==="gz")p.rotation.set(-Math.PI/2,0,Math.PI/2);else if(mode==="sz")p.rotation.y=-Math.PI/2;else if(mode==="v")p.rotation.z=Math.PI/2;
       (mode==="g"||mode==="gz"?rg.userData.g:mode==="s"||mode==="sz"?rg.userData.s:[]).push(p);rg.add(p);};
@@ -1016,7 +1022,7 @@ function levelY(b,gap){const ys=[];let y=b.plates[0]?LIP.h:0;for(let l=0;l<b.lev
 const perMod=b=>b.span==="module";
 const topComplete=b=>{for(let c=0;c<b.cols;c++)for(let r=0;r<b.deep;r++)if(!alive(b,c+":"+r+":"+(b.levels-1)))return false;return true;};
 const roofRun=b=>(perMod(b)?Math.min(WX,WZ):Math.min(b.cols*WX,b.deep*WZ))/2-2;   /* the slope runs up to the rounded ridge */
-function roofH(b){return b.roof==="none"?0:b.roof==="modern"?FLAT_T+LIP.h:2.5+roofRun(b)*Math.tan(b.pitch*Math.PI/180);}
+function roofH(b){return b.roof==="none"?0:b.roof==="modern"?FLAT_T+LIP.h:2.5+roofRun(b)*Math.tan(b.pitch*Math.PI/180)-Math.min(VDROP,Math.max(0,(0.85-0.45)*Math.min(WX,WZ)/2*Math.tan(b.pitch*Math.PI/180)));}
 /* flip any triangle whose normal points down, so the roof faces the sky */
 function outward(geo){const p=geo.attributes.position.array,u=geo.attributes.uv&&geo.attributes.uv.array;
   for(let t=0;t<p.length;t+=9){const ax=p[t+3]-p[t],ay=p[t+4]-p[t+1],az=p[t+5]-p[t+2],bx=p[t+6]-p[t],by=p[t+7]-p[t+1],bz=p[t+8]-p[t+2];
@@ -1027,6 +1033,9 @@ function outward(geo){const p=geo.attributes.position.array,u=geo.attributes.uv&
    lofted through rounded rectangles; their corner radius grows from the walls' radius at the eave so the hips stay soft.
    Normals come from the section itself, so every curve reads round. The Ø 8 mm vent is drawn on the ridge. */
 const RGEO=new Map();
+/* ventA: half-size of the opening. Lowering the cut (VDROP, mm below the 10 mm opening) widens it along the slope, so the lower the cut the bigger the hole */
+let VDROP=0;   /* roof-opening cut depth: set in the Module editor, followed by the cluster editor (applyDims) */
+const ventA=(b,uR)=>{const a0=Math.min(5,0.45*uR),d=Math.max(0,VDROP);return Math.min(a0+d/Math.tan(b.pitch*Math.PI/180),0.85*uR);};
 const VENT={a:5,r:1.6,c:1.3};   /* David's roof vent (beit-lantern-editor hipRoof): 10 mm rounded-square opening, R1.6, 1.3 mm chamfer */
 function slantRoof(b){const g=new THREE.Group(),hw=(perMod(b)?1:b.cols)*WX/2,hd=(perMod(b)?1:b.deep)*WZ/2,mat=roofMat(b),al=b.pitch*Math.PI/180,sa=Math.sin(al),ca=Math.cos(al),
     rb=1.2,rr=2,fas=Math.max(rb+0.1,BASE_T-rr*ca),rk=4,uR=Math.min(hw,hd),R0=Math.min(radOf(b),hw,hd),Rh=Math.max(R0,6),K=8,prof=[];   /* prof: [inset u, height y, normal nu (inward), ny] */
@@ -1038,7 +1047,7 @@ function slantRoof(b){const g=new THREE.Group(),hw=(perMod(b)?1:b.cols)*WX/2,hd=
   const uE=rr-rr*sa,yE=fas+rr*ca;
   /* vent cut at the top, as in David's roof mold: the apex is cut off level, leaving a rounded-square opening
      (VENT.a half-size, VENT.r corner) with a 45° chamfer on its rim, so the candle's heat and smoke leave the house */
-  const uO=uR-Math.min(VENT.a,0.45*uR),c=VENT.c,ySl=u=>yE+(u-uE)*Math.tan(al),yC=ySl(uO-c),yIn=ySl(uO)-T/ca;
+  const uO=uR-ventA(b,uR),c=VENT.c,ySl=u=>yE+(u-uE)*Math.tan(al),yC=ySl(uO-c),yIn=ySl(uO)-T/ca;
   for(let k=1;k<6;k++){const u=uE+(uO-c-uE)*k/6;P(u,ySl(u),-sa,ca);}
   P(uO-c,yC,-sa,ca);P(uO-c,yC,0.707,0.707);P(uO,yC-c,0.707,0.707);P(uO,yC-c,1,0);P(uO,yIn,1,0);   /* chamfer, then the wall of the opening */
   {const outer=prof.slice(6,prof.length-5),inn=outer.map(([u,y,nu,ny])=>[Math.min(uO,u-T*nu),y-T*ny,-nu,-ny]).filter(([u,y])=>y>0.01&&u<uO-0.05).reverse();
@@ -1046,7 +1055,7 @@ function slantRoof(b){const g=new THREE.Group(),hw=(perMod(b)?1:b.cols)*WX/2,hd=
   /* one ring of the loft: K+1 points round each corner, each with its outward direction */
   const ring=u=>{const x=Math.max(0,hw-u),z=Math.max(0,hd-u),r=Math.min(R0+(Rh-R0)*Math.min(1,u/6),VENT.r+Math.max(0,uO-u),x,z),o=[];
     [[x-r,-(z-r),-Math.PI/2],[x-r,z-r,0],[-(x-r),z-r,Math.PI/2],[-(x-r),-(z-r),Math.PI]].forEach(([cx,cz,a0])=>{for(let k=0;k<=K;k++){const a=a0+k/K*Math.PI/2,c=Math.cos(a),s2=Math.sin(a);o.push([cx+r*c,cz+r*s2,c,s2]);}});return o;};
-  const key=[hw,hd,R0,b.pitch,BASE_T,"v"].join("|");let geo=RGEO.get(key);   /* identical roofs share one geometry, drawn instanced */
+  const key=[hw,hd,R0,b.pitch,BASE_T,VDROP,"v"].join("|");let geo=RGEO.get(key);   /* identical roofs share one geometry, drawn instanced */
   if(!geo){const rings=prof.map(([u])=>ring(u)),n=rings[0].length,pos=[],nor=[];
   for(let i=0;i<prof.length-1;i++)for(let j=0;j<n;j++){const jj=(j+1)%n;
     [[i,j],[i+1,j],[i+1,jj],[i,j],[i+1,jj],[i,jj]].forEach(([a,c])=>{const q=rings[a][c],[,y,nu,ny]=prof[a],l=Math.hypot(nu,ny)||1;pos.push(q[0],y,q[1]);nor.push(-nu*q[2]/l,ny/l,-nu*q[3]/l);});}
@@ -1526,7 +1535,7 @@ applyAccent();const b=Bs(),[sc,sr,sl]=keyParts(S.sel);
   $("bList").innerHTML=S.buildings.map((x,i)=>`<button type="button" class="${i===S.selB?"on":isSel(i)?"also":""}" data-b="${i}" aria-pressed="${isSel(i)}" title="Shift- or ⌘-click to add to the selection">${x.name}<span>${x.cols}×${x.deep}×${x.levels}</span></button>`).join("");
   $("villageMeta").textContent=S.buildings.length+" building"+(S.buildings.length>1?"s":"")+" · "+S.buildings.reduce((a,x)=>a+x.cols*x.deep*x.levels,0)+" modules";
   seg($("setSeg"),b.set);{const a=document.activeElement;if(a!==$("gutV"))$("gutV").value=gut();if(a!==$("aveV"))$("aveV").value=ave();if(a!==$("bwV"))$("bwV").value=BLOCKM;$("gapV").textContent=(S.gaps||[]).length;$("mixBtn").setAttribute("aria-pressed",!!S.mix);seg($("lmSeg"),S.landmarks?"1":"0");}$("varyBtn").setAttribute("aria-pressed",!!S.vary);if(document.activeElement!==$("countV"))$("countV").value=S.buildings.length;seg($("blocksSeg"),String(blkMode()));seg($("colsSeg"),b.cols);{const m=S.rmax;$("capC").textContent="across"+(m?" · max "+m.c:"");$("capD").textContent="deep"+(m?" · max "+m.d:"");$("capL").textContent="levels"+(m?" · max "+m.l:"");}seg($("deepSeg"),b.deep);$("levelsV").textContent=b.levels;seg($("roofSeg"),b.roof);seg($("spanSeg"),b.span||"whole");$("radius").value=radOf(b);$("radiusV").textContent="R "+radOf(b)+" mm";$("levelsV").textContent=b.levels;
-  $("pitch").value=b.pitch;$("pitchV").textContent=b.pitch+"°";$("pitch").disabled=b.roof!=="slant";$("bodySel").value=b.body||"porcelain";seg($("finishSeg"),b.finish||"glazed");
+  {const sl=S.buildings.filter(x=>x.roof==="slant"),pa=$("pitchAll");pa.disabled=!sl.length;if(document.activeElement!==pa)pa.value=sl.length?sl[0].pitch:30;$("pitchAllV").textContent=(sl.length?+pa.value:"–")+"°";}$("ventD").value=VDROP;$("ventD").disabled=b.roof!=="slant";$("ventDV").textContent=VDROP?"cut −"+VDROP.toFixed(1)+" mm":"10 mm";$("pitch").value=b.pitch;$("pitchV").textContent=b.pitch+"°";$("pitch").disabled=b.roof!=="slant";$("bodySel").value=b.body||"porcelain";seg($("finishSeg"),b.finish||"glazed");
   $("glazeSw").innerHTML=(b.finish||"glazed")!=="unglazed"?Object.entries(GLAZE).map(([k,g])=>{const c=g.col===null?BODY[b.body||"porcelain"].col:g.col;return `<button type="button" data-g="${k}" title="${g.name} glaze" aria-label="${g.name} glaze" aria-pressed="${(b.glazeCol||"white")===k}" style="width:22px;height:22px;border-radius:50%;cursor:pointer;background:${hex(c)};border:2px solid ${(b.glazeCol||"white")===k?"var(--terra)":"var(--line)"}${g.col===null?";background-image:linear-gradient(135deg,transparent 45%,rgba(0,0,0,.25) 50%,transparent 55%)":""}"></button>`;}).join(""):"";
   $("roofCol").innerHTML=`<option value="same">same as walls</option><option value="unglazed">unglazed ${BODY[b.body||"porcelain"].name.toLowerCase()}</option>`+Object.entries(GLAZE).map(([k,g])=>`<option value="${k}">${g.name} glaze</option>`).join("");$("roofCol").value=b.roofCol||"same";
   $("plateCol").innerHTML=$("roofCol").innerHTML;$("plateCol").value=b.plateCol||"same";
@@ -1710,29 +1719,28 @@ function gifEncode(frames,w,h,cs,pal){const o=[],s=t=>{for(const c of t)o.push(c
   frames.forEach(ix=>{o.push(0x21,0xf9,4,4);u16(cs);o.push(0,0,0x2c);u16(0);u16(0);u16(w);u16(h);o.push(0);gifLZW(ix,o);});o.push(0x3b);return new Uint8Array(o);}
 const nextFrame=()=>new Promise(r=>requestAnimationFrame(()=>r()));
 on("rand10","click",()=>{$("gifMode").value="rand";$("gifN").value="10";$("gifBtn").click();});
-on("gifBtn","click",async()=>{const btn=$("gifBtn");if(btn.disabled)return;btn.disabled=true;const mode=$("gifMode").value,N=+$("gifN").value;
+on("gifBtn","click",async()=>{const btn=$("gifBtn");if(btn.disabled)return;if(MODE!=="module"&&/^rand/.test($("gifMode").value)&&!S.rxL&&S.rxO===false&&S.rxP===false){toast("Switch on Layout, Openings or Colours in Re-roll first");return;}btn.disabled=true;const mode=$("gifMode").value,N=+$("gifN").value;
   /* the frames are the 3D view itself, same framing, light and settings, at up to 1080 px on the long side */
   const cv=renderer.domElement,sc=Math.min(1,1080/Math.max(cv.width,cv.height)),w=Math.round(cv.width*sc),h=Math.round(cv.height*sc),c2=document.createElement("canvas");c2.width=w;c2.height=h;const g2=c2.getContext("2d",{willReadFrequently:true});
   g2.imageSmoothingQuality="high";const hist=new Uint32Array(32768),sum=new Float64Array(32768*3);
   const PK=Object.keys(PALETTES),p0=Math.floor(Math.random()*PK.length),palAt=i=>PK[(p0+i)%PK.length];   /* all palettes: one palette per frame, each frame the next */
   const what=MODE==="module"?"look":(S.gifWhat||"both"),src=JSON.parse(JSON.stringify(S.buildings));   /* Look / Layout / Both (cluster editor only; a module has no plan) */
   const pose={p:camera.position.clone(),t:controls.target.clone()},sun0=S.sun,ex0=S.explode,sl0={on:ORBIT.on,mm:ORBIT.mm},snap=/^rand/.test(mode)?JSON.stringify({b:S.buildings,sel:S.selB,m:S.multi,s:S.sel,plan:["colGaps","rowGaps","dist","gridCols","full","mix","word"].map(k=>[k,S[k]])}):null,frames=[];
+  const spinGif=!!S.spin&&/^rand/.test(mode);if(spinGif)controls.autoRotate=false;   /* Spin on: a randomize GIF keeps turning, one full lap over the frames (in the same direction as Spin), so it loops */
   ORBIT.busy=true;try{for(let i=0;i<N;i++){btn.textContent=(i+1)+"/"+N;
+      if(spinGif){const v=pose.p.clone().sub(pose.t);v.applyAxisAngle(new THREE.Vector3(0,1,0),2*Math.PI*i/N);camera.position.copy(pose.t).add(v);camera.lookAt(pose.t);}
       if(mode==="orbit"){const a=2*Math.PI*i/N,v=pose.p.clone().sub(pose.t);v.applyAxisAngle(new THREE.Vector3(0,1,0),a);camera.position.copy(pose.t).add(v);camera.lookAt(pose.t);}
       else if(mode==="sun"){S.sun=0.04+0.92*i/(N-1);applyNight();}
       else if(mode==="slide"){ORBIT.on=true;ORBIT.mm=Math.round(orbitP()*i/N*100)/100;rebuildNow();}   /* one full lap of the ring in N equal steps, so the GIF loops */
       else if(mode==="explode"){S.explode=Math.round(24*Math.sin(Math.PI*i/N));rebuildNow();}   /* the modules part and close again, so the GIF loops */
       else if(MODE==="module"){const b=Bs(),k=mode==="randall"||!PALETTES[b.palette]?palAt(i):b.palette;randomShape(b);randomizeBuilding(b);applyPalette(b,k);rebuildNow();}   /* Module editor: new walls on the same module, colours re-dealt from its palette */
-      else{const pk=mode==="randall"?palAt(i):(PALETTES[Bs().palette]?Bs().palette:palAt(0));
-        if(what==="look"){S.buildings=S.buildings.map(o=>{if(o.court)return o;const nb=randomFit(o);randPal(nb,pk);return nb;});}   /* the same city plan each frame, so the view stays put: every building keeps its footprint and spot and gets new levels, walls and colours (one palette, or the next palette each frame) */
-        else if(what==="layout"){const list=JSON.parse(JSON.stringify(src)).sort(()=>Math.random()-0.5);S.word=null;if(S.vary)varyStreets();S.mix=true;rollBlocks();S.buildings=gridLayout(list);}   /* the same buildings, walls and colours, dealt into a new plan */
-        else{const kp=S.keepPal;S.keepPal=false;randAll();S.keepPal=kp;S.buildings.forEach(o=>{if(!o.court)randPal(o,pk);});}   /* both: a whole new city each frame, like Randomize All, in the frame's palette */
+      else{rxApply(S.buildings,true,mode==="randall"?palAt(i):(PALETTES[Bs().palette]?Bs().palette:palAt(0)));   /* the panel's Re-roll switches decide what each frame changes (Layout / Openings / Colours, one palette or a mix) */
         rebuildNow();}   /* the same city plan each frame, so the view stays put: every building keeps its footprint and spot and gets new levels, walls and colours (one palette, or the next palette each frame) */
       await nextFrame();settleLight();draw();g2.drawImage(cv,0,0,w,h);frames.push(gif15(g2.getImageData(0,0,w,h).data,hist,sum));}
     btn.textContent="…";await nextFrame();const {pal,lut}=gifPalette(hist,sum),ixs=frames.map(f=>{const o=new Uint8Array(f.length);for(let i=0;i<f.length;i++)o[i]=lut[f[i]];return o;});
     const blob=new Blob([gifEncode(ixs,w,h,mode==="orbit"?4:mode==="sun"?6:mode==="explode"?5:mode==="slide"?6:25,pal)],{type:"image/gif"}),a=document.createElement("a"),d=new Date(),z=n=>String(n).padStart(2,"0");
     a.href=URL.createObjectURL(blob);a.download=`tikrar-${mode}-${d.getFullYear()}${z(d.getMonth()+1)}${z(d.getDate())}-${z(d.getHours())}${z(d.getMinutes())}.gif`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);}
-  finally{ORBIT.busy=false;if(ORBIT.on!==sl0.on||ORBIT.mm!==sl0.mm){ORBIT.on=sl0.on;ORBIT.mm=sl0.mm;$("slideBtn").setAttribute("aria-pressed",ORBIT.on);rebuildNow();}camera.position.copy(pose.p);controls.target.copy(pose.t);controls.update();S.sun=sun0;if(S.explode!==ex0){S.explode=ex0;rebuildNow();}   /* the design and the view come back as they were */
+  finally{ORBIT.busy=false;controls.autoRotate=S.spin;if(ORBIT.on!==sl0.on||ORBIT.mm!==sl0.mm){ORBIT.on=sl0.on;ORBIT.mm=sl0.mm;$("slideBtn").setAttribute("aria-pressed",ORBIT.on);rebuildNow();}camera.position.copy(pose.p);controls.target.copy(pose.t);controls.update();S.sun=sun0;if(S.explode!==ex0){S.explode=ex0;rebuildNow();}   /* the design and the view come back as they were */
     if(snap){const v=JSON.parse(snap);S.buildings=v.b;S.selB=v.sel;S.multi=v.m;S.sel=v.s;v.plan.forEach(([k,x])=>{if(x===undefined)delete S[k];else S[k]=x;});renderUI();}else applyNight();btn.textContent="Make";btn.disabled=false;need();}});
 /* the 3D view as a JPG, drawn fresh at the view's size and pixel density */
 /* the toolbar GIF is always a randomize series from the current view: same palette unless the menu says all palettes (the panel's GIF settings set the frame count) */
@@ -1749,6 +1757,24 @@ function randAll(){const n=Math.max(1,Math.min(MAX_B,S.buildings.length)),list=[
   {const nc=n>=6?Math.max(1,Math.round(n/10)):0;for(let i=0;i<nc;i++){const idx=list.map((b,j)=>j).filter(j=>!isLM(list[j])&&!list[j].court);if(!idx.length)break;
      const j=pick(idx),b=KINDS.court();randPal(b,keep||Math.random()<0.7?pal:pick(Object.keys(PALETTES)));list[j]=b;}}
   S.word=null;if(S.vary)varyStreets();S.mix=true;S.gridCols=0;rollBlocks();S.buildings=gridLayout(list);S.selB=0;S.multi=[];S.sel="0:0:0";}
+/* Re-roll: three independent axes. Layout = same buildings dealt into a new plan; Openings = new walls on every module; Colours = new palette(s). Floor levels and the number of buildings never change */
+function rxApply(list,all,palFix){const wl=!!S.rxL&&all,wo=S.rxO!==false,wp=S.rxP!==false;
+  const keep=S.keepPal&&PALETTES[Bs().palette],pal=palFix||(keep?Bs().palette:pick(Object.keys(PALETTES))),mix=!!S.rxM;if(wp)usePal(pal);
+  list.forEach(b=>{if(wo&&!b.court&&!isLM(b)){const old=b.mods;randomizeBuilding(b);Object.keys(b.mods).forEach(k=>{const o=old[k];if(o&&o.lid)b.mods[k].lid=o.lid;});
+      if(b.roof!=="none"){b.roof=Math.random()<0.5?"slant":"modern";if(!b.pitch)b.pitch=30;b.span=b.cols*b.deep>1&&Math.random()<0.5?"module":"whole";}}   /* Openings also re-deal the roof type (slanted or flat) and the roof piece, whole or per module, 50/50 on any building of more than one module */
+    if(wp)applyPalette(b,mix?pick(Object.keys(PALETTES)):pal,undefined,S.rxR===false);});
+  if(wl){const l=S.buildings.slice().sort(()=>Math.random()-0.5);S.word=null;if(S.vary)varyStreets();S.mix=true;rollBlocks();S.buildings=gridLayout(l);S.selB=0;S.multi=[];S.sel="0:0:0";}
+  return [wl&&"Layout",wo&&"Openings",wp&&(mix?"Colours (mix)":"Colours")+(S.rxR===false?", roofs kept":"")].filter(Boolean);}
+function remix(list,all){if(!(S.rxL&&all)&&S.rxO===false&&S.rxP===false){toast(S.rxL?"Layout needs the whole city: use Whole city":"Switch on Layout, Openings or Colours first");return;}
+  const what=rxApply(list,all);renderUI();toast(what.join(", ")+" re-rolled in "+list.length+" building"+(list.length===1?"":"s"));}
+const rxSync=()=>{$("rxL").setAttribute("aria-pressed",!!S.rxL);$("rxO").setAttribute("aria-pressed",S.rxO!==false);$("rxP").setAttribute("aria-pressed",S.rxP!==false);$("rxR").setAttribute("aria-pressed",S.rxR!==false);seg($("rxMSeg"),S.rxM?"1":"0");};
+on("rxL","click",()=>{S.rxL=!S.rxL;rxSync();save();});
+on("rxO","click",()=>{S.rxO=S.rxO===false;rxSync();save();});
+on("rxP","click",()=>{S.rxP=S.rxP===false;rxSync();save();});
+on("rxR","click",()=>{S.rxR=S.rxR===false;rxSync();save();});
+on("rxMSeg","click",e=>{const x=e.target.closest("button");if(!x)return;S.rxM=x.dataset.v==="1";rxSync();save();});
+on("rxSel","click",()=>remix(SELB(),false));
+on("rxAll","click",()=>remix(S.buildings,true));
 on("randVillage","click",()=>{randAll();renderUI();});   /* the camera stays exactly where it is (Reset view refits) */
 on("gapSeg","click",e=>{const x=e.target.closest("button");if(!x||!x.dataset.d)return;S.gaps=S.gaps||[];
   if(+x.dataset.d>0){const at=(Bs().blk===undefined?0:Bs().blk)+1;S.gaps=S.gaps.map(g=>g>=at?g+1:g);S.gaps.push(at);}else S.gaps.pop();
@@ -1784,12 +1810,15 @@ on("colsSeg","click",e=>{const x=e.target.closest("button");if(!x)return;setRmax
 on("deepSeg","click",e=>{const x=e.target.closest("button");if(!x)return;setRmax("d",+x.dataset.v);each(b=>resize3(b,b.cols,+x.dataset.v,b.levels));renderUI();});
 on("levelsSeg","click",e=>{const x=e.target.closest("button");if(!x||!x.dataset.d)return;each(b=>{const n=Math.max(1,Math.min(Math.max(MAX_LEVELS,b.levels),b.levels+ +x.dataset.d));if(n!==b.levels)resize3(b,b.cols,b.deep,n);});setRmax("l",Bs().levels);renderUI();});
 on("roofSeg","click",e=>{const x=e.target.closest("button");if(!x)return;each(b=>b.roof=x.dataset.v);renderUI();});
+on("ventD","input",e=>{S.vent=+e.target.value;applyDims();renderUI();});
 on("pitch","input",e=>{each(b=>b.pitch=+e.target.value);renderUI();});
+on("pitchAll","input",e=>{S.buildings.forEach(b=>{if(b.roof==="slant"&&!b.court)b.pitch=+e.target.value;});renderUI();});   /* every slanted roof in the block; flat and off roofs keep theirs */
 on("radius","input",e=>{each(b=>b.radius=+e.target.value);renderUI();});
 /* Module editor only: module height, wall and slab thickness. Every piece (view, checks, technical review, STL) reads H, T and the slab live */
 /* the module's size and thicknesses are set in the Module editor; the cluster editor reads them from its saved design and follows */
 const modDims=()=>{if(MODE==="module")return S;try{return JSON.parse(localStorage.getItem("tikrar-module-editor-v1"))||{};}catch(e){return {};}};
-function applyDims(){const D=modDims();WX=D.mw||60;WZ=D.ml||60;RGEO.clear();H=D.mh||40;UH.value=H;T=D.mt||3;BASE_T=PLATE_T=FLAT_T=D.ms||4;CD=D.cd||38;CH=D.ch||12;CANDLE_Y=CH+8;UCY.value=CH+8;
+function applyDims(){if(MODE==="module"&&S.vent===undefined){const o=S.buildings.find(x=>x.vent);S.vent=o?+o.vent:0;}   /* v 17:30 kept the cut per building: adopt it */
+  const D=modDims();WX=D.mw||60;WZ=D.ml||60;RGEO.clear();H=D.mh||40;UH.value=H;T=D.mt||3;BASE_T=PLATE_T=FLAT_T=D.ms||4;VDROP=+D.vent||0;CD=D.cd||38;CH=D.ch||12;CANDLE_Y=CH+8;UCY.value=CH+8;
   {const el=$("modSize");if(el)el.textContent=`porcelain modules ${WX} × ${WZ} mm · ${H} mm walls`;}B.setH(H);B.LIPS.in=T+LIP.clr;WGEO.clear();CGEO.clear();if(MODE!=="module"){const k=[WX,WZ,H,T,PLATE_T].join("|");if(S.dims!==k){S.dims=k;gridLayout(S.buildings);}return;}
   [["modW",WX,WX+" mm"],["modL",WZ,WZ+" mm"],["modH",H,H+" mm"],["modT",T,T.toFixed(1)+" mm"],["modS",PLATE_T,PLATE_T.toFixed(1)+" mm"],["modCD",CD,CD+" mm"],["modCH",CH,CH+" mm"]].forEach(([id,v,t])=>{if(document.activeElement!==$(id))$(id).value=v;$(id+"V").textContent=t;});}
 [["modW","mw"],["modL","ml"],["modH","mh"],["modT","mt"],["modS","ms"],["modCD","cd"],["modCH","ch"]].forEach(([id,k])=>on(id,"input",e=>{S[k]=+e.target.value;applyDims();renderUI();}));
@@ -2055,13 +2084,13 @@ on("pdfBtn","click",()=>{const btn=$("pdfBtn"),t=btn.textContent;btn.textContent
 
 $("explode").value=S.explode;S.editSet=S.editSet||Bs().set;
 if(S.render){S.render=false;setTimeout(()=>$("renderBtn").click(),0);}
-$("candle").value=S.candle===undefined?1:S.candle;$("keepPal").setAttribute("aria-pressed",!!S.keepPal);setPanel(!S.nopanel);setLock(S.lock);setSpin(S.spin);$("sunT").value=S.sun===undefined?0.35:S.sun;vbarVals();cutBind();cutUI();applyDims();resize();if(S.ortho)setOrtho(true);renderUI();fitView();
+$("candle").value=S.candle===undefined?1:S.candle;rxSync();$("keepPal").setAttribute("aria-pressed",!!S.keepPal);setPanel(!S.nopanel);setLock(S.lock);setSpin(S.spin);$("sunT").value=S.sun===undefined?0.35:S.sun;vbarVals();cutBind();cutUI();applyDims();resize();if(S.ortho)setOrtho(true);renderUI();fitView();
 /* ===== bar switches: on/off only; strength, time, distance and axis are in the View panel ===== */
 on("candleBtn","click",()=>{const c=S.candle===undefined?1:S.candle;if(c>0){S.candlePrev=c;S.candle=0;}else S.candle=S.candlePrev||1;$("candle").value=S.candle;applyNight();save();vbarVals();});
 on("sunBtn","click",()=>{S.sunOff=!S.sunOff;applyNight();save();vbarVals();});
 on("explodeBtn","click",()=>{const v=S.explode||0;if(v>0){S.explodePrev=v;S.explode=0;}else S.explode=S.explodePrev||12;$("explode").value=S.explode;rebuild();vbarVals();});
 on("cutBtn","click",()=>{if(cutOn()){S.cutLast=S.cut.a;setCut({a:"off"});}else setCut({a:S.cutLast||"x",t:0.5});});
-on("randBar","click",()=>$(MODE==="module"?"randWall":"randVillage").click());
+on("randBar","click",()=>{if(MODE==="module")$("randWall").click();else remix(S.buildings,true);});
 /* ===== v 02.11 review: toast, Undo/Redo, share link and JSON, collapsible panels, "more controls" chevron ===== */
 let toastT=0;function toast(msg){const t=$("toast");if(!t)return;t.textContent=msg;t.classList.add("on");clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove("on"),3800);}
 /* put a design (a snapshot string) back: the design keys are replaced, the view settings stay */
@@ -2196,23 +2225,30 @@ function pitchedSolid(M,b){const g=slantRoof(b).children[0].geometry,p=g.attribu
 function courtSolid(M,b,hw,hd){const r=radOf(b),base=loftRR(M,blockRings(hw,hd,r,COURT_T,2.4,2.4),16),
     ro=loftRR(M,blockRings(hw,hd,r,COURT_RIM,1.2,1.2,COURT_T-0.5),16),ri=loftRR(M,holeRings(hw-3,hd-3,Math.max(0.5,r-3),COURT_RIM,0,0).map(q=>[q[0],q[1],q[2],q[3]+COURT_T-0.5]),16);
   const rim=ro.subtract(ri),s=M.Manifold.union([base,rim]);[base,ro,ri,rim].forEach(x=>x.delete());return s;}
+const glzBody=b=>(b.finish||"glazed")==="unglazed"?"unglazed":(b.glazeCol||"white"),
+  glzPlate=(b,l)=>{const rc=(b.slabCol&&b.slabCol[l])||b.plateCol||"same";return rc==="same"?glzBody(b):rc;},
+  glzRoof=(b,m)=>{const rc=(m&&m.lid)||b.roofCol||"same";return rc==="same"?glzBody(b):rc;};   /* glaze key of each part, as bodyMat / plateMat / roofMat pick it */
 /* every piece of one building, identical pieces counted once: [{name,qty,desc,solid}] */
-function piecesOf(M,b){const out=new Map(),put=(k,name,desc,make,use)=>{const p=out.get(k);if(p){p.qty++;if(use)p.uses.add(use);return;}out.set(k,{name,desc,qty:1,uses:new Set(use?[use]:[]),solid:make()});};
+function piecesOf(M,b,cache){const kp=cache?[radOf(b),b.roof,b.pitch,b.span].join("~")+"|":"",out=new Map(),
+    put=(k,name,desc,make,use,at)=>{const p=out.get(k);if(p){p.qty++;if(use)p.uses.add(use);if(at)p.at.push(at);return;}
+      let solid=cache&&cache.get(kp+k);if(!solid){solid=make();if(cache)cache.set(kp+k,solid);}   /* cache: solids shared between buildings (GLB scene); at: where each copy stands, for the GLB */
+      out.set(k,{name,desc,qty:1,uses:new Set(use?[use]:[]),at:at?[at]:[],solid,gkey:kp+k});};
   const mx=c=>(c-(b.cols-1)/2)*WX,my=r=>(r-(b.deep-1)/2)*WZ,hw=b.cols*WX/2,hd=b.deep*WZ/2;
-  if(b.court){put("court","plaza-tray","public court tray "+COURT_T+" mm with a "+COURT_RIM+" mm rim",()=>courtSolid(M,b,hw,hd));return [...out.values()];}
-  let mi=0;const mname=new Map();
+  if(b.court){put("court","plaza-tray","public court tray "+COURT_T+" mm with a "+COURT_RIM+" mm rim",()=>courtSolid(M,b,hw,hd),null,{p:[0,0,0],m:glzPlate(b,0),lab:"tray"});return [...out.values()];}
+  const LY=levelY(b,0);let mi=0;const mname=new Map();
   for(let l=0;l<b.levels;l++){
     if(b.plates[l]){const cells=[];for(let c=0;c<b.cols;c++)for(let r=0;r<b.deep;r++){const up=alive(b,c+":"+r+":"+l),dn=l===0?up:alive(b,c+":"+r+":"+(l-1));
         cells.push({x:mx(c),y:my(r),vent:up?"round":(l>0&&courtOpen(b,c,r,l)?"court":null),up,dn});}
-      const k="slab|"+b.cols+"x"+b.deep+"|"+plateT(l)+"|"+JSON.stringify(cells);put(k,l?"plate-L"+l:"base",b.cols+"×"+b.deep+" modules, "+plateT(l)+" mm, lips both faces",()=>slabSolid(M,b,hw,hd,plateT(l),cells),l?"plate L"+l:"base");}
+      const k="slab|"+b.cols+"x"+b.deep+"|"+plateT(l)+"|"+JSON.stringify(cells);put(k,l?"plate-L"+l:"base",b.cols+"×"+b.deep+" modules, "+plateT(l)+" mm, lips both faces",()=>slabSolid(M,b,hw,hd,plateT(l),cells),l?"plate L"+l:"base",{p:[0,0,LY.ys[l]-plateT(l)],m:glzPlate(b,l),lab:l?"plate-L"+l:"base"});}
     for(let c=0;c<b.cols;c++)for(let r=0;r<b.deep;r++){const key=c+":"+r+":"+l;if(!alive(b,key))continue;const m=b.mods[key],spec={};FACES.forEach(f=>spec[f]=m[f]);const k="mod|"+JSON.stringify(spec);
       if(!mname.has(k))mname.set(k,"module-"+String.fromCharCode(65+(mi++%26))+(mi>26?Math.floor((mi-1)/26):""));
-      put(k,mname.get(k),"module "+WX+" × "+WZ+" × "+H+", walls "+T+" mm ("+FACES.map(f=>f+": "+(m[f].bays?m[f].bays.join("/"):m[f].id||m[f].mode)).join(", ")+")",()=>moduleSolid(M,b,m));}}
+      put(k,mname.get(k),"module "+WX+" × "+WZ+" × "+H+", walls "+T+" mm ("+FACES.map(f=>f+": "+(m[f].bays?m[f].bays.join("/"):m[f].id||m[f].mode)).join(", ")+")",()=>moduleSolid(M,b,m),null,{p:[mx(c),my(r),LY.ys[l]],m:m.col||glzBody(b),lab:"L"+l+"-c"+c+"r"+r,candle:litMod(b,c,r,l)});}}
   if(b.roof!=="none"){const one=!(perMod(b)||!topComplete(b)),nc=one?b.cols:1,nd=one?b.deep:1;
-    for(let c=0;c<(one?1:b.cols);c++)for(let r=0;r<(one?1:b.deep);r++){if(!one){let any=false;for(let l=0;l<b.levels;l++)if(alive(b,c+":"+r+":"+l))any=true;if(!any)continue;}
+    for(let c=0;c<(one?1:b.cols);c++)for(let r=0;r<(one?1:b.deep);r++){let lm=-1;if(!one){for(let l=0;l<b.levels;l++)if(alive(b,c+":"+r+":"+l))lm=l;if(lm<0)continue;}
+      const rat={p:one?[0,0,LY.top]:[mx(c),my(r),LY.ys[lm]+H],m:glzRoof(b,one?null:b.mods[c+":"+r+":"+lm]),lab:one?"roof":"roof-c"+c+"r"+r};
       if(b.roof==="modern"){const cells=[];for(let i=0;i<nc;i++)for(let j=0;j<nd;j++)cells.push({x:(i-(nc-1)/2)*WX,y:(j-(nd-1)/2)*WZ,vent:"round",up:true,dn:true});
-        put("slab|"+nc+"x"+nd+"|"+FLAT_T+"|"+JSON.stringify(cells),"roof-flat",nc+"×"+nd+" modules, "+FLAT_T+" mm, lips both faces",()=>slabSolid(M,b,nc*WX/2,nd*WZ/2,FLAT_T,cells),"flat roof");}
-      else{const sb=Object.assign({},b,one?{}:{span:"module"});put("pitch|"+nc+"x"+nd+"|"+b.pitch,"roof-pitched","pitched roof, "+nc+"×"+nd+" modules, "+b.pitch+"°, "+T+" mm shell",()=>pitchedSolid(M,sb));}}}
+        put("slab|"+nc+"x"+nd+"|"+FLAT_T+"|"+JSON.stringify(cells),"roof-flat",nc+"×"+nd+" modules, "+FLAT_T+" mm, lips both faces",()=>slabSolid(M,b,nc*WX/2,nd*WZ/2,FLAT_T,cells),"flat roof",rat);}
+      else{const sb=Object.assign({},b,one?{}:{span:"module"});put("pitch|"+nc+"x"+nd+"|"+b.pitch,"roof-pitched","pitched roof, "+nc+"×"+nd+" modules, "+b.pitch+"°, "+T+" mm shell",()=>pitchedSolid(M,sb),null,rat);}}}
   /* the same slab cast for several jobs (base, plate, flat roof) is one file */
   out.forEach(p=>{if(p.uses.size>1){p.name="slab-"+p.name.replace(/^(plate-L\d+|base|roof-flat)$/,"")+[...p.uses].map(u=>u.replace(/\s+/g,"")).join("-");}if(p.uses.size)p.desc="slab for "+[...p.uses].join(", ")+" · "+p.desc;});
   return [...out.values()];}
@@ -2246,6 +2282,70 @@ async function exportSTL(shrink){const M=await manifoldLib(),sc=shrink>0?1/(1-sh
   files.push({name:"README.txt",data:new TextEncoder().encode(lines.join("\n"))});
   return {blob:zipOf(files),lines};}
 window.__stl={exportSTL,piecesOf:b=>manifoldLib().then(M=>piecesOf(M,b))};
+/* ===== Scene (GLB): the whole city (or the selected buildings) as ONE glTF binary for Blender, every piece in place.
+   Built from the same piecesOf() solids as the STL zip, so it is exactly what would be cast: nothing is re-modelled.
+   Units: glTF is metres, so 1 unit = 1 m and a 60 mm module is 0.06 (Blender's default scene units show it as 6 cm).
+   Y is up (glTF); TIKRAR's Z-up pieces are turned x, y, z -> x, z, -y, the same turn the 3D view makes.
+   Nodes: "<building>" > "<piece>.<position>" (copies share one mesh per shape and colour) and "candle.…" empties at each flame.
+   Materials are named "<body>-<glaze>" (porcelain-cobalt, porcelain-unglazed …) so a Blender template can swap them by name.
+   Never print from this file: print from the STL zip. */
+function glazeRGB(body,glaze){const bd=BODY[body]||BODY.porcelain,foot=new THREE.Color(bd.col).multiply(new THREE.Color(0xd2c4ad)).getHex(),
+    col=glaze==="foot"?foot:glaze==="unglazed"?bd.col:(GLAZE[glaze]&&GLAZE[glaze].col!==null?GLAZE[glaze].col:new THREE.Color(bd.col).lerp(new THREE.Color(0xffffff),0.12).getHex());
+  const c=new THREE.Color(col).convertSRGBToLinear();return [c.r,c.g,c.b];}
+function smoothMesh(v,t,sc){   /* positions (mm, Z up) -> Y up metres; normals smoothed across edges flatter than 40°, split at creases */
+  const nv=v.length/3,P=new Float64Array(nv*3);for(let i=0;i<nv;i++){P[3*i]=v[3*i]*sc;P[3*i+1]=v[3*i+2]*sc;P[3*i+2]=-v[3*i+1]*sc;}
+  const nt=t.length/3,FN=new Float64Array(nt*3),vf=Array.from({length:nv},()=>[]);
+  for(let f=0;f<nt;f++){const a=t[3*f],b=t[3*f+1],c=t[3*f+2],ux=P[3*b]-P[3*a],uy=P[3*b+1]-P[3*a+1],uz=P[3*b+2]-P[3*a+2],wx=P[3*c]-P[3*a],wy=P[3*c+1]-P[3*a+1],wz=P[3*c+2]-P[3*a+2];
+    FN[3*f]=uy*wz-uz*wy;FN[3*f+1]=uz*wx-ux*wz;FN[3*f+2]=ux*wy-uy*wx;vf[a].push(f);vf[b].push(f);vf[c].push(f);}   /* length = 2 × area: area weighted */
+  const U=x=>{const l=Math.hypot(x[0],x[1],x[2])||1;return [x[0]/l,x[1]/l,x[2]/l];},cosA=Math.cos(40*Math.PI/180),map=new Map(),pos=[],nor=[],idx=[];
+  for(let f=0;f<nt;f++){const fn=U([FN[3*f],FN[3*f+1],FN[3*f+2]]);
+    for(let k=0;k<3;k++){const vi=t[3*f+k];let n=[0,0,0];
+      for(const g of vf[vi]){const gn=U([FN[3*g],FN[3*g+1],FN[3*g+2]]);if(gn[0]*fn[0]+gn[1]*fn[1]+gn[2]*fn[2]>=cosA){n[0]+=FN[3*g];n[1]+=FN[3*g+1];n[2]+=FN[3*g+2];}}
+      n=U(n);const key=vi+"|"+Math.round(n[0]*60)+","+Math.round(n[1]*60)+","+Math.round(n[2]*60);let id=map.get(key);
+      if(id===undefined){id=pos.length/3;map.set(key,id);pos.push(P[3*vi],P[3*vi+1],P[3*vi+2]);nor.push(n[0],n[1],n[2]);}idx.push(id);}}
+  return {pos:new Float32Array(pos),nor:new Float32Array(nor),idx:new Uint32Array(idx)};}
+function solidArrays(sol){if(sol.raw)return {v:sol.raw.v,t:sol.raw.t};const m=sol.getMesh(),np=m.numProp,v=[];for(let i=0;i<m.vertProperties.length;i+=np)v.push(m.vertProperties[i],m.vertProperties[i+1],m.vertProperties[i+2]);return {v,t:m.triVerts};}
+function glbOf(json,bin){const enc=new TextEncoder(),j=enc.encode(JSON.stringify(json)),jp=(4-j.length%4)%4,jj=new Uint8Array(j.length+jp).fill(32);jj.set(j);
+  const bp=(4-bin.length%4)%4,bb=new Uint8Array(bin.length+bp);bb.set(bin);const total=12+8+jj.length+8+bb.length,buf=new ArrayBuffer(total),o=new DataView(buf);let p=0;
+  const u32=x=>{o.setUint32(p,x,true);p+=4;};u32(0x46546C67);u32(2);u32(total);u32(jj.length);u32(0x4E4F534A);new Uint8Array(buf).set(jj,p);p+=jj.length;u32(bb.length);u32(0x004E4942);new Uint8Array(buf).set(bb,p);
+  return new Blob([buf],{type:"model/gltf-binary"});}
+async function exportGLB(only,progress){const M=await manifoldLib(),sc=0.001,cache=new Map(),meshes=[],mats=[],matIdx=new Map(),nodes=[],bufs=[],views=[],accs=[],meshOf=new Map(),usedNames=new Set(),
+    slug=s=>s.replace(/\W+/g,"-").replace(/^-|-$/g,"").toLowerCase()||"building",idxs=only?selIdx():S.buildings.map((_,i)=>i);
+  let blen=0;const addBuf=(arr,target)=>{const u=new Uint8Array(arr.buffer,arr.byteOffset,arr.byteLength),pad=(4-blen%4)%4;if(pad){bufs.push(new Uint8Array(pad));blen+=pad;}
+    views.push({buffer:0,byteOffset:blen,byteLength:u.length,target});bufs.push(u);blen+=u.length;return views.length-1;};
+  const matId=(b,key)=>{const body=b.body||"porcelain",name=body+"-"+key;let i=matIdx.get(name);if(i===undefined){const gl=b.finish==="gloss",un=key==="unglazed"||key==="foot";i=mats.length;matIdx.set(name,i);
+      mats.push({name,pbrMetallicRoughness:{baseColorFactor:[...glazeRGB(body,key),1],metallicFactor:0,roughnessFactor:un?0.88:gl?0.24:0.46},extras:{body,glaze:key,finish:un?"unglazed":gl?"gloss":"satin",translucent:!!BODY[body].glow}});}return i;};
+  const meshId=(gk,name,sol,mi)=>{const k=gk+"#"+mi;let i=meshOf.get(k);if(i!==undefined)return i;
+    const {v,t}=solidArrays(sol),g=smoothMesh(v,t,sc),mn=[1e9,1e9,1e9],mx=[-1e9,-1e9,-1e9];for(let q=0;q<g.pos.length;q+=3)for(let a=0;a<3;a++){mn[a]=Math.min(mn[a],g.pos[q+a]);mx[a]=Math.max(mx[a],g.pos[q+a]);}
+    const vp=addBuf(g.pos,34962),vn=addBuf(g.nor,34962),vi=addBuf(g.idx,34963),a0=accs.length;
+    accs.push({bufferView:vp,componentType:5126,count:g.pos.length/3,type:"VEC3",min:mn,max:mx},{bufferView:vn,componentType:5126,count:g.nor.length/3,type:"VEC3"},{bufferView:vi,componentType:5125,count:g.idx.length,type:"SCALAR"});
+    let nm=name;for(let n=2;usedNames.has(nm);n++)nm=name+"-"+n;usedNames.add(nm);
+    i=meshes.length;meshOf.set(k,i);meshes.push({name:nm,primitives:[{attributes:{POSITION:a0,NORMAL:a0+1},indices:a0+2,material:mi,mode:4}]});return i;};
+  const roots=[],info=[];let done=0;
+  for(const bi of idxs){const b=S.buildings[bi];if(progress)progress(++done,idxs.length);await new Promise(r=>setTimeout(r,0));
+    const bname=slug(b.name)+"-"+(bi+1),kids=[],ps=piecesOf(M,b,cache),cn=[];
+    for(const p of ps)for(const a of p.at){const mi=matId(b,a.m),mesh=meshId(p.gkey,p.name,p.solid,mi);
+      kids.push(nodes.length);nodes.push({name:p.name+"."+a.lab,mesh,translation:[a.p[0]*sc,a.p[2]*sc,-a.p[1]*sc],extras:{piece:p.name,at:a.lab}});
+      if(a.candle){cn.push(nodes.length);nodes.push({name:"candle."+a.lab,translation:[a.p[0]*sc,(a.p[2]+CANDLE_Y)*sc,-a.p[1]*sc],extras:{kind:"candle",module:a.lab,flame_height_mm:CANDLE_Y,cup_d_mm:CD,cup_h_mm:CH}});}}
+    const ang=-b.rot*Math.PI/2,bn=nodes.length;nodes.push({name:bname,children:[...kids,...cn],translation:[b.x*sc,0,b.z*sc],rotation:[0,Math.sin(ang/2),0,Math.cos(ang/2)],
+      extras:{building:b.name,cols:b.cols,deep:b.deep,levels:b.levels,roof:b.roof,x_mm:b.x,z_mm:b.z,rot_quarter_turns:b.rot}});
+    roots.push(bn);info.push({name:b.name,node:bname,cols:b.cols,deep:b.deep,levels:b.levels,roof:b.roof,pitch_deg:b.pitch,body:b.body||"porcelain",finish:b.finish||"glazed",palette:b.palette||null,
+      x_mm:b.x,z_mm:b.z,rot_quarter_turns:b.rot,candles:cn.length,pieces:ps.map(p=>({mesh:p.name,qty:p.qty,desc:p.desc}))});}
+  const scene={format:"tikrar-scene",version:1,stamp:$("ver").textContent,units:{glb:"metres (1 unit = 1 m; a 60 mm module is 0.06)",tikrar:"millimetres",y_up:true,shrink:"GLB is fired size 1:1; print from the STL zip, never from this file"},
+    module:{width_mm:WX,length_mm:WZ,height_mm:H,wall_mm:T,base_mm:BASE_T,plate_mm:PLATE_T,flat_roof_mm:FLAT_T,lip:{w_mm:LIP.w,h_mm:LIP.h,clearance_mm:LIP.clr},vent_d_mm:VENT_D,candle:{flame_height_mm:CANDLE_Y,cup_d_mm:CD,cup_h_mm:CH}},
+    shrink_percent:Object.fromEntries(Object.entries(BODY).map(([k,v])=>[k,v.shrink])),materials:mats.map(m=>({name:m.name,...m.extras,base_color_linear:m.pbrMetallicRoughness.baseColorFactor.slice(0,3)})),buildings:info};
+  const bin=new Uint8Array(blen);let o=0;bufs.forEach(u=>{bin.set(u,o);o+=u.length;});
+  const json={asset:{version:"2.0",generator:"TIKRAR "+$("ver").textContent,extras:scene},scene:0,scenes:[{name:"TIKRAR city",nodes:roots,extras:scene}],nodes,meshes,materials:mats.map(({name,pbrMetallicRoughness,extras})=>({name,pbrMetallicRoughness,extras})),
+    accessors:accs,bufferViews:views,buffers:[{byteLength:bin.length}]};
+  for(const s of cache.values())if(!s.raw)s.delete();
+  return {blob:glbOf(json,bin),scene,json,bin,stats:{buildings:idxs.length,meshes:meshes.length,nodes:nodes.length,materials:mats.length,bytes:bin.length}};}
+window.__glb={exportGLB};
+on("glbBtn","click",async()=>{const btn=$("glbBtn"),t=btn.textContent,only=$("glbSel").checked;btn.disabled=true;
+  try{const {blob,scene}=await exportGLB(only,(i,n)=>btn.textContent=`Building ${i}/${n}…`),d=new Date(),z=n=>String(n).padStart(2,"0"),stamp=`${d.getFullYear()}${z(d.getMonth()+1)}${z(d.getDate())}-${z(d.getHours())}${z(d.getMinutes())}`,
+      dl=(bl,nm)=>{const a=document.createElement("a");a.href=URL.createObjectURL(bl);a.download=nm;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);};
+    dl(blob,`tikrar-scene-${stamp}.glb`);setTimeout(()=>dl(new Blob([JSON.stringify(scene,null,1)],{type:"application/json"}),`tikrar-scene-${stamp}.json`),500);btn.textContent=t;}
+  catch(e){console.error(e);btn.textContent="GLB failed";setTimeout(()=>btn.textContent=t,3000);}
+  btn.disabled=false;});
 on("stlBtn","click",async()=>{const btn=$("stlBtn"),t=btn.textContent,sh=Math.max(0,Math.min(40,parseFloat($("stlShrink").value)||0));btn.textContent="Building…";btn.disabled=true;
   try{const {blob}=await exportSTL(sh),d=new Date(),z=n=>String(n).padStart(2,"0"),a=document.createElement("a");a.href=URL.createObjectURL(blob);
     a.download=`tikrar-pieces-${d.getFullYear()}${z(d.getMonth()+1)}${z(d.getDate())}-${z(d.getHours())}${z(d.getMinutes())}${sh?"-master"+sh:""}.zip`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),2000);btn.textContent=t;}
