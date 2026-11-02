@@ -23,6 +23,10 @@ const ARCHES={pointed:POINTED,round:ROUND,horseshoe:HORSESHOE};
 function bbox(p){let a=1e9,b=1e9,c=-1e9,d=-1e9;p.forEach(([x,y])=>{a=Math.min(a,x);b=Math.min(b,y);c=Math.max(c,x);d=Math.max(d,y);});return {x0:a,y0:b,x1:c,y1:d,w:c-a,h:d-b};}
 function area(p){let s=0;for(let i=0;i<p.length;i++){const [x0,y0]=p[i],[x1,y1]=p[(i+1)%p.length];s+=x0*y1-x1*y0;}return Math.abs(s)/2;}
 
+/* Christmas motifs: a tiered fir tree on a trunk, and an n-pointed star or snowflake, both counter-clockwise outlines */
+const TREE=(cx,y0,w,h)=>{const t=1.2,r=[[t,0],[t,2.5],[w/2,2.5],[w*.2,h*.45],[w*.36,h*.45],[w*.12,h*.72],[w*.26,h*.72],[0,h]];
+  return tag([...r.map(([x,y])=>[cx+x,y0+y]),...r.slice(1,-1).reverse().map(([x,y])=>[cx-x,y0+y]),[cx-t,y0]],"fir tree");};
+const STAR=(cx,cy,R0,n,k,kind)=>{const p=[];for(let i=0;i<2*n;i++){const a=PI/2+PI*i/n,r=i%2?R0*(k||0.42):R0;p.push([cx+r*Math.cos(a),cy+r*Math.sin(a)]);}return tag(p,kind||"star");};
 /* ---------- face collector ---------- */
 const F=()=>({holes:[],relief:[],extras:[],fins:[]});
 const hole=(o,p,set)=>o.holes.push({p,set:set||0});   /* set: which resin insert set carries the pin */
@@ -183,7 +187,16 @@ CAT.push(
   build(o,q){hole(o,R(10,8,40,22));if(q.frame)frame(o,R,10,8,40,22,1.2);if(q.canopy)o.extras.push({t:"canopy",x:6,w:48,y:32.4});}},
  {set:"modern",id:"glassblock",group:"Modernist",name:"Glass-block stair light",ref:AB+", pp. 52–53",
   desc:"A tall strip of small square lights, as the cast glass blocks that lit modernist stairwells.",
-  build(o,q){for(let j=0;j<5;j++)for(let i=0;i<3;i++)hole(o,R(23+i*5.6,6+j*6,3,3));}}
+  build(o,q){for(let j=0;j<5;j++)for(let i=0;i<3;i++)hole(o,R(23+i*5.6,6+j*6,3,3));}},
+ {set:"both",id:"christmas",group:"Festive",name:"Christmas",ref:"",
+  desc:"A festive wall: fir trees, stars and snowflakes cut through the porcelain, so a candle inside lights them like a window advent calendar.",
+  styles:{label:"Motif",options:{mixed:"Tree, star, tree",trees:"Three trees",stars:"Three stars",snow:"Three snowflakes",sky:"Trees under stars"}},
+  build(o,q){const cx=[W*0.2,W*0.5,W*0.8],st=q.style||"mixed";
+   if(st==="trees")cx.forEach(x=>hole(o,TREE(x,5,14,29)));
+   else if(st==="stars")cx.forEach((x,i)=>hole(o,STAR(x,20,i===1?10:8,5)));
+   else if(st==="snow")cx.forEach((x,i)=>hole(o,STAR(x,20,i===1?10:8,6,0.36,"snowflake")));
+   else if(st==="sky"){cx.forEach(x=>hole(o,TREE(x,4,13,22)));cx.forEach((x,i)=>hole(o,STAR(x,i===1?33:31,i===1?4.2:3.4,5)));}
+   else{hole(o,TREE(cx[0],5,14,29));hole(o,STAR(cx[1],22,11,5));hole(o,TREE(cx[2],5,14,29));}}}
 );
 const BY=Object.fromEntries(CAT.map(c=>[c.id,c]));
 

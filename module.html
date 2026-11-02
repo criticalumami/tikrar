@@ -55,14 +55,14 @@ body.nopanel .layout>aside{display:none}body.nopanel .layout>.viewer{grid-column
 @media (max-width:760px){.viewer{position:relative;top:0;aspect-ratio:4/3}}
 
 .viewer canvas{display:block;width:100%!important;height:100%!important;touch-action:none}
-.vbar{position:absolute;left:0;right:0;bottom:0;display:flex;flex-wrap:wrap;background:rgba(17,17,17,.88)}
+.vbar{position:absolute;left:0;right:0;bottom:0;display:flex;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;background:rgba(17,17,17,.88)}.vbar::-webkit-scrollbar{display:none}   /* always one row; sliders and padding give way first, then it scrolls sideways */
 .vbar .grp{display:flex;align-items:center;color:#f2f2f2;font:500 11px/16px var(--sans);text-transform:uppercase;letter-spacing:.06em;border-right:1px solid rgba(255,255,255,.16)}
 .vbar .grp label{padding:0 8px 0 12px}
 .vbar button{height:var(--ctl);background:transparent;border:0;color:#f2f2f2;border-radius:0;font:500 11px/16px var(--sans);text-transform:uppercase;letter-spacing:.06em;padding:0 10px;cursor:pointer}
 .vbar button:hover{background:rgba(255,255,255,.1)}
 .vbar button[aria-pressed="true"]{background:var(--terra);color:#fff}
-.vbar input[type=range]{width:64px;margin-right:10px;accent-color:#fff}
-.vbar .grp.cutG button{padding:0 7px}.vbar .grp.cutG .cutS[hidden]{display:none}
+
+.vbar .grp.cutG button{padding:0 5px}.vbar .grp.cutG .cutS[hidden]{display:none}
 .tag{position:absolute;left:0;top:0;color:#111;padding:var(--g);font:500 11px/16px var(--sans);max-width:100%;pointer-events:none}
 .viewer.dark .tag{color:#f2f2f2}
 aside{display:grid;gap:calc(4*var(--u))}
@@ -185,11 +185,12 @@ aside{--ctl:26px;gap:16px}
 .lbl{font-size:10px;line-height:14px}
 .seg button,.btn,select,.blist button,input.cnt{font-size:12px}
 .blist button span,.hint{font-size:10px;line-height:14px}
-.vbar button,.vbar .grp{font-size:10px}.vbar button{height:28px;padding:0 8px}
+.vbar button,.vbar .grp{font-size:10px}.vbar button{height:28px;padding:0 4px}
+.vbar .grp{flex:none}.vbar .grp:has(input[type=range]){flex:0 1 auto}.vbar .grp label,.vbar .grp output{flex:none}.vbar .grp label{padding:0 4px 0 6px}.vbar .grp output{min-width:0;margin-right:4px}.vbar .grp input[type=range]{margin-right:2px}.vbar button,.vbar .grp{font-size:9.5px}.vbar button{padding:0 5px;letter-spacing:.02em}.vbar .grp label{letter-spacing:.02em}.vbar input[type=range]{flex:1 1 20px;width:36px;min-width:20px;margin-right:6px;accent-color:#fff}
 /* phones: title and nav share the first row, the 3D view takes most of the screen, the toolbar is one row you swipe sideways */
 @media (max-width:760px){header h1{grid-column:1/9;grid-row:1;font-size:20px}header h1 small{display:block;margin:0;font-size:9px;line-height:12px;vertical-align:0}header nav{grid-column:9/13;grid-row:1;align-self:center}header .sub{display:none}
   .layout>.viewer{aspect-ratio:auto;height:min(64svh,560px);min-height:340px}
-  .layout>.viewer{overflow:visible;margin-bottom:var(--ctl)}.vbar{top:100%;bottom:auto;background:#111;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}.vbar::-webkit-scrollbar{display:none}.vbar .grp{flex:none}
+  .layout>.viewer{overflow:visible;margin-bottom:var(--ctl)}.vbar{top:100%;bottom:auto;background:#111;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}.vbar::-webkit-scrollbar{display:none}.vbar .grp{flex:none}.vbar .grp:has(input[type=range]){flex:0 1 auto}.vbar .grp label,.vbar .grp output{flex:none}
   .tag{padding:8px 12px;font-size:10px;line-height:14px}
   .f>.lbl{grid-column:1/-1;padding-top:8px}.f>.v{grid-column:1/-1;flex-wrap:wrap}.f>.v>.hint{flex-basis:100%}.seg button{padding:0 4px}}
 /* three sections in the bar: the nav takes the right half, the description gives way first */
@@ -203,7 +204,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
 <header class="grid12">
   <h1>TIKRAR<small>Beirut Lantern Generator</small></h1>
   <span class="sub"><span id="modSize">porcelain modules 60 × 60 mm · 40 mm walls</span> · houses, towers and city blocks · 1860–1925 and modernist openings</span>
-  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 01.11 · 18:55</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
+  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 02.11 · 06:34</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
   <button class="btn icon" id="themeBtn" type="button" aria-label="Toggle colour theme">◐</button></nav>
 </header>
 
@@ -218,7 +219,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
       <div class="grp"><label for="explode">Explode</label><input type="range" id="explode" min="0" max="30" step="1" value="0"><output id="explodeV" for="explode"></output></div>
       <div class="grp cutG"><label title="Section plane: cut the model along X, Y (height) or Z and look inside">Cut</label><button type="button" data-cut="off" aria-pressed="true">Off</button><button type="button" data-cut="x" aria-pressed="false" title="Section across X (left to right)">X</button><button type="button" data-cut="y" aria-pressed="false" title="Section at a height (a plan cut)">Y</button><button type="button" data-cut="z" aria-pressed="false" title="Section across Z (front to back)">Z</button><span class="cutS" hidden><input type="range" id="cutT" min="0" max="1" step="0.005" value="0.5" title="Position of the section plane"><output id="cutV" for="cutT"></output><button type="button" id="cutFlip" aria-pressed="false" title="Keep the other side">⇄</button></span></div>
       <div class="grp"><button type="button" id="orthoBtn" aria-pressed="false" title="Orthographic: parallel lines, no perspective">Ortho</button><button type="button" data-view="axo" title="Axonometric view">Axo</button><button type="button" data-view="plan" title="Plan, from above">Plan</button><button type="button" data-view="front" title="Front elevation">Front</button></div>
-      <div class="grp"><button type="button" id="spinBtn" aria-pressed="false" title="Keep turning the view around the model">Spin</button><button type="button" id="slideBtn" aria-pressed="false" title="Keep the model still and slide the openings round the walls, over the corners onto the next wall; you can still change elements while it runs (also a GIF: see GIF, under Checks)">Slide</button><button type="button" id="lockBtn" aria-pressed="false" title="Lock the camera: no orbit, pan or zoom">Lock</button><button type="button" id="resetView">Reset view</button><button type="button" id="jpgBtn" title="Save the 3D view as a JPG">JPG</button><button type="button" id="gifQuick" title="A randomize series as an animated GIF, from this exact view (frames: GIF, under Checks)">GIF</button><button type="button" id="panelBtn" aria-pressed="true" title="Show or hide the side panel (P)">Panel</button></div>
+      <div class="grp"><button type="button" id="spinBtn" aria-pressed="false" title="Keep turning the view around the model">Spin</button><button type="button" id="slideBtn" aria-pressed="false" title="Keep the model still and slide the openings round the walls, over the corners onto the next wall; you can still change elements while it runs (also a GIF: see GIF, under Checks)">Slide</button><button type="button" id="lockBtn" aria-pressed="false" title="Lock the camera: no orbit, pan or zoom">Lock</button><button type="button" id="resetView" title="Reset the view">Reset</button><button type="button" id="jpgBtn" title="Save the 3D view as a JPG">JPG</button><button type="button" id="gifQuick" title="A randomize series as an animated GIF, from this exact view (frames: GIF, under Checks)">GIF</button><button type="button" id="panelBtn" aria-pressed="true" title="Show or hide the side panel (P)">Panel</button></div>
     </div>
   </div>
 
@@ -691,7 +692,7 @@ let room=new THREE.Group();scene.add(room);
 const lc=h=>new THREE.Color(h).convertSRGBToLinear();
 function buildRoom(){scene.remove(room);room.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.isLine&&o.material!==MAT.line)o.material.dispose();});room=new THREE.Group();
   /* by day the ground is the page: pure white, with only the shadows drawn on it; at night a honed dark stone tabletop */
-  const white=!S.night,gb=bounds(),gsz=Math.max(gb.x1-gb.x0,gb.z1-gb.z0)+(white?1400:8000),g=new THREE.Mesh(new THREE.PlaneGeometry(gsz,gsz),white?new THREE.ShadowMaterial({opacity:S.render?0.34:0.26}):new THREE.MeshStandardMaterial({color:lc(0x141312),roughness:0.88,metalness:0.02,envMapIntensity:0.08}));g.rotation.x=-Math.PI/2;g.position.set((gb.x0+gb.x1)/2,-groundDrop(),(gb.z0+gb.z1)/2);g.receiveShadow=true;room.add(g);   /* by day only as big as the shadows need, so nothing reaches the horizon */
+  const white=!S.night,gb=bounds(),gsz=Math.max(gb.x1-gb.x0,gb.z1-gb.z0)+(white?1400:8000),g=new THREE.Mesh(new THREE.PlaneGeometry(gsz,gsz),white?new THREE.ShadowMaterial({opacity:S.render?0.34:0.26}):new THREE.MeshBasicMaterial({color:0x000000}));g.rotation.x=-Math.PI/2;g.position.set((gb.x0+gb.x1)/2,-groundDrop(),(gb.z0+gb.z1)/2);g.receiveShadow=true;room.add(g);   /* by day only as big as the shadows need, so nothing reaches the horizon */
   /* the ground line: in the Front elevation the ground is edge-on, so it is drawn as one black hairline at y = 0 */
   {const b=bounds(),gl=new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(b.x0-4000,0,b.z1+600),new THREE.Vector3(b.x1+4000,0,b.z1+600)]),new THREE.LineBasicMaterial({color:S.night?0x9aa0ad:0x111111}));
    gl.visible=S.view==="front"&&camera===ortho;gl.name="groundLine";room.add(gl);}
@@ -1051,6 +1052,7 @@ const BAKE={rt:null,q:[],ov:null,n:0,scene:new THREE.Scene(),cam:new THREE.Ortho
   BAKE.ov.rotation.x=-Math.PI/2;BAKE.ov.renderOrder=1;BAKE.ov.visible=false;scene.add(BAKE.ov);}
 function startBake(anchors){BAKE.q.length=0;BAKE.n=0;BAKE.ov.visible=false;
   BAKE.scene.children.slice().forEach(o=>{if(o!==BAKE.light&&o!==BAKE.plane)BAKE.scene.remove(o);});
+  return;   /* night: the ground stays pitch black, so no candle pools are baked onto it */
   if(!S.night||!anchors.length)return;
   BAKE.scene.add(built);built.updateMatrixWorld(true);
   const b=bounds(),m=BAKE_R*0.8,x0=b.x0-m,x1=b.x1+m,z0=b.z0-m,z1=b.z1+m,w=x1-x0,d=z1-z0,cx=(x0+x1)/2,cz=(z0+z1)/2,gy=-groundDrop(),
@@ -1137,8 +1139,8 @@ function rebuildNow(){
   built=new THREE.Group();pickable.length=0;flames.length=0;
   const gap=+S.explode,budget={anchors:[]};S.buildings.forEach((_,bi)=>built.add(buildBuilding(bi,gap,budget)));
   merged=mergeGroup(built);scene.add(merged);applyClip();placeLights(budget.anchors);BAKE.anchors=budget.anchors;buildRoom();applyNight();}
-function applyNight(){const n=S.night,rd=S.render;scene.background=new THREE.Color(n?0x09090b:0xffffff);   /* white gallery backdrop by day, deep studio charcoal-black at night */view.classList.toggle("dark",!!(n||rd));
-  hemi.intensity=n?0.28:0.42;hemi.color.set(n?0xcfd8ea:0xfff7ed);hemi.groundColor.set(n?0x26221e:0xd8ccb9);
+function applyNight(){const n=S.night,rd=S.render;scene.background=new THREE.Color(n?0x000000:0xffffff);   /* white gallery backdrop by day, deep studio charcoal-black at night */view.classList.toggle("dark",!!(n||rd));
+  hemi.intensity=n?0.28:0.42;hemi.color.set(n?0xcfd8ea:0xfff7ed);hemi.groundColor.set(n?0x000000:0xd8ccb9);
   fillLight.intensity=n?0.12:0.24;fillLight.color.set(n?0x9ab0d6:0xe3ecf8);
   /* Unified color management: when post-processing composer runs (Render mode), FINAL pass performs ACES + sRGB; otherwise WebGLRenderer outputs ACES + sRGB directly */
   {const post=!!(rd&&composer),tm=post?THREE.NoToneMapping:THREE.ACESFilmicToneMapping,enc=post?THREE.LinearEncoding:THREE.sRGBEncoding;
@@ -1152,14 +1154,14 @@ function applyNight(){const n=S.night,rd=S.render;scene.background=new THREE.Col
    if(!n)hemi.color.set(0xffe4c8).lerp(new THREE.Color(0xfff7ed),Math.min(1,hi));}
   {const ext=Math.max(b.x1-b.x0,b.z1-b.z0,b.h)*0.75+200;Object.assign(sun.shadow.camera,{left:-ext,right:ext,top:ext,bottom:-ext,near:50,far:1200+ext*1.6});sun.shadow.camera.updateProjectionMatrix();}sun.target.position.set(cx,0,cz);
   const cs=S.candle===undefined?1:S.candle;lights.forEach(L=>L.intensity=n?L.userData.base*cs:0);flames.forEach(f=>f.visible=n&&!f.userData.cutHide);
-  MAT.wax.emissiveIntensity=n?0.45*cs:0;MAT.pool.visible=n;MAT.contact.visible=!!(S.render&&!n);MAT.pool.opacity=Math.min(0.85,0.38*cs);$("nightBtn").setAttribute("aria-pressed",n);
+  MAT.wax.emissiveIntensity=n?0.45*cs:0;MAT.pool.visible=false;MAT.contact.visible=!!(S.render&&!n);MAT.pool.opacity=Math.min(0.85,0.38*cs);$("nightBtn").setAttribute("aria-pressed",n);
   Object.values(MATS).forEach(m=>{m.emissiveIntensity=0;if(m.userData.uLit)m.userData.uLit.value=0;});
   Object.values(LIT).forEach(m=>{m.emissiveIntensity=0;if(m.userData.uLit)m.userData.uLit.value=n?cs:0;});
-  if(S.render){scene.environment=n?(envNight||envBasic):(envRoom||envBasic);hemi.intensity=n?0.30:0.32;sun.intensity=n?0:1.95*(sun.userData.k||1);sun.shadow.mapSize.set(2048,2048);sun.shadow.normalBias=0.35;
+  if(S.render){scene.environment=n?envDark():(envRoom||envBasic);hemi.intensity=n?0.30:0.32;sun.intensity=n?0:1.95*(sun.userData.k||1);sun.shadow.mapSize.set(2048,2048);sun.shadow.normalBias=0.35;
     lights.forEach(L=>L.intensity=n?L.userData.base*1.15*cs:0);
     if(finalPass){finalPass.uniforms.exposure.value=n?1.04:0.92;finalPass.uniforms.nightMode.value=n?1.0:0.0;}
     if(bloom){bloom.strength=n?0.14:0.05;bloom.threshold=n?0.78:0.94;bloom.radius=0.52;}}
-  else{scene.environment=envBasic;sun.shadow.normalBias=0.35;}   /* normal offset keeps flat walls free of shadow acne */
+  else{scene.environment=n?envDark():envBasic;sun.shadow.normalBias=0.35;}   /* normal offset keeps flat walls free of shadow acne */
   if(sun.shadow.map&&sun.shadow.map.width!==sun.shadow.mapSize.x){sun.shadow.map.dispose();sun.shadow.map=null;}
   if(S.night!==BAKE.night||BAKE.anchors!==BAKE.done){BAKE.night=S.night;BAKE.done=BAKE.anchors;startBake(BAKE.anchors||[]);}
   BAKE.ov.material.color.setRGB(1.0*CANDLE_I*0.85*cs,0.72*CANDLE_I*0.85*cs,0.38*CANDLE_I*0.85*cs);
@@ -1188,7 +1190,7 @@ function setupComposer(){lastD=0;const r=view.getBoundingClientRect(),w=Math.max
   const pm=new THREE.PMREMGenerator(renderer);envRoom=pm.fromScene(studioScene(1),0.02).texture;envNight=pm.fromScene(studioScene(0.38),0.02).texture;pm.dispose();}
 /* a photo studio for the glaze to reflect: a soft grey room, a big softbox to the front left, a strip light to the right and
    a top panel; the long bright shapes give glazed walls and edges the soft streaks of a product shot */
-let envNight=null;
+let envNight=null,envBlack=null;const envDark=()=>{if(!envBlack){const pm=new THREE.PMREMGenerator(renderer);envBlack=pm.fromScene(new THREE.Scene(),0.02).texture;pm.dispose();}return envBlack;};   /* night: the sky and room the glaze reflects are black too */
 function studioScene(k){const sc=new THREE.Scene(),room=new THREE.Mesh(new THREE.BoxGeometry(10,6,10),new THREE.MeshBasicMaterial({color:new THREE.Color(0x363431).multiplyScalar(k>0.5?1:0.38),side:THREE.BackSide}));room.position.y=2;sc.add(room);
   const panel=(w,h,x,y,z,ry,rx,i)=>{const m=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshBasicMaterial({color:new THREE.Color(1,0.97,0.92).multiplyScalar(i*k),side:THREE.DoubleSide}));m.position.set(x,y,z);m.rotation.set(rx||0,ry||0,0);m.lookAt(0,0.6,0);sc.add(m);};
   panel(3.4,2.6,-3.6,2.6,3.4,0,0,8.5);panel(0.9,4,4.6,2.2,-0.6,0,0,5.5);panel(4.2,4.2,0,4.9,0,0,0,3.2);panel(10,1.4,0,-0.6,-4.9,0,0,0.8);return sc;}
@@ -1508,7 +1510,7 @@ on("sunT","input",e=>{S.sun=+e.target.value;applyNight();save();vbarVals();});
 /* lock the camera: no orbit, pan or zoom (the view buttons still work) */
 const setLock=on=>{S.lock=!!on;controls.enabled=!S.lock;$("lockBtn").setAttribute("aria-pressed",S.lock);};
 on("lockBtn","click",()=>{setLock(!S.lock);save();});
-const setSpin=on=>{S.spin=!!on;controls.autoRotate=S.spin;controls.autoRotateSpeed=1.2;$("spinBtn").setAttribute("aria-pressed",S.spin);need();};   /* turns slowly round the target, also when the camera is locked */
+const setSpin=on=>{S.spin=!!on;controls.autoRotate=S.spin;controls.autoRotateSpeed=-4;$("spinBtn").setAttribute("aria-pressed",S.spin);need();};   /* turns slowly round the target, also when the camera is locked */
 on("spinBtn","click",()=>{setSpin(!S.spin);save();});
 on("slideBtn","click",()=>setSlide(!ORBIT.on));
 /* ---------- GIF: a small encoder with one palette made for the whole animation (median cut over every frame, 256 colours, LZW) ---------- */
