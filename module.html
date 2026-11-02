@@ -204,7 +204,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
 <header class="grid12">
   <h1>TIKRAR<small>Beirut Lantern Generator</small></h1>
   <span class="sub"><span id="modSize">porcelain modules 60 × 60 mm · 40 mm walls</span> · houses, towers and city blocks · 1860–1925 and modernist openings</span>
-  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 02.11 · 12:55</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
+  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 02.11 · 13:05</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
   <button class="btn icon" id="themeBtn" type="button" aria-label="Toggle colour theme">◐</button></nav>
 </header>
 
@@ -1057,7 +1057,7 @@ function buildBuilding(bi,gap,lightBudget){
         const flOut=new THREE.Mesh(FLAME_OUT_GEO,MAT.flame);flOut.scale.set(0.78,1.75,0.78);fl.add(flOut);
         const flIn=new THREE.Mesh(FLAME_IN_GEO,MAT.flameCore);flIn.scale.set(0.7,1.45,0.7);flIn.position.y=-0.5;fl.add(flIn);
         g.add(fl);flames.push(fl);}}
-    for(let c=0;c<b.cols;c++)for(let r=0;r<b.deep;r++)if(b.candles[l]&&b.plates[l]&&alive(b,c+":"+r+":"+l)){const a=new THREE.Object3D();a.position.set(mx(c),ys[l]-gap*0.5+CANDLE_Y,mz(r));a.userData={bi,l};g.add(a);lightBudget.anchors.push(a);}}
+    for(let c=0;c<b.cols;c++)for(let r=0;r<b.deep;r++)if(b.candles[l]&&b.plates[l]&&alive(b,c+":"+r+":"+l)){const a=new THREE.Object3D();a.position.set(mx(c),ys[l]-gap*0.5+CANDLE_Y,mz(r));a.userData={bi,l,c,r,k:c+":"+r+":"+l,mod:[mx(c),ys[l],mz(r)]};g.add(a);lightBudget.anchors.push(a);}}
   if(b.roof!=="none"){const one=()=>b.roof==="modern"?modernRoof(b):slantRoof(b);
     /* a one-piece roof needs a complete top level; otherwise every column gets its own lid on its highest module */
     if(perMod(b)||!topComplete(b)){const sb=Object.assign({},b,{span:"module"});
@@ -1092,11 +1092,7 @@ const LPOOL=Array.from({length:MAX_LIGHTS},(_,i)=>{const L=new THREE.PointLight(
   L.shadow.camera.near=3;L.shadow.camera.far=380;L.position.set(0,-500,0);L.userData.base=0;scene.add(L);return L;});
 /* candles share the pool: one real light per lit module, the selected building's first, then the lowest levels;
    real 3D point lights illuminate the 3 mm opening reveals, interior walls, locating lips, plates and neighbouring modules */
-let CANDLE_Y=CH+8;const SPREAD=4.5,UCY={value:CH+8},UH={value:H},CANDLE_I=1.45,BAKE_R=145,BAKE_SOFT=[
-  [0,0,0],[0,2.2,0],[0,4.2,0],[0,-1.2,0],
-  [1.3,1.0,0],[-1.3,1.0,0],[0,1.0,1.3],[0,1.0,-1.3],
-  [1.1,2.8,1.1],[-1.1,2.8,1.1],[1.1,2.8,-1.1],[-1.1,2.8,-1.1],
-  [1.6,1.8,0],[-1.6,1.8,0],[0,3.6,1.4],[0,3.6,-1.4]];   /* 16 volumetric flame samples over the 10 mm flame column so floor projections have soft penumbras */
+let CANDLE_Y=CH+8;const UCY={value:CH+8},UH={value:H},CANDLE_I=1.45;
 function placeLights(anchors){lights.length=0;LPOOL.forEach(L=>{L.userData.base=0;L.intensity=0;L.position.set(0,-500,0);});
   const pick=anchors.slice().sort((a,b)=>(isSel(b.userData.bi)-isSel(a.userData.bi))||(a.userData.l-b.userData.l)||(a.userData.bi-b.userData.bi)).slice(0,MAX_LIGHTS);
   const real=new Set();pick.forEach((a,i)=>{const L=LPOOL[i];a.getWorldPosition(L.position);L.userData.base=CANDLE_I;lights.push(L);real.add(a.userData.bi);});
@@ -1104,54 +1100,102 @@ function placeLights(anchors){lights.length=0;LPOOL.forEach(L=>{L.userData.base=
   /* a shadow-casting light also darkens wherever it can't see, even at zero intensity: spare lights sit on a used one,
      and candle shadows are off by day (so the white ground only carries the sun's shadows) */
   LPOOL.forEach((L,i)=>{if(i>=lights.length&&lights.length)L.position.copy(lights[i%lights.length].position);L.castShadow=!!(S.night&&lights.length)&&i<SHADOW_LIGHTS;});}
-/* baked candle light: every lit module's candle is rendered with a high-res shadow-casting point light onto a
-   top-down light map of the ground (layer 1, seen only by the bake camera). Its walls (and its neighbours') block the
-   light, so each opening throws its own soft caustic shape across the tabletop. */
-const BAKE={rt:null,q:[],ov:null,n:0,scene:new THREE.Scene(),cam:new THREE.OrthographicCamera(-1,1,1,-1,1,3000),
-  light:new THREE.PointLight(0xffa44b,1,BAKE_R,2),plane:null};
-{const L=BAKE.light;L.castShadow=true;L.shadow.mapSize.set(1024,1024);L.shadow.radius=9;L.shadow.bias=-0.0018;L.shadow.normalBias=0.3;L.shadow.camera.near=2;
-  L.layers.set(1);BAKE.cam.layers.enable(1);   /* the shadow pass draws what the bake camera's layers see, so it sees the buildings too: its near and far planes then cut everything but a thin slab just under the ground */
-  BAKE.cam.up.set(0,0,-1);BAKE.scene.add(L);
-  BAKE.plane=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshStandardMaterial({color:0xffe4bc,roughness:1,metalness:0,transparent:true,blending:THREE.AdditiveBlending,depthTest:false,depthWrite:false}));
-  BAKE.plane.rotation.x=-Math.PI/2;BAKE.plane.receiveShadow=true;BAKE.plane.layers.set(1);BAKE.scene.add(BAKE.plane);
-  BAKE.ov=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({transparent:true,blending:THREE.AdditiveBlending,depthWrite:false,toneMapped:false}));
-  BAKE.ov.rotation.x=-Math.PI/2;BAKE.ov.renderOrder=1;BAKE.ov.visible=false;scene.add(BAKE.ov);}
-function startBake(anchors){BAKE.q.length=0;BAKE.n=0;BAKE.blurN=-1;BAKE.ov.visible=false;if(BAKE.rt)BAKE.ov.material.map=BAKE.rt.texture;BAKE.ov.material.needsUpdate=true;
-  BAKE.scene.children.slice().forEach(o=>{if(o!==BAKE.light&&o!==BAKE.plane)BAKE.scene.remove(o);});
+/* ground candle light (2 Nov rewrite). The lit ground is a light map baked once per edit and drawn as one additive overlay, so a
+   whole village costs one texture lookup per pixel. It is computed analytically, not by rendering shadows, so it has no shadow-map
+   noise or acne and lands exactly at the foot of each opening:
+   - every outer wall of a lit module gets a "light cookie": a mask of its openings (white = open), drawn from the same hole outlines as the 3D wall;
+   - each ground point sums light from an area source (the flame, plus the glowing white interior as a larger, dimmer source), sampled with a
+     fixed Vogel disc; each sample ray must pass the opening at BOTH the inner and outer wall faces (3 mm reveals cut the light);
+   - the mask is read from a mip level matched to the sample spacing, so the penumbra is smooth (the PCSS idea: penumbra width grows with the
+     distance from wall to ground over the distance from flame to wall);
+   - irradiance falls off physically, I·cosθ/d² on the flat ground, and is summed in a half-float target;
+   - the overlay rolls the sum off with a soft shoulder, then the normal ACES tone map, so a bright core never clips to white. */
+const BAKE={rt:null,q:[],ov:null,n:0,cam:new THREE.OrthographicCamera(-1,1,1,-1,0,2),masks:new Map(),gain:{value:1},col:{value:new THREE.Color(1,0.5,0.17)},sc:new THREE.Scene()};
+const GL_GAIN=6000,GL_OCC=24,GL_SKIRT=1.6e-5,GL_N=28,GL_R=()=>Math.min(260,3.2*Math.max(WX,WZ));   /* area-light samples per source; how far from a wall its light is computed */
+BAKE.mat=new THREE.ShaderMaterial({uniforms:{uInv:{value:new THREE.Matrix4()},uF:{value:new THREE.Vector3()},uO:{value:new THREE.Vector3()},uU:{value:new THREE.Vector3()},uV:{value:new THREE.Vector3()},
+    uMask:{value:null},uFw:{value:60},uH:{value:40},uT:{value:3},uSrc:{value:new THREE.Vector4()},uI:{value:1},uSkirt:{value:0},uBox:{value:new THREE.Vector3()},uFW:{value:new THREE.Vector3()},uR:{value:200},uOcc:{value:Array.from({length:GL_OCC},()=>new THREE.Vector4())},uOccH:{value:new Array(GL_OCC).fill(0)},uNOcc:{value:0}},
+  depthTest:false,depthWrite:false,transparent:true,blending:THREE.AdditiveBlending,side:THREE.DoubleSide,
+  vertexShader:`uniform vec3 uO,uU,uV;varying vec3 vW;void main(){vW=uO+(position.x+0.5)*uU+(position.y+0.5)*uV;gl_Position=projectionMatrix*viewMatrix*vec4(vW,1.0);}`,
+  fragmentShader:`uniform mat4 uInv;uniform vec3 uF;uniform sampler2D uMask;uniform float uFw,uH,uT,uI,uSkirt,uR,uNOcc;uniform vec3 uBox,uFW;uniform vec4 uOcc[${GL_OCC}];uniform float uOccH[${GL_OCC}];uniform vec4 uSrc;varying vec3 vW;
+    float m(vec2 p,float lod){if(p.x<0.0||p.y<0.0||p.x>uFw||p.y>uH)return 0.0;return texture2D(uMask,vec2(p.x/uFw,p.y/uH),lod).r;}
+    /* light from an elliptical area source of radii r (in the wall plane) centred at c, reaching ground point g through both faces */
+    float vis(vec3 g,vec3 c,vec2 r){vec3 d0=c-g;float tO=(uT-g.z)/d0.z,tI=-g.z/d0.z;
+      float spO=length(r)*tO*2.2/sqrt(float(${GL_N}))*256.0/max(uFw,uH),lod=log2(max(1.0,spO));
+      vec2 a=g.xy+d0.xy*tO,b=g.xy+d0.xy*tI;if(a.x<-length(r)*tO-2.0||a.x>uFw+length(r)*tO+2.0||a.y>uH+length(r)*tO+2.0)return 0.0;
+      float s=0.0;for(int i=0;i<${GL_N};i++){float fi=float(i),rr=sqrt((fi+0.5)/${GL_N}.0),an=fi*2.3999632;vec2 o=r*rr*vec2(cos(an),sin(an));
+        s+=m(a+o*tO,lod)*m(b+o*tI,lod);}
+      return s/${GL_N}.0;}
+    /* other module columns (this building's and its neighbours') stand between the opening and the ground: a ray from ground point w to
+       light point l is blocked by a column box when it enters it below the column's top */
+    float occ(vec3 w,vec3 l){vec3 d=l-w;for(int i=0;i<${GL_OCC};i++){if(float(i)>=uNOcc)break;vec4 b=uOcc[i];
+        vec2 t0=(b.xy-w.xz)/d.xz,t1=(b.zw-w.xz)/d.xz,lo=min(t0,t1),hi=max(t0,t1);float a=max(max(lo.x,lo.y),0.0),z=min(min(hi.x,hi.y),1.0);
+        if(a<z&&w.y+a*d.y<uOccH[i])return 0.0;}return 1.0;}
+    void main(){vec3 g=(uInv*vec4(vW,1.0)).xyz;
+      /* the lit porcelain itself glows (light through the 3 mm shell): a faint warm skirt hugging the module's rounded footprint, fading over ~1 cm */
+      if(uSkirt>0.0){vec2 q=abs(g.xz)-uBox.xy+uBox.z;float sd=length(max(q,0.0))+min(max(q.x,q.y),0.0)-uBox.z;if(sd<0.0)discard;gl_FragColor=vec4(vec3(uSkirt*exp(-sd/7.0)),1.0);return;}
+      if(g.z<uT)discard;
+      vec3 d=uF-g;float L=length(d),h=d.y;if(h<=0.5)discard;
+      float e=uI*h/(L*L*L);   /* Lambert on flat ground with inverse square: I·cosθ/d² = I·h/d³ */
+      float v=vis(g,uF,uSrc.xy)+uSrc.w*vis(g,uF-vec3(0.0,uSrc.z*0.35,0.0),vec2(uFw*0.36,uSrc.z));
+      float fd=1.0-smoothstep(0.55*uR,uR,length(vW.xz-uFW.xz));   /* fades out well inside the quad: no straight cut-off edges */
+      if(v*fd>0.0&&uNOcc>0.0)v*=0.2*(occ(vW,uFW)+occ(vW,uFW+vec3(4.0,0.0,0.0))+occ(vW,uFW-vec3(4.0,0.0,0.0))+occ(vW,uFW+vec3(0.0,0.0,4.0))+occ(vW,uFW-vec3(0.0,0.0,4.0)));
+      gl_FragColor=vec4(vec3(e*v*fd),1.0);}`});
+BAKE.quad=new THREE.Mesh(new THREE.PlaneGeometry(1,1),BAKE.mat);BAKE.quad.frustumCulled=false;BAKE.sc.add(BAKE.quad);
+BAKE.ov=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.ShaderMaterial({uniforms:{map:{value:null},gain:BAKE.gain,col:BAKE.col},transparent:true,blending:THREE.AdditiveBlending,depthWrite:false,
+  vertexShader:"varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}",
+  fragmentShader:`uniform sampler2D map;uniform float gain;uniform vec3 col;varying vec2 vUv;
+    void main(){float e=texture2D(map,vUv).r*gain;float k=0.9*(1.0-exp(-e/0.9));   /* soft shoulder: linear when dim, never above 0.9 */
+      gl_FragColor=vec4(col*k*mix(1.0,1.18,k),1.0);
+      #include <tonemapping_fragment>
+      #include <encodings_fragment>
+    }`}));
+BAKE.ov.rotation.x=-Math.PI/2;BAKE.ov.renderOrder=1;BAKE.ov.visible=false;scene.add(BAKE.ov);
+/* the opening mask of one wall, 256 × 256 whatever the wall's size (power of two, so it gets mipmaps for the penumbra) */
+function wallMask(holes,fw){const key=fw+"|"+H+"|"+JSON.stringify(holes.map(h=>h.p));let t=BAKE.masks.get(key);if(t)return t;
+  const N=256,c=document.createElement("canvas");c.width=c.height=N;const x=c.getContext("2d");x.fillStyle="#000";x.fillRect(0,0,N,N);x.fillStyle="#fff";
+  holes.forEach(h=>{x.beginPath();h.p.forEach(([u,v],i)=>{const X=u/fw*N,Y=(1-v/H)*N;i?x.lineTo(X,Y):x.moveTo(X,Y);});x.closePath();x.fill();});
+  t=new THREE.CanvasTexture(c);t.minFilter=THREE.LinearMipmapLinearFilter;t.anisotropy=4;BAKE.masks.set(key,t);return t;}
+function startBake(anchors){BAKE.q.length=0;BAKE.n=0;BAKE.ov.visible=false;BAKE.masks.forEach(t=>t.dispose());BAKE.masks.clear();
   if(!S.night||!anchors.length)return;
-  BAKE.scene.add(built);built.updateMatrixWorld(true);
-  const b=bounds(),m=BAKE_R*0.8,x0=b.x0-m,x1=b.x1+m,z0=b.z0-m,z1=b.z1+m,w=x1-x0,d=z1-z0,cx=(x0+x1)/2,cz=(z0+z1)/2,gy=-groundDrop(),
-    px=Math.min(2048,Math.ceil(Math.max(w,d)/0.45)),sw=Math.max(64,Math.round(px*w/Math.max(w,d))),sh=Math.max(64,Math.round(px*d/Math.max(w,d)));
-  if(!BAKE.rt||BAKE.rt.width!==sw||BAKE.rt.height!==sh){if(BAKE.rt)BAKE.rt.dispose();BAKE.rt=new THREE.WebGLRenderTarget(sw,sh,{depthBuffer:false,type:THREE.HalfFloatType});BAKE.ov.material.map=BAKE.rt.texture;BAKE.ov.material.needsUpdate=true;}
-  Object.assign(BAKE.cam,{left:-w/2,right:w/2,top:d/2,bottom:-d/2});BAKE.cam.near=10.25;BAKE.cam.far=11;BAKE.cam.position.set(cx,gy+10,cz);BAKE.cam.lookAt(cx,gy-20,cz);BAKE.cam.updateProjectionMatrix();
-  [BAKE.plane,BAKE.ov].forEach(o=>{o.scale.set(w,d,1);o.position.set(cx,gy-0.5,cz);});BAKE.ov.position.y=gy+0.35;
-  const cc=renderer.getClearColor(new THREE.Color()),ca=renderer.getClearAlpha(),rt0=renderer.getRenderTarget();
+  built.updateMatrixWorld(true);
+  const b=bounds(),m=GL_R()+10,x0=b.x0-m,x1=b.x1+m,z0=b.z0-m,z1=b.z1+m,w=x1-x0,d=z1-z0,cx=(x0+x1)/2,cz=(z0+z1)/2,gy=-groundDrop(),
+    px=Math.min(2048,Math.ceil(Math.max(w,d)/0.4)),sw=Math.max(64,Math.round(px*w/Math.max(w,d))),sh=Math.max(64,Math.round(px*d/Math.max(w,d)));
+  if(!BAKE.rt||BAKE.rt.width!==sw||BAKE.rt.height!==sh){if(BAKE.rt)BAKE.rt.dispose();BAKE.rt=new THREE.WebGLRenderTarget(sw,sh,{depthBuffer:false,type:THREE.HalfFloatType});}
+  BAKE.ov.material.uniforms.map.value=BAKE.rt.texture;
+  Object.assign(BAKE.cam,{left:-w/2,right:w/2,top:d/2,bottom:-d/2,near:0,far:2});BAKE.cam.up.set(0,0,-1);BAKE.cam.position.set(cx,gy+1,cz);BAKE.cam.lookAt(cx,gy-1,cz);BAKE.cam.updateProjectionMatrix();
+  BAKE.ov.scale.set(w,d,1);BAKE.ov.position.set(cx,gy+0.35,cz);
+  const rt0=renderer.getRenderTarget(),cc=renderer.getClearColor(new THREE.Color()),ca=renderer.getClearAlpha();
   renderer.setRenderTarget(BAKE.rt);renderer.setClearColor(0x000000,1);renderer.clear(true,false,false);renderer.setRenderTarget(rt0);renderer.setClearColor(cc,ca);
-  const p=new THREE.Vector3();anchors.forEach(a=>{a.getWorldPosition(p);BAKE_SOFT.forEach(([dx,dy,dz])=>BAKE.q.push(p.clone().add(new THREE.Vector3(dx*SPREAD,dy*1.5,dz*SPREAD))));});BAKE.light.intensity=1/BAKE_SOFT.length;BAKE.ov.visible=true;}
-/* a still (GIF frame, JPG, PDF) waits for every candle to be baked first */
+  /* one job per outer wall of every lit module: a wall with a module of the same building behind it passes no light to the ground */
+  const R=GL_R(),Mw=new THREE.Matrix4(),tmp=new THREE.Matrix4(),F=new THREE.Vector3(),gx=gy,cols=columnBoxes();
+  anchors.forEach(a=>{const u=a.userData,bd=S.buildings[u.bi];if(!bd||!u.mod)return;a.getWorldPosition(F);
+    if(!u.l){const M=a.parent.matrixWorld.clone().multiply(tmp.makeTranslation(u.mod[0],u.mod[1],u.mod[2])),c=(x,z)=>new THREE.Vector3(x,0,z).applyMatrix4(M).setY(gx),e=40,
+      p0=c(-WX/2-e,-WZ/2-e);BAKE.q.push({skirt:1,inv:M.clone().invert(),o:p0,u:c(WX/2+e,-WZ/2-e).sub(p0),v:c(-WX/2-e,WZ/2+e).sub(p0),box:[WX/2,WZ/2,Math.min(radOf(bd),Math.min(WX,WZ)/2-1)]});}
+    FACES.forEach(f=>{const n=[Math.sin(ANG[f]),Math.cos(ANG[f])],nk=(u.c+Math.round(n[0]))+":"+(u.r-Math.round(n[1]))+":"+u.l;if(alive(bd,nk))return;
+      const fw=fwOf(f),off=(f==="front"||f==="back"?WZ:WX)/2-T,holes=orbitFace(bd,u.k,f).holes;if(!holes.length)return;
+      Mw.copy(a.parent.matrixWorld).multiply(tmp.makeTranslation(u.mod[0],u.mod[1],u.mod[2])).multiply(tmp.makeRotationY(ANG[f])).multiply(tmp.makeTranslation(-fw/2,0,off));
+      const inv=Mw.clone().invert(),fl=F.clone().applyMatrix4(inv),c=(x,z)=>new THREE.Vector3(x,0,z).applyMatrix4(Mw).setY(gx),
+        p0=c(fw/2-R,T),p1=c(fw/2+R,T),p2=c(fw/2-R,T+R);
+      BAKE.q.push({inv,fl,fw:F.clone(),occ:occOf(cols,F,R,u),mask:wallMask(holes,fw),fwd:fw,o:p0,u:p1.clone().sub(p0),v:p2.clone().sub(p0)});});});
+  BAKE.ov.visible=true;}
+/* every module column of every building as a world box [x0,z0,x1,z1,top] (buildings turn in quarter turns, so boxes stay axis-aligned) */
+function columnBoxes(){const out=[],v=new THREE.Vector3();S.buildings.forEach((b,bi)=>{const g=built.children[bi];if(!g||b.court)return;const {ys}=levelY(b,+S.explode),gp=+S.explode*0.4;
+  for(let c=0;c<b.cols;c++)for(let r=0;r<b.deep;r++){let lm=-1;for(let l=b.levels-1;l>=0;l--)if(alive(b,c+":"+r+":"+l)){lm=l;break;}if(lm<0)continue;
+    const x=(c-(b.cols-1)/2)*(WX+gp),z=-(r-(b.deep-1)/2)*(WZ+gp),p=[[x-WX/2,z-WZ/2],[x+WX/2,z+WZ/2]].map(([a,d])=>v.set(a,0,d).applyMatrix4(g.matrixWorld).clone());
+    out.push({bi,c,r,b:[Math.min(p[0].x,p[1].x),Math.min(p[0].z,p[1].z),Math.max(p[0].x,p[1].x),Math.max(p[0].z,p[1].z),ys[lm]+H+g.position.y]});}});return out;}
+/* the columns that can shade one candle's light: near it, not its own column, nearest first */
+function occOf(cols,F,R,u){return cols.filter(o=>!(o.bi===u.bi&&o.c===u.c&&o.r===u.r)).map(o=>{const b=o.b,dx=Math.max(b[0]-F.x,0,F.x-b[2]),dz=Math.max(b[1]-F.z,0,F.z-b[3]);return [Math.hypot(dx,dz),b];})
+  .filter(([d])=>d<R).sort((a,b)=>a[0]-b[0]).slice(0,GL_OCC).map(x=>x[1]);}
+/* a still (GIF frame, JPG, PDF) waits for every wall to be baked first */
 const settleLight=()=>{if(BAKE.q.length)bakeStep(1e9);};
-function bakeStep(max){const t0=performance.now(),rt0=renderer.getRenderTarget(),ac=renderer.autoClear,pend=renderer.shadowMap.needsUpdate,enc0=renderer.outputEncoding,tm0=renderer.toneMapping;
-  renderer.outputEncoding=THREE.LinearEncoding;renderer.toneMapping=THREE.NoToneMapping;
-  renderer.setRenderTarget(BAKE.rt);renderer.autoClear=false;
-  while(BAKE.q.length&&performance.now()-t0<max){BAKE.light.position.copy(BAKE.q.shift());renderer.shadowMap.needsUpdate=true;renderer.render(BAKE.scene,BAKE.cam);BAKE.n++;}
-  if(!BAKE.q.length&&BAKE.n&&BAKE.blurN!==BAKE.n){BAKE.blurN=BAKE.n;bakeBlur();}
-  renderer.setRenderTarget(rt0);renderer.autoClear=ac;renderer.shadowMap.needsUpdate=pend;renderer.outputEncoding=enc0;renderer.toneMapping=tm0;}
-/* the baked light is a physical sum of point-light samples; once every sample is in it is smoothed like a real penumbra: a tight
-   Gaussian (soft edges, no noise) plus a wide one (the faint warm spill round the foot of the walls), then a soft shoulder
-   1-exp(-x) so even a bright core never clips to white */
-const BLUR={sc:new THREE.Scene(),cam:new THREE.OrthographicCamera(-1,1,1,-1,0,1),rts:null,vs:"varying vec2 vUv;void main(){vUv=uv;gl_Position=vec4(position.xy,0.0,1.0);}"};
-BLUR.quad=new THREE.Mesh(new THREE.PlaneGeometry(2,2),new THREE.MeshBasicMaterial());BLUR.quad.frustumCulled=false;BLUR.sc.add(BLUR.quad);
-BLUR.g=new THREE.ShaderMaterial({uniforms:{t:{value:null},dir:{value:new THREE.Vector2()},sg:{value:3}},vertexShader:BLUR.vs,depthTest:false,depthWrite:false,
-  fragmentShader:"uniform sampler2D t;uniform vec2 dir;uniform float sg;varying vec2 vUv;void main(){vec3 s=vec3(0.0);float ws=0.0;for(int i=-12;i<=12;i++){float o=float(i)/12.0*2.5*sg;float w=exp(-0.5*o*o/(sg*sg));s+=w*texture2D(t,vUv+dir*o).rgb;ws+=w;}gl_FragColor=vec4(s/ws,1.0);}"});
-BLUR.c=new THREE.ShaderMaterial({uniforms:{a:{value:null},b:{value:null}},vertexShader:BLUR.vs,depthTest:false,depthWrite:false,
-  fragmentShader:"uniform sampler2D a;uniform sampler2D b;varying vec2 vUv;void main(){vec3 c=texture2D(a,vUv).rgb+0.55*texture2D(b,vUv).rgb;gl_FragColor=vec4(1.0-exp(-1.15*c),1.0);}"});
-function bakeBlur(){const w=BAKE.rt.width,h=BAKE.rt.height;
-  if(!BLUR.rts||BLUR.rts[0].width!==w||BLUR.rts[0].height!==h){(BLUR.rts||[]).forEach(t=>t.dispose());BLUR.rts=[0,1,2,3].map(()=>new THREE.WebGLRenderTarget(w,h,{depthBuffer:false,type:THREE.HalfFloatType}));}
-  const [A,B,C,D]=BLUR.rts,pass=(src,dst,dx,dy,sg)=>{BLUR.g.uniforms.t.value=src.texture;BLUR.g.uniforms.dir.value.set(dx/w,dy/h);BLUR.g.uniforms.sg.value=sg;BLUR.quad.material=BLUR.g;renderer.setRenderTarget(dst);renderer.render(BLUR.sc,BLUR.cam);};
-  pass(BAKE.rt,A,1,0,3.5);pass(A,B,0,1,3.5);   /* tight: about 1.5 mm penumbra */
-  pass(B,A,1,0,15);pass(A,C,0,1,15);           /* wide: about 7 mm warm spill */
-  BLUR.c.uniforms.a.value=B.texture;BLUR.c.uniforms.b.value=C.texture;BLUR.quad.material=BLUR.c;renderer.setRenderTarget(D);renderer.render(BLUR.sc,BLUR.cam);
-  BAKE.ov.material.map=D.texture;BAKE.ov.material.needsUpdate=true;}
+function bakeStep(max){const t0=performance.now(),rt0=renderer.getRenderTarget(),ac=renderer.autoClear,enc0=renderer.outputEncoding,tm0=renderer.toneMapping,U=BAKE.mat.uniforms;
+  renderer.outputEncoding=THREE.LinearEncoding;renderer.toneMapping=THREE.NoToneMapping;renderer.setRenderTarget(BAKE.rt);renderer.autoClear=false;
+  while(BAKE.q.length&&performance.now()-t0<max){const j=BAKE.q.shift();
+    U.uInv.value.copy(j.inv);U.uO.value.copy(j.o);U.uU.value.copy(j.u);U.uV.value.copy(j.v);U.uSkirt.value=j.skirt?GL_SKIRT:0;if(j.skirt)U.uBox.value.fromArray(j.box);else{U.uMask.value=j.mask;U.uF.value.copy(j.fl);U.uFW.value.copy(j.fw);U.uR.value=GL_R();U.uNOcc.value=j.occ.length;j.occ.forEach((o,i)=>{U.uOcc.value[i].set(o[0],o[1],o[2],o[3]);U.uOccH.value[i]=o[4];});}U.uFw.value=j.fwd;U.uH.value=H;U.uT.value=T;
+    U.uSrc.value.set(2.6,5.2,H*0.42,0.3);U.uI.value=1;   /* flame: an upright 5 × 10 mm ellipse; interior glow: most of the wall, at 0.3 of the flame */
+    renderer.render(BAKE.sc,BAKE.cam);BAKE.n++;}
+  renderer.setRenderTarget(rt0);renderer.autoClear=ac;renderer.outputEncoding=enc0;renderer.toneMapping=tm0;
+  if(!BAKE.q.length)BAKE.masks.forEach(t=>t.dispose());}
 /* merge everything that shares a material into one mesh: a village goes from hundreds of draw calls to a handful.
    The separate wall meshes stay in `built` (not in the scene) for picking. */
 let merged=new THREE.Group();scene.add(merged);
@@ -1246,7 +1290,7 @@ function applyNight(){const n=S.night,rd=S.render;scene.background=new THREE.Col
   else{scene.environment=n?envDark():envBasic;sun.shadow.normalBias=0.35;}   /* normal offset keeps flat walls free of shadow acne */
   if(sun.shadow.map&&sun.shadow.map.width!==sun.shadow.mapSize.x){sun.shadow.map.dispose();sun.shadow.map=null;}
   if(S.night!==BAKE.night||BAKE.anchors!==BAKE.done){BAKE.night=S.night;BAKE.done=BAKE.anchors;startBake(BAKE.anchors||[]);}
-  BAKE.ov.material.color.setRGB(0.62*cs,0.38*cs,0.15*cs);
+  BAKE.gain.value=GL_GAIN*cs;
   renderer.shadowMap.needsUpdate=true;need();}
 let composer=null,ssao=null,bloom=null,finalPass=null,fxaa=null;
 const LIBS=["shaders/CopyShader.js","shaders/LuminosityHighPassShader.js","shaders/SSAOShader.js","shaders/FXAAShader.js","math/SimplexNoise.js",
@@ -1295,7 +1339,7 @@ let tick=0,lastFlick=0;(function loop(now){requestAnimationFrame(loop);controls.
   if(S.night&&flames.length&&now-lastFlick>(S.render?80:70)&&!document.hidden){lastFlick=now;tick+=0.32;
     {const cs=S.candle===undefined?1:S.candle,k=0.97+Math.sin(tick*1.7)*0.025+Math.sin(tick*4.1)*0.012;
       Object.values(LIT).forEach(m=>{if(m.userData.uLit)m.userData.uLit.value=cs*k;});
-      MAT.pool.opacity=Math.min(0.85,0.38*cs)*k;BAKE.ov.material.color.setRGB(0.62*cs*k,0.38*cs*k,0.15*cs*k);}
+      MAT.pool.opacity=Math.min(0.85,0.38*cs)*k;BAKE.gain.value=GL_GAIN*cs*k;}
     lights.forEach((L,i)=>L.intensity=L.userData.base*(S.render?1.15:1)*(S.candle===undefined?1:S.candle)*(0.96+Math.sin(tick*1.7+i)*0.035+Math.sin(tick*4.1+i*2)*0.018));
     flames.forEach((f,i)=>{const s=1+Math.sin(tick*3+i)*0.07;f.scale.set(1,s,1);});need();}
   if(BAKE.q.length){bakeStep(BAKE.n?24:60);need();}
