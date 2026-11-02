@@ -211,7 +211,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
 <header class="grid12">
   <h1>TIKRAR<small>Beirut Lantern Generator</small></h1>
   <span class="sub"><span id="modSize">porcelain modules 60 × 60 mm · 40 mm walls</span> · houses, towers and city blocks · 1860–1925 and modernist openings</span>
-  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 02.11 · 20:15</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
+  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 02.11 · 20:30</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
   </nav>
 </header>
 
@@ -234,7 +234,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
       <h2>City block <span class="meta" id="villageMeta"></span></h2>
       <div class="blist" id="bList"></div>
       <div class="f"><span class="lbl">Select</span><div class="v"><div class="seg"><button type="button" id="selAll">All</button><button type="button" id="selNone">Clear</button></div><span class="hint">shift or ⌘ click to pick several</span></div></div>
-      <div class="f"><span class="lbl">Add</span><div class="v"><select id="addKind" aria-label="Building to add"><option value="central">Central-hall house</option><option value="liwan">Līwān house</option><option value="photo">Arches &amp; keyholes</option><option value="stair">Stair tower</option><option value="modernRow">Modernist block</option><option value="modernTower">Modernist tower</option><option value="court">Public court (flat tray)</option><option value="random">Random</option><optgroup label="Landmarks, true size at 1:75"><option value="holiday">Holiday Inn · 26 storeys</option><option value="gefinor">Gefinor Center · 15 storeys</option><option value="edl">Électricité du Liban · 15 storeys</option><option value="saroulla">Saroulla building · 10 storeys</option><option value="egg">The Egg · cinema</option><option value="museum">National Museum</option></optgroup></select><button class="btn" type="button" id="addBtn">Add</button></div></div>
+      <div class="f"><span class="lbl">Add</span><div class="v"><select id="addKind" aria-label="Building to add"><option value="central">Central-hall house</option><option value="liwan">Līwān house</option><option value="photo">Arches &amp; keyholes</option><option value="stair">Stair tower</option><option value="modernRow">Modernist block</option><option value="modernTower">Modernist tower</option><option value="court">Public court (flat tray)</option><option value="olive">Wild olive bonsai (pot 2 × 1)</option><option value="random">Random</option><optgroup label="Landmarks, true size at 1:75"><option value="holiday">Holiday Inn · 26 storeys</option><option value="gefinor">Gefinor Center · 15 storeys</option><option value="edl">Électricité du Liban · 15 storeys</option><option value="saroulla">Saroulla building · 10 storeys</option><option value="egg">The Egg · cinema</option><option value="museum">National Museum</option></optgroup></select><button class="btn" type="button" id="addBtn">Add</button></div></div>
       <div class="f"><span class="lbl">Move</span><div class="v"><div class="seg" id="moveSeg"><button type="button" data-mv="-1,0" aria-label="Move left">←</button><button type="button" data-mv="1,0" aria-label="Move right">→</button><button type="button" data-mv="0,-1" aria-label="Move back">↑</button><button type="button" data-mv="0,1" aria-label="Move forward">↓</button><button type="button" id="rotBtn" aria-label="Turn 90°">⟳</button></div></div></div>
       <div class="f"><span class="lbl">Edit</span><div class="v"><div class="seg"><button type="button" id="dupB">Duplicate</button><button type="button" id="delB">Remove</button></div></div></div>
       <div class="f"><span class="lbl">Buildings</span><div class="v"><div class="seg" id="countSeg" title="Grow or shrink the city block (1 to 120): type a number or use − / +; new buildings take the next block slots"><button type="button" data-d="-1" aria-label="One building fewer">−</button><input class="cnt" id="countV" type="number" min="1" max="120" step="1" inputmode="numeric" aria-label="Number of buildings"><button type="button" data-d="1" aria-label="One building more">+</button></div></div></div>
@@ -248,8 +248,9 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
       <div class="f"><span class="lbl">All levels</span><div class="v"><div class="seg"><button type="button" id="allSlabs" title="A porcelain plate under every level of every building">Slabs everywhere</button><button type="button" id="lightAll" title="A plate and a candle on every level of every building: every lantern lit">Light all</button></div></div></div>
       <div class="f"><span class="lbl">Plazas</span><div class="v"><div class="seg" id="gapSeg" title="Plazas (empty blocks, public space): + leaves the block after the selected building's block empty, − fills the last one. With Blocks on Plots each plaza is an empty porcelain tray"><button type="button" data-d="-1" aria-label="One empty block fewer">−</button><button type="button" id="gapV" disabled style="cursor:default" title="Empty blocks">0</button><button type="button" data-d="1" aria-label="Add an empty block">+</button></div></div></div>
       <div class="f"><span class="lbl">Landmarks</span><div class="v"><div class="seg" id="lmSeg" title="Randomize All with or without landmarks; each landmark stands alone on its own block"><button type="button" data-v="0">Without</button><button type="button" data-v="1">With</button></div></div></div>
+      <div class="f"><span class="lbl">Trees</span><div class="v"><div class="seg" id="treesSeg" title="Wild olive bonsai: one pot per city block that has two free modules in a row. Off removes them"><button type="button" data-v="0">Off</button><button type="button" data-v="1">One per block</button></div></div></div>
       <div class="f"><span class="lbl">Randomize</span><div class="v"><div class="seg"><button type="button" id="randBlock" title="New buildings in the selected building's block only, on the same footprints: the other blocks stay as they are">Block</button><button type="button" id="randVillage" title="New buildings everywhere">All</button><button type="button" id="rand10" title="10 random shots as a GIF: ten randomized cities as one GIF (Keep palette keeps the palette in every shot); your design comes back afterwards">GIF ×10</button></div><button class="btn" type="button" id="keepPal" aria-pressed="false" title="Randomize with the selected building's palette">Keep palette</button></div></div>
-      <div class="f"><span class="lbl">Re-roll</span><div class="v"><button class="btn" type="button" id="rxL" aria-pressed="false" title="Layout: deal the same buildings into a new city plan (their footprints and floor levels stay)">Layout</button><button class="btn" type="button" id="rxO" aria-pressed="true" title="Openings: new walls and openings on every module, and a new roof type (slanted or flat)">Openings</button><button class="btn" type="button" id="rxP" aria-pressed="true" title="Colours: new glazes and slabs (and roofs, if Roofs is on)">Colours</button><button class="btn" type="button" id="rxR" aria-pressed="true" title="Roofs: Colours also re-deals roof and lid colours. Off: roofs keep their colours">Roofs</button></div></div>
+      <div class="f"><span class="lbl">Re-roll</span><div class="v"><button class="btn" type="button" id="rxL" aria-pressed="false" title="Layout: deal the same buildings into a new city plan (their footprints and floor levels stay)">Layout</button><button class="btn" type="button" id="rxO" aria-pressed="true" title="Openings: new walls and openings on every module, and a new roof type (slanted or flat)">Openings</button><button class="btn" type="button" id="rxP" aria-pressed="true" title="Colours: new glazes and slabs (and roofs, if Roofs is on)">Colours</button><button class="btn" type="button" id="rxT" aria-pressed="false" title="Trees: Whole city also deals wild olive bonsai pots (a new tree shape each) into about two in three blocks, and Randomize All does too. With Trees set to One per block every block gets one">Trees</button><button class="btn" type="button" id="rxR" aria-pressed="true" title="Roofs: Colours also re-deals roof and lid colours. Off: roofs keep their colours">Roofs</button></div></div>
       <div class="f"><span class="lbl">Colours from</span><div class="v"><div class="seg" id="rxMSeg" title="One palette for the whole re-roll, or a mix of palettes building by building"><button type="button" data-v="0">One palette</button><button type="button" data-v="1">Mix</button></div></div></div>
       <div class="f"><span class="lbl"></span><div class="v"><div class="seg"><button type="button" id="rxSel" title="Re-roll the selected building(s) with the switches above (Layout needs the whole city). Floor levels and the number of buildings never change">Selected</button><button type="button" id="rxAll" title="Re-roll the whole city with the switches above. Floor levels and the number of buildings never change">Whole city</button></div></div></div>
       <p class="hint">Arrange on grid packs the buildings wall to wall into city blocks of equal width (Block width, 6 modules by default; type any number in the fields), two rows back to back, each row facing its own street. Side streets run between block columns, main streets between block rows; − / + re-lays the blocks live. Vary gives every street its own width, from narrow lanes to wide avenues (turn it off and on for a new mix; Randomize All mixes them again too and lays the city out in clusters (Clusters button: groups of blocks between main streets, each with its own subgrid); Randomize Block renews only the selected building's block). Arrows move one building in 30 mm steps. Blocks: Lines draws the blocks' outlines on the ground (main streets heavier); Plots turns each block into a flat 4 mm porcelain tray the buildings stand on, so streets are the gaps between trays and an empty block is a public space.</p>
@@ -395,6 +396,7 @@ const KINDS={
       return f==="left"?wall("portholes",{style:"tower"}):wall("glassblock");}),
   /* public court: a flat porcelain tray (no walls, no roof) for a square, a courtyard or a plot left open */
   court:()=>make("Public court","modern",2,2,1,"none",()=>INNER(),{court:true,candles:[false],plates:[true]}),
+  olive:()=>make("Wild olive bonsai","modern",2,1,1,"none",()=>INNER(),{court:true,tree:true,candles:[false],plates:[true],seed:1+Math.floor(Math.random()*1e6)}),
   modernTower:()=>make("Modernist tower","modern",1,1,6,"modern",(c,r,l,f)=>{
       if(l===0)return f==="front"?wall("pilotis"):f==="back"?wall("picture"):wall("glassblock");
       if(f==="front")return [null,wall("eggcrate"),wall("ribbon"),wall("claustra",{style:"crosses"}),wall("eggcrate"),wall("ribbon",{style:"two"})][l];
@@ -569,7 +571,7 @@ function fillGrid(){S.word=null;S.gridCols=0;S.full=true;gridLayout(S.buildings)
   for(let i=LAYOUT.blocks.length;i<bc*br&&left>0;i++){const c=i%bc,r=Math.floor(i/bc),D=LAYOUT.rows[r].d,p=pal(),md=Math.max(1,Math.min(3,Math.ceil(D/2/WZ)));
     row(G.cw(c),md,p,tail);row(G.cw(c),Math.max(1,Math.min(3,Math.floor(D/WZ)-md)),p,tail);}
   const out=[];S.buildings.forEach(b=>{out.push(b);if(after.has(b))out.push(...after.get(b));});out.push(...tail);
-  S.buildings=out;S.gridCols=bc;gridLayout(S.buildings);}
+  S.buildings=out;S.gridCols=bc;gridLayout(S.buildings);if(S.trees)applyTrees(1);}
 /* the whole city at once: a plate under every level, or a plate and a candle on every level (a candle needs a plate) */
 function allSlabs(){S.buildings.forEach(b=>{if(b.court)return;b.plates=b.plates.map(()=>true);});}
 function lightAll(){S.buildings.forEach(b=>{if(b.court)return;b.plates=b.plates.map(()=>true);b.candles=b.candles.map(()=>true);});}
@@ -1091,6 +1093,7 @@ const FLAME_OUT_GEO=new THREE.SphereGeometry(2.05,24,18),FLAME_IN_GEO=new THREE.
 function buildBuilding(bi,gap,lightBudget){
   const b=S.buildings[bi],g=new THREE.Group(),{ys,top}=levelY(b,gap),hw=b.cols*WX/2,hd=b.deep*WZ/2;
   g.position.set(b.x,0,b.z);g.rotation.y=-b.rot*Math.PI/2;
+  if(b.tree)return treeOf(b,bi,g,hw,hd);
   if(b.court)return courtOf(b,bi,g,hw,hd);
   const mx=c=>(c-(b.cols-1)/2)*(WX+gap*0.4),mz=r=>-(r-(b.deep-1)/2)*(WZ+gap*0.4);
   for(let l=0;l<b.levels;l++){
@@ -1139,6 +1142,46 @@ function courtOf(b,bi,g,hw,hd){const mat=plateMat(b),r=radOf(b),ri=Math.max(0.5,
   g.add(soft(rsq(-hw,-hd,hw,hd,r),[rsq(-hw+3,-hd+3,hw-3,hd-3,ri)],COURT_RIM,mat,COURT_T-0.5,1.2));
   if(!S.noSel&&isSel(bi)){const pts=[[-hw-4,-hd-4],[hw+4,-hd-4],[hw+4,hd+4],[-hw-4,hd+4]].map(([x,z])=>new THREE.Vector3(x,0.6,z));g.add(new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(pts),MAT.sel));}
   return g;}
+/* wild olive bonsai (3 Nov): a one-piece porcelain pot (blind walls on a base, no openings; 2 × 1 modules, half a module tall) with a
+   light, seeded tree: a gnarled, leaning trunk that tapers and flares at the root, a few bare limbs, and flat silvery-green cloud pads
+   (the olive bonsai look). About 25 small meshes, merged per material, so a whole city of them costs nothing. Re-rolling changes b.seed. */
+const POT_BASE=4;
+const OLV={bark:new THREE.MeshStandardMaterial({color:0x4a3a2c,roughness:0.92}),leaf:new THREE.MeshStandardMaterial({color:0x3f5c2a,roughness:0.7}),
+  leaf2:new THREE.MeshStandardMaterial({color:0x5f7a45,roughness:0.65}),soil:new THREE.MeshStandardMaterial({color:0x241a14,roughness:1})};
+const rngOf=s=>{s=(s|0)||1;return()=>{s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};};
+function taperTube(pts,r0,r1,flare,rnd){const cv=new THREE.CatmullRomCurve3(pts),N=14,K=7,fr=cv.computeFrenetFrames(N,false),pos=[],idx=[],ph=rnd()*6;
+  for(let i=0;i<=N;i++){const t=i/N,p=cv.getPoint(t),r=(r0+(r1-r0)*t)*(1+0.14*Math.sin(t*9+ph))+flare*Math.max(0,1-t*5)*r0;
+    for(let j=0;j<=K;j++){const a=j/K*Math.PI*2,c=Math.cos(a),s=Math.sin(a),n=fr.normals[i],bn=fr.binormals[i];pos.push(p.x+(n.x*c+bn.x*s)*r,p.y+(n.y*c+bn.y*s)*r,p.z+(n.z*c+bn.z*s)*r);}}
+  for(let i=0;i<N;i++)for(let j=0;j<K;j++){const a=i*(K+1)+j,b=a+K+1;idx.push(a,b,a+1,b,b+1,a+1);}
+  const g=new THREE.BufferGeometry();g.setAttribute("position",new THREE.Float32BufferAttribute(pos,3));g.setAttribute("uv",new THREE.Float32BufferAttribute(new Float32Array(pos.length/3*2),2));g.setIndex(idx);g.computeVertexNormals();
+  const m=new THREE.Mesh(g,OLV.bark);m.castShadow=true;m.receiveShadow=true;return {m,cv};}
+function treeOf(b,bi,g,hw,hd){const mat=plateMat(b),r=radOf(b),ph=H/2,tw=Math.max(1.5,T),ri=Math.max(0.5,r-tw),rnd=rngOf(b.seed||7),R=(a,c)=>a+(c-a)*rnd();
+  const base=soft(rsq(-hw,-hd,hw,hd,r),[],POT_BASE,mat,0,1.2);base.userData={bi,k:"0:0:0",fname:"front"};pickable.push(base);g.add(base);
+  g.add(soft(rsq(-hw,-hd,hw,hd,r),[rsq(-hw+tw,-hd+tw,hw-tw,hd-tw,ri)],ph-POT_BASE+0.5,mat,POT_BASE-0.5,1));   /* blind walls, one piece with the base */
+  const soilY=ph-2.5,soil=soft(rsq(-hw+tw,-hd+tw,hw-tw,hd-tw,ri),[],1,OLV.soil,soilY-1,0.3);g.add(soil);
+  const hT=R(2.3,3.0)*ph,side=rnd()<0.5?-1:1,lean=R(5,11)*side,ox=-side*hw*R(0.1,0.35),oz=R(-0.2,0.2)*hd,S3=(x,y,z)=>new THREE.Vector3(x,y,z);
+  const tp=[S3(0,-1,0),S3(lean*0.35,hT*0.25,R(-3,3)),S3(-lean*0.45,hT*0.5,R(-4,4)),S3(lean*0.7,hT*0.78,R(-3,3)),S3(lean*0.2+R(-3,3),hT,R(-2,2))];
+  const grp=new THREE.Group();grp.position.set(ox,soilY,oz);
+  const tr=taperTube(tp,R(2.8,3.6),1.1,0.9,rnd);grp.add(tr.m);
+  const pad=(x,y,z,rr)=>{const n=5;for(let i=0;i<n;i++){const m=new THREE.Mesh(PADGEO,i%2?OLV.leaf2:OLV.leaf),s=rr*R(0.42,0.6);m.scale.set(s*1.25,s*0.62,s);
+      m.position.set(x+R(-1,1)*rr*0.6,y+R(-0.3,0.5)*rr*0.35,z+R(-1,1)*rr*0.5);m.castShadow=true;m.receiveShadow=true;grp.add(m);}};
+  const nb=2+Math.floor(rnd()*2);
+  for(let i=0;i<nb;i++){const t=0.4+0.5*(i+0.5)/nb,s0=tr.cv.getPoint(t),sd=i%2?side:-side,e=S3(s0.x+sd*R(9,15),s0.y+R(1,6),s0.z+R(-7,7)),
+      br=taperTube([s0,S3((s0.x+e.x)/2,s0.y+R(0,4),(s0.z+e.z)/2),e],1.3,0.5,0,rnd);grp.add(br.m);pad(e.x,e.y+2,e.z,R(7.5,10.5));}
+  const top=tr.cv.getPoint(1);pad(top.x,top.y+2,top.z,R(9,12));
+  g.add(grp);
+  if(!S.noSel&&isSel(bi)){const pts=[[-hw-4,-hd-4],[hw+4,-hd-4],[hw+4,hd+4],[-hw-4,hd+4]].map(([x,z])=>new THREE.Vector3(x,0.6,z));g.add(new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(pts),MAT.sel));}
+  return g;}
+const PADGEO=new THREE.IcosahedronGeometry(1,1);
+/* one bonsai per city block (S.trees), or dealt at random by the randomizer (S.rxT): block by block, a pot is dealt in at the head of the block
+   (the block packs again, so what no longer fits moves on to the next block); p = share of blocks that get one. Existing pots are cleared first. */
+function applyTrees(p){S.buildings=S.buildings.filter(b=>!b.tree);gridLayout(S.buildings);if(S.word)return 0;let n=0;
+  for(let i=0,guard=0;i<LAYOUT.blocks.length&&guard<200&&S.buildings.length<MAX_B;i++,guard++){const k=LAYOUT.blocks[i].k;if(!k||k.empty||k.solo)continue;
+    const all=[...k.rows[0],...k.rows[1]];if(!all.length||all.some(b=>b.tree)||Math.random()>=p)continue;
+    const j=Math.min(...all.map(b=>S.buildings.indexOf(b))),t=KINDS.olive(),ref=all.find(b=>!b.court)||all[0];t.seed=1+Math.floor(Math.random()*1e6);
+    if(ref.palette&&PALETTES[ref.palette])applyPalette(t,ref.palette);S.buildings.splice(j,0,t);gridLayout(S.buildings);
+    if(S.buildings.some(o=>o.tree&&o!==t&&o.blk===t.blk)){S.buildings.splice(S.buildings.indexOf(t),1);gridLayout(S.buildings);}else n++;}   /* it slipped into the room left in an earlier block that already has one: take it back */
+  return n;}
 /* a fixed pool of real 3D candle lights, so editing never changes the light count (which would recompile every shader and stutter) */
 const LPOOL=Array.from({length:MAX_LIGHTS},(_,i)=>{const L=new THREE.PointLight(0xffa44a,0,380,1.85);L.castShadow=i<SHADOW_LIGHTS;L.shadow.mapSize.set(1024,1024);L.shadow.radius=3.2;L.shadow.bias=-0.0015;L.shadow.normalBias=0.28;
   L.shadow.camera.near=3;L.shadow.camera.far=380;L.position.set(0,-500,0);L.userData.base=0;scene.add(L);return L;});
@@ -1719,7 +1762,7 @@ function gifEncode(frames,w,h,cs,pal){const o=[],s=t=>{for(const c of t)o.push(c
   frames.forEach(ix=>{o.push(0x21,0xf9,4,4);u16(cs);o.push(0,0,0x2c);u16(0);u16(0);u16(w);u16(h);o.push(0);gifLZW(ix,o);});o.push(0x3b);return new Uint8Array(o);}
 const nextFrame=()=>new Promise(r=>requestAnimationFrame(()=>r()));
 on("rand10","click",()=>{$("gifMode").value="rand";$("gifN").value="10";$("gifBtn").click();});
-on("gifBtn","click",async()=>{const btn=$("gifBtn");if(btn.disabled)return;if(MODE!=="module"&&/^rand/.test($("gifMode").value)&&!S.rxL&&S.rxO===false&&S.rxP===false){toast("Switch on Layout, Openings or Colours in Re-roll first");return;}btn.disabled=true;const mode=$("gifMode").value,N=+$("gifN").value;
+on("gifBtn","click",async()=>{const btn=$("gifBtn");if(btn.disabled)return;if(MODE!=="module"&&/^rand/.test($("gifMode").value)&&!S.rxL&&!S.rxT&&S.rxO===false&&S.rxP===false){toast("Switch on Layout, Openings or Colours in Re-roll first");return;}btn.disabled=true;const mode=$("gifMode").value,N=+$("gifN").value;
   /* the frames are the 3D view itself, same framing, light and settings, at up to 1080 px on the long side */
   const cv=renderer.domElement,sc=Math.min(1,1080/Math.max(cv.width,cv.height)),w=Math.round(cv.width*sc),h=Math.round(cv.height*sc),c2=document.createElement("canvas");c2.width=w;c2.height=h;const g2=c2.getContext("2d",{willReadFrequently:true});
   g2.imageSmoothingQuality="high";const hist=new Uint32Array(32768),sum=new Float64Array(32768*3);
@@ -1756,7 +1799,7 @@ function randAll(){const n=Math.max(1,Math.min(MAX_B,S.buildings.length)),list=[
   /* public courts: about one in ten (at least one from six buildings up), in place of ordinary buildings, never of a landmark */
   {const nc=n>=6?Math.max(1,Math.round(n/10)):0;for(let i=0;i<nc;i++){const idx=list.map((b,j)=>j).filter(j=>!isLM(list[j])&&!list[j].court);if(!idx.length)break;
      const j=pick(idx),b=KINDS.court();randPal(b,keep||Math.random()<0.7?pal:pick(Object.keys(PALETTES)));list[j]=b;}}
-  S.word=null;if(S.vary)varyStreets();S.mix=true;S.gridCols=0;rollBlocks();S.buildings=gridLayout(list);S.selB=0;S.multi=[];S.sel="0:0:0";}
+  S.word=null;if(S.vary)varyStreets();S.mix=true;S.gridCols=0;rollBlocks();S.buildings=gridLayout(list);S.selB=0;S.multi=[];S.sel="0:0:0";if(S.trees||S.rxT)applyTrees(S.trees?1:0.65);}
 /* Re-roll: three independent axes. Layout = same buildings dealt into a new plan; Openings = new walls on every module; Colours = new palette(s). Floor levels and the number of buildings never change */
 function rxApply(list,all,palFix){const wl=!!S.rxL&&all,wo=S.rxO!==false,wp=S.rxP!==false;
   const keep=S.keepPal&&PALETTES[Bs().palette],pal=palFix||(keep?Bs().palette:pick(Object.keys(PALETTES))),mix=!!S.rxM;if(wp)usePal(pal);
@@ -1764,12 +1807,15 @@ function rxApply(list,all,palFix){const wl=!!S.rxL&&all,wo=S.rxO!==false,wp=S.rx
       if(b.roof!=="none"){b.roof=Math.random()<0.5?"slant":"modern";if(!b.pitch)b.pitch=30;b.span=b.cols*b.deep>1&&Math.random()<0.5?"module":"whole";}}   /* Openings also re-deal the roof type (slanted or flat) and the roof piece, whole or per module, 50/50 on any building of more than one module */
     if(wp)applyPalette(b,mix?pick(Object.keys(PALETTES)):pal,undefined,S.rxR===false);});
   if(wl){const l=S.buildings.slice().sort(()=>Math.random()-0.5);S.word=null;if(S.vary)varyStreets();S.mix=true;rollBlocks();S.buildings=gridLayout(l);S.selB=0;S.multi=[];S.sel="0:0:0";}
-  return [wl&&"Layout",wo&&"Openings",wp&&(mix?"Colours (mix)":"Colours")+(S.rxR===false?", roofs kept":"")].filter(Boolean);}
-function remix(list,all){if(!(S.rxL&&all)&&S.rxO===false&&S.rxP===false){toast(S.rxL?"Layout needs the whole city: use Whole city":"Switch on Layout, Openings or Colours first");return;}
+  if(all&&(S.trees||S.rxT)&&!S.word)applyTrees(S.trees?1:0.65);
+  return [wl&&"Layout",wo&&"Openings",all&&S.rxT&&"Trees",wp&&(mix?"Colours (mix)":"Colours")+(S.rxR===false?", roofs kept":"")].filter(Boolean);}
+function remix(list,all){if(!(S.rxL&&all)&&!(S.rxT&&all)&&S.rxO===false&&S.rxP===false){toast(S.rxL||S.rxT?"Layout and Trees need the whole city: use Whole city":"Switch on Layout, Openings, Colours or Trees first");return;}
   const what=rxApply(list,all);renderUI();toast(what.join(", ")+" re-rolled in "+list.length+" building"+(list.length===1?"":"s"));}
-const rxSync=()=>{$("rxL").setAttribute("aria-pressed",!!S.rxL);$("rxO").setAttribute("aria-pressed",S.rxO!==false);$("rxP").setAttribute("aria-pressed",S.rxP!==false);$("rxR").setAttribute("aria-pressed",S.rxR!==false);seg($("rxMSeg"),S.rxM?"1":"0");};
+const rxSync=()=>{$("rxL").setAttribute("aria-pressed",!!S.rxL);$("rxO").setAttribute("aria-pressed",S.rxO!==false);$("rxP").setAttribute("aria-pressed",S.rxP!==false);$("rxR").setAttribute("aria-pressed",S.rxR!==false);$("rxT").setAttribute("aria-pressed",!!S.rxT);seg($("treesSeg"),S.trees?"1":"0");seg($("rxMSeg"),S.rxM?"1":"0");};
 on("rxL","click",()=>{S.rxL=!S.rxL;rxSync();save();});
 on("rxO","click",()=>{S.rxO=S.rxO===false;rxSync();save();});
+on("rxT","click",()=>{S.rxT=!S.rxT;rxSync();save();});
+on("treesSeg","click",e=>{const x=e.target.closest("button");if(!x)return;S.trees=x.dataset.v==="1";if(S.trees)applyTrees(1);else{S.buildings=S.buildings.filter(b=>!b.tree);S.selB=0;S.multi=[];gridLayout(S.buildings);}rxSync();S.selB=Math.min(S.selB||0,S.buildings.length-1);renderUI();});
 on("rxP","click",()=>{S.rxP=S.rxP===false;rxSync();save();});
 on("rxR","click",()=>{S.rxR=S.rxR===false;rxSync();save();});
 on("rxMSeg","click",e=>{const x=e.target.closest("button");if(!x)return;S.rxM=x.dataset.v==="1";rxSync();save();});
@@ -1788,7 +1834,7 @@ on("lightAll","click",()=>{lightAll();renderUI();});
 on("aveSeg","click",e=>{const x=e.target.closest("button");if(!x||!x.dataset.d)return;S.avenue=AVENUE=Math.max(0,Math.min(360,ave()+ +x.dataset.d));gridLayout(S.buildings);renderUI();});
 on("varyBtn","click",()=>{S.vary=!S.vary;if(S.vary)varyStreets();gridLayout(S.buildings);renderUI();});
 /* typed street widths and block width, snapped to the grid steps */
-const relay=()=>{gridLayout(S.buildings);renderUI();};
+const relay=()=>{if(S.trees&&!S.word)applyTrees(1);else gridLayout(S.buildings);renderUI();};
 on("gutV","change",e=>{S.gutter=GUTTER=Math.max(0,Math.min(240,r15(+e.target.value||0)));relay();});
 on("aveV","change",e=>{S.avenue=AVENUE=Math.max(0,Math.min(360,r15(+e.target.value||0)));relay();});
 on("bwV","change",e=>{S.blockM=BLOCKM=Math.max(2,Math.min(16,Math.round(+e.target.value)||6));if(S.mix)rollBlocks();relay();});
@@ -2097,7 +2143,7 @@ let toastT=0;function toast(msg){const t=$("toast");if(!t)return;t.textContent=m
 function applyState(str,fit){const o=JSON.parse(str);Object.keys(S).forEach(k=>{if(!VIEWK.has(k))delete S[k];});Object.assign(S,o);
   if(S.gutter===undefined)S.gutter=30;GUTTER=S.gutter;if(S.avenue===undefined)S.avenue=60;AVENUE=S.avenue;if(S.blockM===undefined)S.blockM=6;BLOCKM=S.blockM;
   if(!Array.isArray(S.multi))S.multi=[];LAYOUT.blocks.length=0;FSCALE=null;
-  $("keepPal").setAttribute("aria-pressed",!!S.keepPal);seg($("lmSeg"),S.landmarks?"1":"0");applyDims();renderUI();if(fit)fitView();}
+  $("keepPal").setAttribute("aria-pressed",!!S.keepPal);seg($("lmSeg"),S.landmarks?"1":"0");rxSync();applyDims();renderUI();if(fit)fitView();}
 function undo(){if(hT){clearTimeout(hT);histSettle();}if(!hU.length){toast("Nothing to undo");return;}const s=hU.pop();hSz-=s.length;hR.push(hCur);hCur=s;hSkip=true;applyState(s);histBtns();toast("Undone");}
 function redo(){if(hT){clearTimeout(hT);histSettle();}if(!hR.length){toast("Nothing to redo");return;}const s=hR.pop();hU.push(hCur);hSz+=hCur.length;hCur=s;hSkip=true;applyState(s);histBtns();toast("Redone");}
 on("undoBtn","click",undo);on("redoBtn","click",redo);
@@ -2221,6 +2267,9 @@ function pitchedSolid(M,b){const g=slantRoof(b).children[0].geometry,p=g.attribu
       fo=loftRR(M,blockRings(hw-T+0.4,hd-T+0.4,rf,SEAT_T,0,0.5,0),16),fi=loftRR(M,holeRings(d.i-0.05,d.iz-0.05,d.ri,SEAT_T,0,0.5),16);
     const lip=lo.subtract(li),fl=fo.subtract(fi),u=M.Manifold.union([m,lip,fl]);[lo,li,fo,fi,lip,fl,m].forEach(x=>x.delete());return u;}}catch(e){}
   return {raw:{v,t}};}   /* not closed: written as is (slicers still take it) */
+function potSolid(M,b,hw,hd){const r=radOf(b),tw=Math.max(1.5,T),ph=H/2,base=loftRR(M,blockRings(hw,hd,r,POT_BASE,1.2,1.2),16),
+    ro=loftRR(M,blockRings(hw,hd,r,ph-POT_BASE+0.5,1,1,POT_BASE-0.5),16),ri=loftRR(M,holeRings(hw-tw,hd-tw,Math.max(0.5,r-tw),ph-POT_BASE+0.5,0,0).map(q=>[q[0],q[1],q[2],q[3]+POT_BASE-0.5]),16);
+  const wall=ro.subtract(ri),s=M.Manifold.union([base,wall]);[base,ro,ri,wall].forEach(x=>x.delete());return s;}
 /* the plaza tray of a public court: 6 mm tray and its 3 mm rim, one piece */
 function courtSolid(M,b,hw,hd){const r=radOf(b),base=loftRR(M,blockRings(hw,hd,r,COURT_T,2.4,2.4),16),
     ro=loftRR(M,blockRings(hw,hd,r,COURT_RIM,1.2,1.2,COURT_T-0.5),16),ri=loftRR(M,holeRings(hw-3,hd-3,Math.max(0.5,r-3),COURT_RIM,0,0).map(q=>[q[0],q[1],q[2],q[3]+COURT_T-0.5]),16);
@@ -2234,6 +2283,7 @@ function piecesOf(M,b,cache){const kp=cache?[radOf(b),b.roof,b.pitch,b.span].joi
       let solid=cache&&cache.get(kp+k);if(!solid){solid=make();if(cache)cache.set(kp+k,solid);}   /* cache: solids shared between buildings (GLB scene); at: where each copy stands, for the GLB */
       out.set(k,{name,desc,qty:1,uses:new Set(use?[use]:[]),at:at?[at]:[],solid,gkey:kp+k});};
   const mx=c=>(c-(b.cols-1)/2)*WX,my=r=>(r-(b.deep-1)/2)*WZ,hw=b.cols*WX/2,hd=b.deep*WZ/2;
+  if(b.tree){put("pot","olive-pot","one-piece pot, "+(H/2)+" mm tall, blind walls "+T+" mm on a "+POT_BASE+" mm base (the tree is not printed)",()=>potSolid(M,b,hw,hd),null,{p:[0,0,0],m:glzPlate(b,0),lab:"pot"});return [...out.values()];}
   if(b.court){put("court","plaza-tray","public court tray "+COURT_T+" mm with a "+COURT_RIM+" mm rim",()=>courtSolid(M,b,hw,hd),null,{p:[0,0,0],m:glzPlate(b,0),lab:"tray"});return [...out.values()];}
   const LY=levelY(b,0);let mi=0;const mname=new Map();
   for(let l=0;l<b.levels;l++){
