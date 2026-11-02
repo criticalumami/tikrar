@@ -211,7 +211,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
 <header class="grid12">
   <h1>TIKRAR<small>Beirut Lantern Generator</small></h1>
   <span class="sub"><span id="modSize">porcelain modules 60 × 60 mm · 40 mm walls</span> · houses, towers and city blocks · 1860–1925 and modernist openings</span>
-  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 02.11 · 17:00</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
+  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 02.11 · 17:30</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
   </nav>
 </header>
 
@@ -277,6 +277,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
       <div class="f modonly"><label class="lbl" for="modL" title="Module length: the side walls (fired mm); base, plates and roof follow">Length</label><div class="v rng"><input type="range" id="modL" min="45" max="120" step="1"><span class="num" id="modLV"></span></div></div>
       <div class="f modonly"><label class="lbl" for="modH" title="Wall height of every module (fired mm); catalogue openings stretch with it">Height</label><div class="v rng"><input type="range" id="modH" min="30" max="60" step="1"><span class="num" id="modHV"></span></div></div>
       <div class="f modonly"><label class="lbl" for="modT" title="Wall thickness of the cast ring">Walls</label><div class="v rng"><input type="range" id="modT" min="2" max="4" step="0.5"><span class="num" id="modTV"></span></div></div>
+      <div class="f modonly"><label class="lbl" for="ventD" title="Lower the cut at the top of a slanted roof: the lower it is cut, the bigger the opening">Roof opening</label><div class="v rng"><input type="range" id="ventD" min="0" max="20" step="0.5"><span class="num" id="ventDV"></span></div></div>
       <div class="f modonly"><label class="lbl" for="modS" title="Thickness of the base, plates and flat roof: one slab, lips on both faces">Slabs</label><div class="v rng"><input type="range" id="modS" min="3" max="6" step="0.5"><span class="num" id="modSV"></span></div></div>
       <div class="f modonly"><label class="lbl" for="modCD" title="Candle (tealight) diameter, standard 38 mm">Candle Ø</label><div class="v rng"><input type="range" id="modCD" min="20" max="52" step="1"><span class="num" id="modCDV"></span></div></div>
       <div class="f modonly"><label class="lbl" for="modCH" title="Candle (tealight) height, default 12 mm: double the first model">Candle height</label><div class="v rng"><input type="range" id="modCH" min="6" max="30" step="1"><span class="num" id="modCHV"></span></div></div>
@@ -1017,7 +1018,7 @@ function levelY(b,gap){const ys=[];let y=b.plates[0]?LIP.h:0;for(let l=0;l<b.lev
 const perMod=b=>b.span==="module";
 const topComplete=b=>{for(let c=0;c<b.cols;c++)for(let r=0;r<b.deep;r++)if(!alive(b,c+":"+r+":"+(b.levels-1)))return false;return true;};
 const roofRun=b=>(perMod(b)?Math.min(WX,WZ):Math.min(b.cols*WX,b.deep*WZ))/2-2;   /* the slope runs up to the rounded ridge */
-function roofH(b){return b.roof==="none"?0:b.roof==="modern"?FLAT_T+LIP.h:2.5+roofRun(b)*Math.tan(b.pitch*Math.PI/180);}
+function roofH(b){return b.roof==="none"?0:b.roof==="modern"?FLAT_T+LIP.h:2.5+roofRun(b)*Math.tan(b.pitch*Math.PI/180)-Math.min(b.vent||0,Math.max(0,(0.85-0.45)*Math.min(WX,WZ)/2*Math.tan(b.pitch*Math.PI/180)));}
 /* flip any triangle whose normal points down, so the roof faces the sky */
 function outward(geo){const p=geo.attributes.position.array,u=geo.attributes.uv&&geo.attributes.uv.array;
   for(let t=0;t<p.length;t+=9){const ax=p[t+3]-p[t],ay=p[t+4]-p[t+1],az=p[t+5]-p[t+2],bx=p[t+6]-p[t],by=p[t+7]-p[t+1],bz=p[t+8]-p[t+2];
@@ -1028,6 +1029,8 @@ function outward(geo){const p=geo.attributes.position.array,u=geo.attributes.uv&
    lofted through rounded rectangles; their corner radius grows from the walls' radius at the eave so the hips stay soft.
    Normals come from the section itself, so every curve reads round. The Ø 8 mm vent is drawn on the ridge. */
 const RGEO=new Map();
+/* ventA: half-size of the opening. Lowering the cut (b.vent, mm below the 10 mm opening) widens it along the slope, so the lower the cut the bigger the hole */
+const ventA=(b,uR)=>{const a0=Math.min(5,0.45*uR),d=Math.max(0,+b.vent||0);return Math.min(a0+d/Math.tan(b.pitch*Math.PI/180),0.85*uR);};
 const VENT={a:5,r:1.6,c:1.3};   /* David's roof vent (beit-lantern-editor hipRoof): 10 mm rounded-square opening, R1.6, 1.3 mm chamfer */
 function slantRoof(b){const g=new THREE.Group(),hw=(perMod(b)?1:b.cols)*WX/2,hd=(perMod(b)?1:b.deep)*WZ/2,mat=roofMat(b),al=b.pitch*Math.PI/180,sa=Math.sin(al),ca=Math.cos(al),
     rb=1.2,rr=2,fas=Math.max(rb+0.1,BASE_T-rr*ca),rk=4,uR=Math.min(hw,hd),R0=Math.min(radOf(b),hw,hd),Rh=Math.max(R0,6),K=8,prof=[];   /* prof: [inset u, height y, normal nu (inward), ny] */
@@ -1039,7 +1042,7 @@ function slantRoof(b){const g=new THREE.Group(),hw=(perMod(b)?1:b.cols)*WX/2,hd=
   const uE=rr-rr*sa,yE=fas+rr*ca;
   /* vent cut at the top, as in David's roof mold: the apex is cut off level, leaving a rounded-square opening
      (VENT.a half-size, VENT.r corner) with a 45° chamfer on its rim, so the candle's heat and smoke leave the house */
-  const uO=uR-Math.min(VENT.a,0.45*uR),c=VENT.c,ySl=u=>yE+(u-uE)*Math.tan(al),yC=ySl(uO-c),yIn=ySl(uO)-T/ca;
+  const uO=uR-ventA(b,uR),c=VENT.c,ySl=u=>yE+(u-uE)*Math.tan(al),yC=ySl(uO-c),yIn=ySl(uO)-T/ca;
   for(let k=1;k<6;k++){const u=uE+(uO-c-uE)*k/6;P(u,ySl(u),-sa,ca);}
   P(uO-c,yC,-sa,ca);P(uO-c,yC,0.707,0.707);P(uO,yC-c,0.707,0.707);P(uO,yC-c,1,0);P(uO,yIn,1,0);   /* chamfer, then the wall of the opening */
   {const outer=prof.slice(6,prof.length-5),inn=outer.map(([u,y,nu,ny])=>[Math.min(uO,u-T*nu),y-T*ny,-nu,-ny]).filter(([u,y])=>y>0.01&&u<uO-0.05).reverse();
@@ -1047,7 +1050,7 @@ function slantRoof(b){const g=new THREE.Group(),hw=(perMod(b)?1:b.cols)*WX/2,hd=
   /* one ring of the loft: K+1 points round each corner, each with its outward direction */
   const ring=u=>{const x=Math.max(0,hw-u),z=Math.max(0,hd-u),r=Math.min(R0+(Rh-R0)*Math.min(1,u/6),VENT.r+Math.max(0,uO-u),x,z),o=[];
     [[x-r,-(z-r),-Math.PI/2],[x-r,z-r,0],[-(x-r),z-r,Math.PI/2],[-(x-r),-(z-r),Math.PI]].forEach(([cx,cz,a0])=>{for(let k=0;k<=K;k++){const a=a0+k/K*Math.PI/2,c=Math.cos(a),s2=Math.sin(a);o.push([cx+r*c,cz+r*s2,c,s2]);}});return o;};
-  const key=[hw,hd,R0,b.pitch,BASE_T,"v"].join("|");let geo=RGEO.get(key);   /* identical roofs share one geometry, drawn instanced */
+  const key=[hw,hd,R0,b.pitch,BASE_T,b.vent||0,"v"].join("|");let geo=RGEO.get(key);   /* identical roofs share one geometry, drawn instanced */
   if(!geo){const rings=prof.map(([u])=>ring(u)),n=rings[0].length,pos=[],nor=[];
   for(let i=0;i<prof.length-1;i++)for(let j=0;j<n;j++){const jj=(j+1)%n;
     [[i,j],[i+1,j],[i+1,jj],[i,j],[i+1,jj],[i,jj]].forEach(([a,c])=>{const q=rings[a][c],[,y,nu,ny]=prof[a],l=Math.hypot(nu,ny)||1;pos.push(q[0],y,q[1]);nor.push(-nu*q[2]/l,ny/l,-nu*q[3]/l);});}
@@ -1527,7 +1530,7 @@ applyAccent();const b=Bs(),[sc,sr,sl]=keyParts(S.sel);
   $("bList").innerHTML=S.buildings.map((x,i)=>`<button type="button" class="${i===S.selB?"on":isSel(i)?"also":""}" data-b="${i}" aria-pressed="${isSel(i)}" title="Shift- or ⌘-click to add to the selection">${x.name}<span>${x.cols}×${x.deep}×${x.levels}</span></button>`).join("");
   $("villageMeta").textContent=S.buildings.length+" building"+(S.buildings.length>1?"s":"")+" · "+S.buildings.reduce((a,x)=>a+x.cols*x.deep*x.levels,0)+" modules";
   seg($("setSeg"),b.set);{const a=document.activeElement;if(a!==$("gutV"))$("gutV").value=gut();if(a!==$("aveV"))$("aveV").value=ave();if(a!==$("bwV"))$("bwV").value=BLOCKM;$("gapV").textContent=(S.gaps||[]).length;$("mixBtn").setAttribute("aria-pressed",!!S.mix);seg($("lmSeg"),S.landmarks?"1":"0");}$("varyBtn").setAttribute("aria-pressed",!!S.vary);if(document.activeElement!==$("countV"))$("countV").value=S.buildings.length;seg($("blocksSeg"),String(blkMode()));seg($("colsSeg"),b.cols);{const m=S.rmax;$("capC").textContent="across"+(m?" · max "+m.c:"");$("capD").textContent="deep"+(m?" · max "+m.d:"");$("capL").textContent="levels"+(m?" · max "+m.l:"");}seg($("deepSeg"),b.deep);$("levelsV").textContent=b.levels;seg($("roofSeg"),b.roof);seg($("spanSeg"),b.span||"whole");$("radius").value=radOf(b);$("radiusV").textContent="R "+radOf(b)+" mm";$("levelsV").textContent=b.levels;
-  {const sl=S.buildings.filter(x=>x.roof==="slant"),pa=$("pitchAll");pa.disabled=!sl.length;if(document.activeElement!==pa)pa.value=sl.length?sl[0].pitch:30;$("pitchAllV").textContent=(sl.length?+pa.value:"–")+"°";}$("pitch").value=b.pitch;$("pitchV").textContent=b.pitch+"°";$("pitch").disabled=b.roof!=="slant";$("bodySel").value=b.body||"porcelain";seg($("finishSeg"),b.finish||"glazed");
+  {const sl=S.buildings.filter(x=>x.roof==="slant"),pa=$("pitchAll");pa.disabled=!sl.length;if(document.activeElement!==pa)pa.value=sl.length?sl[0].pitch:30;$("pitchAllV").textContent=(sl.length?+pa.value:"–")+"°";}$("ventD").value=b.vent||0;$("ventD").disabled=b.roof!=="slant";$("ventDV").textContent=(b.vent||0)?"cut −"+(+b.vent).toFixed(1)+" mm":"10 mm";$("pitch").value=b.pitch;$("pitchV").textContent=b.pitch+"°";$("pitch").disabled=b.roof!=="slant";$("bodySel").value=b.body||"porcelain";seg($("finishSeg"),b.finish||"glazed");
   $("glazeSw").innerHTML=(b.finish||"glazed")!=="unglazed"?Object.entries(GLAZE).map(([k,g])=>{const c=g.col===null?BODY[b.body||"porcelain"].col:g.col;return `<button type="button" data-g="${k}" title="${g.name} glaze" aria-label="${g.name} glaze" aria-pressed="${(b.glazeCol||"white")===k}" style="width:22px;height:22px;border-radius:50%;cursor:pointer;background:${hex(c)};border:2px solid ${(b.glazeCol||"white")===k?"var(--terra)":"var(--line)"}${g.col===null?";background-image:linear-gradient(135deg,transparent 45%,rgba(0,0,0,.25) 50%,transparent 55%)":""}"></button>`;}).join(""):"";
   $("roofCol").innerHTML=`<option value="same">same as walls</option><option value="unglazed">unglazed ${BODY[b.body||"porcelain"].name.toLowerCase()}</option>`+Object.entries(GLAZE).map(([k,g])=>`<option value="${k}">${g.name} glaze</option>`).join("");$("roofCol").value=b.roofCol||"same";
   $("plateCol").innerHTML=$("roofCol").innerHTML;$("plateCol").value=b.plateCol||"same";
@@ -1785,6 +1788,7 @@ on("colsSeg","click",e=>{const x=e.target.closest("button");if(!x)return;setRmax
 on("deepSeg","click",e=>{const x=e.target.closest("button");if(!x)return;setRmax("d",+x.dataset.v);each(b=>resize3(b,b.cols,+x.dataset.v,b.levels));renderUI();});
 on("levelsSeg","click",e=>{const x=e.target.closest("button");if(!x||!x.dataset.d)return;each(b=>{const n=Math.max(1,Math.min(Math.max(MAX_LEVELS,b.levels),b.levels+ +x.dataset.d));if(n!==b.levels)resize3(b,b.cols,b.deep,n);});setRmax("l",Bs().levels);renderUI();});
 on("roofSeg","click",e=>{const x=e.target.closest("button");if(!x)return;each(b=>b.roof=x.dataset.v);renderUI();});
+on("ventD","input",e=>{each(b=>b.vent=+e.target.value);renderUI();});
 on("pitch","input",e=>{each(b=>b.pitch=+e.target.value);renderUI();});
 on("pitchAll","input",e=>{S.buildings.forEach(b=>{if(b.roof==="slant"&&!b.court)b.pitch=+e.target.value;});renderUI();});   /* every slanted roof in the block; flat and off roofs keep theirs */
 on("radius","input",e=>{each(b=>b.radius=+e.target.value);renderUI();});
