@@ -133,3 +133,4 @@ Living version: https://claude.ai/artifact/GkNYtneGMfWf9nK6yKJRzd
 
 - 2 Nov, Spell a word: Cluster editor, Layout area, field "Spell a word" + Spell button. `spellWord()`, `wordLayout()` (called first in `gridLayout`), 5 × 7 `FONT5` (A–Z, 0–9, - . ! &). One pixel = one module footprint; buildings are new 1–2 level, 1-row-deep, 1–3 wide, one palette, each with its cell `b.wc/b.wr`; `S.word` set. Arrange on grid, Fill grid and Randomize All clear `S.word`. Max 360 modules. Switches to Plan.
 - 2 Nov: Spell also takes Arabic (shaped by the browser onto a canvas, sampled to 11 rows: `arabicCells()`); Spell now switches to Plan with Grid = Lines.
+- 2 Nov: Spell uses PixelAE-Bold.ttf (repo root, loaded via FontFace; fontCells(): one font pixel = one module, Latin and Arabic). 5x7 FONT5 is only the offline fallback.
