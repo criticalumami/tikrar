@@ -204,7 +204,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
 <header class="grid12">
   <h1>TIKRAR<small>Beirut Lantern Generator</small></h1>
   <span class="sub"><span id="modSize">porcelain modules 60 × 60 mm · 40 mm walls</span> · houses, towers and city blocks · 1860–1925 and modernist openings</span>
-  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 02.11 · 12:10</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
+  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 02.11 · 10:10</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
   <button class="btn icon" id="themeBtn" type="button" aria-label="Toggle colour theme">◐</button></nav>
 </header>
 
@@ -1106,7 +1106,7 @@ function placeLights(anchors){lights.length=0;LPOOL.forEach(L=>{L.userData.base=
    top-down light map of the ground (layer 1, seen only by the bake camera). Its walls (and its neighbours') block the
    light, so each opening throws its own soft caustic shape across the tabletop. */
 const BAKE={rt:null,q:[],ov:null,n:0,scene:new THREE.Scene(),cam:new THREE.OrthographicCamera(-1,1,1,-1,1,3000),
-  light:new THREE.PointLight(0xffa44b,1,BAKE_R,1.9),plane:null};
+  light:new THREE.PointLight(0xffa44b,1,BAKE_R,2),plane:null};
 {const L=BAKE.light;L.castShadow=true;L.shadow.mapSize.set(1024,1024);L.shadow.radius=9;L.shadow.bias=-0.0018;L.shadow.normalBias=0.3;L.shadow.camera.near=2;
   L.layers.set(1);BAKE.cam.layers.enable(1);   /* the shadow pass draws what the bake camera's layers see, so it sees the buildings too: its near and far planes then cut everything but a thin slab just under the ground */
   BAKE.cam.up.set(0,0,-1);BAKE.scene.add(L);
@@ -1114,7 +1114,7 @@ const BAKE={rt:null,q:[],ov:null,n:0,scene:new THREE.Scene(),cam:new THREE.Ortho
   BAKE.plane.rotation.x=-Math.PI/2;BAKE.plane.receiveShadow=true;BAKE.plane.layers.set(1);BAKE.scene.add(BAKE.plane);
   BAKE.ov=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({transparent:true,blending:THREE.AdditiveBlending,depthWrite:false,toneMapped:false}));
   BAKE.ov.rotation.x=-Math.PI/2;BAKE.ov.renderOrder=1;BAKE.ov.visible=false;scene.add(BAKE.ov);}
-function startBake(anchors){BAKE.q.length=0;BAKE.n=0;BAKE.ov.visible=false;
+function startBake(anchors){BAKE.q.length=0;BAKE.n=0;BAKE.blurN=-1;BAKE.ov.visible=false;if(BAKE.rt)BAKE.ov.material.map=BAKE.rt.texture;BAKE.ov.material.needsUpdate=true;
   BAKE.scene.children.slice().forEach(o=>{if(o!==BAKE.light&&o!==BAKE.plane)BAKE.scene.remove(o);});
   if(!S.night||!anchors.length)return;
   BAKE.scene.add(built);built.updateMatrixWorld(true);
@@ -1132,7 +1132,24 @@ function bakeStep(max){const t0=performance.now(),rt0=renderer.getRenderTarget()
   renderer.outputEncoding=THREE.LinearEncoding;renderer.toneMapping=THREE.NoToneMapping;
   renderer.setRenderTarget(BAKE.rt);renderer.autoClear=false;
   while(BAKE.q.length&&performance.now()-t0<max){BAKE.light.position.copy(BAKE.q.shift());renderer.shadowMap.needsUpdate=true;renderer.render(BAKE.scene,BAKE.cam);BAKE.n++;}
+  if(!BAKE.q.length&&BAKE.n&&BAKE.blurN!==BAKE.n){BAKE.blurN=BAKE.n;bakeBlur();}
   renderer.setRenderTarget(rt0);renderer.autoClear=ac;renderer.shadowMap.needsUpdate=pend;renderer.outputEncoding=enc0;renderer.toneMapping=tm0;}
+/* the baked light is a physical sum of point-light samples; once every sample is in it is smoothed like a real penumbra: a tight
+   Gaussian (soft edges, no noise) plus a wide one (the faint warm spill round the foot of the walls), then a soft shoulder
+   1-exp(-x) so even a bright core never clips to white */
+const BLUR={sc:new THREE.Scene(),cam:new THREE.OrthographicCamera(-1,1,1,-1,0,1),rts:null,vs:"varying vec2 vUv;void main(){vUv=uv;gl_Position=vec4(position.xy,0.0,1.0);}"};
+BLUR.quad=new THREE.Mesh(new THREE.PlaneGeometry(2,2),new THREE.MeshBasicMaterial());BLUR.quad.frustumCulled=false;BLUR.sc.add(BLUR.quad);
+BLUR.g=new THREE.ShaderMaterial({uniforms:{t:{value:null},dir:{value:new THREE.Vector2()},sg:{value:3}},vertexShader:BLUR.vs,depthTest:false,depthWrite:false,
+  fragmentShader:"uniform sampler2D t;uniform vec2 dir;uniform float sg;varying vec2 vUv;void main(){vec3 s=vec3(0.0);float ws=0.0;for(int i=-12;i<=12;i++){float o=float(i)/12.0*2.5*sg;float w=exp(-0.5*o*o/(sg*sg));s+=w*texture2D(t,vUv+dir*o).rgb;ws+=w;}gl_FragColor=vec4(s/ws,1.0);}"});
+BLUR.c=new THREE.ShaderMaterial({uniforms:{a:{value:null},b:{value:null}},vertexShader:BLUR.vs,depthTest:false,depthWrite:false,
+  fragmentShader:"uniform sampler2D a;uniform sampler2D b;varying vec2 vUv;void main(){vec3 c=texture2D(a,vUv).rgb+0.55*texture2D(b,vUv).rgb;gl_FragColor=vec4(1.0-exp(-1.15*c),1.0);}"});
+function bakeBlur(){const w=BAKE.rt.width,h=BAKE.rt.height;
+  if(!BLUR.rts||BLUR.rts[0].width!==w||BLUR.rts[0].height!==h){(BLUR.rts||[]).forEach(t=>t.dispose());BLUR.rts=[0,1,2,3].map(()=>new THREE.WebGLRenderTarget(w,h,{depthBuffer:false,type:THREE.HalfFloatType}));}
+  const [A,B,C,D]=BLUR.rts,pass=(src,dst,dx,dy,sg)=>{BLUR.g.uniforms.t.value=src.texture;BLUR.g.uniforms.dir.value.set(dx/w,dy/h);BLUR.g.uniforms.sg.value=sg;BLUR.quad.material=BLUR.g;renderer.setRenderTarget(dst);renderer.render(BLUR.sc,BLUR.cam);};
+  pass(BAKE.rt,A,1,0,3.5);pass(A,B,0,1,3.5);   /* tight: about 1.5 mm penumbra */
+  pass(B,A,1,0,15);pass(A,C,0,1,15);           /* wide: about 7 mm warm spill */
+  BLUR.c.uniforms.a.value=B.texture;BLUR.c.uniforms.b.value=C.texture;BLUR.quad.material=BLUR.c;renderer.setRenderTarget(D);renderer.render(BLUR.sc,BLUR.cam);
+  BAKE.ov.material.map=D.texture;BAKE.ov.material.needsUpdate=true;}
 /* merge everything that shares a material into one mesh: a village goes from hundreds of draw calls to a handful.
    The separate wall meshes stay in `built` (not in the scene) for picking. */
 let merged=new THREE.Group();scene.add(merged);
@@ -1227,7 +1244,7 @@ function applyNight(){const n=S.night,rd=S.render;scene.background=new THREE.Col
   else{scene.environment=n?envDark():envBasic;sun.shadow.normalBias=0.35;}   /* normal offset keeps flat walls free of shadow acne */
   if(sun.shadow.map&&sun.shadow.map.width!==sun.shadow.mapSize.x){sun.shadow.map.dispose();sun.shadow.map=null;}
   if(S.night!==BAKE.night||BAKE.anchors!==BAKE.done){BAKE.night=S.night;BAKE.done=BAKE.anchors;startBake(BAKE.anchors||[]);}
-  BAKE.ov.material.color.setRGB(1.0*CANDLE_I*0.5*cs,0.58*CANDLE_I*0.5*cs,0.24*CANDLE_I*0.5*cs);
+  BAKE.ov.material.color.setRGB(0.62*cs,0.38*cs,0.15*cs);
   renderer.shadowMap.needsUpdate=true;need();}
 let composer=null,ssao=null,bloom=null,finalPass=null,fxaa=null;
 const LIBS=["shaders/CopyShader.js","shaders/LuminosityHighPassShader.js","shaders/SSAOShader.js","shaders/FXAAShader.js","math/SimplexNoise.js",
@@ -1276,7 +1293,7 @@ let tick=0,lastFlick=0;(function loop(now){requestAnimationFrame(loop);controls.
   if(S.night&&flames.length&&now-lastFlick>(S.render?80:70)&&!document.hidden){lastFlick=now;tick+=0.32;
     {const cs=S.candle===undefined?1:S.candle,k=0.97+Math.sin(tick*1.7)*0.025+Math.sin(tick*4.1)*0.012;
       Object.values(LIT).forEach(m=>{if(m.userData.uLit)m.userData.uLit.value=cs*k;});
-      MAT.pool.opacity=Math.min(0.85,0.38*cs)*k;BAKE.ov.material.color.setRGB(1.0*CANDLE_I*0.5*cs*k,0.58*CANDLE_I*0.5*cs*k,0.24*CANDLE_I*0.5*cs*k);}
+      MAT.pool.opacity=Math.min(0.85,0.38*cs)*k;BAKE.ov.material.color.setRGB(0.62*cs*k,0.38*cs*k,0.15*cs*k);}
     lights.forEach((L,i)=>L.intensity=L.userData.base*(S.render?1.15:1)*(S.candle===undefined?1:S.candle)*(0.96+Math.sin(tick*1.7+i)*0.035+Math.sin(tick*4.1+i*2)*0.018));
     flames.forEach((f,i)=>{const s=1+Math.sin(tick*3+i)*0.07;f.scale.set(1,s,1);});need();}
   if(BAKE.q.length){bakeStep(BAKE.n?24:60);need();}
