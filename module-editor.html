@@ -549,7 +549,7 @@ const scene=new THREE.Scene();let envBasic=null,envRoom=null;
 const persp=new THREE.PerspectiveCamera(35,1,1,8000),ortho=new THREE.OrthographicCamera(-1,1,1,-1,-6000,12000);let camera=persp;
 /* orthographic: parallel projection, the drawing-board view (axonometric, plan, elevation); the frustum follows the village size */
 let orthoH=400;function orthoFrustum(){const r=view.getBoundingClientRect(),a=r.width/Math.max(1,r.height);Object.assign(ortho,{left:-orthoH*a,right:orthoH*a,top:orthoH,bottom:-orthoH});ortho.updateProjectionMatrix();}
-const controls=new THREE.OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.minDistance=60;controls.maxDistance=3000;controls.minPolarAngle=0;controls.maxPolarAngle=Math.PI*0.495;
+const controls=new THREE.OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.minDistance=60;controls.maxDistance=3000;controls.minPolarAngle=0;controls.maxPolarAngle=Math.PI;
 function bounds(){let x0=1e9,x1=-1e9,z0=1e9,z1=-1e9,h=0;S.buildings.forEach(b=>{const f=fp(b);x0=Math.min(x0,b.x-f.w/2);x1=Math.max(x1,b.x+f.w/2);z0=Math.min(z0,b.z-f.d/2);z1=Math.max(z1,b.z+f.d/2);h=Math.max(h,b.levels*H+40);});return {x0,x1,z0,z1,h};}
 function fitView(){const b=bounds(),cx=(b.x0+b.x1)/2,cz=(b.z0+b.z1)/2,s=Math.max(b.x1-b.x0,b.z1-b.z0,b.h)*1.45+120;
   camera.position.set(cx+s*0.45,b.h*0.5+s*0.5,cz+s*0.95);controls.target.set(cx,b.h*0.3,cz);
@@ -557,7 +557,7 @@ function fitView(){const b=bounds(),cx=(b.x0+b.x1)/2,cz=(b.z0+b.z1)/2,s=Math.max
 /* view presets: axonometric (isometric angles), plan from above, front elevation */
 function viewPreset(v){if(camera!==ortho)setOrtho(true);   /* Axo, Plan and Front are parallel projections */
   /* Front is a true elevation: the camera stays level (the ground reads as one line) however you turn it; Plan stays overhead */
-  controls.minPolarAngle=v==='front'?Math.PI/2:0;controls.maxPolarAngle=v==='front'?Math.PI/2:v==='plan'?0:Math.PI*0.495;S.view=v;
+  controls.minPolarAngle=v==='front'?Math.PI/2:0;controls.maxPolarAngle=v==='front'?Math.PI/2:v==='plan'?0:Math.PI;S.view=v;
   const b=bounds(),cx=(b.x0+b.x1)/2,cz=(b.z0+b.z1)/2,s=Math.max(b.x1-b.x0,b.z1-b.z0,b.h)*1.45+120,ty=v==="plan"?0:b.h*0.35;
   const dir=v==="plan"?[0,1,0.0001]:v==="front"?[0,0,1]:[1,0.8165,1];   /* isometric: 35.26° above the ground, 45° to the walls */
   const d=new THREE.Vector3(...dir).normalize().multiplyScalar(s*1.2);controls.target.set(cx,ty,cz);if(v==='front')camera.up.set(0,1,0);camera.position.set(cx+d.x,ty+d.y,cz+d.z);
@@ -566,7 +566,7 @@ function viewPreset(v){if(camera!==ortho)setOrtho(true);   /* Axo, Plan and Fron
   {const gl=room.getObjectByName("groundLine");if(gl)gl.visible=v==="front";}controls.update();need();}
 function setOrtho(on){const from=camera,to=on?ortho:persp;if(from===to)return;to.position.copy(from.position);to.quaternion.copy(from.quaternion);
   if(on){orthoH=from.position.distanceTo(controls.target)*Math.tan(persp.fov*Math.PI/360);ortho.zoom=1;orthoFrustum();}
-  camera=to;controls.object=to;S.ortho=on;if(!on){controls.minPolarAngle=0;controls.maxPolarAngle=Math.PI*0.495;S.view="";const gl=room.getObjectByName("groundLine");if(gl)gl.visible=false;}$("orthoBtn").setAttribute("aria-pressed",on);
+  camera=to;controls.object=to;S.ortho=on;if(!on){controls.minPolarAngle=0;controls.maxPolarAngle=Math.PI;S.view="";const gl=room.getObjectByName("groundLine");if(gl)gl.visible=false;}$("orthoBtn").setAttribute("aria-pressed",on);
   if(composer){composer.passes.forEach(p=>{if(p.camera)p.camera=to;});if(ssao){ssao.enabled=!on;}}   /* ambient occlusion here works in perspective only */
   lastD=0;controls.update();save();need();}
 const hemi=new THREE.HemisphereLight(0xfff7ee,0xdcd0c0,0.62);scene.add(hemi);
@@ -1052,7 +1052,6 @@ const BAKE={rt:null,q:[],ov:null,n:0,scene:new THREE.Scene(),cam:new THREE.Ortho
   BAKE.ov.rotation.x=-Math.PI/2;BAKE.ov.renderOrder=1;BAKE.ov.visible=false;scene.add(BAKE.ov);}
 function startBake(anchors){BAKE.q.length=0;BAKE.n=0;BAKE.ov.visible=false;
   BAKE.scene.children.slice().forEach(o=>{if(o!==BAKE.light&&o!==BAKE.plane)BAKE.scene.remove(o);});
-  return;   /* night: the ground stays pitch black, so no candle pools are baked onto it */
   if(!S.night||!anchors.length)return;
   BAKE.scene.add(built);built.updateMatrixWorld(true);
   const b=bounds(),m=BAKE_R*0.8,x0=b.x0-m,x1=b.x1+m,z0=b.z0-m,z1=b.z1+m,w=x1-x0,d=z1-z0,cx=(x0+x1)/2,cz=(z0+z1)/2,gy=-groundDrop(),
@@ -1154,7 +1153,7 @@ function applyNight(){const n=S.night,rd=S.render;scene.background=new THREE.Col
    if(!n)hemi.color.set(0xffe4c8).lerp(new THREE.Color(0xfff7ed),Math.min(1,hi));}
   {const ext=Math.max(b.x1-b.x0,b.z1-b.z0,b.h)*0.75+200;Object.assign(sun.shadow.camera,{left:-ext,right:ext,top:ext,bottom:-ext,near:50,far:1200+ext*1.6});sun.shadow.camera.updateProjectionMatrix();}sun.target.position.set(cx,0,cz);
   const cs=S.candle===undefined?1:S.candle;lights.forEach(L=>L.intensity=n?L.userData.base*cs:0);flames.forEach(f=>f.visible=n&&!f.userData.cutHide);
-  MAT.wax.emissiveIntensity=n?0.45*cs:0;MAT.pool.visible=false;MAT.contact.visible=!!(S.render&&!n);MAT.pool.opacity=Math.min(0.85,0.38*cs);$("nightBtn").setAttribute("aria-pressed",n);
+  MAT.wax.emissiveIntensity=n?0.45*cs:0;MAT.pool.visible=n;MAT.contact.visible=!!(S.render&&!n);MAT.pool.opacity=Math.min(0.85,0.38*cs);$("nightBtn").setAttribute("aria-pressed",n);
   Object.values(MATS).forEach(m=>{m.emissiveIntensity=0;if(m.userData.uLit)m.userData.uLit.value=0;});
   Object.values(LIT).forEach(m=>{m.emissiveIntensity=0;if(m.userData.uLit)m.userData.uLit.value=n?cs:0;});
   if(S.render){scene.environment=n?envDark():(envRoom||envBasic);hemi.intensity=n?0.30:0.32;sun.intensity=n?0:1.95*(sun.userData.k||1);sun.shadow.mapSize.set(2048,2048);sun.shadow.normalBias=0.35;
@@ -1655,7 +1654,7 @@ on("explode","input",e=>{S.explode=+e.target.value;rebuild();vbarVals();});
 /* every viewer slider shows its value beside it: candle strength in %, the sun as a clock time (6:00 morning to 18:00 evening), explode in mm */
 function vbarVals(){const c=S.candle===undefined?1:S.candle,t=S.sun===undefined?0.35:S.sun,m=Math.round((6+12*t)*60/15)*15;
   $("candleV").textContent=Math.round(c*100)+" %";$("sunV").textContent=Math.floor(m/60)+":"+String(m%60).padStart(2,"0");$("explodeV").textContent=(S.explode||0)+" mm";}
-on("resetView","click",()=>{controls.minPolarAngle=0;controls.maxPolarAngle=Math.PI*0.495;S.view="";const gl=room.getObjectByName("groundLine");if(gl)gl.visible=false;fitView();});
+on("resetView","click",()=>{controls.minPolarAngle=0;controls.maxPolarAngle=Math.PI;S.view="";const gl=room.getObjectByName("groundLine");if(gl)gl.visible=false;fitView();});
 on("orthoBtn","click",()=>setOrtho(!S.ortho));document.querySelectorAll("[data-view]").forEach(x=>x.onclick=()=>viewPreset(x.dataset.view));
 on("reset","click",()=>{if(confirm("Reset to the starting city block?")){S=defaults();renderUI();fitView();}});
 on("dlSvg","click",()=>{const b=Bs(),cells=[],keys=liveKeys(b).sort((a,c)=>keyParts(c)[2]-keyParts(a)[2]);
