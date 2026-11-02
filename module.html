@@ -36,6 +36,12 @@ html[data-mode=module] aside>.panel:first-child{display:none}
 .btn.primary{background:var(--ink);color:var(--bg)}
 .btn.icon{width:var(--ctl);padding:0}
 .btn[aria-pressed="true"]{background:var(--terra);border-color:var(--terra);color:#fff}
+/* v 02.11 review: collapsible panels, toast, "more controls" chevron, history buttons */
+.panel>h2[role=button]{cursor:pointer;user-select:none}.panel>h2[role=button]::before{content:"\25BE";font-size:12px;color:var(--muted);width:12px;flex:none}
+.panel.closed>h2[role=button]::before{content:"\25B8"}.panel.closed>*:not(h2){display:none}
+.vbar .vmore{position:sticky;right:0;flex:none;width:32px;padding:0;font-size:18px;line-height:16px;background:linear-gradient(90deg,rgba(17,17,17,0),#111 45%);text-transform:none}.vbar .vmore[hidden]{display:none}
+#toast{position:fixed;left:50%;bottom:64px;transform:translateX(-50%);z-index:50;max-width:min(560px,calc(100vw - 32px));background:var(--ink);color:var(--bg);padding:8px 16px;font:500 13px/16px var(--sans);opacity:0;pointer-events:none;transition:opacity .2s}#toast.on{opacity:1}
+@media (prefers-reduced-motion:reduce){#toast{transition:none}}
 /* app shell: the page is exactly the window; the 3D view fills its columns top to bottom, the panel scrolls on its own */
 @media (min-width:761px){html,body{height:100%}body{display:flex;flex-direction:column;overflow:hidden}
   .layout.grid12{flex:1;min-height:0;align-items:stretch;grid-template-rows:minmax(0,1fr)}header{flex:none}.layout>.viewer{height:100%;max-height:none;aspect-ratio:auto;position:relative;top:0}
@@ -204,7 +210,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
 <header class="grid12">
   <h1>TIKRAR<small>Beirut Lantern Generator</small></h1>
   <span class="sub"><span id="modSize">porcelain modules 60 × 60 mm · 40 mm walls</span> · houses, towers and city blocks · 1860–1925 and modernist openings</span>
-  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 02.11 · 14:20</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
+  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 02.11 · 14:25</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
   <button class="btn icon" id="themeBtn" type="button" aria-label="Toggle colour theme">◐</button></nav>
 </header>
 
@@ -220,6 +226,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
       <div class="grp cutG"><label title="Section plane: cut the model along X, Y (height) or Z and look inside">Cut</label><button type="button" data-cut="off" aria-pressed="true">Off</button><button type="button" data-cut="x" aria-pressed="false" title="Section across X (left to right)">X</button><button type="button" data-cut="y" aria-pressed="false" title="Section at a height (a plan cut)">Y</button><button type="button" data-cut="z" aria-pressed="false" title="Section across Z (front to back)">Z</button><span class="cutS" hidden><input type="range" id="cutT" min="0" max="1" step="0.005" value="0.5" title="Position of the section plane"><output id="cutV" for="cutT"></output><button type="button" id="cutFlip" aria-pressed="false" title="Keep the other side">⇄</button></span></div>
       <div class="grp"><button type="button" id="orthoBtn" aria-pressed="false" title="Orthographic: parallel lines, no perspective">Ortho</button><button type="button" data-view="axo" title="Axonometric view">Axo</button><button type="button" data-view="plan" title="Plan, from above">Plan</button><button type="button" data-view="front" title="Front elevation">Front</button></div>
       <div class="grp"><button type="button" id="spinBtn" aria-pressed="false" title="Keep turning the view around the model">Spin</button><button type="button" id="slideBtn" aria-pressed="false" title="Keep the model still and slide the openings round the walls, over the corners onto the next wall; you can still change elements while it runs (also a GIF: see GIF, under Checks)">Slide</button><button type="button" id="lockBtn" aria-pressed="false" title="Lock the camera: no orbit, pan or zoom">Lock</button><button type="button" id="resetView" title="Reset the view">Reset</button><button type="button" id="jpgBtn" title="Save the 3D view as a JPG">JPG</button><button type="button" id="gifQuick" title="A randomize series as an animated GIF, from this exact view (frames: GIF, under Checks)">GIF</button><button type="button" id="panelBtn" aria-pressed="true" title="Show or hide the side panel (P)">Panel</button></div>
+      <button type="button" class="vmore" id="vmore" aria-label="More controls" hidden>&#8250;</button>
     </div>
   </div>
 
@@ -302,6 +309,8 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
       <div class="f"><span class="lbl">Export</span><div class="v"><div class="seg"><button type="button" id="pdfBtn">Sheet (PDF)</button><button type="button" id="dlSvg">Elevations (SVG)</button></div></div></div>
       <div class="f"><span class="lbl">Print</span><div class="v"><div class="seg" style="flex:1"><button type="button" id="stlBtn" title="Every piece of the selected buildings as watertight STL files in a zip: modules, base, plates and roof">Pieces (STL)</button></div><label class="meta" style="display:flex;align-items:center;gap:4px" title="0 = fired size. Enter the clay's shrinkage (e.g. 14) to scale the pieces up into mould masters">shrink <input id="stlShrink" type="number" min="0" max="40" step="0.5" value="0" style="width:4.2em"> %</label></div></div>
       <div class="f"><span class="lbl">GIF</span><div class="v"><select id="gifMode" aria-label="Animation"><option value="orbit">Orbit</option><option value="sun">Sun, morning to evening</option><option value="explode">Explode and back</option><option value="slide">Openings slide round the walls</option><option value="rand">Randomize, same palette</option><option value="randall">Randomize, all palettes</option></select><select id="gifWhat" aria-label="What a randomize GIF changes" title="Randomize GIFs (also the toolbar GIF): Both = a new city plan and new walls and colours each frame; Look = same plan, new walls and colours; Layout = the same buildings, rearranged into a new plan" style="flex:0 0 84px"><option value="both">Both</option><option value="look">Look</option><option value="layout">Layout</option></select><select id="gifN" aria-label="Frames" style="flex:0 0 64px"><option>10</option><option>12</option><option selected>24</option><option>36</option><option>48</option></select><button class="btn" type="button" id="gifBtn">Make</button></div></div>
+      <div class="f"><span class="lbl">Share</span><div class="v"><div class="seg" style="flex:1"><button type="button" id="shareLink" title="Copy a link that opens this design in any browser">Copy link</button><button type="button" id="saveJson" title="Download this design as a .json file">Save JSON</button><button type="button" id="openJson" title="Open a design saved as .json">Open JSON</button></div><input type="file" id="jsonFile" accept=".json,application/json" hidden></div></div>
+      <div class="f"><span class="lbl">History</span><div class="v"><div class="seg" style="flex:1"><button type="button" id="undoBtn" title="Undo the last change (Ctrl or \u2318 + Z)" disabled>Undo</button><button type="button" id="redoBtn" title="Redo (Shift + Ctrl or \u2318 + Z)" disabled>Redo</button></div></div></div>
       <div class="f"><span class="lbl">Start over</span><div class="v"><button class="btn" type="button" id="reset" style="flex:1">Reset city block</button></div></div>
     </div>
 
@@ -314,9 +323,10 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
   </aside>
 </div>
 
+<div id="toast" role="status" aria-live="polite"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-<script src="openings.js"></script>
+<script src="openings.js?v=0211b"></script>
 <script>
 (function(){
 const B=window.BeitOpenings,W=60,MAX_LEVELS=8,GRID=30,MAX_LIGHTS=12,SHADOW_LIGHTS=6;let CD=38,CH=12,H=B.H,T=3,BASE_T=4,PLATE_T=4,WX=60,WZ=60;   /* WX: module width (front and back walls), WZ: module length (side walls); 60 × 60 in the cluster editor */
@@ -556,7 +566,21 @@ try{const v=JSON.parse(localStorage.getItem(KEY)||"null");if(v&&Array.isArray(v.
 S.buildings.forEach(b=>{if(b.set==='grid')b.set='modern';Object.values(b.mods).forEach(m=>FACES.forEach(f=>{const w=m[f];if(w&&((w.type&&!B.BY[w.type])||(w.bays&&w.bays.some(x=>!B.BAY[x]))))m[f]=randomWall(b.set);}));});   /* the retired grid openings become a fresh wall of the building's book */if(S.editSet==='grid')S.editSet='modern';if(S.gutter===undefined)S.gutter=30;GUTTER=S.gutter;if(S.avenue===undefined)S.avenue=60;AVENUE=S.avenue;if(S.blockM===undefined)S.blockM=6;BLOCKM=S.blockM;if((S.gridded||0)<3){gridLayout(S.buildings);S.gridded=3;}   /* designs saved before the village grid are laid out on it once */
 LAYOUT.blocks.length=0;   /* the block lines are worked out again for the design just loaded */
 S.buildings.forEach(b=>{if(b.glaze){if(!b.roofCol)b.roofCol=b.glaze==="terra"?"terra":"same";delete b.glaze;}});
-const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}};
+/* saving and history (v 02.11 review): the design is written to localStorage once the editing pauses (and when the page is left),
+   and every settled change is one Undo step; a slider drag is one step. Only the design is in the history: night, sun, explode,
+   candle strength, cut and camera are view settings and stay as they are. */
+const VIEWK=new Set(["night","explode","candle","sun","render","ortho","lock","spin","nopanel","cut","view","gifWhat","dims"]);
+const hSnap=()=>{const o={};for(const k in S)if(!VIEWK.has(k))o[k]=S[k];return JSON.stringify(o);};
+let hCur="",hU=[],hR=[],hSz=0,hSkip=false,hT=0,lsT=0,hLive=false;   /* hLive: set by the first touch; until then settling only re-bases */const HMAX=60,HBYTES=40e6;
+const persist=()=>{lsT=0;try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}};
+function histBtns(){const u=document.getElementById("undoBtn"),r=document.getElementById("redoBtn");if(u)u.disabled=!hU.length;if(r)r.disabled=!hR.length;}
+function histSettle(){hT=0;let t;try{t=hSnap();}catch(e){return;}
+  if(hSkip){hSkip=false;hCur=t;histBtns();return;}
+  if(!hCur||!hLive){hCur=t;return;}if(t===hCur)return;
+  hU.push(hCur);hSz+=hCur.length;hCur=t;hR.length=0;while(hU.length>HMAX||hSz>HBYTES)hSz-=hU.shift().length;histBtns();}
+const save=()=>{clearTimeout(lsT);lsT=setTimeout(persist,300);clearTimeout(hT);hT=setTimeout(histSettle,400);};
+const flushSave=()=>{if(hT){clearTimeout(hT);histSettle();}if(lsT){clearTimeout(lsT);persist();}};
+addEventListener("pagehide",flushSave);document.addEventListener("visibilitychange",()=>{if(document.hidden)flushSave();});
 const Bs=()=>S.buildings[S.selB];
 function fixSel(){if(!S.buildings[S.selB])S.selB=0;const b=Bs();if(!b.mods[S.sel])S.sel="0:0:0";}
 fixSel();
@@ -1304,7 +1328,7 @@ function applyNight(){const n=S.night,rd=S.render;scene.background=new THREE.Col
 let composer=null,ssao=null,bloom=null,finalPass=null,fxaa=null;
 const LIBS=["shaders/CopyShader.js","shaders/LuminosityHighPassShader.js","shaders/SSAOShader.js","shaders/FXAAShader.js","math/SimplexNoise.js",
   "postprocessing/EffectComposer.js","postprocessing/MaskPass.js","postprocessing/RenderPass.js","postprocessing/ShaderPass.js","postprocessing/SSAOPass.js","postprocessing/UnrealBloomPass.js","environments/RoomEnvironment.js"];
-const loadLibs=()=>LIBS.reduce((p,f)=>p.then(()=>new Promise((res,rej)=>{const s=document.createElement("script");s.src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/"+f;s.onload=res;s.onerror=()=>rej(new Error(f));document.head.appendChild(s);})),Promise.resolve());
+const loadLibs=()=>Promise.all(LIBS.map(f=>new Promise((res,rej)=>{const s=document.createElement("script");s.src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/"+f;s.async=false;   /* downloaded in parallel, run in list order */s.onload=res;s.onerror=()=>rej(new Error(f));document.head.appendChild(s);})));
 const FINAL={uniforms:{tDiffuse:{value:null},exposure:{value:0.95},time:{value:0},nightMode:{value:0}},
   vertexShader:"varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}",
   fragmentShader:`uniform sampler2D tDiffuse;uniform float exposure;uniform float time;uniform float nightMode;varying vec2 vUv;
@@ -1343,9 +1367,10 @@ let lastD=0;function fitDepth(){if(camera===ortho)return;const d=camera.position
   camera.near=Math.max(2,d*0.04);camera.far=d*4+2500;camera.updateProjectionMatrix();
   if(ssao){[ssao.ssaoMaterial,ssao.depthRenderMaterial].forEach(m=>{if(m&&m.uniforms.cameraNear){m.uniforms.cameraNear.value=camera.near;m.uniforms.cameraFar.value=camera.far;}});
     const span=camera.far-camera.near;ssao.minDistance=0.4/span;ssao.maxDistance=Math.min(0.08,32/span);ssao.kernelRadius=Math.max(3.5,d*0.01);}}
+const RMOTION=matchMedia("(prefers-reduced-motion: reduce)");let VIEWVIS=true;try{new IntersectionObserver(es=>{VIEWVIS=es[es.length-1].isIntersecting;}).observe(view);}catch(e){}
 let tick=0,lastFlick=0;(function loop(now){requestAnimationFrame(loop);controls.update();fitDepth();updateRuler();
   /* candle flicker: smooth organic breathing at night */
-  if(S.night&&flames.length&&now-lastFlick>(S.render?80:70)&&!document.hidden){lastFlick=now;tick+=0.32;
+  if(S.night&&flames.length&&now-lastFlick>(S.render?80:70)&&!document.hidden&&!RMOTION.matches&&VIEWVIS){lastFlick=now;tick+=0.32;
     {const cs=S.candle===undefined?1:S.candle,k=0.97+Math.sin(tick*1.7)*0.025+Math.sin(tick*4.1)*0.012;
       Object.values(LIT).forEach(m=>{if(m.userData.uLit)m.userData.uLit.value=cs*k;});
       MAT.pool.opacity=Math.min(0.85,0.38*cs)*k;BAKE.gain.value=GL_GAIN*cs*k;}
@@ -1363,9 +1388,9 @@ renderer.domElement.addEventListener("pointerup",e=>{if(!down||Math.hypot(e.clie
 const faceChecks=(b,k,fn)=>B.checkFace(bld(b.mods[k][fn],fn),shrinkOf(b),radOf(b));
 function wallSym(w){if(w.mode==="free"){const m=B.mirrorFree(w).holes,n=(a,b)=>Math.abs(a-b)<0.6;return w.holes.every(q=>m.some(r=>r.s===q.s&&n(r.x,q.x)&&n(r.y,q.y)&&n(r.w,q.w)&&n(r.h,q.h)));}return w.mode!=="bays"||w.bays[0]===w.bays[2];}
 function sameMirror(a,b){return JSON.stringify(a)===JSON.stringify(mirror(b));}
-function buildingChecks(b){const hard=[],notes=[];const H_=(ok,label,v)=>hard.push({ok,label,v}),N=(ok,label,v)=>notes.push({ok,label,v,note:true});
-  let bad=[];liveKeys(b).forEach(k=>FACES.forEach(f=>{if(!faceChecks(b,k,f).ok)bad.push(k+" "+f);}));
-  H_(!bad.length,"All "+liveKeys(b).length*4+" walls pass the porcelain limits",bad.length?bad.length+" walls":"✓");
+function buildingChecks(b){const hard=[],notes=[];const H_=(ok,label,v,t)=>hard.push({ok,label,v,t}),N=(ok,label,v)=>notes.push({ok,label,v,note:true});
+  let bad=[];liveKeys(b).forEach(k=>FACES.forEach(f=>{if(!faceChecks(b,k,f).ok)bad.push(badName(k,f));}));
+  H_(!bad.length,"All "+liveKeys(b).length*4+" walls pass the porcelain limits",bad.length?bad.length+(bad.length>1?" walls: ":" wall: ")+bad.slice(0,2).join(", ")+(bad.length>2?", …":""):"✓",bad.length?bad.join("; "):"");
   const floating=liveKeys(b).filter(k=>{const [c,r,l]=keyParts(k);return l>0&&!b.plates[l]&&!alive(b,c+":"+r+":"+(l-1));});
   H_(!floating.length,"Every module stands on a module or a plate",floating.length?floating.map(k=>{const [c,r,l]=keyParts(k);return levelName(l)+" "+(c+1)+"ABC"[r];}).join(", "):"✓");
   if(b.roof!=="none"&&!perMod(b)&&!topComplete(b))N(false,"One-piece roof needs a complete top level","lids per column instead");
@@ -1421,7 +1446,8 @@ function renderEditor(){
     ed.innerHTML=h;}
 }
 
-const ck=c=>`<div class="ck"><span class="s ${c.ok?"ok":c.note?"note":"bad"}">${c.ok?"✓":c.note?"●":"✗"}</span><span>${c.label}</span><span class="v">${c.v}</span></div>`;
+const badName=(k,f)=>{const [c,r,l]=k.split(":").map(Number);return levelName(l)+" "+(c+1)+"ABC"[r]+" "+f;};
+const ck=c=>`<div class="ck"${c.t?` title="${String(c.t).replace(/"/g,"&quot;")}"`:""}><span class="s ${c.ok?"ok":c.note?"note":"bad"}">${c.ok?"✓":c.note?"●":"✗"}</span><span>${c.label}</span><span class="v">${c.v}</span></div>`;
 /* ================= technical & mechanical review =================
    The pieces: open module rings (4 walls cast as one, 60 × 60 × 40, 3 mm), plates (4 mm, Ø25 vent per module), the base
    (2.5 mm, unglazed foot), the roof (a hollow cast lid or a 2.5 mm slab) and a tealight. Everything is fired apart and
@@ -2011,6 +2037,67 @@ on("pdfBtn","click",()=>{const btn=$("pdfBtn"),t=btn.textContent;btn.textContent
 $("explode").value=S.explode;S.editSet=S.editSet||Bs().set;
 if(S.render){S.render=false;setTimeout(()=>$("renderBtn").click(),0);}
 $("candle").value=S.candle===undefined?1:S.candle;$("keepPal").setAttribute("aria-pressed",!!S.keepPal);setPanel(!S.nopanel);setLock(S.lock);setSpin(S.spin);$("sunT").value=S.sun===undefined?0.35:S.sun;vbarVals();cutBind();cutUI();applyDims();resize();if(S.ortho)setOrtho(true);renderUI();fitView();
+/* ===== v 02.11 review: toast, Undo/Redo, share link and JSON, collapsible panels, "more controls" chevron ===== */
+let toastT=0;function toast(msg){const t=$("toast");if(!t)return;t.textContent=msg;t.classList.add("on");clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove("on"),3800);}
+/* put a design (a snapshot string) back: the design keys are replaced, the view settings stay */
+function applyState(str,fit){const o=JSON.parse(str);Object.keys(S).forEach(k=>{if(!VIEWK.has(k))delete S[k];});Object.assign(S,o);
+  if(S.gutter===undefined)S.gutter=30;GUTTER=S.gutter;if(S.avenue===undefined)S.avenue=60;AVENUE=S.avenue;if(S.blockM===undefined)S.blockM=6;BLOCKM=S.blockM;
+  if(!Array.isArray(S.multi))S.multi=[];LAYOUT.blocks.length=0;FSCALE=null;
+  $("keepPal").setAttribute("aria-pressed",!!S.keepPal);seg($("lmSeg"),S.landmarks?"1":"0");applyDims();renderUI();if(fit)fitView();}
+function undo(){if(hT){clearTimeout(hT);histSettle();}if(!hU.length){toast("Nothing to undo");return;}const s=hU.pop();hSz-=s.length;hR.push(hCur);hCur=s;hSkip=true;applyState(s);histBtns();toast("Undone");}
+function redo(){if(hT){clearTimeout(hT);histSettle();}if(!hR.length){toast("Nothing to redo");return;}const s=hR.pop();hU.push(hCur);hSz+=hCur.length;hCur=s;hSkip=true;applyState(s);histBtns();toast("Redone");}
+on("undoBtn","click",undo);on("redoBtn","click",redo);
+addEventListener("keydown",e=>{if(!(e.metaKey||e.ctrlKey)||e.altKey)return;const k=e.key.toLowerCase(),a=document.activeElement,t=a&&a.tagName;
+  if(t==="TEXTAREA"||t==="SELECT"||a&&a.isContentEditable||(t==="INPUT"&&!/^(range|checkbox|radio|button)$/.test(a.type)))return;
+  if(k==="z"){e.preventDefault();e.shiftKey?redo():undo();}else if(k==="y"){e.preventDefault();redo();}});
+/* sharing: the design as one link (deflated, base64url, in the #d= part) or as a .json file */
+const b64u=u=>{let s="";for(let i=0;i<u.length;i+=8192)s+=String.fromCharCode.apply(null,u.subarray(i,i+8192));return btoa(s).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");};
+const unb64u=t=>{const s=atob(t.replace(/-/g,"+").replace(/_/g,"/")),u=new Uint8Array(s.length);for(let i=0;i<s.length;i++)u[i]=s.charCodeAt(i);return u;};
+const pipe=async(bytes,S_)=>new Uint8Array(await new Response(new Blob([bytes]).stream().pipeThrough(S_)).arrayBuffer());
+const designJSON=()=>{flushSave();return '{"t":"tikrar","v":1,"m":"'+MODE+'","s":'+hSnap()+'}';};
+async function encodeDesign(){const u=new TextEncoder().encode(designJSON());
+  if(window.CompressionStream){try{return "z"+b64u(await pipe(u,new CompressionStream("deflate-raw")));}catch(e){}}return "p"+b64u(u);}
+async function decodeDesign(t){const u=unb64u(t.slice(1));return new TextDecoder().decode(t[0]==="z"?await pipe(u,new DecompressionStream("deflate-raw")):u);}
+/* check a design that came from outside before it is allowed near the editor; returns an error text or "" */
+function checkDesign(d){if(!d||d.t!=="tikrar"||!d.s||!Array.isArray(d.s.buildings)||!d.s.buildings.length)return "That is not a TIKRAR design.";
+  if(d.m&&d.m!==MODE)return "That design is from the "+(d.m==="module"?"Module":"Cluster")+" editor. Open it there.";
+  if(d.s.buildings.length>200)return "That design has too many buildings.";
+  for(const b of d.s.buildings){
+    if(!b||typeof b!=="object"||typeof b.mods!=="object"||!b.mods)return "A building in that design is damaged.";
+    if(![b.cols,b.deep,b.levels].every(n=>Number.isInteger(n)&&n>=1&&n<=40))return "A building in that design has a wrong size.";
+    if(b.set==="grid")b.set="modern";if(b.set!=="ottoman"&&b.set!=="modern")return "A building in that design has an unknown book.";
+    if(![b.x,b.z,b.rot].every(n=>typeof n==="number"&&isFinite(n)))b.x=b.z=b.rot=0;
+    b.name=String(b.name||"Building").slice(0,80);
+    b.plates=Array.from({length:b.levels},(_,i)=>Array.isArray(b.plates)?!!b.plates[i]:true);b.candles=Array.from({length:b.levels},(_,i)=>Array.isArray(b.candles)?!!b.candles[i]:i===0);
+    for(let c=0;c<b.cols;c++)for(let r=0;r<b.deep;r++)for(let l=0;l<b.levels;l++){const m=b.mods[c+":"+r+":"+l];if(!m||typeof m!=="object")return "A module in that design is missing.";
+      for(const f of FACES){const w=m[f];if(w===undefined||w===null||typeof w!=="object"||!w.mode){m[f]=INNER();continue;}
+        if((w.type&&!B.BY[w.type])||(w.bays&&(!Array.isArray(w.bays)||w.bays.length!==3||w.bays.some(x=>!B.BAY[x])))||(w.mode==="free"&&!Array.isArray(w.holes)))m[f]=randomWall(b.set);}}}
+  return "";}
+async function openDesign(text,from){let d;try{d=JSON.parse(text);}catch(e){toast("That file or link is not a design.");return false;}
+  const err=checkDesign(d);if(err){toast(err);return false;}
+  if(hT){clearTimeout(hT);hT=0;}hLive=true;hCur=hSnap();   /* the design being replaced becomes an Undo step */
+  try{applyState(JSON.stringify(d.s),true);}catch(e){toast("That design could not be opened.");try{applyState(hCur);}catch(_){}return false;}
+  toast("Opened "+from+". Undo brings your previous design back.");return true;}
+on("shareLink","click",async()=>{try{const t=await encodeDesign(),url=location.origin+location.pathname+"#d="+t;
+  try{await navigator.clipboard.writeText(url);toast("Link copied"+(url.length>8000?" ("+Math.round(url.length/1000)+" k characters: long for some chat apps, Save JSON is safer)":"."));}catch(e){prompt("Copy this link:",url);}}catch(e){toast("The link could not be made.");}});
+on("saveJson","click",()=>{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([designJSON()],{type:"application/json"}));a.download="tikrar-"+(MODE==="module"?"module":"city")+"-"+new Date().toISOString().slice(0,10)+".json";document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},500);toast("Design saved.");});
+on("openJson","click",()=>$("jsonFile").click());
+on("jsonFile","change",e=>{const f=e.target.files[0];e.target.value="";if(!f)return;if(f.size>8e6){toast("That file is too large.");return;}const r=new FileReader();r.onload=()=>openDesign(String(r.result),"the file");r.readAsText(f);});
+(async function fromLink(){const m=/^#d=([zp][A-Za-z0-9_-]+)$/.exec(location.hash);if(!m)return;
+  try{const text=await decodeDesign(m[1]);if(text.length>8e6)throw 0;const ok=await openDesign(text,"the shared design");if(ok||true)history.replaceState(null,"",location.pathname+location.search);}
+  catch(e){toast("That link could not be read.");history.replaceState(null,"",location.pathname+location.search);}})();
+/* panels fold: click a heading (kept in this browser) */
+(function(){let closed={};try{closed=JSON.parse(localStorage.getItem("tikrar-panels-v1")||"{}")||{};}catch(e){}
+  document.querySelectorAll("aside>.panel").forEach((p,i)=>{const h=p.querySelector(":scope>h2");if(!h)return;h.setAttribute("role","button");h.tabIndex=0;
+    const set=c=>{p.classList.toggle("closed",c);h.setAttribute("aria-expanded",String(!c));};set(!!closed[i]);
+    const flip=()=>{const c=!p.classList.contains("closed");set(c);closed[i]=c?1:0;try{localStorage.setItem("tikrar-panels-v1",JSON.stringify(closed));}catch(e){}if(!c){try{drawBoard();}catch(e){}}};
+    h.addEventListener("click",flip);h.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();flip();}});});})();
+/* the viewer bar scrolls sideways: a chevron says there is more */
+(function(){const vb=document.querySelector(".vbar"),vm=$("vmore");if(!vb||!vm)return;
+  const upd=()=>{const over=vb.scrollWidth>vb.clientWidth+2;vm.hidden=!over;if(over){const end=vb.scrollLeft+vb.clientWidth>=vb.scrollWidth-2;vm.dataset.end=end?"1":"";vm.textContent=end?"‹":"›";vm.setAttribute("aria-label",end?"Back to the first controls":"More controls");}};
+  vm.addEventListener("click",()=>vb.scrollBy({left:vm.dataset.end?-9999:Math.max(200,vb.clientWidth*0.7),behavior:RMOTION.matches?"auto":"smooth"}));
+  vb.addEventListener("scroll",upd,{passive:true});try{new ResizeObserver(upd).observe(vb);}catch(e){}addEventListener("resize",upd);upd();setTimeout(upd,600);})();
+hCur=hSnap();histBtns();["pointerdown","keydown","click","input","change"].forEach(ev=>addEventListener(ev,()=>{if(!hLive){hLive=true;if(hT){clearTimeout(hT);hT=0;}hCur=hSnap();}},{capture:true,passive:true}));
 /* ===== Print pieces (STL): every piece of the selected buildings as a clean, watertight solid, for the resin printer or
    as mould masters. Started from Gemini's tikrar_to_stl.mjs (print/gemini_redux), corrected to TIKRAR's own pieces: the
    same constants as the 3D view (walls T, corner radius, LIP, VENT_D, PLATE_T), so the files are what the editor shows.

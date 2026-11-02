@@ -134,3 +134,14 @@ Living version: https://claude.ai/artifact/GkNYtneGMfWf9nK6yKJRzd
 - 2 Nov, Spell a word: Cluster editor, Layout area, field "Spell a word" + Spell button. `spellWord()`, `wordLayout()` (called first in `gridLayout`), 5 × 7 `FONT5` (A–Z, 0–9, - . ! &). One pixel = one module footprint; buildings are new 1–2 level, 1-row-deep, 1–3 wide, one palette, each with its cell `b.wc/b.wr`; `S.word` set. Arrange on grid, Fill grid and Randomize All clear `S.word`. Max 360 modules. Switches to Plan.
 - 2 Nov: Spell also takes Arabic (shaped by the browser onto a canvas, sampled to 11 rows: `arabicCells()`); Spell now switches to Plan with Grid = Lines.
 - 2 Nov: Spell uses PixelAE-Bold.ttf (repo root, loaded via FontFace; fontCells(): one font pixel = one module, Latin and Arabic). 5x7 FONT5 is only the offline fallback.
+
+## 2 Nov review round 1 (v 02.11 · 14:25)
+
+From the review doc https://claude.ai/artifact/1ZcYsG4tDJdifEm739Ktzw. Render engine untouched.
+
+- **History:** Undo / Redo (buttons under Checks, Ctrl or ⌘ + Z, Shift + Z, Y). Only the design is in the history (`VIEWK` lists the view keys that are not: night, sun, explode, candle, render, ortho, lock, spin, nopanel, cut, view). One step per settled change (400 ms pause), so a slider drag is one step. Up to 60 steps or 40 MB. `applyState()` puts a snapshot back. Nothing is recorded until the first touch (`hLive`).
+- **Saving:** `save()` now only schedules; localStorage is written 300 ms after editing stops and on pagehide (`flushSave`). Anything that must read localStorage right away should call `flushSave()` first.
+- **Share:** "Copy link" (design in `#d=`, deflate-raw + base64url, a 17-building city is about 1.8 k characters), "Save JSON", "Open JSON". `checkDesign()` validates anything from outside before it reaches the editor; the hash is removed after opening; opening is one Undo step. A link only opens in the editor it came from (cluster vs module).
+- **UI:** panel headings fold (kept per browser in `tikrar-panels-v1`); a ‹ › chevron on the viewer bar when it overflows; check failures name the wall ("Level 2 1A front") and list them in the tooltip; toast `#toast` (role=status).
+- **Performance:** post-processing scripts download in parallel and run in order; candle flicker is skipped for `prefers-reduced-motion` and when the view is scrolled off screen; `openings.js?v=0211b` (bump the query with each release that changes openings.js).
+- **Not done yet (round 2):** per-building rebuild cache, dynamic resolution while orbiting, self-hosting three with SRI, merging the three entry pages, collapsing the city layout controls under "Advanced".
