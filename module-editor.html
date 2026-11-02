@@ -692,6 +692,7 @@ MAT.contact=new THREE.MeshBasicMaterial({color:0x000000,transparent:true,opacity
 /* ---------- ground ---------- */
 let room=new THREE.Group();scene.add(room);
 const lc=h=>new THREE.Color(h).convertSRGBToLinear();
+function updateRuler(){const rg=room&&room.getObjectByName("rulerGroup");if(!rg)return;const c=camera.position,t=controls.target,el=Math.atan2(c.y-t.y,Math.hypot(c.x-t.x,c.z-t.z)),hi=el>0.55&&S.view!=="front";rg.userData.g.forEach(p=>p.visible=hi);rg.userData.s.forEach(p=>p.visible=!hi);}
 function buildRoom(){scene.remove(room);room.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.isLine&&o.material!==MAT.line)o.material.dispose();});room=new THREE.Group();
   /* by day the ground is the page: pure white, with only the shadows drawn on it; at night a honed dark stone tabletop */
   const white=!S.night,gb=bounds(),gsz=Math.max(gb.x1-gb.x0,gb.z1-gb.z0)+(white?1400:8000),g=new THREE.Mesh(new THREE.PlaneGeometry(gsz,gsz),white?new THREE.ShadowMaterial({opacity:S.render?0.34:0.26}):new THREE.MeshBasicMaterial({color:0x000000}));g.rotation.x=-Math.PI/2;g.position.set((gb.x0+gb.x1)/2,-groundDrop(),(gb.z0+gb.z1)/2);g.receiveShadow=true;room.add(g);   /* by day only as big as the shadows need, so nothing reaches the horizon */
@@ -724,24 +725,29 @@ function buildRoom(){scene.remove(room);room.traverse(o=>{if(o.geometry)o.geomet
     /* plots: one flat porcelain tray per city block (TRAY mm, rounded corners), top flush with the buildings' feet at y = 0 */
     if(trays.length){const tm=matOf("porcelain","pale",false),tg=new THREE.Group();trays.forEach(([x0,z0,x1,z1])=>tg.add(flat(rsq(x0,-z1,x1,-z0,4),[],TRAY,tm,-TRAY)));tg.updateMatrixWorld(true);room.add(mergeGroup(tg));}}
   /* ruler: millimetre ticks (10 / 50 / 100) with labels every 100 mm along the front and left edges of the city and one vertical ruler for height,
-     with the single module's width, depth and height marked in red. Labels are sprites drawn on top (no depth test), so nothing hides or clips them. */
+     with the single module's width, depth and height marked in red. All of it sits outside the city's footprint and height. Labels are flat
+     planes that run along the axis they measure: lying on the ground for plan / axo / high views, standing just below the ground line
+     for the front and low views (updateRuler swaps them by camera height). Drawn on top, sized to their text, so nothing clips. */
   if(blkMode()&&!S.render){const b=bounds(),ry=0.4-groundDrop(),rc=S.night?0xcfd3dc:0x111111,rd=S.night?0xff6a5c:0xe2231a,rg=new THREE.Group(),pts=[],dpt=[],off=70,V=(x,y,z)=>new THREE.Vector3(x,y,z);
-    const RL=window.__rulerTex||(window.__rulerTex=new Map()),lab=(t,x,y,z,col,sc)=>{col=col||rc;const k=t+col;let m=RL.get(k);if(!m){const c=document.createElement("canvas"),g=c.getContext("2d"),F="bold 64px sans-serif";g.font=F;const tw=Math.ceil(g.measureText(t).width)+32;c.width=tw;c.height=112;g.font=F;g.fillStyle="#"+col.toString(16).padStart(6,"0");g.textAlign="center";g.textBaseline="middle";g.fillText(t,tw/2,56);const tx=new THREE.CanvasTexture(c);tx.anisotropy=4;m=new THREE.SpriteMaterial({map:tx,transparent:true,depthTest:false,depthWrite:false,toneMapped:false});m.userData.ar=tw/112;RL.set(k,m);}
-      const sp=new THREE.Sprite(m),k2=(sc||1)*16;sp.scale.set(k2*m.userData.ar,k2,1);sp.position.set(x,y,z);sp.renderOrder=20;rg.add(sp);};
-    const w=b.x1-b.x0,d=b.z1-b.z0,hh=Math.max(b.h-40,H),zf=b.z1+off,xl=b.x0-off,tk=o=>o%100===0?16:o%50===0?11:6;
+    rg.name="rulerGroup";rg.userData={g:[],s:[]};
+    const RL=window.__rulerTex||(window.__rulerTex=new Map()),lab=(t,x,y,z,col,sc,mode)=>{col=col||rc;const k=t+col;let m=RL.get(k);if(!m){const c=document.createElement("canvas"),g=c.getContext("2d"),F="bold 64px sans-serif";g.font=F;const tw=Math.ceil(g.measureText(t).width)+32;c.width=tw;c.height=112;g.font=F;g.fillStyle="#"+col.toString(16).padStart(6,"0");g.textAlign="center";g.textBaseline="middle";g.fillText(t,tw/2,56);const tx=new THREE.CanvasTexture(c);tx.anisotropy=8;m=new THREE.MeshBasicMaterial({map:tx,transparent:true,depthTest:false,depthWrite:false,toneMapped:false,side:THREE.DoubleSide});m.userData.ar=tw/112;RL.set(k,m);}
+      const h=(sc||1)*17,p=new THREE.Mesh(new THREE.PlaneGeometry(h*m.userData.ar,h),m);p.position.set(x,y,z);p.renderOrder=20;
+      if(mode==="g")p.rotation.x=-Math.PI/2;else if(mode==="gz")p.rotation.set(-Math.PI/2,0,Math.PI/2);else if(mode==="sz")p.rotation.y=-Math.PI/2;else if(mode==="v")p.rotation.z=Math.PI/2;
+      (mode==="g"||mode==="gz"?rg.userData.g:mode==="s"||mode==="sz"?rg.userData.s:[]).push(p);rg.add(p);};
+    const w=b.x1-b.x0,d=b.z1-b.z0,hh=Math.max(b.h-40,H),zf=b.z1+off,xl=b.x0-off,tk=o=>o%100===0?16:o%50===0?11:6,SY=-12;
+    const lx=(t,x,z,col,sc)=>{lab(t,x,ry+0.6,z,col,sc,"g");lab(t,x,SY,zf,col,sc,"s");},lz=(t,x,z,col,sc)=>{lab(t,x,ry+0.6,z,col,sc,"gz");lab(t,xl,SY,z,col,sc,"sz");};
     pts.push(V(b.x0,ry,zf),V(b.x0+Math.floor(w/10)*10,ry,zf),V(xl,ry,b.z1),V(xl,ry,b.z1-Math.floor(d/10)*10),V(xl,ry,zf),V(xl,Math.floor(hh/10)*10,zf));
-    for(let o=0;o<=w;o+=10){pts.push(V(b.x0+o,ry,zf),V(b.x0+o,ry,zf+tk(o)));if(o%100===0)lab(o+"",b.x0+o,ry+14,zf+tk(o)+16);}
-    for(let o=0;o<=d;o+=10){pts.push(V(xl,ry,b.z1-o),V(xl-tk(o),ry,b.z1-o));if(o%100===0)lab(o+"",xl-tk(o)-22,ry+14,b.z1-o);}
-    for(let o=0;o<=hh;o+=10){pts.push(V(xl,o,zf),V(xl-tk(o),o,zf));if(o%100===0&&o>0)lab(o+"",xl-tk(o)-22,o,zf);}
-    lab("mm",b.x0+Math.floor(w/100)*100+60,ry+14,zf+30,rc);lab("mm",xl-40,ry+14,b.z1-Math.floor(d/100)*100-50,rc);lab("mm",xl-40,Math.floor(hh/100)*100+30,zf,rc);
-    /* the single module: red dimension lines on the three rulers, one label with all three sizes */
-    const dm=(p,q,t,at)=>{dpt.push(p,q);lab(t,at.x,at.y,at.z,rd,1.05);};
-    dm(V(b.x0,ry,zf+34),V(b.x0+WX,ry,zf+34),WX+"",V(b.x0+WX/2,ry+14,zf+54));
-    dm(V(xl-34,ry,b.z1),V(xl-34,ry,b.z1-WZ),WZ+"",V(xl-72,ry+14,b.z1-WZ/2));
-    dm(V(xl,0,zf+34),V(xl,H,zf+34),H+"",V(xl,H/2,zf+60));
-    lab(WX+"×"+WZ+"×"+H+" mm",xl-70,ry+14,b.z1-d/2,rd,1.2);
+    for(let o=0;o<=w;o+=10){pts.push(V(b.x0+o,ry,zf),V(b.x0+o,ry,zf+tk(o)));if(o%100===0)lx(o+"",b.x0+o,zf+tk(o)+14);}
+    for(let o=0;o<=d;o+=10){pts.push(V(xl,ry,b.z1-o),V(xl-tk(o),ry,b.z1-o));if(o%100===0)lz(o+"",xl-tk(o)-14,b.z1-o);}
+    for(let o=0;o<=hh;o+=10){pts.push(V(xl,o,zf),V(xl-tk(o),o,zf));if(o%100===0&&o>0)lab(o+"",xl-tk(o)-9,o,zf,rc,1,"v");}
+    lx("mm",b.x0+Math.floor(w/100)*100+55,zf+16);lz("mm",xl-16,b.z1-Math.floor(d/100)*100-45);lab("mm",xl-10,Math.floor(hh/100)*100+34,zf,rc,1,"v");
+    /* the single module: red dimension lines run along their own axis, outside the city */
+    const dl=(p,q)=>dpt.push(p,q);
+    dl(V(b.x0,ry,zf+36),V(b.x0+WX,ry,zf+36));lx(WX+"",b.x0+WX/2,zf+52,rd,1.15);
+    dl(V(xl-36,ry,b.z1),V(xl-36,ry,b.z1-WZ));lz(WZ+"",xl-52,b.z1-WZ/2,rd,1.15);
+    dl(V(xl-36,0,zf),V(xl-36,H,zf));lab(H+"",xl-48,H/2,zf,rd,1.15,"v");
     const rl=new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(pts),new THREE.LineBasicMaterial({color:rc}));rl.name="ruler";rg.add(rl);
-    rg.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(dpt),new THREE.LineBasicMaterial({color:rd})));room.add(rg);}
+    rg.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(dpt),new THREE.LineBasicMaterial({color:rd})));room.add(rg);updateRuler();}
   scene.add(room);}
 const TRAY=4,blkMode=()=>S.blocks===true?1:(+S.blocks||0),groundDrop=()=>blkMode()===2?TRAY:0;   /* Blocks: 0 hidden, 1 lines, 2 plots (trays) */
 
@@ -1228,7 +1234,7 @@ let lastD=0;function fitDepth(){if(camera===ortho)return;const d=camera.position
   camera.near=Math.max(2,d*0.04);camera.far=d*4+2500;camera.updateProjectionMatrix();
   if(ssao){[ssao.ssaoMaterial,ssao.depthRenderMaterial].forEach(m=>{if(m&&m.uniforms.cameraNear){m.uniforms.cameraNear.value=camera.near;m.uniforms.cameraFar.value=camera.far;}});
     const span=camera.far-camera.near;ssao.minDistance=0.4/span;ssao.maxDistance=Math.min(0.08,32/span);ssao.kernelRadius=Math.max(3.5,d*0.01);}}
-let tick=0,lastFlick=0;(function loop(now){requestAnimationFrame(loop);controls.update();fitDepth();
+let tick=0,lastFlick=0;(function loop(now){requestAnimationFrame(loop);controls.update();fitDepth();updateRuler();
   /* candle flicker: smooth organic breathing at night */
   if(S.night&&flames.length&&now-lastFlick>(S.render?80:70)&&!document.hidden){lastFlick=now;tick+=0.32;
     {const cs=S.candle===undefined?1:S.candle,k=0.97+Math.sin(tick*1.7)*0.025+Math.sin(tick*4.1)*0.012;
