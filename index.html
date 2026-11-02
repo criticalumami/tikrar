@@ -769,11 +769,11 @@ function buildRoom(){scene.remove(room);room.traverse(o=>{if(o.geometry)o.geomet
       const h=(sc||1)*17,p=new THREE.Mesh(new THREE.PlaneGeometry(h*m.userData.ar,h),m);p.position.set(x,y,z);p.renderOrder=20;
       if(mode==="g")p.rotation.x=-Math.PI/2;else if(mode==="gz")p.rotation.set(-Math.PI/2,0,Math.PI/2);else if(mode==="sz")p.rotation.y=-Math.PI/2;else if(mode==="v")p.rotation.z=Math.PI/2;
       (mode==="g"||mode==="gz"?rg.userData.g:mode==="s"||mode==="sz"?rg.userData.s:[]).push(p);rg.add(p);};
-    const w=b.x1-b.x0,d=b.z1-b.z0,hh=Math.max(b.h-40,H),zf=b.z1+off,xl=b.x0-off,tk=o=>o%100===0?16:o%50===0?11:6,SY=-12;
+    const w=b.x1-b.x0,d=b.z1-b.z0,hh=Math.max(b.h-40,H),zf=b.z1+off,xl=b.x0-off,tk=o=>o%100===0?16:o%50===0?11:6,SY=-34,hp=[];
     const lx=(t,x,z,col,sc)=>{lab(t,x,ry+0.6,z,col,sc,"g");lab(t,x,SY,zf,col,sc,"s");},lz=(t,x,z,col,sc)=>{lab(t,x,ry+0.6,z,col,sc,"gz");lab(t,xl,SY,z,col,sc,"sz");};
     pts.push(V(b.x0,ry,zf),V(b.x0+Math.floor(w/10)*10,ry,zf),V(xl,ry,b.z1),V(xl,ry,b.z1-Math.floor(d/10)*10),V(xl,ry,zf),V(xl,Math.floor(hh/10)*10,zf));
-    for(let o=0;o<=w;o+=10){pts.push(V(b.x0+o,ry,zf),V(b.x0+o,ry,zf+tk(o)));if(o%100===0)lx(o+"",b.x0+o,zf+tk(o)+14);}
-    for(let o=0;o<=d;o+=10){pts.push(V(xl,ry,b.z1-o),V(xl-tk(o),ry,b.z1-o));if(o%100===0)lz(o+"",xl-tk(o)-14,b.z1-o);}
+    for(let o=0;o<=w;o+=10){pts.push(V(b.x0+o,ry,zf),V(b.x0+o,ry,zf+tk(o)));hp.push(V(b.x0+o,ry,zf),V(b.x0+o,-tk(o),zf));if(o%100===0)lx(o+"",b.x0+o,zf+tk(o)+14);}
+    for(let o=0;o<=d;o+=10){pts.push(V(xl,ry,b.z1-o),V(xl-tk(o),ry,b.z1-o));hp.push(V(xl,ry,b.z1-o),V(xl,-tk(o),b.z1-o));if(o%100===0)lz(o+"",xl-tk(o)-14,b.z1-o);}
     for(let o=0;o<=hh;o+=10){pts.push(V(xl,o,zf),V(xl-tk(o),o,zf));if(o%100===0&&o>0)lab(o+"",xl-tk(o)-9,o,zf,rc,1,"v");}
     lx("mm",b.x0+Math.floor(w/100)*100+55,zf+16);lz("mm",xl-16,b.z1-Math.floor(d/100)*100-45);lab("mm",xl-10,Math.floor(hh/100)*100+34,zf,rc,1,"v");
     /* the single module nearest the ruler origin (front-left corner): its own edges dimensioned in red, outside its walls, each along its axis */
@@ -783,6 +783,8 @@ function buildRoom(){scene.remove(room);room.traverse(o=>{if(o.geometry)o.geomet
         lab(WX+"",mx+WX/2,ry+0.6,mz+o+11,rd,1.15,"g");lab(WX+"",mx+WX/2,SY,mz+o+11,rd,1.15,"s");
         lab(WZ+"",mx-o-11,ry+0.6,mz-WZ/2,rd,1.15,"gz");lab(WZ+"",mx-o-11,SY,mz-WZ/2,rd,1.15,"sz");
         lab(H+"",mx-o-11,H/2,mz+o,rd,1.15,"v");}}
+    hp.push(V(b.x0,ry,zf),V(b.x0+Math.floor(w/10)*10,ry,zf),V(xl,ry,b.z1),V(xl,ry,b.z1-Math.floor(d/10)*10));   /* the same graduations hanging below the ground line, for Front and low views where the ground is edge-on */
+    {const hl=new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(hp),new THREE.LineBasicMaterial({color:rc}));rg.userData.s.push(hl);rg.add(hl);}
     const rl=new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(pts),new THREE.LineBasicMaterial({color:rc}));rl.name="ruler";rg.add(rl);
     rg.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(dpt),new THREE.LineBasicMaterial({color:rd})));room.add(rg);updateRuler();}
   scene.add(room);}
