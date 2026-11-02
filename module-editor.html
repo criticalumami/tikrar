@@ -211,7 +211,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
 <header class="grid12">
   <h1>TIKRAR<small>Beirut Lantern Generator</small></h1>
   <span class="sub"><span id="modSize">porcelain modules 60 × 60 mm · 40 mm walls</span> · houses, towers and city blocks · 1860–1925 and modernist openings</span>
-  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 02.11 · 18:56</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
+  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 02.11 · 19:15</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
   </nav>
 </header>
 
@@ -321,6 +321,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
       <p class="hint"><b style="color:var(--bad)">✗</b> porcelain limits, to fix before casting. <b style="color:#b7791f">●</b> proportions from the two manuals: advice, not a rule.</p>
       <div class="f"><span class="lbl">Export</span><div class="v"><div class="seg"><button type="button" id="pdfBtn">Sheet (PDF)</button><button type="button" id="dlSvg">Elevations (SVG)</button></div></div></div>
       <div class="f"><span class="lbl">Print</span><div class="v"><div class="seg" style="flex:1"><button type="button" id="stlBtn" title="Every piece of the selected buildings as watertight STL files in a zip: modules, base, plates and roof">Pieces (STL)</button></div><label class="meta" style="display:flex;align-items:center;gap:4px" title="0 = fired size. Enter the clay's shrinkage (e.g. 14) to scale the pieces up into mould masters">shrink <input id="stlShrink" type="number" min="0" max="40" step="0.5" value="0" style="width:4.2em"> %</label></div></div>
+      <div class="f"><span class="lbl">Blender</span><div class="v"><div class="seg" style="flex:1"><button type="button" id="glbBtn" title="The whole city in place as one .glb for Blender (named pieces, glaze colours as named materials, candle markers) plus a .json with the dimensions. For renders only: print from the STL zip">Scene (GLB)</button></div><label class="meta" style="display:flex;align-items:center;gap:4px" title="Tick to export only the selected buildings; untick for the whole city"><input id="glbSel" type="checkbox"> selected only</label></div></div>
       <div class="f"><span class="lbl">GIF</span><div class="v"><select id="gifMode" aria-label="Animation"><option value="orbit">Orbit</option><option value="sun">Sun, morning to evening</option><option value="explode">Explode and back</option><option value="slide">Openings slide round the walls</option><option value="rand">Randomize, same palette</option><option value="randall">Randomize, all palettes</option></select><select id="gifWhat" aria-label="What a randomize GIF changes" title="Randomize GIFs (also the toolbar GIF): Both = a new city plan and new walls and colours each frame; Look = same plan, new walls and colours; Layout = the same buildings, rearranged into a new plan" style="flex:0 0 84px"><option value="both">Both</option><option value="look">Look</option><option value="layout">Layout</option></select><select id="gifN" aria-label="Frames" style="flex:0 0 64px"><option>10</option><option>12</option><option selected>24</option><option>36</option><option>48</option></select><button class="btn" type="button" id="gifBtn">Make</button></div></div>
       <div class="f"><span class="lbl">Share</span><div class="v"><div class="seg" style="flex:1"><button type="button" id="shareLink" title="Copy a link that opens this design in any browser">Copy link</button><button type="button" id="saveJson" title="Download this design as a .json file">Save JSON</button><button type="button" id="openJson" title="Open a design saved as .json">Open JSON</button></div><input type="file" id="jsonFile" accept=".json,application/json" hidden></div></div>
       <div class="f"><span class="lbl">History</span><div class="v"><div class="seg" style="flex:1"><button type="button" id="undoBtn" title="Undo the last change (Ctrl or \u2318 + Z)" disabled>Undo</button><button type="button" id="redoBtn" title="Redo (Shift + Ctrl or \u2318 + Z)" disabled>Redo</button></div></div></div>
@@ -2221,23 +2222,30 @@ function pitchedSolid(M,b){const g=slantRoof(b).children[0].geometry,p=g.attribu
 function courtSolid(M,b,hw,hd){const r=radOf(b),base=loftRR(M,blockRings(hw,hd,r,COURT_T,2.4,2.4),16),
     ro=loftRR(M,blockRings(hw,hd,r,COURT_RIM,1.2,1.2,COURT_T-0.5),16),ri=loftRR(M,holeRings(hw-3,hd-3,Math.max(0.5,r-3),COURT_RIM,0,0).map(q=>[q[0],q[1],q[2],q[3]+COURT_T-0.5]),16);
   const rim=ro.subtract(ri),s=M.Manifold.union([base,rim]);[base,ro,ri,rim].forEach(x=>x.delete());return s;}
+const glzBody=b=>(b.finish||"glazed")==="unglazed"?"unglazed":(b.glazeCol||"white"),
+  glzPlate=(b,l)=>{const rc=(b.slabCol&&b.slabCol[l])||b.plateCol||"same";return rc==="same"?glzBody(b):rc;},
+  glzRoof=(b,m)=>{const rc=(m&&m.lid)||b.roofCol||"same";return rc==="same"?glzBody(b):rc;};   /* glaze key of each part, as bodyMat / plateMat / roofMat pick it */
 /* every piece of one building, identical pieces counted once: [{name,qty,desc,solid}] */
-function piecesOf(M,b){const out=new Map(),put=(k,name,desc,make,use)=>{const p=out.get(k);if(p){p.qty++;if(use)p.uses.add(use);return;}out.set(k,{name,desc,qty:1,uses:new Set(use?[use]:[]),solid:make()});};
+function piecesOf(M,b,cache){const kp=cache?[radOf(b),b.roof,b.pitch,b.span].join("~")+"|":"",out=new Map(),
+    put=(k,name,desc,make,use,at)=>{const p=out.get(k);if(p){p.qty++;if(use)p.uses.add(use);if(at)p.at.push(at);return;}
+      let solid=cache&&cache.get(kp+k);if(!solid){solid=make();if(cache)cache.set(kp+k,solid);}   /* cache: solids shared between buildings (GLB scene); at: where each copy stands, for the GLB */
+      out.set(k,{name,desc,qty:1,uses:new Set(use?[use]:[]),at:at?[at]:[],solid,gkey:kp+k});};
   const mx=c=>(c-(b.cols-1)/2)*WX,my=r=>(r-(b.deep-1)/2)*WZ,hw=b.cols*WX/2,hd=b.deep*WZ/2;
-  if(b.court){put("court","plaza-tray","public court tray "+COURT_T+" mm with a "+COURT_RIM+" mm rim",()=>courtSolid(M,b,hw,hd));return [...out.values()];}
-  let mi=0;const mname=new Map();
+  if(b.court){put("court","plaza-tray","public court tray "+COURT_T+" mm with a "+COURT_RIM+" mm rim",()=>courtSolid(M,b,hw,hd),null,{p:[0,0,0],m:glzPlate(b,0),lab:"tray"});return [...out.values()];}
+  const LY=levelY(b,0);let mi=0;const mname=new Map();
   for(let l=0;l<b.levels;l++){
     if(b.plates[l]){const cells=[];for(let c=0;c<b.cols;c++)for(let r=0;r<b.deep;r++){const up=alive(b,c+":"+r+":"+l),dn=l===0?up:alive(b,c+":"+r+":"+(l-1));
         cells.push({x:mx(c),y:my(r),vent:up?"round":(l>0&&courtOpen(b,c,r,l)?"court":null),up,dn});}
-      const k="slab|"+b.cols+"x"+b.deep+"|"+plateT(l)+"|"+JSON.stringify(cells);put(k,l?"plate-L"+l:"base",b.cols+"×"+b.deep+" modules, "+plateT(l)+" mm, lips both faces",()=>slabSolid(M,b,hw,hd,plateT(l),cells),l?"plate L"+l:"base");}
+      const k="slab|"+b.cols+"x"+b.deep+"|"+plateT(l)+"|"+JSON.stringify(cells);put(k,l?"plate-L"+l:"base",b.cols+"×"+b.deep+" modules, "+plateT(l)+" mm, lips both faces",()=>slabSolid(M,b,hw,hd,plateT(l),cells),l?"plate L"+l:"base",{p:[0,0,LY.ys[l]-plateT(l)],m:glzPlate(b,l),lab:l?"plate-L"+l:"base"});}
     for(let c=0;c<b.cols;c++)for(let r=0;r<b.deep;r++){const key=c+":"+r+":"+l;if(!alive(b,key))continue;const m=b.mods[key],spec={};FACES.forEach(f=>spec[f]=m[f]);const k="mod|"+JSON.stringify(spec);
       if(!mname.has(k))mname.set(k,"module-"+String.fromCharCode(65+(mi++%26))+(mi>26?Math.floor((mi-1)/26):""));
-      put(k,mname.get(k),"module "+WX+" × "+WZ+" × "+H+", walls "+T+" mm ("+FACES.map(f=>f+": "+(m[f].bays?m[f].bays.join("/"):m[f].id||m[f].mode)).join(", ")+")",()=>moduleSolid(M,b,m));}}
+      put(k,mname.get(k),"module "+WX+" × "+WZ+" × "+H+", walls "+T+" mm ("+FACES.map(f=>f+": "+(m[f].bays?m[f].bays.join("/"):m[f].id||m[f].mode)).join(", ")+")",()=>moduleSolid(M,b,m),null,{p:[mx(c),my(r),LY.ys[l]],m:m.col||glzBody(b),lab:"L"+l+"-c"+c+"r"+r,candle:litMod(b,c,r,l)});}}
   if(b.roof!=="none"){const one=!(perMod(b)||!topComplete(b)),nc=one?b.cols:1,nd=one?b.deep:1;
-    for(let c=0;c<(one?1:b.cols);c++)for(let r=0;r<(one?1:b.deep);r++){if(!one){let any=false;for(let l=0;l<b.levels;l++)if(alive(b,c+":"+r+":"+l))any=true;if(!any)continue;}
+    for(let c=0;c<(one?1:b.cols);c++)for(let r=0;r<(one?1:b.deep);r++){let lm=-1;if(!one){for(let l=0;l<b.levels;l++)if(alive(b,c+":"+r+":"+l))lm=l;if(lm<0)continue;}
+      const rat={p:one?[0,0,LY.top]:[mx(c),my(r),LY.ys[lm]+H],m:glzRoof(b,one?null:b.mods[c+":"+r+":"+lm]),lab:one?"roof":"roof-c"+c+"r"+r};
       if(b.roof==="modern"){const cells=[];for(let i=0;i<nc;i++)for(let j=0;j<nd;j++)cells.push({x:(i-(nc-1)/2)*WX,y:(j-(nd-1)/2)*WZ,vent:"round",up:true,dn:true});
-        put("slab|"+nc+"x"+nd+"|"+FLAT_T+"|"+JSON.stringify(cells),"roof-flat",nc+"×"+nd+" modules, "+FLAT_T+" mm, lips both faces",()=>slabSolid(M,b,nc*WX/2,nd*WZ/2,FLAT_T,cells),"flat roof");}
-      else{const sb=Object.assign({},b,one?{}:{span:"module"});put("pitch|"+nc+"x"+nd+"|"+b.pitch,"roof-pitched","pitched roof, "+nc+"×"+nd+" modules, "+b.pitch+"°, "+T+" mm shell",()=>pitchedSolid(M,sb));}}}
+        put("slab|"+nc+"x"+nd+"|"+FLAT_T+"|"+JSON.stringify(cells),"roof-flat",nc+"×"+nd+" modules, "+FLAT_T+" mm, lips both faces",()=>slabSolid(M,b,nc*WX/2,nd*WZ/2,FLAT_T,cells),"flat roof",rat);}
+      else{const sb=Object.assign({},b,one?{}:{span:"module"});put("pitch|"+nc+"x"+nd+"|"+b.pitch,"roof-pitched","pitched roof, "+nc+"×"+nd+" modules, "+b.pitch+"°, "+T+" mm shell",()=>pitchedSolid(M,sb),null,rat);}}}
   /* the same slab cast for several jobs (base, plate, flat roof) is one file */
   out.forEach(p=>{if(p.uses.size>1){p.name="slab-"+p.name.replace(/^(plate-L\d+|base|roof-flat)$/,"")+[...p.uses].map(u=>u.replace(/\s+/g,"")).join("-");}if(p.uses.size)p.desc="slab for "+[...p.uses].join(", ")+" · "+p.desc;});
   return [...out.values()];}
@@ -2271,6 +2279,70 @@ async function exportSTL(shrink){const M=await manifoldLib(),sc=shrink>0?1/(1-sh
   files.push({name:"README.txt",data:new TextEncoder().encode(lines.join("\n"))});
   return {blob:zipOf(files),lines};}
 window.__stl={exportSTL,piecesOf:b=>manifoldLib().then(M=>piecesOf(M,b))};
+/* ===== Scene (GLB): the whole city (or the selected buildings) as ONE glTF binary for Blender, every piece in place.
+   Built from the same piecesOf() solids as the STL zip, so it is exactly what would be cast: nothing is re-modelled.
+   Units: glTF is metres, so 1 unit = 1 m and a 60 mm module is 0.06 (Blender's default scene units show it as 6 cm).
+   Y is up (glTF); TIKRAR's Z-up pieces are turned x, y, z -> x, z, -y, the same turn the 3D view makes.
+   Nodes: "<building>" > "<piece>.<position>" (copies share one mesh per shape and colour) and "candle.…" empties at each flame.
+   Materials are named "<body>-<glaze>" (porcelain-cobalt, porcelain-unglazed …) so a Blender template can swap them by name.
+   Never print from this file: print from the STL zip. */
+function glazeRGB(body,glaze){const bd=BODY[body]||BODY.porcelain,foot=new THREE.Color(bd.col).multiply(new THREE.Color(0xd2c4ad)).getHex(),
+    col=glaze==="foot"?foot:glaze==="unglazed"?bd.col:(GLAZE[glaze]&&GLAZE[glaze].col!==null?GLAZE[glaze].col:new THREE.Color(bd.col).lerp(new THREE.Color(0xffffff),0.12).getHex());
+  const c=new THREE.Color(col).convertSRGBToLinear();return [c.r,c.g,c.b];}
+function smoothMesh(v,t,sc){   /* positions (mm, Z up) -> Y up metres; normals smoothed across edges flatter than 40°, split at creases */
+  const nv=v.length/3,P=new Float64Array(nv*3);for(let i=0;i<nv;i++){P[3*i]=v[3*i]*sc;P[3*i+1]=v[3*i+2]*sc;P[3*i+2]=-v[3*i+1]*sc;}
+  const nt=t.length/3,FN=new Float64Array(nt*3),vf=Array.from({length:nv},()=>[]);
+  for(let f=0;f<nt;f++){const a=t[3*f],b=t[3*f+1],c=t[3*f+2],ux=P[3*b]-P[3*a],uy=P[3*b+1]-P[3*a+1],uz=P[3*b+2]-P[3*a+2],wx=P[3*c]-P[3*a],wy=P[3*c+1]-P[3*a+1],wz=P[3*c+2]-P[3*a+2];
+    FN[3*f]=uy*wz-uz*wy;FN[3*f+1]=uz*wx-ux*wz;FN[3*f+2]=ux*wy-uy*wx;vf[a].push(f);vf[b].push(f);vf[c].push(f);}   /* length = 2 × area: area weighted */
+  const U=x=>{const l=Math.hypot(x[0],x[1],x[2])||1;return [x[0]/l,x[1]/l,x[2]/l];},cosA=Math.cos(40*Math.PI/180),map=new Map(),pos=[],nor=[],idx=[];
+  for(let f=0;f<nt;f++){const fn=U([FN[3*f],FN[3*f+1],FN[3*f+2]]);
+    for(let k=0;k<3;k++){const vi=t[3*f+k];let n=[0,0,0];
+      for(const g of vf[vi]){const gn=U([FN[3*g],FN[3*g+1],FN[3*g+2]]);if(gn[0]*fn[0]+gn[1]*fn[1]+gn[2]*fn[2]>=cosA){n[0]+=FN[3*g];n[1]+=FN[3*g+1];n[2]+=FN[3*g+2];}}
+      n=U(n);const key=vi+"|"+Math.round(n[0]*60)+","+Math.round(n[1]*60)+","+Math.round(n[2]*60);let id=map.get(key);
+      if(id===undefined){id=pos.length/3;map.set(key,id);pos.push(P[3*vi],P[3*vi+1],P[3*vi+2]);nor.push(n[0],n[1],n[2]);}idx.push(id);}}
+  return {pos:new Float32Array(pos),nor:new Float32Array(nor),idx:new Uint32Array(idx)};}
+function solidArrays(sol){if(sol.raw)return {v:sol.raw.v,t:sol.raw.t};const m=sol.getMesh(),np=m.numProp,v=[];for(let i=0;i<m.vertProperties.length;i+=np)v.push(m.vertProperties[i],m.vertProperties[i+1],m.vertProperties[i+2]);return {v,t:m.triVerts};}
+function glbOf(json,bin){const enc=new TextEncoder(),j=enc.encode(JSON.stringify(json)),jp=(4-j.length%4)%4,jj=new Uint8Array(j.length+jp).fill(32);jj.set(j);
+  const bp=(4-bin.length%4)%4,bb=new Uint8Array(bin.length+bp);bb.set(bin);const total=12+8+jj.length+8+bb.length,buf=new ArrayBuffer(total),o=new DataView(buf);let p=0;
+  const u32=x=>{o.setUint32(p,x,true);p+=4;};u32(0x46546C67);u32(2);u32(total);u32(jj.length);u32(0x4E4F534A);new Uint8Array(buf).set(jj,p);p+=jj.length;u32(bb.length);u32(0x004E4942);new Uint8Array(buf).set(bb,p);
+  return new Blob([buf],{type:"model/gltf-binary"});}
+async function exportGLB(only,progress){const M=await manifoldLib(),sc=0.001,cache=new Map(),meshes=[],mats=[],matIdx=new Map(),nodes=[],bufs=[],views=[],accs=[],meshOf=new Map(),usedNames=new Set(),
+    slug=s=>s.replace(/\W+/g,"-").replace(/^-|-$/g,"").toLowerCase()||"building",idxs=only?selIdx():S.buildings.map((_,i)=>i);
+  let blen=0;const addBuf=(arr,target)=>{const u=new Uint8Array(arr.buffer,arr.byteOffset,arr.byteLength),pad=(4-blen%4)%4;if(pad){bufs.push(new Uint8Array(pad));blen+=pad;}
+    views.push({buffer:0,byteOffset:blen,byteLength:u.length,target});bufs.push(u);blen+=u.length;return views.length-1;};
+  const matId=(b,key)=>{const body=b.body||"porcelain",name=body+"-"+key;let i=matIdx.get(name);if(i===undefined){const gl=b.finish==="gloss",un=key==="unglazed"||key==="foot";i=mats.length;matIdx.set(name,i);
+      mats.push({name,pbrMetallicRoughness:{baseColorFactor:[...glazeRGB(body,key),1],metallicFactor:0,roughnessFactor:un?0.88:gl?0.24:0.46},extras:{body,glaze:key,finish:un?"unglazed":gl?"gloss":"satin",translucent:!!BODY[body].glow}});}return i;};
+  const meshId=(gk,name,sol,mi)=>{const k=gk+"#"+mi;let i=meshOf.get(k);if(i!==undefined)return i;
+    const {v,t}=solidArrays(sol),g=smoothMesh(v,t,sc),mn=[1e9,1e9,1e9],mx=[-1e9,-1e9,-1e9];for(let q=0;q<g.pos.length;q+=3)for(let a=0;a<3;a++){mn[a]=Math.min(mn[a],g.pos[q+a]);mx[a]=Math.max(mx[a],g.pos[q+a]);}
+    const vp=addBuf(g.pos,34962),vn=addBuf(g.nor,34962),vi=addBuf(g.idx,34963),a0=accs.length;
+    accs.push({bufferView:vp,componentType:5126,count:g.pos.length/3,type:"VEC3",min:mn,max:mx},{bufferView:vn,componentType:5126,count:g.nor.length/3,type:"VEC3"},{bufferView:vi,componentType:5125,count:g.idx.length,type:"SCALAR"});
+    let nm=name;for(let n=2;usedNames.has(nm);n++)nm=name+"-"+n;usedNames.add(nm);
+    i=meshes.length;meshOf.set(k,i);meshes.push({name:nm,primitives:[{attributes:{POSITION:a0,NORMAL:a0+1},indices:a0+2,material:mi,mode:4}]});return i;};
+  const roots=[],info=[];let done=0;
+  for(const bi of idxs){const b=S.buildings[bi];if(progress)progress(++done,idxs.length);await new Promise(r=>setTimeout(r,0));
+    const bname=slug(b.name)+"-"+(bi+1),kids=[],ps=piecesOf(M,b,cache),cn=[];
+    for(const p of ps)for(const a of p.at){const mi=matId(b,a.m),mesh=meshId(p.gkey,p.name,p.solid,mi);
+      kids.push(nodes.length);nodes.push({name:p.name+"."+a.lab,mesh,translation:[a.p[0]*sc,a.p[2]*sc,-a.p[1]*sc],extras:{piece:p.name,at:a.lab}});
+      if(a.candle){cn.push(nodes.length);nodes.push({name:"candle."+a.lab,translation:[a.p[0]*sc,(a.p[2]+CANDLE_Y)*sc,-a.p[1]*sc],extras:{kind:"candle",module:a.lab,flame_height_mm:CANDLE_Y,cup_d_mm:CD,cup_h_mm:CH}});}}
+    const ang=-b.rot*Math.PI/2,bn=nodes.length;nodes.push({name:bname,children:[...kids,...cn],translation:[b.x*sc,0,b.z*sc],rotation:[0,Math.sin(ang/2),0,Math.cos(ang/2)],
+      extras:{building:b.name,cols:b.cols,deep:b.deep,levels:b.levels,roof:b.roof,x_mm:b.x,z_mm:b.z,rot_quarter_turns:b.rot}});
+    roots.push(bn);info.push({name:b.name,node:bname,cols:b.cols,deep:b.deep,levels:b.levels,roof:b.roof,pitch_deg:b.pitch,body:b.body||"porcelain",finish:b.finish||"glazed",palette:b.palette||null,
+      x_mm:b.x,z_mm:b.z,rot_quarter_turns:b.rot,candles:cn.length,pieces:ps.map(p=>({mesh:p.name,qty:p.qty,desc:p.desc}))});}
+  const scene={format:"tikrar-scene",version:1,stamp:$("ver").textContent,units:{glb:"metres (1 unit = 1 m; a 60 mm module is 0.06)",tikrar:"millimetres",y_up:true,shrink:"GLB is fired size 1:1; print from the STL zip, never from this file"},
+    module:{width_mm:WX,length_mm:WZ,height_mm:H,wall_mm:T,base_mm:BASE_T,plate_mm:PLATE_T,flat_roof_mm:FLAT_T,lip:{w_mm:LIP.w,h_mm:LIP.h,clearance_mm:LIP.clr},vent_d_mm:VENT_D,candle:{flame_height_mm:CANDLE_Y,cup_d_mm:CD,cup_h_mm:CH}},
+    shrink_percent:Object.fromEntries(Object.entries(BODY).map(([k,v])=>[k,v.shrink])),materials:mats.map(m=>({name:m.name,...m.extras,base_color_linear:m.pbrMetallicRoughness.baseColorFactor.slice(0,3)})),buildings:info};
+  const bin=new Uint8Array(blen);let o=0;bufs.forEach(u=>{bin.set(u,o);o+=u.length;});
+  const json={asset:{version:"2.0",generator:"TIKRAR "+$("ver").textContent,extras:scene},scene:0,scenes:[{name:"TIKRAR city",nodes:roots,extras:scene}],nodes,meshes,materials:mats.map(({name,pbrMetallicRoughness,extras})=>({name,pbrMetallicRoughness,extras})),
+    accessors:accs,bufferViews:views,buffers:[{byteLength:bin.length}]};
+  for(const s of cache.values())if(!s.raw)s.delete();
+  return {blob:glbOf(json,bin),scene,json,bin,stats:{buildings:idxs.length,meshes:meshes.length,nodes:nodes.length,materials:mats.length,bytes:bin.length}};}
+window.__glb={exportGLB};
+on("glbBtn","click",async()=>{const btn=$("glbBtn"),t=btn.textContent,only=$("glbSel").checked;btn.disabled=true;
+  try{const {blob,scene}=await exportGLB(only,(i,n)=>btn.textContent=`Building ${i}/${n}…`),d=new Date(),z=n=>String(n).padStart(2,"0"),stamp=`${d.getFullYear()}${z(d.getMonth()+1)}${z(d.getDate())}-${z(d.getHours())}${z(d.getMinutes())}`,
+      dl=(bl,nm)=>{const a=document.createElement("a");a.href=URL.createObjectURL(bl);a.download=nm;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);};
+    dl(blob,`tikrar-scene-${stamp}.glb`);setTimeout(()=>dl(new Blob([JSON.stringify(scene,null,1)],{type:"application/json"}),`tikrar-scene-${stamp}.json`),500);btn.textContent=t;}
+  catch(e){console.error(e);btn.textContent="GLB failed";setTimeout(()=>btn.textContent=t,3000);}
+  btn.disabled=false;});
 on("stlBtn","click",async()=>{const btn=$("stlBtn"),t=btn.textContent,sh=Math.max(0,Math.min(40,parseFloat($("stlShrink").value)||0));btn.textContent="Building…";btn.disabled=true;
   try{const {blob}=await exportSTL(sh),d=new Date(),z=n=>String(n).padStart(2,"0"),a=document.createElement("a");a.href=URL.createObjectURL(blob);
     a.download=`tikrar-pieces-${d.getFullYear()}${z(d.getMonth()+1)}${z(d.getDate())}-${z(d.getHours())}${z(d.getMinutes())}${sh?"-master"+sh:""}.zip`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),2000);btn.textContent=t;}
