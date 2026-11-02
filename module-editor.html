@@ -726,8 +726,8 @@ function buildRoom(){scene.remove(room);room.traverse(o=>{if(o.geometry)o.geomet
   /* ruler: millimetre ticks (10 / 50 / 100) with labels every 100 mm along the front and left edges of the city and one vertical ruler for height,
      with the single module's width, depth and height marked in red. Labels are sprites drawn on top (no depth test), so nothing hides or clips them. */
   if(blkMode()&&!S.render){const b=bounds(),ry=0.4-groundDrop(),rc=S.night?0xcfd3dc:0x111111,rd=S.night?0xff6a5c:0xe2231a,rg=new THREE.Group(),pts=[],dpt=[],off=70,V=(x,y,z)=>new THREE.Vector3(x,y,z);
-    const RL=window.__rulerTex||(window.__rulerTex=new Map()),lab=(t,x,y,z,col,sc)=>{col=col||rc;const k=t+col;let m=RL.get(k);if(!m){const c=document.createElement("canvas");c.width=320;c.height=112;const g=c.getContext("2d");g.fillStyle="#"+col.toString(16).padStart(6,"0");g.font="bold 64px sans-serif";g.textAlign="center";g.textBaseline="middle";g.fillText(t,160,56);const tx=new THREE.CanvasTexture(c);tx.anisotropy=4;m=new THREE.SpriteMaterial({map:tx,transparent:true,depthTest:false,depthWrite:false,toneMapped:false});RL.set(k,m);}
-      const sp=new THREE.Sprite(m),k2=(sc||1)*16;sp.scale.set(k2*320/112,k2,1);sp.position.set(x,y,z);sp.renderOrder=20;rg.add(sp);};
+    const RL=window.__rulerTex||(window.__rulerTex=new Map()),lab=(t,x,y,z,col,sc)=>{col=col||rc;const k=t+col;let m=RL.get(k);if(!m){const c=document.createElement("canvas"),g=c.getContext("2d"),F="bold 64px sans-serif";g.font=F;const tw=Math.ceil(g.measureText(t).width)+32;c.width=tw;c.height=112;g.font=F;g.fillStyle="#"+col.toString(16).padStart(6,"0");g.textAlign="center";g.textBaseline="middle";g.fillText(t,tw/2,56);const tx=new THREE.CanvasTexture(c);tx.anisotropy=4;m=new THREE.SpriteMaterial({map:tx,transparent:true,depthTest:false,depthWrite:false,toneMapped:false});m.userData.ar=tw/112;RL.set(k,m);}
+      const sp=new THREE.Sprite(m),k2=(sc||1)*16;sp.scale.set(k2*m.userData.ar,k2,1);sp.position.set(x,y,z);sp.renderOrder=20;rg.add(sp);};
     const w=b.x1-b.x0,d=b.z1-b.z0,hh=Math.max(b.h-40,H),zf=b.z1+off,xl=b.x0-off,tk=o=>o%100===0?16:o%50===0?11:6;
     pts.push(V(b.x0,ry,zf),V(b.x0+Math.floor(w/10)*10,ry,zf),V(xl,ry,b.z1),V(xl,ry,b.z1-Math.floor(d/10)*10),V(xl,ry,zf),V(xl,Math.floor(hh/10)*10,zf));
     for(let o=0;o<=w;o+=10){pts.push(V(b.x0+o,ry,zf),V(b.x0+o,ry,zf+tk(o)));if(o%100===0)lab(o+"",b.x0+o,ry+14,zf+tk(o)+16);}
@@ -739,7 +739,7 @@ function buildRoom(){scene.remove(room);room.traverse(o=>{if(o.geometry)o.geomet
     dm(V(b.x0,ry,zf+34),V(b.x0+WX,ry,zf+34),WX+"",V(b.x0+WX/2,ry+14,zf+54));
     dm(V(xl-34,ry,b.z1),V(xl-34,ry,b.z1-WZ),WZ+"",V(xl-72,ry+14,b.z1-WZ/2));
     dm(V(xl,0,zf+34),V(xl,H,zf+34),H+"",V(xl,H/2,zf+60));
-    lab("module "+WX+" × "+WZ+" × "+H+" mm",xl-110,ry+14,b.z1-d/2,rd,1.2);
+    lab(WX+"×"+WZ+"×"+H+" mm",xl-70,ry+14,b.z1-d/2,rd,1.2);
     const rl=new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(pts),new THREE.LineBasicMaterial({color:rc}));rl.name="ruler";rg.add(rl);
     rg.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(dpt),new THREE.LineBasicMaterial({color:rd})));room.add(rg);}
   scene.add(room);}
