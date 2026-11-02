@@ -204,7 +204,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
 <header class="grid12">
   <h1>TIKRAR<small>Beirut Lantern Generator</small></h1>
   <span class="sub"><span id="modSize">porcelain modules 60 × 60 mm · 40 mm walls</span> · houses, towers and city blocks · 1860–1925 and modernist openings</span>
-  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 02.11 · 08:10</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
+  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 02.11 · 08:30</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
   <button class="btn icon" id="themeBtn" type="button" aria-label="Toggle colour theme">◐</button></nav>
 </header>
 
@@ -580,7 +580,8 @@ const GLAZE={clear:{name:"Clear",col:null},white:{name:"White",col:0xf6f3ee},cel
   sand:{name:"Sand",col:0xd9c3a0},sky:{name:"Sky",col:0x9cc3d8},rose:{name:"Rose",col:0xd9a3a0},olive:{name:"Olive",col:0x8a8f52},
   red:{name:"Signal red",col:0xd52b1e},ultramarine:{name:"Ultramarine",col:0x1f3b8f},ochre:{name:"Ochre",col:0xc4912c},grey:{name:"Warm grey",col:0xa39b90},
   cream:{name:"Cream",col:0xefe6d0},green:{name:"Deep green",col:0x1e5a40},yellow:{name:"Signal yellow",col:0xe9c22a},
-  pale:{name:"Pale grey",col:0xd2d2d0},mid:{name:"Mid grey",col:0x8e8e8c},charcoal:{name:"Charcoal",col:0x3a3a3a}};
+  pale:{name:"Pale grey",col:0xd2d2d0},mid:{name:"Mid grey",col:0x8e8e8c},charcoal:{name:"Charcoal",col:0x3a3a3a},
+  holly:{name:"Holly red",col:0xa3202a},pine:{name:"Pine green",col:0x1f4a35},gold:{name:"Gold",col:0xc9a03a}};
 /* palettes: walls, accent modules, plates, roof */
 /* palettes: walls, accent modules, plates, roof. Mediterranean, then the Swiss poster palettes (Müller-Brockmann's concert and
    public-service posters, Grid Systems in Graphic Design): black, white and signal red, with warm grey, ochre, ultramarine,
@@ -594,6 +595,7 @@ const PALETTES={
   grey:{name:"Warm grey and red",accent:0xd52b1e,walls:"grey",accents:["white","red"],plates:"white",roof:"grey"},
   green:{name:"Green and cream",accent:0x1e5a40,walls:"cream",accents:["green","ochre"],plates:"green",roof:"green"},
   gray:{name:"Grayscale",accent:0x5e5e5c,walls:"white",accents:["pale","mid","charcoal"],plates:"charcoal",roof:"mid"},
+  xmas:{name:"Christmas",accent:0xa3202a,walls:"cream",accents:["holly","pine","gold"],plates:"pine",roof:"holly"},
   white:{name:"All white",accent:0xe2231a,walls:"white",accents:["white"],plates:"white",roof:"white"}};
 function applyPalette(b,key,accentShare){const p=PALETTES[key];if(b.finish==="unglazed"||!b.finish)b.finish="glazed";b.glazeCol=p.walls;b.plateCol=p.plates;b.palette=key;
   /* roofs vary with the palette, building by building: white about two times in three, otherwise the palette's roof colour or one of its accents */
