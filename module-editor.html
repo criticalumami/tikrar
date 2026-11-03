@@ -211,7 +211,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
 <header class="grid12">
   <h1>TIKRAR<small>Beirut Lantern Generator</small></h1>
   <span class="sub"><span id="modSize">porcelain modules 60 × 60 mm · 40 mm walls</span> · houses, towers and city blocks · 1860–1925 and modernist openings</span>
-  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 04.11 · 01:15</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
+  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 04.11 · 01:50</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
   </nav>
 </header>
 
@@ -1004,19 +1004,20 @@ let slideT=0,slideNext=0;(function slideLoop(now){requestAnimationFrame(slideLoo
    ENG.rem thick, so the candlelight shows brighter through the pattern. Pockets are rounded (soft rim, filleted floor, a little
    draft so a two-part mould releases), never touch an opening or an edge, and the outer face stays flush everywhere else.
    Patterns are 1-bit tiles drawn after the two books: HoB = Houses of Beirut 1860-1925, AdB = Architectures de Beyrouth 1925-1970. */
-const ENG={pitch:3.4,px:2.2,rem:1.0,rim:0.25,rc:0.5,draft:0.12,margin:0.5};   /* pitch: cell spacing; px: pocket side; rem: clay left under a pocket (mm) */
+const ENG={pitch:3.2,px:2.0,rem:1.0,rim:0.25,rc:0.5,draft:0.12,margin:0.2};   /* pitch: cell spacing; px: pocket side; rem: clay left under a pocket (mm) */
 const ENG_PATS=[
- {id:"star",motif:true,book:"HoB",name:"Eight-point star",ref:"cement floor tiles, painted ceilings",tile:["..#...","#.#.#.",".###..","#.#.#.","..#...","......"],c:[2,2]},
+ {id:"grid",book:"",name:"Pixel grid",ref:"a plain dense grid of pixels",tile:["#"],c:[0,0]},
+ {id:"star",book:"HoB",name:"Eight-point star",ref:"cement floor tiles, painted ceilings",tile:["..#...","#.#.#.",".###..","#.#.#.","..#...","......"],c:[2,2]},
  {id:"lattice",book:"HoB",name:"Diamond lattice",ref:"Qotrani window grilles, stained glass",tile:["#....#",".#..#.","..##..","..##..",".#..#.","#....#"],c:[2,2]},
  {id:"chevron",book:"HoB",name:"Chevron frieze",ref:"painted ceiling borders",tile:["#......#",".#....#.","..#..#..","...##...","........"],c:[3,2]},
- {id:"beads",motif:true,book:"HoB",name:"Pear balusters",ref:"cast and turned balustrades",tile:[".#..","###.","###.",".#..",".#..","###.","###.",".#..","...."],c:[1,4]},
- {id:"rings",motif:true,book:"AdB",name:"Claustra rings",ref:"modular claustra screens, pp. 52-53",tile:[".##..","#..#.","#..#.",".##..","....."],c:[1,1]},
- {id:"crosses",motif:true,book:"AdB",name:"Claustra crosses",ref:"modular claustra screens, pp. 52-53",tile:[".#..","###.",".#..","...."],c:[1,1]},
+ {id:"beads",book:"HoB",name:"Pear balusters",ref:"cast and turned balustrades",tile:[".#..","###.","###.",".#..",".#..","###.","###.",".#..","...."],c:[1,4]},
+ {id:"rings",book:"AdB",name:"Claustra rings",ref:"modular claustra screens, pp. 52-53",tile:[".##..","#..#.","#..#.",".##..","....."],c:[1,1]},
+ {id:"crosses",book:"AdB",name:"Claustra crosses",ref:"modular claustra screens, pp. 52-53",tile:[".#..","###.",".#..","...."],c:[1,1]},
  {id:"checker",book:"AdB",name:"Block checker",ref:"1930s-60s cast facade panels",tile:["##..","##..","..##","..##"],c:[1,1]},
  {id:"stairs",book:"AdB",name:"Stepped fins",ref:"cantilever and console profiles, p. 38",tile:["#...","##..","###.","####"],c:[1,1]}];
 const engPat=id=>ENG_PATS.find(p=>p.id===id);
 const engDepth=()=>Math.max(0.5,T-ENG.rem);
-const engClr=()=>(ENG.px/2+ENG.rim)*1.2+ENG.margin;
+const engClr=()=>(ENG.px/2+ENG.rim)*Math.SQRT2+ENG.margin;
 /* half-size and depth of each ring of a pocket: soft rim, straight drafted wall, filleted floor */
 function engProf(d){const h=ENG.px/2,f=ENG.rim,dl=ENG.draft*d,r=Math.min(0.6,Math.max(0.1,(d-f)*0.45));
   return [[h+f,0],[h+0.293*f,0.293*f],[h,f],[h-dl,d-r],[h-dl-r*0.7,d-r*0.3],[h-dl-r,d]];}
@@ -1047,20 +1048,25 @@ function engraveFace(geo,fr,cellsFn,d){
   const P=geo.attributes.position.array,N=geo.attributes.normal.array,U=geo.attributes.uv&&geo.attributes.uv.array,nt=P.length/9,{O,ea,eb,en}=fr;
   const loc=(x,y,z)=>{const dx=x-O[0],dy=y-O[1],dz=z-O[2];return [dx*ea[0]+dy*ea[1]+dz*ea[2],dx*eb[0]+dy*eb[1]+dz*eb[2],dx*en[0]+dy*en[1]+dz*en[2]];};
   const wld=(a,b,c)=>[O[0]+a*ea[0]+b*eb[0]+c*en[0],O[1]+a*ea[1]+b*eb[1]+c*en[1],O[2]+a*ea[2]+b*eb[2]+c*en[2]];
-  const sel=new Uint8Array(nt),vid=new Map(),V=[],W=[],edges=new Set(),E=[];let any=false;
+  const sel=new Uint8Array(nt),vid=new Map(),V=[],W=[],ecount=new Map();let any=false,remA=0;
   const idOf=(a,b,w)=>{const k=Math.round(a*2000)+","+Math.round(b*2000);let i=vid.get(k);if(i===undefined){i=V.length;vid.set(k,i);V.push([a,b]);W.push(w);}return i;};
-  for(let t=0;t<nt;t++){const o=t*9,l=[];let ok=true,nd=0;
-    for(let v=0;v<3&&ok;v++){const q=loc(P[o+v*3],P[o+v*3+1],P[o+v*3+2]);if(Math.abs(q[2])>1e-3)ok=false;l.push(q);nd+=N[o+v*3]*en[0]+N[o+v*3+1]*en[1]+N[o+v*3+2]*en[2];}
-    if(!ok||nd/3<0.9)continue;sel[t]=1;any=true;
-    let i0=idOf(l[0][0],l[0][1],[P[o],P[o+1],P[o+2]]),i1=idOf(l[1][0],l[1][1],[P[o+3],P[o+4],P[o+5]]),i2=idOf(l[2][0],l[2][1],[P[o+6],P[o+7],P[o+8]]);
-    const ar=(V[i1][0]-V[i0][0])*(V[i2][1]-V[i0][1])-(V[i1][1]-V[i0][1])*(V[i2][0]-V[i0][0]);
-    if(Math.abs(ar)<1e-9||i0===i1||i1===i2||i0===i2)continue;if(ar<0){const q=i1;i1=i2;i2=q;}
-    [[i0,i1],[i1,i2],[i2,i0]].forEach(([u,v])=>{edges.add(u+">"+v);E.push([u,v]);});}
+  for(let t=0;t<nt;t++){const o=t*9,l=[];let ok=true;
+    for(let v=0;v<3&&ok;v++){const q=loc(P[o+v*3],P[o+v*3+1],P[o+v*3+2]);if(Math.abs(q[2])>1e-3)ok=false;l.push(q);}
+    if(!ok)continue;sel[t]=1;any=true;   /* on the plane = part of this face, whichever way a sliver happens to wind */
+    const i0=idOf(l[0][0],l[0][1],[P[o],P[o+1],P[o+2]]),i1=idOf(l[1][0],l[1][1],[P[o+3],P[o+4],P[o+5]]),i2=idOf(l[2][0],l[2][1],[P[o+6],P[o+7],P[o+8]]);
+    remA+=((V[i1][0]-V[i0][0])*(V[i2][1]-V[i0][1])-(V[i1][1]-V[i0][1])*(V[i2][0]-V[i0][0]))/2;   /* signed: a flipped sliver takes its area back */
+    if(i0===i1||i1===i2||i0===i2)continue;
+    [[i0,i1],[i1,i2],[i2,i0]].forEach(([u,v])=>{const k=u<v?u+">"+v:v+">"+u;ecount.set(k,(ecount.get(k)||0)+1);});}
   if(!any)return false;
-  const nxt=new Map();E.forEach(([u,v])=>{if(!edges.has(v+">"+u)){if(!nxt.has(u))nxt.set(u,[]);nxt.get(u).push(v);}});
-  const loops=[];nxt.forEach((_,s0)=>{while(nxt.get(s0)&&nxt.get(s0).length){const lp=[s0];let u=s0;for(;;){const L=nxt.get(u);if(!L||!L.length)break;const v=L.pop();if(v===s0)break;lp.push(v);u=v;}if(lp.length>=3)loops.push(lp);}});
+  /* the outline = the edges used by an odd number of the face's triangles (orientation-free, so a flipped sliver cannot open it) */
+  const adj=new Map();ecount.forEach((n,k)=>{if(n&1){const [u,v]=k.split(">").map(Number);if(!adj.has(u))adj.set(u,[]);if(!adj.has(v))adj.set(v,[]);adj.get(u).push(v);adj.get(v).push(u);}});
+  const loops=[];adj.forEach((_,s0)=>{while(adj.get(s0).length){const lp=[s0];let u=s0;for(;;){const L=adj.get(u);if(!L.length)break;const v=L.pop();const Lv=adj.get(v);Lv.splice(Lv.indexOf(u),1);if(v===s0)break;lp.push(v);u=v;}if(lp.length>=3)loops.push(lp);}});
   const poly=lp=>lp.map(i=>V[i]),area=p=>{let s=0;for(let i=0;i<p.length;i++){const [x0,y0]=p[i],[x1,y1]=p[(i+1)%p.length];s+=x0*y1-x1*y0;}return s/2;};
   if(!loops.length)return false;
+  /* nesting: a loop inside an even number of others is an outline, inside an odd number it is a hole */
+  const info=loops.map(lp=>({lp,p:poly(lp),a:Math.abs(area(poly(lp)))}));
+  info.forEach(o=>{o.depth=info.filter(q=>q!==o&&q.a>o.a&&engPip(o.p[0][0],o.p[0][1],q.p)).length;});
+  loops.length=0;info.forEach(o=>loops.push(o.lp));
   const cells=cellsFn(loops.map(poly));
   if(!cells.length)return false;
   /* pockets */
@@ -1083,17 +1089,26 @@ function engraveFace(geo,fr,cellsFn,d){
   tri.forEach(([i,j,k])=>{const p0=pv[i],p1=pv[j],p2=pv[k],u=[p1[0]-p0[0],p1[1]-p0[1],p1[2]-p0[2]],v=[p2[0]-p0[0],p2[1]-p0[1],p2[2]-p0[2]],g=[u[1]*v[2]-u[2]*v[1],u[2]*v[0]-u[0]*v[2],u[0]*v[1]-u[1]*v[0]];[i,j,k].forEach(q=>{nrm[q][0]+=g[0];nrm[q][1]+=g[1];nrm[q][2]+=g[2];});});
   const per=R*m+1;nrm.forEach((n,i)=>{{const q=i%per;if(q<m||q>=(R-1)*m){n[0]=en[0];n[1]=en[1];n[2]=en[2];}}const l=Math.hypot(n[0],n[1],n[2])||1;n[0]/=l;n[1]/=l;n[2]/=l;});
   /* the face with a hole for every pocket */
-  const cap=[];
-  loops.forEach(lp=>{const a=area(poly(lp));if(a<=0)return;
-    const hs=loops.filter(l2=>l2!==lp&&area(poly(l2))<0&&engPip(V[l2[0]][0],V[l2[0]][1],poly(lp)));
-    const pk=pocketRims.filter(r=>engPip(r.a,r.b,poly(lp)));
+  const cap=[];let newA=0;
+  /* every hole and pocket belongs to the SMALLEST outline that holds it: where openings sit so close that their bevel zones merge, the face
+     falls apart into islands inside a merged hole, and a hole given to two outlines would paint the face back over the opening */
+  const outs=info.filter(o=>o.depth%2===0),owner=(x,y)=>{let w=null;outs.forEach(o=>{if(engPip(x,y,o.p)&&(!w||o.a<w.a))w=o;});return w;};
+  const holeOf=new Map(),pockOf=new Map();
+  info.forEach(o=>{if(o.depth%2===1){const w=owner(o.p[0][0],o.p[0][1]);if(w){if(!holeOf.has(w))holeOf.set(w,[]);holeOf.get(w).push(o.lp);}}});
+  pocketRims.forEach(r=>{const w=owner(r.a,r.b);if(w){if(!pockOf.has(w))pockOf.set(w,[]);pockOf.get(w).push(r);}});
+  outs.forEach(o=>{const lp=o.lp,hs=holeOf.get(o)||[],pk=pockOf.get(o)||[];
     const pts=[],ws=[];const add=(p2,w)=>{pts.push(new THREE.Vector2(p2[0],p2[1]));ws.push(w);};
     const ring=l=>{const s=pts.length;l.forEach(i=>add(V[i],W[i]));return [s,pts.length];};
     const c0=ring(lp),hr=hs.map(ring);
-    const pr=pk.map(r=>{const s=pts.length;r.w.forEach((w,j)=>add(engRR(prof[0][0])[j].map((v,q)=>v+(q?r.b:r.a)),w));return [s,pts.length];});
+    const pr=pk.map((r,pi)=>{const s=pts.length,jx=(((pi*7919)%101)/101-0.5)*2e-4,jy=(((pi*104729)%103)/103-0.5)*2e-4;   /* earcut stumbles on exactly aligned grids: nudge each pocket by far less than a micron for the triangulation only */
+      r.w.forEach((w,j)=>{const q=engRR(prof[0][0])[j];add([q[0]+r.a+jx,q[1]+r.b+jy],w);});return [s,pts.length];});
     const cont=pts.slice(c0[0],c0[1]),holes=[...hr,...pr].map(([s,e])=>pts.slice(s,e));
     const idx=THREE.ShapeUtils.triangulateShape(cont,holes);
-    idx.forEach(([i,j,k])=>{const A=pts[i],B=pts[j],C=pts[k];let tr=[i,j,k];if((B.x-A.x)*(C.y-A.y)-(B.y-A.y)*(C.x-A.x)<0)tr=[i,k,j];cap.push(tr.map(q=>ws[q]));});});
+    idx.forEach(([i,j,k])=>{const A=pts[i],B=pts[j],C=pts[k];newA+=Math.abs((B.x-A.x)*(C.y-A.y)-(B.y-A.y)*(C.x-A.x))/2;let tr=[i,j,k];if((B.x-A.x)*(C.y-A.y)-(B.y-A.y)*(C.x-A.x)<0)tr=[i,k,j];cap.push(tr.map(q=>ws[q]));});});
+  /* safety net: the new face must cover exactly what the old one did, minus the pockets. Where openings sit so close that the bevel zones
+     merge the outline is ambiguous (earcut could paint the face back over an opening), so such a face is left plain rather than risked. */
+  {let np=0,la=0;pockOf.forEach(l=>{np+=l.length;});info.forEach(o=>{la+=o.depth%2?-o.a:o.a;});const pa=np*area(engRR(prof[0][0]));
+   if(Math.abs(la-(newA+Math.abs(pa)))>0.0005*la+0.02||Math.abs(la-Math.abs(remA))>0.01*la+0.5)return false;}   /* the outline itself must agree with the triangles it came from */
   /* rebuild the buffers */
   const pos=[],nor=[],uv=[],thin=[];
   for(let t=0;t<nt;t++){if(sel[t])continue;for(let v=0;v<9;v++){pos.push(P[t*9+v]);nor.push(N[t*9+v]);}if(U)for(let v=0;v<6;v++)uv.push(U[t*6+v]);for(let v=0;v<3;v++)thin.push(0);}
@@ -1104,7 +1119,7 @@ function engraveFace(geo,fr,cellsFn,d){
   return true;}
 /* a wall's cells: the pattern inside the wall's cap (the rounded ends and the bevel inset) clear of every opening. The same cells
    serve the render and the STL cuts, so what you see is what is cast. */
-function engWallCells(hp,fw,Rr,patId){const bv=wallBv(hp),cl=engClr()+bv;
+function engWallCells(hp,fw,Rr,patId){const bv=wallBv(hp),cl=engClr()+bv*1.5;
   return engCells([[[Rr,0],[fw-Rr,0],[fw-Rr,H],[Rr,H]],...hp],patId,cl);}
 const engWallFrame=()=>({O:[0,0,T],ea:[1,0,0],eb:[0,1,0],en:[0,0,1],uv:(x,y)=>[x,y]});   /* wall space: x along the wall, y up, z from the inner face (0) to the outer face (T) */
 function buildWall(bi,k,fname){
@@ -2083,7 +2098,7 @@ window.addEventListener("storage",e=>{if(MODE!=="module"&&e.key==="tikrar-module
 on("modO","input",e=>{scaleWall(+e.target.value);$("modOV").textContent=e.target.value+" %";});
 on("modO","change",e=>{FSCALE=null;e.target.value=100;$("modOV").textContent="100 %";renderUI();});
 on("fillSeg","click",e=>{const x=e.target.closest("button");if(!x)return;each(b=>b.fill=x.dataset.v);renderUI();});   /* filled shell or trusses only, on slanted roofs */
-{const opts='<option value="">Off</option>'+[["HoB","Houses of Beirut 1860–1925"],["AdB","Architectures de Beyrouth 1925–1970"]].map(([bk,t])=>`<optgroup label="${t}">${ENG_PATS.filter(p=>p.book===bk).map(p=>`<option value="${p.id}" title="${p.ref}">${p.name}</option>`).join("")}</optgroup>`).join("");
+{const opts='<option value="">Off</option>'+ENG_PATS.filter(p=>!p.book).map(p=>`<option value="${p.id}" title="${p.ref}">${p.name}</option>`).join("")+[["HoB","Houses of Beirut 1860–1925"],["AdB","Architectures de Beyrouth 1925–1970"]].map(([bk,t])=>`<optgroup label="${t}">${ENG_PATS.filter(p=>p.book===bk).map(p=>`<option value="${p.id}" title="${p.ref}">${p.name}</option>`).join("")}</optgroup>`).join("");
   ["engW","engR"].forEach(id=>{$(id).innerHTML=opts;on(id,"change",e=>{each(b=>b[id]=e.target.value);renderUI();});});}   /* pixel engraving: wall and roof are separate options */
 on("spanSeg","click",e=>{const x=e.target.closest("button");if(!x)return;each(b=>b.span=x.dataset.v);renderUI();});
 on("roofCol","change",e=>{each(b=>b.roofCol=e.target.value);renderUI();});
