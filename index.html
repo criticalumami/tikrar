@@ -211,7 +211,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
 <header class="grid12">
   <h1>TIKRAR<small>Beirut Lantern Generator</small></h1>
   <span class="sub"><span id="modSize">porcelain modules 60 × 60 mm · 40 mm walls</span> · houses, towers and city blocks · 1860–1925 and modernist openings</span>
-  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 04.11 · 02:55</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
+  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 04.11 · 03:35</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
   </nav>
 </header>
 
@@ -1045,7 +1045,7 @@ const engSegI=(x,y,x0,y0,x1,y1)=>{let lo=0,hi=1;const f=t=>Math.max(Math.abs(x0+
 const engClrI=()=>ENG.px/2+ENG.rim+ENG.margin;   /* half the pocket's rim square plus a hair */
 /* cols/rows: where the pixels sit, [position, index into the pattern]. Spread evenly over an interval, with half a pitch left at each end,
    so the grid runs right up to the edges instead of stopping short. */
-const engSpread=(lo,hi,P)=>{const n=Math.max(1,Math.round((hi-lo)/P)),s=(hi-lo)/n,o=[];for(let i=0;i<n;i++)o.push([lo+(i+0.5)*s,i-(n>>1)]);return o;};
+const engSpread=(lo,hi,P)=>{const n=Math.max(1,Math.min(Math.round((hi-lo)/P),Math.floor((hi-lo)/(ENG.px+2*ENG.rim+0.4)))),s=(hi-lo)/n,o=[];for(let i=0;i<n;i++)o.push([lo+(i+0.5)*s,i-(n>>1)]);return o;};
 /* the cells of a pattern that fit inside a region: loops = its outline plus its holes (even-odd), a cell must keep clr (square distance) from every edge */
 function engCells(loops,patId,clr,grid){const pat=engPat(patId);if(!pat||!loops.length)return [];
   const tw=pat.tile[0].length,th=pat.tile.length,P=ENG.pitch,cx=pat.c?pat.c[0]:tw>>1,cy=pat.c?pat.c[1]:th>>1,mod=(v,n)=>((v%n)+n)%n;let a0=1e9,b0=1e9,a1=-1e9,b1=-1e9;
@@ -1101,16 +1101,17 @@ function engraveFace(geo,fr,cellsFn,d){
   if(!cells.length)return false;
   /* pockets */
   const prof=engProf(d),R=prof.length,m=12,pv=[],pq=[],pocketRims=[],tri=[];
-  cells.forEach(([ca,cb])=>{const base=pv.length,rimW=[],en=nrmAt(ca,cb);
-    prof.forEach(([s,dep],k)=>{engRR(s).forEach(([x,y])=>{const w=wld(ca+x,cb+y,-dep);pv.push(w);pq.push([ca,cb]);if(k===0)rimW.push(w);});});
-    const center=pv.length;pv.push(wld(ca,cb,-d));pq.push([ca,cb]);
-    pocketRims.push({a:ca,b:cb,w:rimW});
+  const P3=(cell,x,y,dep)=>fl.pt?fl.pt(cell,x,y,dep):wld(cell[0]+x,cell[1]+y,-dep);   /* a curved face brings its own pt: a point of a pocket, x/y across it, dep below the surface */
+  cells.forEach(cell=>{const ca=cell[0],cb=cell[1],base=pv.length,rimW=[],en=nrmAt(ca,cb),C0=P3(cell,0,0,0);
+    prof.forEach(([s,dep],k)=>{engRR(s).forEach(([x,y])=>{const w=P3(cell,x,y,dep);pv.push(w);pq.push([ca,cb]);if(k===0)rimW.push(w);});});
+    const center=pv.length;pv.push(P3(cell,0,0,d));pq.push([ca,cb]);
+    pocketRims.push({a:ca,b:cb,w:rimW,p2:rimW.map(w=>loc(w[0],w[1],w[2]))});
     const T3=[];
     for(let k=0;k<R-1;k++)for(let j=0;j<m;j++){const jj=(j+1)%m,a=base+k*m+j,b=base+k*m+jj,c=base+(k+1)*m+jj,e=base+(k+1)*m+j;T3.push([a,b,c],[a,c,e]);}
     for(let j=0;j<m;j++)T3.push([base+(R-1)*m+j,base+(R-1)*m+(j+1)%m,center]);
     /* each triangle faces into the cavity: toward the pocket axis and out of the face */
         T3.forEach(tr=>{const p0=pv[tr[0]],p1=pv[tr[1]],p2=pv[tr[2]],u=[p1[0]-p0[0],p1[1]-p0[1],p1[2]-p0[2]],v=[p2[0]-p0[0],p2[1]-p0[1],p2[2]-p0[2]],g=[u[1]*v[2]-u[2]*v[1],u[2]*v[0]-u[0]*v[2],u[0]*v[1]-u[1]*v[0]],
-        cen=[(p0[0]+p1[0]+p2[0])/3,(p0[1]+p1[1]+p2[1])/3,(p0[2]+p1[2]+p2[2])/3],dep=-loc(cen[0],cen[1],cen[2])[2],axd=wld(ca,cb,-dep);
+        cen=[(p0[0]+p1[0]+p2[0])/3,(p0[1]+p1[1]+p2[1])/3,(p0[2]+p1[2]+p2[2])/3],dep=-loc(cen[0],cen[1],cen[2])[2],axd=[C0[0]-en[0]*dep,C0[1]-en[1]*dep,C0[2]-en[2]*dep];
       const tw=[axd[0]-cen[0],axd[1]-cen[1],axd[2]-cen[2]],want=[tw[0]+en[0]*0.5,tw[1]+en[1]*0.5,tw[2]+en[2]*0.5];
       if(g[0]*want[0]+g[1]*want[1]+g[2]*want[2]<0)tri.push([tr[0],tr[2],tr[1]]);else tri.push(tr);});});
   /* smooth normals over each pocket, the rim ring blending into the flat face */
@@ -1130,13 +1131,13 @@ function engraveFace(geo,fr,cellsFn,d){
     const ring=l=>{const s=pts.length;l.forEach(i=>add(V[i],W[i]));return [s,pts.length];};
     const c0=ring(lp),hr=hs.map(ring);
     const pr=pk.map((r,pi)=>{const s=pts.length,jx=(((pi*7919)%101)/101-0.5)*2e-4,jy=(((pi*104729)%103)/103-0.5)*2e-4;   /* earcut stumbles on exactly aligned grids: nudge each pocket by far less than a micron for the triangulation only */
-      r.w.forEach((w,j)=>{const q=engRR(prof[0][0])[j];add([q[0]+r.a+jx,q[1]+r.b+jy],w);});return [s,pts.length];});
+      r.w.forEach((w,j)=>{const q=r.p2[j];add([q[0]+jx,q[1]+jy],w);});return [s,pts.length];});
     const cont=pts.slice(c0[0],c0[1]),holes=[...hr,...pr].map(([s,e])=>pts.slice(s,e));
     const idx=THREE.ShapeUtils.triangulateShape(cont,holes);
     idx.forEach(([i,j,k])=>{const A=pts[i],B=pts[j],C=pts[k];newA+=Math.abs((B.x-A.x)*(C.y-A.y)-(B.y-A.y)*(C.x-A.x))/2;let tr=[i,j,k];if((B.x-A.x)*(C.y-A.y)-(B.y-A.y)*(C.x-A.x)<0)tr=[i,k,j];cap.push(tr.map(q=>ws[q]));});});
   /* safety net: the new face must cover exactly what the old one did, minus the pockets. Where openings sit so close that the bevel zones
      merge the outline is ambiguous (earcut could paint the face back over an opening), so such a face is left plain rather than risked. */
-  {let np=0,la=0;pockOf.forEach(l=>{np+=l.length;});info.forEach(o=>{la+=o.depth%2?-o.a:o.a;});const pa=np*area(engRR(prof[0][0]));
+  {let np=0,la=0;pockOf.forEach(l=>{np+=l.length;});info.forEach(o=>{la+=o.depth%2?-o.a:o.a;});let pa=0;pockOf.forEach(l=>l.forEach(r=>{pa+=Math.abs(area(r.p2));}));
    if(Math.abs(la-(newA+Math.abs(pa)))>0.0005*la+0.02||Math.abs(la-Math.abs(remA))>0.01*la+0.5)return false;}   /* the outline itself must agree with the triangles it came from */
   /* rebuild the buffers */
   const pos=[],nor=[],uv=[],thin=[];
@@ -1231,10 +1232,36 @@ function slantRoof(b){const g=new THREE.Group(),hw=(perMod(b)?1:b.cols)*WX/2,hd=
     [[i,j],[i+1,j],[i+1,jj],[i,j],[i+1,jj],[i,jj]].forEach(([a,c])=>{const q=rings[a][c],[,y,nu,ny]=prof[a],l=Math.hypot(nu,ny)||1;pos.push(q[0],y,q[1]);nor.push(-nu*q[2]/l,ny/l,-nu*q[3]/l);});}
   geo=new THREE.BufferGeometry();geo.setAttribute("position",new THREE.Float32BufferAttribute(pos,3));geo.setAttribute("normal",new THREE.Float32BufferAttribute(nor,3));
   geo.setAttribute("uv",new THREE.Float32BufferAttribute(pos.filter((_,i)=>i%3!==1),2));
-  if(eRs.some(x=>x)){const y0=yE-uE*Math.tan(al);   /* pixel engraving on the four flat slopes (ea: to the right seen from outside, eb: up the slope) */
-    [[[0,ca,sa],[0,y0,hd],[1,0,0]],[[0,ca,-sa],[0,y0,-hd],[-1,0,0]],[[sa,ca,0],[hw,y0,0],[0,0,-1]],[[-sa,ca,0],[-hw,y0,0],[0,0,1]]].forEach(([en,O,ea],si)=>{if(!eRs[si])return;
-      const eb=[en[1]*ea[2]-en[2]*ea[1],en[2]*ea[0]-en[0]*ea[2],en[0]*ea[1]-en[1]*ea[0]];
-      engraveFace(geo,{O,ea,eb,en,uv:(x,y,z)=>[x,z]},loops=>engCells(loops,eRs[si],engClrI()),engDepth());});}
+  if(eRs.some(x=>x)){   /* pixel engraving over the whole outer slope band, hips included: one grid that runs round the roof and up to the eave and the top opening */
+    const uA=uE,uB=uO-c,rAt=u=>{const x=Math.max(0,hw-u),z=Math.max(0,hd-u);return Math.min(R0+(Rh-R0)*Math.min(1,u/6),VENT.r+Math.max(0,uO-u),x,z);},
+      sd=(px,pz,u)=>{const X=Math.max(0,hw-u),Z=Math.max(0,hd-u),r=rAt(u),qx=Math.abs(px)-(X-r),qz=Math.abs(pz)-(Z-r);return Math.hypot(Math.max(qx,0),Math.max(qz,0))+Math.min(Math.max(qx,qz),0)-r;},
+      /* the inset u at which a plan point lies on the ring, or null when it is off the band (the rings are nested, so sd grows with u) */
+      ru=(px,pz)=>{if(sd(px,pz,uA)>1e-3||sd(px,pz,uB)<-1e-3)return null;if(sd(px,pz,uA)>=0)return uA;if(sd(px,pz,uB)<=0)return uB;let lo=uA,hi=uB;for(let i=0;i<40;i++){const m=(lo+hi)/2;if(sd(px,pz,m)<0)lo=m;else hi=m;}return (lo+hi)/2;},
+      outDir=(px,pz,u)=>{const X=Math.max(0,hw-u),Z=Math.max(0,hd-u),r=rAt(u),qx=Math.abs(px)-(X-r),qz=Math.abs(pz)-(Z-r),sx=px<0?-1:1,sz=pz<0?-1:1;
+        if(qx>0&&qz>0){const l=Math.hypot(qx,qz);return [sx*qx/l,sz*qz/l];}return qx>qz?[sx,0]:[0,sz];},
+      nrmP=(px,pz)=>{const u=ru(px,pz);if(u===null)return [0,1,0];const g=outDir(px,pz,u);return [sa*g[0],ca,sa*g[1]];};
+    /* the frame is the plan view with b = -z (so a x b points up); c is the distance below the slope plane */
+    const frame={loc:(x,y,z)=>{const u=ru(x,z);return [x,-z,u===null?1:(y-ySl(u))*ca];},
+      nrm:(a,b)=>nrmP(a,-b),uv:(x,y,z)=>[x,z],
+      pt:(cell,x,y,dep)=>{const q=cell[2],px=q.C[0]+x*q.T1[0]+y*q.T2[0],pz=q.C[2]+x*q.T1[2]+y*q.T2[2],u=ru(px,pz);
+        if(u===null)return [px,q.C[1]+x*q.T1[1]+y*q.T2[1]-dep,pz];const n=nrmP(px,pz);return [px-dep*n[0],ySl(u)-dep*n[1],pz-dep*n[2]];}};
+    const cellsFn=()=>{const P=ENG.pitch,out=[],Ls=(uB-uA)/ca,rim=engRR(engProf(engDepth())[0][0]),
+        pats=[eRs[1],eRs[2],eRs[2],eRs[0],eRs[0],eRs[3],eRs[3],eRs[1]];   /* per segment: arc0 (back-right), right, arc1, front, arc2, left, arc3, back */
+      engSpread(0,Ls,P).forEach(([sv,rj])=>{const u=uA+sv*ca,x=Math.max(0,hw-u),z=Math.max(0,hd-u),r=rAt(u),fx=x-r,fz=z-r,
+          segs=[{k:"a",cx:fx,cz:-fz,a0:-Math.PI/2},{k:"f",p0:[x,-fz],p1:[x,fz],g:[1,0]},{k:"a",cx:fx,cz:fz,a0:0},{k:"f",p0:[fx,z],p1:[-fx,z],g:[0,1]},
+            {k:"a",cx:-fx,cz:fz,a0:Math.PI/2},{k:"f",p0:[-x,fz],p1:[-x,-fz],g:[-1,0]},{k:"a",cx:-fx,cz:-fz,a0:Math.PI},{k:"f",p0:[-fx,-z],p1:[fx,-z],g:[0,-1]}];
+        segs.forEach((sg,si)=>{const id=pats[si],pat=id&&engPat(id);if(!pat)return;
+          const len=sg.k==="a"?Math.PI*r/2:Math.hypot(sg.p1[0]-sg.p0[0],sg.p1[1]-sg.p0[1]);if(len<0.5)return;
+          const tw=pat.tile[0].length,th=pat.tile.length,cx0=pat.c?pat.c[0]:tw>>1,cy0=pat.c?pat.c[1]:th>>1,mod=(v,n)=>((v%n)+n)%n;
+          engSpread(0,len,P).forEach(([t,ci])=>{if(pat.tile[mod(cy0-rj,th)][mod(cx0+ci,tw)]!=="#")return;
+            let px,pz,g;if(sg.k==="a"){const an=sg.a0+t/len*Math.PI/2;g=[Math.cos(an),Math.sin(an)];px=sg.cx+r*g[0];pz=sg.cz+r*g[1];}
+            else{const f=t/len;px=sg.p0[0]+(sg.p1[0]-sg.p0[0])*f;pz=sg.p0[1]+(sg.p1[1]-sg.p0[1])*f;g=sg.g;}
+            const q={C:[px,ySl(u),pz],T1:[-g[1],0,g[0]],T2:[-g[0]*ca,sa,-g[1]*ca]};
+            /* on a hip the rings spread and curve, so a pocket near the eave or the top could poke out of the band: drop it then */
+            if(rim.some(([ox,oy])=>{const qx=px+ox*q.T1[0]+oy*q.T2[0],qz=pz+ox*q.T1[2]+oy*q.T2[2];return sd(qx,qz,uA)>-0.06||sd(qx,qz,uB)<0.06;}))return;
+            out.push([px,-pz,q]);});});});
+      return out;};
+    engraveFace(geo,frame,cellsFn,engDepth());}
   windToNormals(geo);if(RGEO.size>200)RGEO.clear();RGEO.set(key,geo);}
   const m=new THREE.Mesh(geo,mat);m.castShadow=true;m.receiveShadow=true;m.userData.shared=true;g.add(m);
   /* the seat (owner markup 1 Nov): the lid runs IN over the wall top as a flange, then turns DOWN as a lip inside the wall, one solid with the shell */
