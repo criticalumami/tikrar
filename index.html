@@ -211,7 +211,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
 <header class="grid12">
   <h1>TIKRAR<small>Beirut Lantern Generator</small></h1>
   <span class="sub"><span id="modSize">porcelain modules 60 × 60 mm · 40 mm walls</span> · houses, towers and city blocks · 1860–1925 and modernist openings</span>
-  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 03.11 · 22:15</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
+  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 03.11 · 23:55</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
   </nav>
 </header>
 
@@ -1091,7 +1091,9 @@ function trussBars(hw,hd,b){const al=b.pitch*Math.PI/180,tn=Math.tan(al),Q=TRUSS
   for(let f=0;f<4;f++){const half=f%2===0?hw:hd,jack=s=>Math.min(uT,half-Math.abs(s)-Q.heavy/2);
     /* LIGHT common rafters; their domed tails end flush with the eave, resting on the eave board */
     for(let k=-Math.floor(half/Q.csp);k<=Math.floor(half/Q.csp);k++){const s=k*Q.csp,u1=jack(s);if(u1<5||Math.abs(s)>half-R0-Q.light)continue;
-      bar(on(f,0.3,s,Q.mid),on(f,u1+Q.light/2,s,Q.mid),Q.light,Q.lightH);}
+      bar(on(f,Q.heavy/2,s,Q.mid),on(f,u1+Q.light/2,s,Q.mid),Q.light,Q.lightH);}   /* tails end inside the eave beam */
+    /* HEAVY eave beam (the wall plate) on the same plane, corner to corner, sunk into the eave board: every rafter tail, hip foot and batten end joins it */
+    {const e=half-R0;bar(on(f,Q.heavy/2,-e,Q.mid),on(f,Q.heavy/2,e,Q.mid),Q.heavy,Q.heavyH);}
     /* LIGHT battens woven into the rafters, a little proud, hip to hip */
     for(let u=Q.ring+Q.bsp*0.7;u<uT-Q.heavy-1;u+=Q.bsp){const e=half-u-Q.heavy/2;if(e<3)break;bar(on(f,u,-e,Q.mid),on(f,u,e,Q.mid),Q.light,Q.batH);}
     /* HEAVY purlin under the rafters, mid-slope (two on long runs), hip to hip */
