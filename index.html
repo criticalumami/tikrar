@@ -638,7 +638,8 @@ const persp=new THREE.PerspectiveCamera(35,1,1,8000),ortho=new THREE.Orthographi
 let orthoH=400;function orthoFrustum(){const r=view.getBoundingClientRect(),a=r.width/Math.max(1,r.height);Object.assign(ortho,{left:-orthoH*a,right:orthoH*a,top:orthoH,bottom:-orthoH});ortho.updateProjectionMatrix();}
 const controls=new THREE.OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.minDistance=60;controls.maxDistance=3000;controls.minPolarAngle=0;controls.maxPolarAngle=Math.PI;
 function bounds(){let x0=1e9,x1=-1e9,z0=1e9,z1=-1e9,h=0;S.buildings.forEach(b=>{const f=fp(b);x0=Math.min(x0,b.x-f.w/2);x1=Math.max(x1,b.x+f.w/2);z0=Math.min(z0,b.z-f.d/2);z1=Math.max(z1,b.z+f.d/2);h=Math.max(h,b.levels*H+40);});return {x0,x1,z0,z1,h};}
-function fitView(){const b=bounds(),cx=(b.x0+b.x1)/2,cz=(b.z0+b.z1)/2,s=Math.max(b.x1-b.x0,b.z1-b.z0,b.h)*1.45+120;
+function fitView(){const b=bounds(),cx=(b.x0+b.x1)/2,cz=(b.z0+b.z1)/2,s=Math.max(b.x1-b.x0,b.z1-b.z0,b.h)*1.45+120+(MODE==="module"?70:0);   /* the red dimensions sit outside the module: room for them */
+ 
   camera.position.set(cx+s*0.45,b.h*0.5+s*0.5,cz+s*0.95);controls.target.set(cx,b.h*0.3,cz);
   if(camera===ortho){orthoH=s*0.42;ortho.zoom=1;orthoFrustum();}controls.update();need();}
 /* view presets: axonometric (isometric angles), plan from above, front elevation */
@@ -781,7 +782,11 @@ MAT.contact=new THREE.MeshBasicMaterial({color:0x000000,transparent:true,opacity
 /* ---------- ground ---------- */
 let room=new THREE.Group();scene.add(room);
 const lc=h=>new THREE.Color(h).convertSRGBToLinear();
-function updateRuler(){const rg=room&&room.getObjectByName("rulerGroup");if(!rg)return;const c=camera.position,t=controls.target,el=Math.atan2(c.y,Math.hypot(c.x-t.x,c.z-t.z)),hi=el>0.3&&S.view!=="front";rg.userData.g.forEach(p=>p.visible=hi);rg.userData.s.forEach(p=>p.visible=!hi);}
+function updateRuler(){const rg=room&&room.getObjectByName("rulerGroup");if(!rg)return;const c=camera.position,t=controls.target,el=Math.atan2(c.y,Math.hypot(c.x-t.x,c.z-t.z)),hi=el>0.3&&S.view!=="front";rg.userData.g.forEach(p=>p.visible=hi);rg.userData.s.forEach(p=>p.visible=!hi);
+  /* red dimensions: ground ones on the corner nearest the camera, the height at the corner furthest to the screen's left */
+  const dx=c.x-t.x,dz=c.z-t.z,fl=Math.hypot(dx,dz)<1e-3?[0,1]:[dx,dz],lx=-fl[1],lz=fl[0];   /* screen-left on the ground = (-dz, dx) looking from the camera at the target */
+  const ax=Math.abs(dx)<1e-3?1:Math.sign(dx),az=Math.abs(dz)<1e-3?1:Math.sign(dz);
+  rg.userData.d.forEach(g=>{const u=g.userData;g.visible=u.k==="a"?(u.sx===ax&&u.sz===az):(u.sx===(lx*1e3<0?-1:1)&&u.sz===(lz*1e3<0?-1:1));});}
 function buildRoom(){scene.remove(room);room.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.isLine&&o.material!==MAT.line)o.material.dispose();});room=new THREE.Group();
   /* by day the ground is the page: pure white, with only the shadows drawn on it; at night a honed dark stone tabletop */
   const white=!S.night,gb=bounds(),gsz=Math.max(gb.x1-gb.x0,gb.z1-gb.z0)+(white?1400:8000),g=new THREE.Mesh(new THREE.PlaneGeometry(gsz,gsz),white?new THREE.ShadowMaterial({opacity:S.render?0.34:0.26}):new THREE.MeshBasicMaterial({color:0x000000}));g.rotation.x=-Math.PI/2;g.position.set((gb.x0+gb.x1)/2,-groundDrop(),(gb.z0+gb.z1)/2);g.receiveShadow=true;room.add(g);   /* by day only as big as the shadows need, so nothing reaches the horizon */
@@ -819,10 +824,10 @@ function buildRoom(){scene.remove(room);room.traverse(o=>{if(o.geometry)o.geomet
      for the front and low views (updateRuler swaps them by camera height). Drawn on top, sized to their text, so nothing clips. */
   if((blkMode()||MODE==="module")&&!S.render){const ruler=blkMode()>0,b=bounds(),ry=0.4-groundDrop(),rc=S.night?0xcfd3dc:0x111111,rd=S.night?0xff6a5c:0xe2231a,rg=new THREE.Group(),pts=[],dpt=[],off=70,V=(x,y,z)=>new THREE.Vector3(x,y,z);
     rg.name="rulerGroup";rg.userData={g:[],s:[]};
-    const RL=window.__rulerTex||(window.__rulerTex=new Map()),lab=(t,x,y,z,col,sc,mode)=>{col=col||rc;const dt=MODE!=="module",k=t+col+(dt?"d":"");let m=RL.get(k);if(!m){const c=document.createElement("canvas"),g=c.getContext("2d"),F="bold 64px sans-serif";g.font=F;const tw=Math.ceil(g.measureText(t).width)+32;c.width=tw;c.height=112;g.font=F;g.fillStyle="#"+col.toString(16).padStart(6,"0");g.textAlign="center";g.textBaseline="middle";g.fillText(t,tw/2,56);const tx=new THREE.CanvasTexture(c);tx.anisotropy=8;m=new THREE.MeshBasicMaterial({map:tx,transparent:true,depthTest:dt,depthWrite:false,toneMapped:false,side:THREE.DoubleSide});m.userData.ar=tw/112;RL.set(k,m);}
+    const RL=window.__rulerTex||(window.__rulerTex=new Map()),lab=(t,x,y,z,col,sc,mode,par,sx,sz)=>{col=col||rc;const dt=true,k=t+col+"d";let m=RL.get(k);if(!m){const c=document.createElement("canvas"),g=c.getContext("2d"),F="bold 64px sans-serif";g.font=F;const tw=Math.ceil(g.measureText(t).width)+32;c.width=tw;c.height=112;g.font=F;g.fillStyle="#"+col.toString(16).padStart(6,"0");g.textAlign="center";g.textBaseline="middle";g.fillText(t,tw/2,56);const tx=new THREE.CanvasTexture(c);tx.anisotropy=8;m=new THREE.MeshBasicMaterial({map:tx,transparent:true,depthTest:dt,depthWrite:false,toneMapped:false,side:THREE.DoubleSide});m.userData.ar=tw/112;RL.set(k,m);}
       const h=(sc||1)*17,p=new THREE.Mesh(new THREE.PlaneGeometry(h*m.userData.ar,h),m);p.position.set(x,y,z);p.renderOrder=20;
-      if(mode==="g")p.rotation.x=-Math.PI/2;else if(mode==="gz")p.rotation.set(-Math.PI/2,0,Math.PI/2);else if(mode==="sz")p.rotation.y=-Math.PI/2;else if(mode==="v")p.rotation.z=Math.PI/2;
-      (mode==="g"||mode==="gz"?rg.userData.g:mode==="s"||mode==="sz"?rg.userData.s:[]).push(p);rg.add(p);};
+      if(mode==="g")p.rotation.set(-Math.PI/2,0,sz<0?Math.PI:0);else if(mode==="gz")p.rotation.set(-Math.PI/2,0,sx>0?Math.PI/2:-Math.PI/2);else if(mode==="s")p.rotation.y=sz<0?Math.PI:0;else if(mode==="sz")p.rotation.y=sx>0?Math.PI/2:-Math.PI/2;else if(mode==="v")p.rotation.z=Math.PI/2;
+      (mode==="g"||mode==="gz"?rg.userData.g:mode==="s"||mode==="sz"?rg.userData.s:[]).push(p);(par||rg).add(p);};
     const w=ruler?b.x1-b.x0:-1,d=ruler?b.z1-b.z0:-1,hh=ruler?Math.max(b.h-40,H):-1,zf=b.z1+off,xl=b.x0-off,tk=o=>o%100===0?16:o%50===0?11:6,SY=-34,hp=[];
     const lx=(t,x,z,col,sc)=>{lab(t,x,ry+0.6,z,col,sc,"g");lab(t,x,SY,zf,col,sc,"s");},lz=(t,x,z,col,sc)=>{lab(t,x,ry+0.6,z,col,sc,"gz");lab(t,xl,SY,z,col,sc,"sz");};
     if(ruler)pts.push(V(b.x0,ry,zf),V(b.x0+Math.floor(w/10)*10,ry,zf),V(xl,ry,b.z1),V(xl,ry,b.z1-Math.floor(d/10)*10),V(xl,ry,zf),V(xl,Math.floor(hh/10)*10,zf));
@@ -830,17 +835,24 @@ function buildRoom(){scene.remove(room);room.traverse(o=>{if(o.geometry)o.geomet
     for(let o=0;o<=d;o+=10){pts.push(V(xl,ry,b.z1-o),V(xl-tk(o),ry,b.z1-o));hp.push(V(xl,ry,b.z1-o),V(xl,-tk(o),b.z1-o));if(o%100===0)lz(o+"",xl-tk(o)-14,b.z1-o);}
     for(let o=0;o<=hh;o+=10){pts.push(V(xl,o,zf),V(xl-tk(o),o,zf));if(o%100===0&&o>0)lab(o+"",xl-tk(o)-9,o,zf,rc,1,"v");}
     if(ruler){lx("mm",b.x0+Math.floor(w/100)*100+55,zf+16);lz("mm",xl-16,b.z1-Math.floor(d/100)*100-45);lab("mm",xl-10,Math.floor(hh/100)*100+34,zf,rc,1,"v");}
-    /* the single module nearest the ruler origin (front-left corner): its own edges dimensioned in red, outside its walls, each along its axis */
-    {let best=null,bd=1e18;S.buildings.forEach(q=>{const f=fp(q),fx=q.x-f.w/2,fz=q.z+f.d/2,dd=Math.hypot(fx-b.x0,fz-b.z1);if(dd<bd){bd=dd;best=[fx,fz];}});
-      if(best){const mx=best[0],mz=best[1],o=7;
-        dpt.push(V(mx,ry,mz+o),V(mx+WX,ry,mz+o),V(mx-o,ry,mz),V(mx-o,ry,mz-WZ),V(mx-o,0,mz+o),V(mx-o,H,mz+o));
-        lab(WX+"",mx+WX/2,ry+0.6,mz+o+11,rd,1.15,"g");lab(WX+"",mx+WX/2,SY,mz+o+11,rd,1.15,"s");
-        lab(WZ+"",mx-o-11,ry+0.6,mz-WZ/2,rd,1.15,"gz");lab(WZ+"",mx-o-11,SY,mz-WZ/2,rd,1.15,"sz");
-        lab(H+"",mx-o-11,H/2,mz+o,rd,1.15,"v");}}
+    /* the red dimensions of one corner module (width, depth, height). One set per corner of the city, each on that module's OUTER edges and
+       corner, 9 mm clear of the walls; updateRuler shows the set facing the camera for the two ground dimensions and the set at the screen-left
+       silhouette for the height, so a red line or number never lies behind or across the model. Depth-tested, so the model always wins. */
+    rg.userData.d=[];
+    {const o=9,Y=ry+0.6;
+      [[-1,1],[1,1],[-1,-1],[1,-1]].forEach(([sx,sz])=>{let best=null,bd=1e18;S.buildings.forEach(q=>{const f=fp(q),cx=q.x+sx*f.w/2,cz=q.z+sz*f.d/2,dd=Math.hypot(cx-(sx<0?b.x0:b.x1),cz-(sz<0?b.z0:b.z1));if(dd<bd){bd=dd;best=[cx,cz];}});
+        if(!best)return;
+        const ex=best[0],ez=best[1],mx0=sx<0?ex:ex-WX,mx1=sx<0?ex+WX:ex,mz0=sz<0?ez:ez-WZ,mz1=sz<0?ez+WZ:ez,zo=sz>0?mz1+o:mz0-o,xo=sx>0?mx1+o:mx0-o,
+          ag=new THREE.Group(),hg=new THREE.Group(),mk=(g,pt)=>g.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(pt),new THREE.LineBasicMaterial({color:rd})));
+        mk(ag,[V(mx0,ry,zo),V(mx1,ry,zo),V(xo,ry,mz0),V(xo,ry,mz1)]);mk(hg,[V(xo,0,zo),V(xo,H,zo)]);
+        lab(WX+"",(mx0+mx1)/2,Y,zo+sz*11,rd,1.15,"g",ag,sx,sz);lab(WX+"",(mx0+mx1)/2,SY,zo+sz*11,rd,1.15,"s",ag,sx,sz);
+        lab(WZ+"",xo+sx*11,Y,(mz0+mz1)/2,rd,1.15,"gz",ag,sx,sz);lab(WZ+"",xo+sx*11,SY,(mz0+mz1)/2,rd,1.15,"sz",ag,sx,sz);
+        lab(H+"",xo+sx*11,H/2,zo,rd,1.15,"v",hg,sx,sz);
+        ag.userData={sx,sz,k:"a"};hg.userData={sx,sz,k:"h"};rg.userData.d.push(ag,hg);rg.add(ag,hg);});}
     if(ruler)hp.push(V(b.x0,ry,zf),V(b.x0+Math.floor(w/10)*10,ry,zf),V(xl,ry,b.z1),V(xl,ry,b.z1-Math.floor(d/10)*10));   /* the same graduations hanging below the ground line, for Front and low views where the ground is edge-on */
     {const hl=new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(hp),new THREE.LineBasicMaterial({color:rc}));rg.userData.s.push(hl);rg.add(hl);}
     const rl=new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(pts),new THREE.LineBasicMaterial({color:rc}));rl.name="ruler";rg.add(rl);
-    rg.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(dpt),new THREE.LineBasicMaterial({color:rd})));room.add(rg);updateRuler();}
+    room.add(rg);updateRuler();}
   scene.add(room);}
 const TRAY=4,blkMode=()=>S.blocks===true?1:(+S.blocks||0),groundDrop=()=>blkMode()===2?TRAY:0;   /* Blocks: 0 hidden, 1 lines, 2 plots (trays) */
 
