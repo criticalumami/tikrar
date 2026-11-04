@@ -216,7 +216,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
 <header class="grid12">
   <h1>TIKRAR<small>Beirut Lantern Generator</small></h1>
   <span class="sub"><span id="modSize">porcelain modules 72 × 72 mm · 48 mm walls</span> · houses, towers and city blocks · 1860–1925 and modernist openings</span>
-  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 04.11 · 13:05</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
+  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 04.11 · 13:15</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
   </nav>
 </header>
 
@@ -912,7 +912,13 @@ function bevelNormals(geo,depth,bv){const p=geo.attributes.position.array,nA=geo
       if(z<bv-1e-4){c=(bv-z)/bv;zd=-1;}else if(z>depth-bv+1e-4){c=(z-depth+bv)/bv;zd=1;}
       c=Math.max(0,Math.min(1,c));const sn=Math.sqrt(1-c*c);nA[i]=sx/l*sn;nA[i+1]=sy/l*sn;nA[i+2]=zd*c;}}
   geo.attributes.normal.needsUpdate=true;}
-function soft(outer,holes,depth,mat,y,bv){const m=softExtrude(outer,holes,depth,mat,bv);m.rotation.x=-Math.PI/2;m.position.y=y;return m;}
+/* soft() pieces (plates, base, lips, flat roofs, eave rings, seats, courts) are rebuilt with the same outline over and over, in every
+   building and on every rebuild: the geometry is made once per exact outline and reused (perf, 4 Nov). Nothing changes these geometries
+   after they are made (the candle data goes on a copy), so sharing them is safe. */
+const SGEO=new Map();let SGEO_V=0;
+function soft(outer,holes,depth,mat,y,bv){const key=JSON.stringify([outer,holes,depth,bv]);let geo=SGEO.get(key);
+  if(!geo){geo=softExtrude(outer,holes,depth,null,bv).geometry;geo.computeBoundingSphere();SGEO_V+=geo.attributes.position.count;if(SGEO_V>3e6){SGEO.clear();SGEO_V=geo.attributes.position.count;}SGEO.set(key,geo);}
+  const m=new THREE.Mesh(geo,mat);m.castShadow=true;m.receiveShadow=true;m.rotation.x=-Math.PI/2;m.position.y=y;return m;}
 function flat(outer,holes,depth,mat,y){const m=extrude(outer,holes,depth,mat);m.rotation.x=-Math.PI/2;m.position.y=y;return m;}
 const sq=(x0,z0,x1,z1)=>[[x0,z0],[x1,z0],[x1,z1],[x0,z1]];
 /* rectangle with rounded corners (radius r), as a polygon */
@@ -1394,11 +1400,13 @@ function barTris(rs,pos,idx){const K=TRUSS.K,b0=pos.length/3,C=TRUSS.C,N=rs.clos
    plain bars stand in, then the city is rebuilt */
 const TBLEND=new Map();
 let TBQ=Promise.resolve();   /* one shape at a time, with a breath between, so a city of truss roofs does not freeze the page */
+/* a city of truss roofs finishes its blended shapes one after another: the view is rebuilt at most every 0.6 s while they arrive, not once per shape (perf, 4 Nov) */
+let trT=0,trLast=0;function trussReady(){if(trT)return;const w=Math.max(0,600-(performance.now()-trLast));trT=setTimeout(()=>{trT=0;trLast=performance.now();rebuild();},w);}
 function trussBlendGeo(b,hw,hd,key){let v=TBLEND.get(key);if(v)return v.geo||null;TBLEND.set(key,v={geo:null});b=JSON.parse(JSON.stringify(b));
   TBQ=TBQ.then(()=>new Promise(r=>setTimeout(r,30))).then(()=>manifoldLib()).then(M=>{const m=trussBlend(M,b,0.5,1.5e6),mesh=m.getMesh(),np=mesh.numProp,pos=new Float32Array(mesh.numVert*3);m.delete();
     for(let i=0;i<mesh.numVert;i++)for(let j=0;j<3;j++)pos[i*3+j]=mesh.vertProperties[i*np+j];
     const geo=new THREE.BufferGeometry();geo.setAttribute("position",new THREE.BufferAttribute(pos,3));geo.setIndex(new THREE.BufferAttribute(mesh.triVerts,1));geo.computeVertexNormals();
-    geo.setAttribute("uv",new THREE.Float32BufferAttribute(Array.from(pos).filter((_,i)=>i%3!==1),2));geo.computeBoundingSphere();v.geo=geo;rebuild();}).catch(e=>{console.warn("truss blend",e);});
+    geo.setAttribute("uv",new THREE.Float32BufferAttribute(Array.from(pos).filter((_,i)=>i%3!==1),2));geo.computeBoundingSphere();v.geo=geo;trussReady();}).catch(e=>{console.warn("truss blend",e);});
   return null;}
 function trussRoof(b){const g=new THREE.Group(),hw=(perMod(b)?1:b.cols)*WX/2,hd=(perMod(b)?1:b.deep)*WZ/2,mat=roofMat(b),Q=TRUSS,R0=Math.min(radOf(b),hw,hd);
   const key=[hw,hd,R0,b.pitch,VDROP,"truss3",b.fill].join("|");let geo=RGEO.get(key);
@@ -1450,6 +1458,10 @@ function modernRoof(b){const g=new THREE.Group(),nc=perMod(b)?1:b.cols,nd=perMod
 /* the candle (a tealight): diameter CD (default 38 mm) and height CH (default 12 mm, double the first 6 mm model), set in the Module editor; the flame sits on top of it */
 const TEA={};function teaGeo(){const k=CD+"|"+CH;if(!TEA[k]){Object.keys(TEA).forEach(x=>{TEA[x].cup.dispose();TEA[x].wax.dispose();delete TEA[x];});TEA[k]={cup:new THREE.CylinderGeometry(CD/2-0.5,CD/2-0.5,CH-0.5,32),wax:new THREE.CylinderGeometry(CD/2-1.4,CD/2-1.4,1.2,32)};}return TEA[k];}
 const FLAME_OUT_GEO=new THREE.SphereGeometry(2.05,24,18),FLAME_IN_GEO=new THREE.SphereGeometry(1.15,20,14);
+/* candle data per piece (see buildBuilding): a copy that shares the piece's own position, normal and uv buffers and adds aCandle */
+const ACAND=new Map();let ACAND_V=0;
+function shallowGeo(src){const g=new THREE.BufferGeometry();Object.keys(src.attributes).forEach(n=>g.setAttribute(n,src.attributes[n]));if(src.index)g.setIndex(src.index);
+  src.groups.forEach(q=>g.addGroup(q.start,q.count,q.materialIndex));if(src.boundingSphere)g.boundingSphere=src.boundingSphere.clone();if(src.boundingBox)g.boundingBox=src.boundingBox.clone();g.userData=Object.assign({},src.userData);return g;}
 function buildBuilding(bi,gap,lightBudget){
   const b=S.buildings[bi],g=new THREE.Group(),{ys,top}=levelY(b,gap),hw=b.cols*WX/2,hd=b.deep*WZ/2;
   g.position.set(b.x,0,b.z);g.rotation.y=-b.rot*Math.PI/2;
@@ -1482,14 +1494,18 @@ function buildBuilding(bi,gap,lightBudget){
   {const cands=[];for(let l=0;l<b.levels;l++)for(let c=0;c<b.cols;c++)for(let r=0;r<b.deep;r++)if(litMod(b,c,r,l))cands.push([mx(c),ys[l],mz(r)]);
     if(cands.length)g.traverse(o=>{const mt=o.material;if(!o.isMesh||!mt||!mt.userData||!mt.userData.uLit||!o.geometry.attributes.normal||o.geometry.attributes.aCandle)return;
       const M=new THREE.Matrix4();for(let p=o;p&&p!==g;p=p.parent){p.updateMatrix();M.premultiply(p.matrix);}
-      const geo=o.geometry.clone(),P=geo.attributes.position,N=geo.attributes.normal,TH=geo.attributes.aThin,NM=new THREE.Matrix3().getNormalMatrix(M),v=new THREE.Vector3(),n=new THREE.Vector3(),cd=new Float32Array(P.count*4);let hit=0;
+      /* the same piece at the same place among the same candles gets the same candle data: computed once, reused on every rebuild (perf, 4 Nov) */
+      const ck=o.geometry.uuid+"|"+M.elements.join(",")+"|"+cands.join(";")+"|"+[WX,WZ,H,PLATE_T,LIP.h,CANDLE_Y].join(",");
+      if(ACAND.has(ck)){const cg=ACAND.get(ck);if(cg){o.geometry=cg;o.userData.shared=false;o.userData.lit=true;}return;}
+      const src=o.geometry,geo=shallowGeo(src),P=geo.attributes.position,N=geo.attributes.normal,TH=geo.attributes.aThin,NM=new THREE.Matrix3().getNormalMatrix(M),v=new THREE.Vector3(),n=new THREE.Vector3(),cd=new Float32Array(P.count*4);let hit=0;
       for(let i=0;i<P.count;i++){v.fromBufferAttribute(P,i).applyMatrix4(M);n.fromBufferAttribute(N,i).applyMatrix3(NM).normalize();
         let best=null,bd=1e9;cands.forEach(k=>{const dy=v.y-k[1];if(Math.abs(v.x-k[0])>WX/2+2||Math.abs(v.z-k[2])>WZ/2+2||dy<-(PLATE_T+LIP.h+2)||dy>H+90)return;   /* only the candle in the module this piece covers or carries: a top lid stays dark over a dark module */
           const d=Math.hypot(v.x-k[0],dy-CANDLE_Y,v.z-k[2]);if(d<bd){bd=d;best=k;}});
         if(!best){cd[4*i+3]=2;continue;}hit++;
         const w=bd<1e-3?0:(n.x*(v.x-best[0])+n.y*(v.y-best[1]-CANDLE_Y)+n.z*(v.z-best[2]))/bd,ly=v.y-best[1];
         cd[4*i]=v.x-best[0]+(TH&&TH.getX(i)>0.5?1000:0);cd[4*i+1]=w>0?Math.min(ly,H-3.2):ly;cd[4*i+2]=v.z-best[2];cd[4*i+3]=w;}   /* the outer skin of a roof sits above the wall tops: clamp its height so the outside glow still reaches it */
-      if(!hit)return;geo.setAttribute("aCandle",new THREE.BufferAttribute(cd,4));o.geometry=geo;o.userData.shared=false;o.userData.lit=true;});}
+      if(ACAND_V>4e6){ACAND.clear();ACAND_V=0;}
+      if(!hit){ACAND.set(ck,null);return;}geo.setAttribute("aCandle",new THREE.BufferAttribute(cd,4));ACAND.set(ck,geo);ACAND_V+=P.count;o.geometry=geo;o.userData.shared=false;o.userData.lit=true;});}
   {const cs=new THREE.Mesh(new THREE.PlaneGeometry(2*hw+18,2*hd+18),MAT.contact);cs.rotation.x=-Math.PI/2;cs.position.y=0.25-groundDrop();cs.renderOrder=1;g.add(cs);}   /* soft contact shadow where the piece meets the floor (Day Render) */
   if(!S.noSel&&isSel(bi)){const pts=[[-hw-4,-hd-4],[hw+4,-hd-4],[hw+4,hd+4],[-hw-4,hd+4]].map(([x,z])=>new THREE.Vector3(x,0.6,z));const ln=new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(pts),MAT.sel);g.add(ln);}
   return g;}
@@ -1569,7 +1585,7 @@ function wallMask(holes,fw){const key=fw+"|"+H+"|"+JSON.stringify(holes.map(h=>h
   const N=256,c=document.createElement("canvas");c.width=c.height=N;const x=c.getContext("2d");x.fillStyle="#000";x.fillRect(0,0,N,N);x.fillStyle="#fff";
   holes.forEach(h=>{x.beginPath();h.p.forEach(([u,v],i)=>{const X=u/fw*N,Y=(1-v/H)*N;i?x.lineTo(X,Y):x.moveTo(X,Y);});x.closePath();x.fill();});
   t=new THREE.CanvasTexture(c);t.minFilter=THREE.LinearMipmapLinearFilter;t.anisotropy=4;BAKE.masks.set(key,t);return t;}
-function startBake(anchors){BAKE.q.length=0;BAKE.n=0;BAKE.ov.visible=false;BAKE.masks.forEach(t=>t.dispose());BAKE.masks.clear();
+function startBake(anchors){BAKE.q.length=0;BAKE.n=0;BAKE.ov.visible=false;if(BAKE.masks.size>160){BAKE.masks.forEach(t=>t.dispose());BAKE.masks.clear();}   /* opening masks are kept from bake to bake (the same wall makes the same mask), so a re-roll only draws the new ones (perf, 4 Nov) */
   if(!S.night||!anchors.length)return;
   built.updateMatrixWorld(true);
   const b=bounds(),m=GL_R()+10,x0=b.x0-m,x1=b.x1+m,z0=b.z0-m,z1=b.z1+m,w=x1-x0,d=z1-z0,cx=(x0+x1)/2,cz=(z0+z1)/2,gy=-groundDrop(),
@@ -1609,7 +1625,7 @@ function bakeStep(max){const t0=performance.now(),rt0=renderer.getRenderTarget()
     U.uSrc.value.set(2.6,5.2,H*0.42,0.3);U.uI.value=1;   /* flame: an upright 5 × 10 mm ellipse; interior glow: most of the wall, at 0.3 of the flame */
     renderer.render(BAKE.sc,BAKE.cam);BAKE.n++;}
   renderer.setRenderTarget(rt0);renderer.autoClear=ac;renderer.outputEncoding=enc0;renderer.toneMapping=tm0;
-  if(!BAKE.q.length)BAKE.masks.forEach(t=>t.dispose());}
+}
 /* merge everything that shares a material into one mesh: a village goes from hundreds of draw calls to a handful.
    The separate wall meshes stay in `built` (not in the scene) for picking. */
 let merged=new THREE.Group();scene.add(merged);
@@ -1628,11 +1644,26 @@ function mergeGroup(root){root.updateMatrixWorld(true);const buckets=new Map(),i
   inst.forEach(({m,list},k)=>{if(list.length>1)return;inst.delete(k);const kk=m.uuid+"cr";if(!buckets.has(kk))buckets.set(kk,{m,cast:true,recv:true,list:[]});buckets.get(kk).list.push(...list);});
   inst.forEach(({g,m,list})=>{const im=new THREE.InstancedMesh(g,m,list.length);list.forEach((o,i)=>im.setMatrixAt(i,o.matrixWorld));im.instanceMatrix.needsUpdate=true;im.castShadow=im.receiveShadow=true;im.matrixAutoUpdate=false;im.userData.shared=true;out.add(im);});
   root.traverse(o=>{if(o.isLine){const l=new THREE.LineLoop(o.geometry,o.material);l.matrixAutoUpdate=false;l.matrix.copy(o.matrixWorld);out.add(l);}});
-  buckets.forEach(({m,cast,recv,list})=>{let n=0;const parts=list.map(o=>{const g=o.geometry.index?o.geometry.toNonIndexed():o.geometry.clone();g.applyMatrix4(o.matrixWorld);n+=g.attributes.position.count;return g;});
+  /* each piece is written straight into the merged buffers (no per-piece copy of the geometry): the same maths as
+     BufferGeometry.applyMatrix4 (positions by the world matrix, normals by its normal matrix, normalised), so the result is identical (perf, 4 Nov) */
+  const V=new THREE.Vector3(),NM=new THREE.Matrix3();
+  buckets.forEach(({m,cast,recv,list})=>{let n=0;list.forEach(o=>{const g=o.geometry;n+=g.index?g.index.count:g.attributes.position.count;});
     const pos=new Float32Array(n*3),nor=new Float32Array(n*3),uv=new Float32Array(n*2),cd=new Float32Array(n*4);let i=0;
-    parts.forEach(g=>{const c=g.attributes.position.count;pos.set(g.attributes.position.array,i*3);if(g.attributes.normal)nor.set(g.attributes.normal.array,i*3);if(g.attributes.uv)uv.set(g.attributes.uv.array,i*2);
-      if(g.attributes.aCandle)cd.set(g.attributes.aCandle.array,i*4);else for(let k=0;k<c;k++)cd[(i+k)*4+3]=2;
-      i+=c;g.dispose();});
+    list.forEach(o=>{const g=o.geometry,ix=g.index?g.index.array:null,P=g.attributes.position,N=g.attributes.normal,U=g.attributes.uv,C=g.attributes.aCandle,c=ix?ix.length:P.count,M=o.matrixWorld;
+      NM.getNormalMatrix(M);
+      const plain=[P,N,U,C].every(a=>!a||(!a.isInterleavedBufferAttribute&&!a.normalized));
+      if(plain){const pa=P.array,na=N&&N.array,ua=U&&U.array,ca=C&&C.array,e=M.elements,f=NM.elements;   /* the same operations as Vector3.applyMatrix4 / applyMatrix3 + normalize, written out */
+        for(let k=0;k<c;k++){const s=ix?ix[k]:k,d=i+k,x=pa[s*3],y=pa[s*3+1],z=pa[s*3+2],w=1/(e[3]*x+e[7]*y+e[11]*z+e[15]);
+          pos[d*3]=(e[0]*x+e[4]*y+e[8]*z+e[12])*w;pos[d*3+1]=(e[1]*x+e[5]*y+e[9]*z+e[13])*w;pos[d*3+2]=(e[2]*x+e[6]*y+e[10]*z+e[14])*w;
+          if(na){const a=na[s*3],b=na[s*3+1],q=na[s*3+2],nx=f[0]*a+f[3]*b+f[6]*q,ny=f[1]*a+f[4]*b+f[7]*q,nz=f[2]*a+f[5]*b+f[8]*q,l=1/(Math.sqrt(nx*nx+ny*ny+nz*nz)||1);nor[d*3]=nx*l;nor[d*3+1]=ny*l;nor[d*3+2]=nz*l;}
+          if(ua){uv[d*2]=ua[s*2];uv[d*2+1]=ua[s*2+1];}
+          if(ca){cd[d*4]=ca[s*4];cd[d*4+1]=ca[s*4+1];cd[d*4+2]=ca[s*4+2];cd[d*4+3]=ca[s*4+3];}else cd[d*4+3]=2;}}
+      else for(let k=0;k<c;k++){const s=ix?ix[k]:k,d=i+k;
+        V.fromBufferAttribute(P,s).applyMatrix4(M);pos[d*3]=V.x;pos[d*3+1]=V.y;pos[d*3+2]=V.z;
+        if(N){V.fromBufferAttribute(N,s).applyMatrix3(NM).normalize();nor[d*3]=V.x;nor[d*3+1]=V.y;nor[d*3+2]=V.z;}
+        if(U){uv[d*2]=U.getX(s);uv[d*2+1]=U.getY(s);}
+        if(C){cd[d*4]=C.getX(s);cd[d*4+1]=C.getY(s);cd[d*4+2]=C.getZ(s);cd[d*4+3]=C.getW(s);}else cd[d*4+3]=2;}
+      i+=c;});
     const geo=new THREE.BufferGeometry();geo.setAttribute("position",new THREE.BufferAttribute(pos,3));geo.setAttribute("normal",new THREE.BufferAttribute(nor,3));geo.setAttribute("uv",new THREE.BufferAttribute(uv,2));geo.setAttribute("aCandle",new THREE.BufferAttribute(cd,4));
     geo.computeBoundingSphere();const mesh=new THREE.Mesh(geo,m);mesh.castShadow=cast;mesh.receiveShadow=recv;mesh.matrixAutoUpdate=false;out.add(mesh);});
   return out;}
@@ -1761,6 +1792,7 @@ function applyNight(){const n=S.night,rd=S.render;siteTheme(n);scene.background=
    sun.color.set(0xffa868).lerp(new THREE.Color(0xfff5e8),Math.min(1,hi));sun.userData.k=0.58+0.42*hi;sun.intensity=n?0:2.2*sun.userData.k;
    if(!n)hemi.color.set(0xffe4c8).lerp(new THREE.Color(0xfff7ed),Math.min(1,hi));}
   {const ext=Math.max(b.x1-b.x0,b.z1-b.z0,b.h)*0.75+200;Object.assign(sun.shadow.camera,{left:-ext,right:ext,top:ext,bottom:-ext,near:50,far:1200+ext*1.6});sun.shadow.camera.updateProjectionMatrix();}sun.target.position.set(cx,0,cz);
+  LPOOL.forEach(L=>L.visible=!!n);   /* by day every candle light is at zero: leaving them out of the scene saves 12 point lights per pixel and looks the same (perf, 4 Nov) */
   const cs=S.candle===undefined?1:S.candle;lights.forEach(L=>L.intensity=n?L.userData.base*cs:0);flames.forEach(f=>f.visible=!f.userData.cutHide);MAT.flame.opacity=n?1:0.5;MAT.flameCore.opacity=n?1:0.65;   /* by day the flame is still there, only fainter */
   MAT.wax.emissiveIntensity=n?0.45*cs:0;MAT.pool.visible=n;MAT.contact.visible=!!(S.render&&!n);MAT.pool.opacity=Math.min(0.85,0.38*cs);dnSync();
   Object.values(MATS).forEach(m=>{m.emissiveIntensity=0;if(m.userData.uLit)m.userData.uLit.value=0;});
@@ -1835,6 +1867,11 @@ let lastD=0;function fitDepth(){if(camera===ortho)return;const d=camera.position
   if(ssao){[ssao.ssaoMaterial,ssao.depthRenderMaterial].forEach(m=>{if(m&&m.uniforms.cameraNear){m.uniforms.cameraNear.value=camera.near;m.uniforms.cameraFar.value=camera.far;}});
     const span=camera.far-camera.near;ssao.minDistance=0.4/span;ssao.maxDistance=Math.min(0.08,32/span);ssao.kernelRadius=Math.max(3.5,d*0.01);}}
 const RMOTION=matchMedia("(prefers-reduced-motion: reduce)");let VIEWVIS=true;try{new IntersectionObserver(es=>{VIEWVIS=es[es.length-1].isIntersecting;}).observe(view);}catch(e){}
+/* orbit preview (perf, 4 Nov): on a high-density screen, when frames come slower than about 40 a second while the camera moves,
+   the view is drawn at pixel ratio 1 until the camera stops; a quarter of a second after it stops the full resolution comes back
+   and the view is redrawn, so a still view, a JPG, a GIF or a render always looks exactly as before */
+const PR_FULL=renderer.getPixelRatio();let prLow=false,slowN=0,lastDraw=0;
+function setPR(low){if(low===prLow)return;prLow=low;renderer.setPixelRatio(low?1:PR_FULL);if(composer)composer.setPixelRatio(low?1:PR_FULL);resize();need();}
 let tick=0,lastFlick=0;(function loop(now){requestAnimationFrame(loop);controls.update();fitDepth();updateRuler();
   /* candle flicker: smooth organic breathing at night */
   if(S.night&&flames.length&&now-lastFlick>(S.render?80:70)&&!document.hidden&&!RMOTION.matches&&VIEWVIS){lastFlick=now;tick+=0.32;
@@ -1844,7 +1881,10 @@ let tick=0,lastFlick=0;(function loop(now){requestAnimationFrame(loop);controls.
     lights.forEach((L,i)=>L.intensity=L.userData.base*(S.render?1.15:1)*(S.candle===undefined?1:S.candle)*(0.96+Math.sin(tick*1.7+i)*0.035+Math.sin(tick*4.1+i*2)*0.018));
     flames.forEach((f,i)=>{const s=1+Math.sin(tick*3+i)*0.07;f.scale.set(1,s,1);});need();}
   if(BAKE.q.length){bakeStep(BAKE.n?24:60);need();}
-  if(dirty>0){dirty--;draw();}})(0);
+  if(PR_FULL>1){const moving=now-lastMove<250&&!controls.autoRotate&&!ORBIT.busy;   /* orbit preview: see setPR (never while Spin turns the view or a GIF records) */
+    if(moving&&dirty>0){if(lastDraw&&now-lastDraw>24)slowN++;else if(slowN>0&&now-lastDraw<18)slowN--;if(slowN>=3)setPR(true);}
+    else if(!moving&&prLow){slowN=0;setPR(false);}}
+  if(dirty>0){dirty--;draw();lastDraw=now;}else lastDraw=0;})(0);
 const selKey=()=>S.selB+"|"+S.sel+"|"+(S.multi||[]).join(",");let SELKEY="";
 const ray=new THREE.Raycaster(),ptr=new THREE.Vector2();let down=null;
 renderer.domElement.addEventListener("pointerdown",e=>down=[e.clientX,e.clientY]);
@@ -2178,7 +2218,7 @@ const nextFrame=()=>new Promise(r=>requestAnimationFrame(()=>r()));
 on("rand10","click",()=>{$("gifMode").value="rand";$("gifN").value="10";$("gifBtn").click();});
 on("gifBtn","click",async()=>{const btn=$("gifBtn");if(btn.disabled)return;if(MODE!=="module"&&/^rand/.test($("gifMode").value)&&!S.rxL&&S.rxO===false&&S.rxP===false){toast("Switch on Layout, Openings or Colours in Re-roll first");return;}btn.disabled=true;const mode=$("gifMode").value,N=+$("gifN").value;
   /* the frames are the 3D view itself, same framing, light and settings, at up to 1080 px on the long side */
-  const cv=renderer.domElement,sc=Math.min(1,1080/Math.max(cv.width,cv.height)),w=Math.round(cv.width*sc),h=Math.round(cv.height*sc),c2=document.createElement("canvas");c2.width=w;c2.height=h;const g2=c2.getContext("2d",{willReadFrequently:true});
+  setPR(false); const cv=renderer.domElement,sc=Math.min(1,1080/Math.max(cv.width,cv.height)),w=Math.round(cv.width*sc),h=Math.round(cv.height*sc),c2=document.createElement("canvas");c2.width=w;c2.height=h;const g2=c2.getContext("2d",{willReadFrequently:true});
   g2.imageSmoothingQuality="high";const hist=new Uint32Array(32768),sum=new Float64Array(32768*3);
   const PK=Object.keys(PALETTES),p0=Math.floor(Math.random()*PK.length),palAt=i=>PK[(p0+i)%PK.length];   /* all palettes: one palette per frame, each frame the next */
   const what=MODE==="module"?"look":(S.gifWhat||"both"),src=JSON.parse(JSON.stringify(S.buildings));   /* Look / Layout / Both (cluster editor only; a module has no plan) */
@@ -2203,7 +2243,7 @@ on("gifBtn","click",async()=>{const btn=$("gifBtn");if(btn.disabled)return;if(MO
 /* the toolbar GIF is always a randomize series from the current view: same palette unless the menu says all palettes (the panel's GIF settings set the frame count) */
 $("gifWhat").value=S.gifWhat||"both";on("gifWhat","change",e=>{S.gifWhat=e.target.value;save();});
 on("gifQuick","click",()=>{const sel=$("gifMode"),m=sel.value;if(!/^rand/.test(m))sel.value="rand";$("gifBtn").click();sel.value=m;});
-on("jpgBtn","click",()=>{settleLight();draw();const url=renderer.domElement.toDataURL("image/jpeg",0.92),a=document.createElement("a"),d=new Date(),z=n=>String(n).padStart(2,"0");
+on("jpgBtn","click",()=>{setPR(false);settleLight();draw();const url=renderer.domElement.toDataURL("image/jpeg",0.92),a=document.createElement("a"),d=new Date(),z=n=>String(n).padStart(2,"0");
   a.href=url;a.download=`tikrar-${d.getFullYear()}${z(d.getMonth()+1)}${z(d.getDate())}-${z(d.getHours())}${z(d.getMinutes())}.jpg`;document.body.appendChild(a);a.click();a.remove();});
 on("keepPal","click",()=>{S.keepPal=!S.keepPal;$("keepPal").setAttribute("aria-pressed",!!S.keepPal);save();});
 function randAll(){const n=Math.max(1,Math.min(MAX_B,S.buildings.length)),list=[],nLM=S.landmarks?Math.max(1,Math.round(n/25)):0,keep=S.keepPal&&PALETTES[Bs().palette],pal=keep?Bs().palette:pick(Object.keys(PALETTES));usePal(pal);for(let i=0;i<n;i++){const b=randomBuilding();randPal(b,keep||Math.random()<0.7?pal:pick(Object.keys(PALETTES)));autoPlace(b,list);list.push(b);}
@@ -2412,7 +2452,7 @@ function makeSheet(jspdf){
 
   /* ================= sheet 1: general arrangement ================= */
   frame("GENERAL ARRANGEMENT","NTS (photo)");
-  settleLight();draw();const img=renderer.domElement.toDataURL("image/jpeg",0.92),cw=renderer.domElement.width,ch=renderer.domElement.height;
+  setPR(false);settleLight();draw();const img=renderer.domElement.toDataURL("image/jpeg",0.92),cw=renderer.domElement.width,ch=renderer.domElement.height;
   const ih=Math.min(118,150*ch/cw),iw=ih*cw/ch;doc.addImage(img,"JPEG",12,12,iw,ih);lw(0.2);doc.rect(12,12,iw,ih);grey();TT("Viewport, as designed. Not to scale.",12,ih+15,5.2);ink();
   let y=14;const X=iw+20,row=(kk,v)=>{grey();TT(kk,X,y,5.6);ink();TT(String(v),X+30,y,6.4);y+=4.3;};
   TT(b.name,X,y,11);y+=6.5;
