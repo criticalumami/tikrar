@@ -216,7 +216,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
 <header class="grid12">
   <h1>TIKRAR<small>Beirut Lantern Generator</small></h1>
   <span class="sub"><span id="modSize">porcelain modules 72 × 72 mm · 48 mm walls</span> · houses, towers and city blocks · 1860–1925 and modernist openings</span>
-  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 04.11 · 13:15</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
+  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 04.11 · 13:45</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
   </nav>
 </header>
 
@@ -795,7 +795,7 @@ MAT.contact=new THREE.MeshBasicMaterial({color:0x000000,transparent:true,opacity
 /* ---------- ground ---------- */
 let room=new THREE.Group();scene.add(room);
 const lc=h=>new THREE.Color(h).convertSRGBToLinear();
-function updateRuler(){const rg=room&&room.getObjectByName("rulerGroup");if(!rg)return;{const f=document.body.classList.contains("fs");rg.visible=!f;scene.traverse(o=>{if((o.isLine&&(o.material===MAT.line||o.material===MAT.sel||o.material===MAT.selMod))||(o.isMesh&&o.material===MAT.band))o.visible=!f;});}const c=camera.position,t=controls.target,el=Math.atan2(c.y,Math.hypot(c.x-t.x,c.z-t.z)),hi=el>0.3&&S.view!=="front";rg.userData.g.forEach(p=>p.visible=hi);rg.userData.s.forEach(p=>p.visible=!hi);
+function updateRuler(){const rg=room&&room.getObjectByName("rulerGroup");if(!rg)return;{const f=document.body.classList.contains("fs");rg.visible=!f;scene.traverse(o=>{if(o.isLine&&(o.material===MAT.sel||o.material===MAT.selMod))o.visible=!f;if((o.isLine&&o.material===MAT.line)||(o.isMesh&&o.material===MAT.band))o.visible=!(f&&S.render);});   /* full screen keeps the grid unless Render is on */}const c=camera.position,t=controls.target,el=Math.atan2(c.y,Math.hypot(c.x-t.x,c.z-t.z)),hi=el>0.3&&S.view!=="front";rg.userData.g.forEach(p=>p.visible=hi);rg.userData.s.forEach(p=>p.visible=!hi);
   /* red dimensions: ground ones on the corner nearest the camera, the height at the corner furthest to the screen's left */
   const dx=c.x-t.x,dz=c.z-t.z,fl=Math.hypot(dx,dz)<1e-3?[0,1]:[dx,dz],lx=-fl[1],lz=fl[0];   /* screen-left on the ground = (-dz, dx) looking from the camera at the target */
   const ax=Math.abs(dx)<1e-3?1:Math.sign(dx),az=Math.abs(dz)<1e-3?1:Math.sign(dz);
@@ -1849,13 +1849,15 @@ function drawBit(){renderer.getDrawingBufferSize(bitSz);const pr=renderer.getPix
       vertexShader:"varying vec2 vUv;void main(){vUv=uv;gl_Position=vec4(position.xy,0.,1.);}",
       fragmentShader:`uniform sampler2D tex;uniform vec2 size;uniform vec3 ink;uniform vec3 paper;uniform float k;uniform float off;uniform float thr;varying vec2 vUv;
         float b2(vec2 a){a=floor(a);return fract(a.x/2.+a.y*a.y*.75);}float b4(vec2 a){return b2(.5*a)*.25+b2(a);}float b8(vec2 a){return b4(.5*a)*.25+b2(a);}
-        float lum(vec2 p){vec3 c=texture2D(tex,(p+.5)/size).rgb;return clamp((pow(dot(c,vec3(.299,.587,.114)),1./2.2)-off)*k,0.,1.);}
+        bool mk(vec3 c){return c.r>.9&&c.b>.9&&c.g<.1;}
+        float lum(vec2 p){vec3 c=texture2D(tex,(p+.5)/size).rgb;if(mk(c))return 1.;return clamp((pow(dot(c,vec3(.299,.587,.114)),1./2.2)-off)*k,0.,1.);}
         void main(){vec2 p=floor(vUv*size);float l=lum(p),e=abs(l-lum(p+vec2(1.,0.)))+abs(l-lum(p+vec2(0.,1.)));
-          float v=step(b8(p)*.96+.02,l);if(e>thr)v=0.;gl_FragColor=vec4(mix(ink,paper,v),1.);}`});
+          float v=step(b8(p)*.96+.02,l);if(e>thr)v=0.;if(mk(texture2D(tex,(p+.5)/size).rgb))v=0.;   /* grid lines are drawn magenta and come out as exactly one ink pixel, not run through the outline pass */gl_FragColor=vec4(mix(ink,paper,v),1.);}`});
     bitScene=new THREE.Scene();bitScene.add(new THREE.Mesh(new THREE.PlaneGeometry(2,2),bitMat));bitScene.children[0].frustumCulled=false;}
   if(bitRT.width!==w||bitRT.height!==h){bitRT.setSize(w,h);bitMat.uniforms.size.value.set(w,h);}
   const P=BITP[S.bit]||BITP[1];bitMat.uniforms.ink.value.setHex(P[0]);bitMat.uniforms.paper.value.setHex(P[1]);bitMat.uniforms.tex.value=bitRT.texture;{const u=bitMat.uniforms,c=S.bitC===undefined?1:S.bitC,bb=S.bitB||0,o=S.bitO===undefined?0.5:S.bitO;u.k.value=2.1*c;u.off.value=0.5-bb;u.thr.value=Math.max(0.04,0.5-0.68*o);}
-  renderer.setRenderTarget(bitRT);renderer.render(scene,camera);renderer.setRenderTarget(null);renderer.render(bitScene,bitCam);}
+  const gl0=MAT.line.color.getHex();MAT.line.color.setHex(0xff00ff);MAT.band.visible=false;   /* the 1 mm cluster bands would print several pixels thick: only the hairlines draw in 1-Bit */
+  renderer.setRenderTarget(bitRT);renderer.render(scene,camera);renderer.setRenderTarget(null);MAT.line.color.setHex(gl0);MAT.band.visible=true;renderer.render(bitScene,bitCam);}
 const draw=()=>{if(S.bit){drawBit();return;}if(S.render&&composer){finalPass.uniforms.time.value=tick%100;composer.render();}else renderer.render(scene,camera);};
 /* draw only when something changed: an edit, the camera moving (and settling), or the candles flickering at night */
 let dirty=2,lastMove=0;const need=()=>{dirty=Math.max(dirty,1);};
