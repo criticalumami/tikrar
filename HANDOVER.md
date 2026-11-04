@@ -192,3 +192,8 @@ Nothing looks different and the STL/GLB output is unchanged: the merged scene wa
 - **Truss blends** rebuild the view at most every 0.6 s while shapes arrive (`trussReady`), not once per shape.
 - **Night ground-light masks** (`BAKE.masks`) are kept between bakes (dropped above 160), so a re-roll only draws masks for new walls.
 - Caches are capped by vertex count (`SGEO` 3 M, `ACAND` 2 M vertices) and cleared when full.
+
+## 4 Nov, all elevations export (v 04.11 · 14:45)
+- Module editor only (`.modonly` row "All elevations": PDF, SVG; ids `catPdf`, `catSvg`; code `catItems()`, `makeCatalogue()` just before "apply one wall to many"). Every catalogue wall type of both eras (`B.CAT` with `set` ottoman / modern), one entry per style, plus the oculus variant where `canOculus` allows, built with `B.setW(WX)` (and again on WZ when the module is not square) at the current H, T and sizes.
+- PDF: A4 landscape, index sheet (module settings, how to read, index) then 6 elevations per sheet at ONE scale (1 : 1 for 72 wide, smaller when the module is wider), each with overall W/H, a chain of every opening edge across and every sill/head/crown up, R / Ø, opening count, % open, porcelain-check result and the as-built size. Dense claustras/glass blocks dimension the first opening, margins and pitch only. SVG: one sheet of line elevations (`faceSVG` line + dims) at 1 : 1.
+
