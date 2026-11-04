@@ -5,7 +5,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>TIKRAR · Module editor</title>
-<meta name="description" content="Design porcelain lanterns from 60 × 60 mm modules with 40 mm walls: houses and towers, whole city blocks, 1860–1925 and modernist openings, candles and plates per level, with dimensioned PDF sheets.">
+<meta name="description" content="Design porcelain lanterns from 72 × 72 mm modules with 48 mm walls: houses and towers, whole city blocks, 1860–1925 and modernist openings, candles and plates per level, with dimensioned PDF sheets.">
 <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <style>
@@ -210,7 +210,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
 <div id="gridOverlay" class="grid12" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
 <header class="grid12">
   <h1>TIKRAR<small>Beirut Lantern Generator</small></h1>
-  <span class="sub"><span id="modSize">porcelain modules 60 × 60 mm · 40 mm walls</span> · houses, towers and city blocks · 1860–1925 and modernist openings</span>
+  <span class="sub"><span id="modSize">porcelain modules 72 × 72 mm · 48 mm walls</span> · houses, towers and city blocks · 1860–1925 and modernist openings</span>
   <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 04.11 · 09:45</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
   </nav>
 </header>
@@ -238,7 +238,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
       <div class="f"><span class="lbl">Move</span><div class="v"><div class="seg" id="moveSeg"><button type="button" data-mv="-1,0" aria-label="Move left">←</button><button type="button" data-mv="1,0" aria-label="Move right">→</button><button type="button" data-mv="0,-1" aria-label="Move back">↑</button><button type="button" data-mv="0,1" aria-label="Move forward">↓</button><button type="button" id="rotBtn" aria-label="Turn 90°">⟳</button></div></div></div>
       <div class="f"><span class="lbl">Edit</span><div class="v"><div class="seg"><button type="button" id="dupB">Duplicate</button><button type="button" id="delB">Remove</button></div></div></div>
       <div class="f"><span class="lbl">Buildings</span><div class="v"><div class="seg" id="countSeg" title="Grow or shrink the city block (1 to 120): type a number or use − / +; new buildings take the next block slots"><button type="button" data-d="-1" aria-label="One building fewer">−</button><input class="cnt" id="countV" type="number" min="1" max="120" step="1" inputmode="numeric" aria-label="Number of buildings"><button type="button" data-d="1" aria-label="One building more">+</button></div></div></div>
-      <div class="f"><span class="lbl">Block width</span><div class="v"><div class="seg" id="bwSeg" title="Modules per block row (60 mm each); a block is never narrower than its widest building"><button type="button" data-d="-1" aria-label="Narrower blocks">−</button><input class="cnt" id="bwV" type="number" min="2" max="16" step="1" aria-label="Block width in modules"><button type="button" data-d="1" aria-label="Wider blocks">+</button></div><button class="btn" type="button" id="mixBtn" aria-pressed="false" title="Clusters: the city as clusters of blocks between continuous main streets, each cluster its own subgrid (1 to 3 blocks across and deep) on side streets, with alleys and one-row blocks; Randomize All turns it on. Off: every block the typed width">Clusters</button></div></div>
+      <div class="f"><span class="lbl">Block width</span><div class="v"><div class="seg" id="bwSeg" title="Modules per block row (72 mm each); a block is never narrower than its widest building"><button type="button" data-d="-1" aria-label="Narrower blocks">−</button><input class="cnt" id="bwV" type="number" min="2" max="16" step="1" aria-label="Block width in modules"><button type="button" data-d="1" aria-label="Wider blocks">+</button></div><button class="btn" type="button" id="mixBtn" aria-pressed="false" title="Clusters: the city as clusters of blocks between continuous main streets, each cluster its own subgrid (1 to 3 blocks across and deep) on side streets, with alleys and one-row blocks; Randomize All turns it on. Off: every block the typed width">Clusters</button></div></div>
       <div class="f"><span class="lbl">Side streets</span><div class="v"><div class="seg" id="gutSeg" title="Streets between block columns"><button type="button" data-d="-15" aria-label="Narrower side streets">−</button><input class="cnt" id="gutV" type="number" min="0" max="240" step="15" aria-label="Side street width, mm" title="mm, in 15 mm steps"><button type="button" data-d="15" aria-label="Wider side streets">+</button></div></div></div>
       <div class="f"><span class="lbl">Main streets</span><div class="v"><div class="seg" id="aveSeg" title="Streets between block rows"><button type="button" data-d="-15" aria-label="Narrower main streets">−</button><input class="cnt" id="aveV" type="number" min="0" max="360" step="15" aria-label="Main street width, mm" title="mm, in 15 mm steps"><button type="button" data-d="15" aria-label="Wider main streets">+</button></div><button class="btn" type="button" id="varyBtn" aria-pressed="false" title="Give every street its own width, from narrow lanes to wide avenues; press again for a new mix">Vary</button></div></div>
       <div class="f"><span class="lbl">Grid</span><div class="v"><div class="seg" id="blocksSeg" title="The grid on the ground (the city blocks). Lines: outlines and a millimetre ruler drawn along the front and left edges of the city. Plots: each block is a flat porcelain tray (4 mm, rounded) that the buildings stand on; an empty block becomes a public space; the streets are the gaps between trays"><button type="button" data-v="0">Hidden</button><button type="button" data-v="1">Lines</button><button type="button" data-v="2">Plots</button></div></div></div>
@@ -349,7 +349,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
 <script src="openings.js?v=0411p"></script>
 <script>
 (function(){
-const B=window.BeitOpenings,W=60,MAX_LEVELS=8,GRID=30,MAX_LIGHTS=12,SHADOW_LIGHTS=6;let CD=38,CH=12,H=B.H,T=3,BASE_T=4,PLATE_T=4,WX=60,WZ=60;   /* WX: module width (front and back walls), WZ: module length (side walls); 60 × 60 in the cluster editor */
+const B=window.BeitOpenings,W=60,MAX_LEVELS=8,GRID=30,MAX_LIGHTS=12,SHADOW_LIGHTS=6;let CD=38,CH=12,H=B.H,T=3,BASE_T=4,PLATE_T=4,WX=72,WZ=72;   /* WX: module width (front and back walls), WZ: module length (side walls); 60 × 60 in the cluster editor */
 const mOf=b=>b&&b.set=="ottoman"?1/B.SC:3/H,scaleTxt=b=>"1 : "+Math.round(1000*mOf(b)),storeyTxt=b=>(H*mOf(b)).toFixed(2)+" m storey",fwOf=f=>f==="front"||f==="back"?WX:WZ,bld=(spec,f)=>{B.setW(fwOf(f||S.selFace));return B.build(spec);};   /* H, T and the slab: fixed in the cluster editor, sliders in the Module editor (applyDims) */   /* real 3D candle lights + per-pixel subsurface porcelain shader + 16-sample soft ground caustics */
 const FACES=["front","right","back","left"],FNAME={front:"Front",right:"Right",back:"Back",left:"Left"};
 const $=id=>document.getElementById(id);
@@ -1279,7 +1279,7 @@ function slantRoof(b){const g=new THREE.Group(),hw=(perMod(b)?1:b.cols)*WX/2,hd=
             else{const f=t/len;px=sg.p0[0]+(sg.p1[0]-sg.p0[0])*f;pz=sg.p0[1]+(sg.p1[1]-sg.p0[1])*f;g=sg.g;}
             const q={C:[px,ySl(u),pz],T1:[-g[1],0,g[0]],T2:[-g[0]*ca,sa,-g[1]*ca]};
             /* on a hip the rings spread and curve, so a pocket near the eave or the top could poke out of the band: drop it then */
-            if(rim.some(([ox,oy])=>{const qx=px+ox*q.T1[0]+oy*q.T2[0],qz=pz+ox*q.T1[2]+oy*q.T2[2];return sd(qx,qz,uA)>-0.06||sd(qx,qz,uB)<0.06;}))return;
+            if(rim.some(([ox,oy])=>{const qx=px+ox*q.T1[0]+oy*q.T2[0],qz=pz+ox*q.T1[2]+oy*q.T2[2];return sd(qx,qz,uA)>-0.06||sd(qx,qz,uB)<0.06+engDepth()*sa+1.0;}))return;
             out.push([px,-pz,q]);});});});
       return out;};
     engraveFace(geo,frame,cellsFn,engDepth());}
@@ -2178,7 +2178,7 @@ on("radius","input",e=>{each(b=>b.radius=+e.target.value);renderUI();});
 /* the module's size and thicknesses are set in the Module editor; the cluster editor reads them from its saved design and follows */
 const modDims=()=>{if(MODE==="module")return S;try{return JSON.parse(localStorage.getItem("tikrar-module-editor-v1"))||{};}catch(e){return {};}};
 function applyDims(){if(MODE==="module"&&S.vent===undefined){const o=S.buildings.find(x=>x.vent);S.vent=o?+o.vent:0;}   /* v 17:30 kept the cut per building: adopt it */
-  const D=modDims();WX=D.mw||60;WZ=D.ml||60;RGEO.clear();H=D.mh||40;UH.value=H;T=D.mt||3;BASE_T=PLATE_T=FLAT_T=D.ms||4;VDROP=+D.vent||0;CD=D.cd||38;CH=D.ch||12;CANDLE_Y=CH+8;UCY.value=CH+8;
+  const D=modDims();WX=D.mw||72;WZ=D.ml||72;RGEO.clear();H=D.mh||48;UH.value=H;T=D.mt||3;BASE_T=PLATE_T=FLAT_T=D.ms||4;VDROP=+D.vent||0;CD=D.cd||38;CH=D.ch||12;CANDLE_Y=CH+8;UCY.value=CH+8;
   {const el=$("modSize");if(el)el.textContent=`porcelain modules ${WX} × ${WZ} mm · ${H} mm walls`;}B.setH(H);B.setRef(Math.min(WX,WZ));B.LIPS.in=T+LIP.clr;B.LIPS.h=LIP.h;WGEO.clear();CGEO.clear();if(MODE!=="module"){const k=[WX,WZ,H,T,PLATE_T].join("|");if(S.dims!==k){S.dims=k;gridLayout(S.buildings);}return;}
   [["modW",WX,WX+" mm"],["modL",WZ,WZ+" mm"],["modH",H,H+" mm"],["modT",T,T.toFixed(1)+" mm"],["modS",PLATE_T,PLATE_T.toFixed(1)+" mm"],["modCD",CD,CD+" mm"],["modCH",CH,CH+" mm"]].forEach(([id,v,t])=>{if(document.activeElement!==$(id))$(id).value=v;$(id+"V").textContent=t;});}
 [["modW","mw"],["modL","ml"],["modH","mh"],["modT","mt"],["modS","ms"],["modCD","cd"],["modCH","ch"]].forEach(([id,k])=>on(id,"input",e=>{S[k]=+e.target.value;applyDims();renderUI();}));
