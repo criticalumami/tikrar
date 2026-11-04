@@ -214,7 +214,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
 <header class="grid12">
   <h1>TIKRAR<small>Beirut Lantern Generator</small></h1>
   <span class="sub"><span id="modSize">porcelain modules 72 × 72 mm · 48 mm walls</span> · houses, towers and city blocks · 1860–1925 and modernist openings</span>
-  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 04.11 · 12:05</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
+  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 04.11 · 12:20</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
   </nav>
 </header>
 
@@ -2258,7 +2258,10 @@ on("setSeg","click",e=>{const x=e.target.closest("button");if(!x)return;each(b=>
    that choice apart from the size shown, so pressing Randomize again never shrinks the limit. Unset: the size at the first press */
 const rmaxOf=b=>{if(!S.rmax)S.rmax={c:b.cols,d:b.deep,l:b.levels};return S.rmax;},upTo=n=>1+Math.floor(Math.random()*Math.max(1,n));
 const setRmax=(k,v)=>{const b=Bs();S.rmax=Object.assign({c:b.cols,d:b.deep,l:b.levels},S.rmax||{},{[k]:v});};
-const randomShape=b=>{const m=rmaxOf(b);resize3(b,upTo(m.c),upTo(m.d),upTo(m.l));b.roof=pick(["slant","modern"]);b.span=pick(["whole","module"]);b.fill=pick(["shell","truss","half"]);};
+const randomShape=b=>{const m=rmaxOf(b);resize3(b,upTo(m.c),upTo(m.d),upTo(m.l));/* roof: slanted (most often), flat or off; the slanted fill is Filled, Trusses or Half; the Module editor also deals the era (1860-1925 or Modernist) */
+  if(MODE==="module"){b.set=pick(["ottoman","modern"]);S.editSet=b.set;}
+  const q=Math.random();b.roof=q<0.5?"slant":q<0.85?"modern":"none";b.fill=pick(["shell","truss","half"]);
+  b.span=b.roof==="slant"&&b.cols*b.deep>2?"module":pick(["whole","module"]);};
 on("randB","click",()=>{each(b=>{const k=pick(Object.keys(PALETTES));usePal(k);randomShape(b);randomizeBuilding(b);randomizeLight(b);randPal(b,k);});renderUI();});
 on("randLight","click",()=>{each(randomizeLight);renderUI();});
 on("colsSeg","click",e=>{const x=e.target.closest("button");if(!x)return;setRmax("c",+x.dataset.v);each(b=>resize3(b,+x.dataset.v,b.deep,b.levels));renderUI();});
