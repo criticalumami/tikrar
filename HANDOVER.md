@@ -180,3 +180,15 @@ From the review doc https://claude.ai/artifact/1ZcYsG4tDJdifEm739Ktzw. Render en
 The Cut caps are now stencil caps (capMats/capGeom/applyClip in module.html): back faces +1, front faces −1 behind the plane, then a flat tan quad on the plane where the count is not 0. The old back-face copy showed ragged fills at engrave pockets and streaks at open seams. capGeom closes open boundary loops (roof seat ring, slab rings) with a fan for the stencil only. Render targets need stencilBuffer:true. Known: the roof's open seat rings are at different heights, so a Z/X cut can show one thin tan line across the roof eave.
 - 4 Nov: default module is now 72 x 72 mm with 48 mm walls (fallbacks in applyDims, initial WX/WZ); roof engraving stops short of the top vent cut (smooth rim).
 - 4 Nov 1-Bit settings: View panel gets 4 sliders while 1-Bit is on (dot size 1-4 px, default 1 = full resolution; contrast; light; outline), S.bitPx/bitC/bitB/bitO (view keys), both editors.
+
+## 4 Nov, cluster performance (v 04.11 · 13:15)
+Nothing looks different and the STL/GLB output is unchanged: the merged scene was checked to be the same, number for number, as before (day, night, engraving, trusses, explode, selection) with a fingerprint of every merged buffer.
+- **Slab and lip geometry is reused** (`SGEO` in `soft()`): base, plates, flat roofs, lips, eave rings, seats and court trays are made once per exact outline. Before, every rebuild (every click, every re-roll) re-extruded about two lip rings per module plus every plate.
+- **Candle data per piece is reused** (`ACAND`, `shallowGeo()` in buildBuilding): the aCandle buffer of a piece at the same place among the same candles is computed once; the copy shares the piece's position/normal/uv buffers instead of cloning them.
+- **mergeGroup writes straight into the merged buffers** (same maths as `applyMatrix4`, no per-piece clone).
+- Together: a rebuild of an unchanged 17-building city went from about 1.5 s to about 0.17 s in the headless test browser; a re-roll is now mostly the new walls themselves (rings and bevels of new openings).
+- **By day the 12 candle point lights are left out of the scene** (`LPOOL` visible only at night, in applyNight). They were at zero strength but still cost 12 lights per pixel.
+- **Orbit preview** (`setPR`, `PR_FULL` in the render loop): on a 2× screen, when frames come slower than about 40 a second while the camera moves, the view is drawn at pixel ratio 1; 0.25 s after the camera stops the full resolution is back and redrawn. Never during Spin or a GIF; JPG/GIF/PDF capture call `setPR(false)` first.
+- **Truss blends** rebuild the view at most every 0.6 s while shapes arrive (`trussReady`), not once per shape.
+- **Night ground-light masks** (`BAKE.masks`) are kept between bakes (dropped above 160), so a re-roll only draws masks for new walls.
+- Caches are capped by vertex count (`SGEO` 3 M, `ACAND` 2 M vertices) and cleared when full.
