@@ -267,6 +267,10 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
       <div class="f"><label class="lbl" for="explode">Explode</label><div class="v rng"><input type="range" id="explode" min="0" max="30" step="1" value="0"><span class="num" id="explodeV"></span></div></div>
       <div class="f"><span class="lbl" title="Section plane: cut the model along X, Y (height) or Z and look inside">Cut</span><div class="v"><div class="seg" id="cutSeg"><button type="button" data-cut="off" aria-pressed="true">Off</button><button type="button" data-cut="x" aria-pressed="false" title="Section across X (left to right)">X</button><button type="button" data-cut="y" aria-pressed="false" title="Section at a height (a plan cut)">Y</button><button type="button" data-cut="z" aria-pressed="false" title="Section across Z (front to back)">Z</button></div></div></div>
       <div class="f cutS" hidden><label class="lbl" for="cutT">Position</label><div class="v rng"><input type="range" id="cutT" min="0" max="1" step="0.005" value="0.5" title="Position of the section plane"><span class="num" id="cutV"></span><button type="button" class="btn icon" id="cutFlip" aria-pressed="false" title="Keep the other side">⇄</button></div></div>
+      <div class="f bitS" hidden><label class="lbl" for="bitPx" title="1-Bit: size of one dot in screen pixels. 1 is the finest, 4 the chunkiest">1-Bit dot</label><div class="v rng"><input type="range" id="bitPx" min="1" max="4" step="1" value="1"><span class="num" id="bitPxV"></span></div></div>
+      <div class="f bitS" hidden><label class="lbl" for="bitC" title="1-Bit: contrast of the shading">1-Bit contrast</label><div class="v rng"><input type="range" id="bitC" min="0.5" max="2.5" step="0.05" value="1"><span class="num" id="bitCV"></span></div></div>
+      <div class="f bitS" hidden><label class="lbl" for="bitB" title="1-Bit: brighter (right) or darker (left) overall">1-Bit light</label><div class="v rng"><input type="range" id="bitB" min="-0.3" max="0.3" step="0.01" value="0"><span class="num" id="bitBV"></span></div></div>
+      <div class="f bitS" hidden><label class="lbl" for="bitO" title="1-Bit: how readily an outline is drawn where the shading jumps">1-Bit outline</label><div class="v rng"><input type="range" id="bitO" min="0" max="1" step="0.05" value="0.5"><span class="num" id="bitOV"></span></div></div>
     </div>
 
     <div class="panel">
@@ -596,7 +600,7 @@ S.buildings=S.buildings.filter(b=>!b.tree);S.buildings.forEach(b=>{if(b.glaze){i
 /* saving and history (v 02.11 review): the design is written to localStorage once the editing pauses (and when the page is left),
    and every settled change is one Undo step; a slider drag is one step. Only the design is in the history: night, sun, explode,
    candle strength, cut and camera are view settings and stay as they are. */
-const VIEWK=new Set(["noSel","sunOff","explodePrev","candlePrev","cutLast","night","explode","candle","sun","render","bit","ortho","lock","spin","nopanel","cut","view","gifWhat","dims"]);
+const VIEWK=new Set(["noSel","sunOff","explodePrev","candlePrev","cutLast","night","explode","candle","sun","render","bit","bitPx","bitC","bitB","bitO","ortho","lock","spin","nopanel","cut","view","gifWhat","dims"]);
 const hSnap=()=>{const o={};for(const k in S)if(!VIEWK.has(k))o[k]=S[k];return JSON.stringify(o);};
 let hCur="",hU=[],hR=[],hSz=0,hSkip=false,hT=0,lsT=0,hLive=false;   /* hLive: set by the first touch; until then settling only re-bases */const HMAX=60,HBYTES=40e6;
 const persist=()=>{lsT=0;try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}};
@@ -1748,18 +1752,18 @@ function resize(){const r=view.getBoundingClientRect();renderer.setSize(r.width,
    brightness against an 8x8 Bayer dither, plus a dark outline wherever the brightness jumps. S.bit: 0 off, 1 pure black on pure white. */
 const BITP=[null,[0x000000,0xffffff,"B/W"]];
 let bitRT=null,bitMat=null,bitScene=null;const bitCam=new THREE.OrthographicCamera(-1,1,1,-1,0,1),bitSz=new THREE.Vector2();
-function drawBit(){renderer.getDrawingBufferSize(bitSz);const pr=renderer.getPixelRatio(),w=Math.max(2,Math.ceil(bitSz.x/(2*pr))),h=Math.max(2,Math.ceil(bitSz.y/(2*pr)));
+function drawBit(){renderer.getDrawingBufferSize(bitSz);const pr=renderer.getPixelRatio(),px=Math.max(1,Math.min(4,S.bitPx||1)),w=Math.max(2,Math.ceil(bitSz.x/(px*pr))),h=Math.max(2,Math.ceil(bitSz.y/(px*pr)));
   if(!bitRT){bitRT=new THREE.WebGLRenderTarget(w,h,{minFilter:THREE.NearestFilter,magFilter:THREE.NearestFilter,depthBuffer:true,stencilBuffer:true});
-    bitMat=new THREE.ShaderMaterial({uniforms:{tex:{value:null},size:{value:new THREE.Vector2(w,h)},ink:{value:new THREE.Color()},paper:{value:new THREE.Color()}},depthTest:false,depthWrite:false,
+    bitMat=new THREE.ShaderMaterial({uniforms:{tex:{value:null},size:{value:new THREE.Vector2(w,h)},ink:{value:new THREE.Color()},paper:{value:new THREE.Color()},k:{value:2.1},off:{value:.5},thr:{value:.16}},depthTest:false,depthWrite:false,
       vertexShader:"varying vec2 vUv;void main(){vUv=uv;gl_Position=vec4(position.xy,0.,1.);}",
-      fragmentShader:`uniform sampler2D tex;uniform vec2 size;uniform vec3 ink;uniform vec3 paper;varying vec2 vUv;
+      fragmentShader:`uniform sampler2D tex;uniform vec2 size;uniform vec3 ink;uniform vec3 paper;uniform float k;uniform float off;uniform float thr;varying vec2 vUv;
         float b2(vec2 a){a=floor(a);return fract(a.x/2.+a.y*a.y*.75);}float b4(vec2 a){return b2(.5*a)*.25+b2(a);}float b8(vec2 a){return b4(.5*a)*.25+b2(a);}
-        float lum(vec2 p){vec3 c=texture2D(tex,(p+.5)/size).rgb;return clamp((pow(dot(c,vec3(.299,.587,.114)),1./2.2)-.5)*2.1,0.,1.);}
+        float lum(vec2 p){vec3 c=texture2D(tex,(p+.5)/size).rgb;return clamp((pow(dot(c,vec3(.299,.587,.114)),1./2.2)-off)*k,0.,1.);}
         void main(){vec2 p=floor(vUv*size);float l=lum(p),e=abs(l-lum(p+vec2(1.,0.)))+abs(l-lum(p+vec2(0.,1.)));
-          float v=step(b8(p)*.96+.02,l);if(e>.16)v=0.;gl_FragColor=vec4(mix(ink,paper,v),1.);}`});
+          float v=step(b8(p)*.96+.02,l);if(e>thr)v=0.;gl_FragColor=vec4(mix(ink,paper,v),1.);}`});
     bitScene=new THREE.Scene();bitScene.add(new THREE.Mesh(new THREE.PlaneGeometry(2,2),bitMat));bitScene.children[0].frustumCulled=false;}
   if(bitRT.width!==w||bitRT.height!==h){bitRT.setSize(w,h);bitMat.uniforms.size.value.set(w,h);}
-  const P=BITP[S.bit]||BITP[1];bitMat.uniforms.ink.value.setHex(P[0]);bitMat.uniforms.paper.value.setHex(P[1]);bitMat.uniforms.tex.value=bitRT.texture;
+  const P=BITP[S.bit]||BITP[1];bitMat.uniforms.ink.value.setHex(P[0]);bitMat.uniforms.paper.value.setHex(P[1]);bitMat.uniforms.tex.value=bitRT.texture;{const u=bitMat.uniforms,c=S.bitC===undefined?1:S.bitC,bb=S.bitB||0,o=S.bitO===undefined?0.5:S.bitO;u.k.value=2.1*c;u.off.value=0.5-bb;u.thr.value=Math.max(0.04,0.5-0.68*o);}
   renderer.setRenderTarget(bitRT);renderer.render(scene,camera);renderer.setRenderTarget(null);renderer.render(bitScene,bitCam);}
 const draw=()=>{if(S.bit){drawBit();return;}if(S.render&&composer){finalPass.uniforms.time.value=tick%100;composer.render();}else renderer.render(scene,camera);};
 /* draw only when something changed: an edit, the camera moving (and settling), or the candles flickering at night */
@@ -2505,7 +2509,10 @@ $("candle").value=S.candle===undefined?1:S.candle;rxSync();$("keepPal").setAttri
 /* ===== bar switches: on/off only; strength, time, distance and axis are in the View panel ===== */
 on("candleBtn","click",()=>{const c=S.candle===undefined?1:S.candle;if(c>0){S.candlePrev=c;S.candle=0;}else S.candle=S.candlePrev||1;$("candle").value=S.candle;applyNight();save();vbarVals();});
 on("bitBtn","click",()=>{S.bit=S.bit?0:1;bitSync();need();save();});
-function bitSync(){const b=$("bitBtn");b.setAttribute("aria-pressed",!!S.bit);b.textContent="1-Bit";document.documentElement.classList.toggle("bit",!!S.bit);}
+function bitSync(){const b=$("bitBtn");b.setAttribute("aria-pressed",!!S.bit);b.textContent="1-Bit";document.documentElement.classList.toggle("bit",!!S.bit);
+  document.querySelectorAll(".bitS").forEach(x=>x.hidden=!S.bit);
+  [["bitPx",1,v=>v+" px"],["bitC",1,v=>(+v).toFixed(2)],["bitB",0,v=>(+v>0?"+":"")+(+v).toFixed(2)],["bitO",0.5,v=>Math.round(v*100)+" %"]].forEach(([k,d,f])=>{const v=S[k]===undefined?d:S[k];if(document.activeElement!==$(k))$(k).value=v;$(k+"V").textContent=f(v);});}
+["bitPx","bitC","bitB","bitO"].forEach(k=>on(k,"input",e=>{S[k]=+e.target.value;bitSync();need();save();}));
 bitSync();
 on("sunBtn","click",()=>{S.sunOff=!S.sunOff;applyNight();save();vbarVals();});
 on("explodeBtn","click",()=>{const v=S.explode||0;if(v>0){S.explodePrev=v;S.explode=0;}else S.explode=S.explodePrev||12;$("explode").value=S.explode;rebuild();vbarVals();});
