@@ -214,7 +214,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
 <header class="grid12">
   <h1>TIKRAR<small>Beirut Lantern Generator</small></h1>
   <span class="sub"><span id="modSize">porcelain modules 72 × 72 mm · 48 mm walls</span> · houses, towers and city blocks · 1860–1925 and modernist openings</span>
-  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 04.11 · 11:30</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
+  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 04.11 · 12:05</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
   </nav>
 </header>
 
@@ -835,7 +835,7 @@ function buildRoom(){scene.remove(room);room.traverse(o=>{if(o.geometry)o.geomet
      for the front and low views (updateRuler swaps them by camera height). Drawn on top, sized to their text, so nothing clips. */
   if((blkMode()||MODE==="module")&&!S.render){const ruler=blkMode()>0,b=bounds(),ry=0.4-groundDrop(),rc=S.night?0xcfd3dc:0x111111,rd=S.night?0xff6a5c:0xe2231a,rg=new THREE.Group(),pts=[],dpt=[],off=70,V=(x,y,z)=>new THREE.Vector3(x,y,z);
     rg.name="rulerGroup";rg.userData={g:[],s:[]};
-    const RL=window.__rulerTex||(window.__rulerTex=new Map()),lab=(t,x,y,z,col,sc,mode,par,sx,sz)=>{col=col||rc;const dt=true,k=t+col+"d";let m=RL.get(k);if(!m){const c=document.createElement("canvas"),g=c.getContext("2d"),F="bold 64px sans-serif";g.font=F;const tw=Math.ceil(g.measureText(t).width)+32;c.width=tw;c.height=112;g.font=F;g.fillStyle="#"+col.toString(16).padStart(6,"0");g.textAlign="center";g.textBaseline="middle";g.fillText(t,tw/2,56);const tx=new THREE.CanvasTexture(c);tx.anisotropy=8;m=new THREE.MeshBasicMaterial({map:tx,transparent:true,depthTest:dt,depthWrite:false,toneMapped:false,side:THREE.DoubleSide});m.userData.ar=tw/112;RL.set(k,m);}
+    const RL=window.__rulerTex||(window.__rulerTex=new Map()),lab=(t,x,y,z,col,sc,mode,par,sx,sz)=>{col=col||rc;const dt=true,k=t+col+"d";let m=RL.get(k);if(!m){const c=document.createElement("canvas"),g=c.getContext("2d"),F="300 64px Inter,'Helvetica Neue',Arial,sans-serif";g.font=F;const tw=Math.ceil(g.measureText(t).width)+32;c.width=tw;c.height=112;g.font=F;g.fillStyle="#"+col.toString(16).padStart(6,"0");g.textAlign="center";g.textBaseline="middle";g.fillText(t,tw/2,56);const tx=new THREE.CanvasTexture(c);tx.anisotropy=8;m=new THREE.MeshBasicMaterial({map:tx,transparent:true,depthTest:dt,depthWrite:false,toneMapped:false,side:THREE.DoubleSide});m.userData.ar=tw/112;RL.set(k,m);}
       const h=(sc||1)*17,p=new THREE.Mesh(new THREE.PlaneGeometry(h*m.userData.ar,h),m);p.position.set(x,y,z);p.renderOrder=20;
       if(mode==="g")p.rotation.set(-Math.PI/2,0,sz<0?Math.PI:0);else if(mode==="gz")p.rotation.set(-Math.PI/2,0,sx>0?Math.PI/2:-Math.PI/2);else if(mode==="s")p.rotation.y=sz<0?Math.PI:0;else if(mode==="sz")p.rotation.y=sx>0?Math.PI/2:-Math.PI/2;else if(mode==="v")p.rotation.z=Math.PI/2;
       (mode==="g"||mode==="gz"?rg.userData.g:mode==="s"||mode==="sz"?rg.userData.s:[]).push(p);(par||rg).add(p);};
@@ -850,15 +850,17 @@ function buildRoom(){scene.remove(room);room.traverse(o=>{if(o.geometry)o.geomet
        corner, 9 mm clear of the walls; updateRuler shows the set facing the camera for the two ground dimensions and the set at the screen-left
        silhouette for the height, so a red line or number never lies behind or across the model. Depth-tested, so the model always wins. */
     rg.userData.d=[];
-    {const o=9,Y=ry+0.6;
+    {const o=9,Y=ry+0.6,DY=ruler?-30:0;   /* with the ruler on, the red standing line and label go below its graduations and numbers */
       [[-1,1],[1,1],[-1,-1],[1,-1]].forEach(([sx,sz])=>{let best=null,bd=1e18;S.buildings.forEach(q=>{const f=fp(q),cx=q.x+sx*f.w/2,cz=q.z+sz*f.d/2,dd=Math.hypot(cx-(sx<0?b.x0:b.x1),cz-(sz<0?b.z0:b.z1));if(dd<bd){bd=dd;best=[cx,cz];}});
         if(!best)return;
         const ex=best[0],ez=best[1],mx0=sx<0?ex:ex-WX,mx1=sx<0?ex+WX:ex,mz0=sz<0?ez:ez-WZ,mz1=sz<0?ez+WZ:ez,zo=sz>0?mz1+o:mz0-o,xo=sx>0?mx1+o:mx0-o,
           ag=new THREE.Group(),hg=new THREE.Group(),mk=(g,pt)=>g.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(pt),new THREE.LineBasicMaterial({color:rd})));
-        mk(ag,[V(mx0,ry,zo),V(mx1,ry,zo),V(xo,ry,mz0),V(xo,ry,mz1)]);mk(hg,[V(xo,0,zo),V(xo,H,zo)]);
-        lab(WX+"",(mx0+mx1)/2,Y,zo+sz*11,rd,1.15,"g",ag,sx,sz);lab(WX+"",(mx0+mx1)/2,SY,zo+sz*11,rd,1.15,"s",ag,sx,sz);
+        const yt=(()=>{const q=S.buildings.find(q=>{const f=fp(q);return Math.abs(q.x+sx*f.w/2-ex)<1e-6&&Math.abs(q.z+sz*f.d/2-ez)<1e-6;})||S.buildings[0];return levelY(q,0).ys[0]+H;})(),tk2=2.5;   /* wall top of the corner module: slab and lip under it, then the wall height */
+        mk(ag,[V(mx0,ry,zo),V(mx1,ry,zo),V(xo,ry,mz0),V(xo,ry,mz1)]);mk(hg,[V(xo,0,zo),V(xo,yt,zo),V(xo-tk2,0,zo),V(xo+tk2,0,zo),V(xo-tk2,yt,zo),V(xo+tk2,yt,zo)]);
+        {const YL=-14+DY,sg=new THREE.Group();sg.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints([V(mx0,YL,zo),V(mx1,YL,zo),V(mx0,YL-tk2,zo),V(mx0,YL+tk2,zo),V(mx1,YL-tk2,zo),V(mx1,YL+tk2,zo)]),new THREE.LineBasicMaterial({color:rd})));ag.add(sg);rg.userData.s.push(sg);}   /* Front / low views: the ground is edge-on, so the width line hangs below it, ending exactly at the module's edges */
+        lab(WX+"",(mx0+mx1)/2,Y,zo+sz*11,rd,1.15,"g",ag,sx,sz);lab(WX+"",(mx0+mx1)/2,SY+DY,zo+sz*11,rd,1.15,"s",ag,sx,sz);
         lab(WZ+"",xo+sx*11,Y,(mz0+mz1)/2,rd,1.15,"gz",ag,sx,sz);lab(WZ+"",xo+sx*11,SY,(mz0+mz1)/2,rd,1.15,"sz",ag,sx,sz);
-        lab(H+"",xo+sx*11,H/2,zo,rd,1.15,"v",hg,sx,sz);
+        lab(H+"",xo+sx*11,yt/2,zo,rd,1.15,"v",hg,sx,sz);
         ag.userData={sx,sz,k:"a"};hg.userData={sx,sz,k:"h"};rg.userData.d.push(ag,hg);rg.add(ag,hg);});}
     if(ruler)hp.push(V(b.x0,ry,zf),V(b.x0+Math.floor(w/10)*10,ry,zf),V(xl,ry,b.z1),V(xl,ry,b.z1-Math.floor(d/10)*10));   /* the same graduations hanging below the ground line, for Front and low views where the ground is edge-on */
     {const hl=new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(hp),new THREE.LineBasicMaterial({color:rc}));rg.userData.s.push(hl);rg.add(hl);}
