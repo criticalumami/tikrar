@@ -34,71 +34,94 @@ const frame=(o,fn,x,s,w,h,t)=>o.relief.push({o:fn(x-t,s-t,w+2*t,h+2*t),i:fn(x,s,
 const band=(o,x,y,w,h)=>o.relief.push({o:R(x,y,w,h)});
 const fin=(o,w,name)=>o.fins.push({w,name});                                             /* a column between openings, the full opening height */
 
+/* ---------- as-built proportions (late Ottoman, 1860–1925) ----------
+   A module wall is ONE storey. Late Ottoman upper storeys in Beirut stand about 4.5 m clear (central-hall houses 4–5 m,
+   palaces to 5.7 m), so every 1860–1925 opening is drawn in real metres and set on the wall at one uniform scale SC (mm per m):
+   SC = H / 4.5, unless the widest standard composition (5.8 m: three window bays at a 2.3 m rhythm, or a door between two
+   windows) would not fit between the corner piers of the narrower module wall, then that sets it. Nothing is ever stretched:
+   a window keeps its 1 : 2.4, an arch its rise, the pier its width. All walls of a building share one SC, so every head,
+   sill and spring line runs level round the house. Book figures (HoB pages) and the usual as-built values: */
+const AS={storey:4.5,pitch:2.3,span:5.8,
+  win:{w:1.10,sill:0.75,head:3.35},           /* tall window: about 110 × 260 cm (1 : 2.4) on the 75 cm parapet, HoB pp. 166–168 */
+  arch:{w:1.10,sill:0.75,crown:3.90},         /* arched window: same width and sill, the arch crowning above the window head line, p. 169 */
+  door:{w:1.05,h:2.15,lintel:0.25},           /* entrance door 100–110 × 200–220 cm, fanlight over a lintel, pp. 163–164 */
+  hilali:{w:0.95,h:1.90},                     /* oriental door, segmental (hilālī) arch, 95 × 190 cm, p. 162 */
+  shop:{w:2.80,h:3.20},                       /* store front under a discharging arch that follows the vault, p. 165 */
+  arcade:{side:1.00,mid:1.20,col:0.25,crownS:3.60,crownM:3.90},   /* triple arch on slender marble columns, French windows to the floor, pp. 170–173 */
+  liwan:{w:2.90,crown:4.00},                  /* one wide līwān arch, pp. 20–22 */
+  coupled:{w:0.80,col:0.25,sill:0.75,crown:3.75},  /* twin arched lights on a column, p. 169 */
+  high:{w:0.40,h:0.80,sill:2.85,off:1.60},    /* small high windows, about 40 cm wide, p. 169 */
+  oculus:{d:0.60,y:3.40},ovalW:0.90,ovalH:0.60,ocAbove:{d:0.55,y:4.05}};   /* qamariyeh, p. 169 */
+let REF=60;                                   /* the narrower module wall (min of width and length): set by the editor */
+const EDGE=6.5;                               /* corner pier, mm: clears the 45° mitre and the largest corner radius (6 mm) */
+const SC=()=>Math.max(1,Math.min(H/AS.storey,(REF-2*EDGE)/AS.span));
+const M=v=>v*SC(),AX=a=>W/2+a*SC();           /* metres to face mm; AX: a point a metres from the wall's centre line */
+const FLOOR=()=>LIM.base;                     /* door thresholds and French windows start on the base lip line */
+const colMM=c=>Math.max(LIM.minBar+0.1,M(c));  /* a column is at least the porcelain bar, even where the marble one would be thinner */
+const bayC=i=>W/2+(i-1)*AS.pitch*SC();         /* the three bay axes, 2.3 m apart */
+/* openings in metres: x axis offset a (m from the centre line), from y0 (m above the floor) */
+const WIN=(a)=>R(AX(a)-M(AS.win.w)/2,M(AS.win.sill),M(AS.win.w),M(AS.win.head-AS.win.sill));
+const ARCHW=(f,a,w,sill,crown)=>{const ws=f===HORSESHOE?w/1.2:w;return f(AX(a)-M(ws)/2,M(sill),M(ws),M(crown-sill));};
+const FL=(f,a,w,top)=>{const y=FLOOR();return f(AX(a)-M(w)/2,y,M(w),M(top)-y);};   /* from the floor up to top (m) */
+
 /* ---------- catalogue (book page numbers) ---------- */
 const CAT=[
- {id:"triple",group:"Bays",name:"Triple-arch bay",ref:"pp. 170–173",
+ {id:"triple",group:"Bays",name:"Triple-arch bay",ref:"pp. 170–173",asb:"arches 100 · 120 · 100 cm on 25 cm columns, crowns 3.60 / 3.90 m, to the floor",
   desc:"The emblem of the central-hall house: three arches on two slender columns, the centre one wider and taller. Pointed arches are the most common; semicircular ones are the exception.",
   styles:{label:"Arches",options:{pointed:"Pointed",round:"Semicircular"}},opts:["cornice","balcony"],cornice:"Discharging arch (relief)",
-  build(o,q){const f=ARCHES[q.style]||POINTED,col=2.6,sw=10,cw=14,s=4,x0=(W-(2*sw+cw+2*col))/2;
-   hole(o,f(x0,s,sw,22));hole(o,f(x0+sw+col,s,cw,28));hole(o,f(x0+sw+col+cw+col,s,sw,22));fin(o,col,"Triple-arch columns");
-   if(q.cornice)o.relief.push({o:SEGM(x0-2.4,s,W-2*x0+4.8,32.6),i:SEGM(x0-1.2,s,W-2*x0+2.4,31.4)});
-   if(q.balcony)o.extras.push({t:"balcony",x:x0-3,w:W-2*x0+6,y:s});}},
- {id:"liwan",group:"Bays",name:"Līwān arch",ref:"pp. 20–22",
+  build(o,q){const f=ARCHES[q.style]||POINTED,A=AS.arcade,col=colMM(A.col)/SC(),y=FLOOR(),xs=A.mid/2+col+A.side/2;
+   hole(o,f(AX(-xs)-M(A.side)/2,y,M(A.side),M(A.crownS)-y));hole(o,f(AX(0)-M(A.mid)/2,y,M(A.mid),M(A.crownM)-y));hole(o,f(AX(xs)-M(A.side)/2,y,M(A.side),M(A.crownS)-y));
+   fin(o,colMM(A.col),"Triple-arch columns");}},
+ {id:"liwan",group:"Bays",name:"Līwān arch",ref:"pp. 20–22",asb:"about 290 cm wide, crown 4.00 m, to the floor",
   desc:"One large arch opening the hall or porch to the outside. The early central-hall houses had a single large arch before the triple arch became the norm.",
   styles:{label:"Arch",options:{round:"Semicircular",pointed:"Pointed",horseshoe:"Horseshoe"}},opts:["frame","balcony","oculus"],
-  build(o,q){const f=ARCHES[q.style]||ROUND,hw=q.style==="horseshoe"?20:24,x=(W-hw)/2,hh=q.style==="pointed"?31:29;hole(o,f(x,3,hw,hh));if(q.frame)frame(o,f,x,3,hw,hh,1.4);
-   if(q.balcony)o.extras.push({t:"balcony",x:15,w:30,y:3});}},
- {id:"closedLiwan",group:"Bays",name:"Door between two windows",ref:"p. 20",
-  desc:"The closed līwān: a centred door flanked by two windows, the standard front of the smaller extra-mural houses.",
+  build(o,q){const f=ARCHES[q.style]||ROUND,w=q.style==="horseshoe"?AS.liwan.w/1.2:AS.liwan.w;hole(o,FL(f,0,w,AS.liwan.crown));}},
+ {id:"closedLiwan",group:"Bays",name:"Door between two windows",ref:"p. 20",asb:"door 105 cm under a segmental head at 3.35 m, windows 110 × 260 cm on axes 2.30 m out",
+  desc:"The closed līwān: a centred door flanked by two windows, the standard front of the smaller extra-mural houses. Door head and window heads share one line.",
   opts:["frame","cornice","oculus"],cornice:"Cornices over the windows",
-  build(o,q){hole(o,SEGM(24.5,2,11,24));hole(o,R(9,12,7,13));hole(o,R(44,12,7,13));
-   if(q.frame){frame(o,SEGM,24.5,2,11,24,1.2);frame(o,R,9,12,7,13,1.2);frame(o,R,44,12,7,13,1.2);}
-   if(q.cornice){band(o,7.4,26.6,10.2,1.6);band(o,42.4,26.6,10.2,1.6);}}},
- {id:"orientalDoor",group:"Doors",name:"Oriental door, hilālī arch",ref:"p. 162",
+  build(o,q){hole(o,FL(SEGM,0,AS.door.w,AS.win.head));hole(o,WIN(-AS.pitch));hole(o,WIN(AS.pitch));}},
+ {id:"orientalDoor",group:"Doors",name:"Oriental door, hilālī arch",ref:"p. 162",asb:"95 × 190 cm",
   desc:"Pre-1860 door in the stone, closed by an interior leaf. A segmental arch (hilālī), on average 95 cm wide and 190 cm high, framed by carefully cut stones.",
   opts:["frame","oculus"],frameName:"Cut-stone frame (relief)",
-  build(o,q){hole(o,SEGM(23.6,2,12.8,25.3));if(q.frame)frame(o,SEGM,23.6,2,12.8,25.3,1.8);}},
- {id:"westernDoor",group:"Doors",name:"Entrance door with fanlight",ref:"pp. 163–164",
+  build(o,q){hole(o,FL(SEGM,0,AS.hilali.w,AS.hilali.h));}},
+ {id:"westernDoor",group:"Doors",name:"Entrance door with fanlight",ref:"pp. 163–164",asb:"105 × 215 cm, 25 cm lintel, fanlight as wide as the door",
   desc:"Post-1860 rectangular door (100–110 × 200–220 cm), framed by two pilasters and a lintel, often topped by an openwork or blind arched tympanum.",
   styles:{label:"Tympanum",options:{round:"Open, semicircular",pointed:"Open, pointed",blind:"Blind (relief)"}},opts:["frame"],frameName:"Pilasters and lintel (relief)",
-  build(o,q){const st=q.style||"round",dh=st==="pointed"?20:23;hole(o,R(23,2,14,dh));
-   if(st==="blind")o.relief.push({o:ROUND(23,dh+4.6,14,7.5)});else hole(o,(ARCHES[st])(23,dh+4.6,14,st==="pointed"?12.2:7.5));
-   if(q.frame){band(o,19.8,2,1.8,dh+2.6);band(o,38.4,2,1.8,dh+2.6);band(o,19.8,dh+2.6,20.4,1.4);}}},
- {id:"shop",group:"Doors",name:"Shop front, discharging arch",ref:"p. 165",
+  build(o,q){const st=q.style||"round",D=AS.door,x=AX(0)-M(D.w)/2;hole(o,FL(R,0,D.w,D.h));
+   if(st!=="blind"){const y=Math.max(M(D.h+D.lintel),M(D.h)+LIM.minBar+0.1);hole(o,st==="pointed"?POINTED(x,y,M(D.w),M(0.866*D.w)+0.01):ROUND(x,y,M(D.w),M(D.w/2)+0.01));}}},
+ {id:"shop",group:"Doors",name:"Shop front, discharging arch",ref:"p. 165",asb:"about 280 cm wide, 3.20 m to the crown",
   desc:"Ground-floor store front closed by two to four doors, under a discharging arch that follows the vault behind it.",
   opts:["frame"],frameName:"Discharging arch (relief)",
-  build(o,q){hole(o,SEGM(15,2,30,22));if(q.frame)frame(o,SEGM,15,2,30,22,2);}},
- {id:"tallWindow",group:"Windows",name:"Tall window with cornice",ref:"pp. 166–168",
+  build(o,q){hole(o,FL(SEGM,0,AS.shop.w,AS.shop.h));}},
+ {id:"tallWindow",group:"Windows",name:"Tall window with cornice",ref:"pp. 166–168",asb:"110 × 260 cm on a 75 cm parapet (1 : 2.4)",
   desc:"The common window: a fixed frame on a parapet about 75 cm high, crowned by a projecting cornice that throws off the rain.",
   opts:["frame","cornice","balcony","oculus"],cornice:"Projecting cornice (relief)",
-  build(o,q){hole(o,R(24,10,12,20));if(q.frame)frame(o,R,24,10,12,20,1.2);if(q.cornice)band(o,21.5,31.4,17,1.8);
-   if(q.balcony)o.extras.push({t:"balcony",x:20,w:20,y:10});}},
- {id:"pair",group:"Windows",name:"Pair of tall windows",ref:"p. 166",
+  build(o,q){hole(o,WIN(0));}},
+ {id:"pair",group:"Windows",name:"Pair of tall windows",ref:"p. 166",asb:"two 110 × 260 cm windows, 140 cm pier between",
   desc:"Two tall windows on one sill line: the side rooms that flank the central hall.",
   opts:["frame","cornice","oculus"],cornice:"Cornices (relief)",
-  build(o,q){[13,38].forEach(x=>{hole(o,R(x,10,9,19));if(q.frame)frame(o,R,x,10,9,19,1.2);if(q.cornice)band(o,x-2,30.4,13,1.6);});}},
- {id:"arched",group:"Windows",name:"Arched window",ref:"p. 169",
+  build(o,q){const a=(AS.win.w+1.40)/2;hole(o,WIN(-a));hole(o,WIN(a));}},
+ {id:"arched",group:"Windows",name:"Arched window",ref:"p. 169",asb:"110 cm wide on the 75 cm parapet, crown 3.90 m",
   desc:"Rectangular below, pointed or semicircular above. Usually lights a corridor or stairwell; the arch was also what made larger openings possible.",
   styles:{label:"Arch",options:{round:"Semicircular",pointed:"Pointed",horseshoe:"Horseshoe"}},opts:["frame","oculus"],
-  build(o,q){const f=ARCHES[q.style]||ROUND;hole(o,f(24,9,12,24));if(q.frame)frame(o,f,24,9,12,24,1.2);}},
- {id:"coupled",group:"Windows",name:"Coupled windows",ref:"p. 169",
+  build(o,q){hole(o,ARCHW(ARCHES[q.style]||ROUND,0,AS.arch.w,AS.arch.sill,AS.arch.crown));}},
+ {id:"coupled",group:"Windows",name:"Coupled windows",ref:"p. 169",asb:"two 80 cm arched lights on a 25 cm column, crown 3.75 m",
   desc:"Two twin arched openings with an intermediate column, often lighting a stairwell, one arch per flight.",
   styles:{label:"Arches",options:{pointed:"Pointed",round:"Semicircular"}},opts:["cornice","oculus"],cornice:"Hood moulding (relief)",
-  build(o,q){const f=ARCHES[q.style]||POINTED;hole(o,f(19.7,9,9,22));hole(o,f(31.3,9,9,22));fin(o,2.6,"Coupled-window column");
-   if(q.cornice)o.relief.push({o:SEGM(17.5,9,25,24.8),i:SEGM(18.7,9,22.6,23.6)});}},
- {id:"high",group:"Windows",name:"High windows",ref:"p. 169",
+  build(o,q){const f=ARCHES[q.style]||POINTED,C=AS.coupled,c=colMM(C.col)/SC(),a=(C.w+c)/2;
+   [-a,a].forEach(x=>hole(o,ARCHW(f,x,C.w,C.sill,C.crown)));fin(o,colMM(C.col),"Coupled-window column");}},
+ {id:"high",group:"Windows",name:"High windows",ref:"p. 169",asb:"40 × 80 cm, sill 2.85 m",
   desc:"Small (about 40 cm wide) rectangular or pointed windows set high, typical of first-generation houses, kitchens and attics, before the oculus.",
   styles:{label:"Shape",options:{rect:"Rectangular",pointed:"Pointed"}},opts:["frame"],
-  build(o,q){[14.3,40.3].forEach(x=>{const f=q.style==="pointed"?POINTED:R;hole(o,f(x,24,5.4,10));if(q.frame)frame(o,f,x,24,5.4,10,1);});}},
- {id:"oculus",group:"Windows",name:"Oculus (qamariyeh)",ref:"p. 169",
+  build(o,q){const h=AS.high,f=q.style==="pointed"?POINTED:R;[-h.off,h.off].forEach(a=>hole(o,f(AX(a)-M(h.w)/2,M(h.sill),M(h.w),M(h.h))));}},
+ {id:"oculus",group:"Windows",name:"Oculus (qamariyeh)",ref:"p. 169",asb:"Ø 60 cm (oval 90 × 60 cm), centre 3.40 m",
   desc:"A fixed round or oval bull's-eye, set high in an ordered pattern. The one on the līwān axis is often oval.",
   styles:{label:"Shape",options:{round:"Round",oval:"Oval"}},opts:["frame"],
-  build(o,q){const p=q.style==="oval"?ELL(30,24,8,5.5):ELL(30,24,6,6);hole(o,p);
-   if(q.frame)o.relief.push({o:q.style==="oval"?ELL(30,24,9.4,6.9):ELL(30,24,7.4,7.4),i:p});}},
+  build(o,q){const y=M(AS.oculus.y);hole(o,q.style==="oval"?ELL(AX(0),y,M(AS.ovalW)/2,M(AS.ovalH)/2):ELL(AX(0),y,M(AS.oculus.d)/2,M(AS.oculus.d)/2));}},
  {id:"blank",group:"Other",name:"Blind wall",ref:"",
   desc:"No opening. Useful on the sides and back, or for a wall that only carries an oculus.",
   opts:["oculus","cornice"],cornice:"String course (relief)",
-  build(o,q){if(q.cornice)band(o,3,30,54,1.2);}}
+  build(o,q){}}
 ];
 /* ---------- modernist walls (Architectures de Beyrouth 1925–1970: typologies PDF pp. 16–20, cantilevers p. 38,
    brise-soleil and claustras pp. 52–53, windows pp. 78–93) ---------- */
@@ -155,7 +178,7 @@ function blocks(o,id,x0,y0,cols,rows,T,set0){const b=BLOCKS[id];let n=0;
   for(let j=0;j<rows;j++)for(let i=0;i<cols;i++)b.holes(T-BAR).forEach(p=>{hole(o,tag(p.map(([u,v])=>[x0+i*T+BAR/2+u,y0+j*T+BAR/2+v]),"claustra"),set0+Math.floor(n/LIM.maxPins));n++;});}
 CAT.forEach(c=>c.set=c.set||"ottoman");
 CAT.push(
- {set:"modern",id:"ribbon",group:"Modernist",name:"Ribbon window",ref:AB+", windows pp. 78–93",
+ {set:"modern",stretch:true,id:"ribbon",group:"Modernist",name:"Ribbon window",ref:AB+", windows pp. 78–93",
   desc:"A long horizontal window from one structural line to the next, the signature of the 1950s–60s facade, often under a thin cantilevered sun-shade slab.",
   styles:{label:"Ribbons",options:{one:"One ribbon",two:"Two ribbons"}},opts:["canopy"],
   build(o,q){if(q.style==="two"){hole(o,R(6,8,48,6));hole(o,R(6,24,48,6));}else hole(o,R(6,17,48,8));
@@ -163,15 +186,16 @@ CAT.push(
  {set:"modern",id:"claustra",group:"Modernist",name:"Claustra screen",ref:AB+", pp. 52–53",
   desc:"A screen of cast blocks pierced in a repeating pattern: shade and air in, privacy kept. At night the whole wall glitters.",
   styles:{label:"Pattern",options:Object.assign({squares:"Squares",circles:"Circles",crosses:"Crosses",lozenges:"Lozenges"},Object.fromEntries(Object.entries(BLOCKS).map(([k,b])=>[k,b.name+" blocks"])))},opts:["frame"],frameName:"Frame (relief)",
-  build(o,q){if(BLOCKS[q.style])blocks(o,q.style,4.5,3,3,2,17,1);else grid(o,8,5,6,6,9,SHAPES[q.style]||SHAPES.squares);if(q.frame)o.relief.push({o:R(5.5,4.4,49,33.2),i:R(7,5.9,46,30.2)});}},
+  native:true,build(o,q){if(BLOCKS[q.style]){const nc=Math.max(1,Math.floor((W-9)/17)),nr=Math.max(1,Math.floor((H-6)/17));blocks(o,q.style,(W-nc*17)/2,(H-nr*17)/2,nc,nr,17,1);}
+   else{const nc=Math.max(1,Math.floor((W-18)/6)+1),nr=Math.max(1,Math.floor((H-16)/6)+1);grid(o,nc,nr,6,6,(H-(nr-1)*6)/2,SHAPES[q.style]||SHAPES.squares);}}},
  {set:"modern",id:"fins",group:"Modernist",name:"Vertical fins (brise-soleil)",ref:AB+", pp. 52–53",
   desc:"Tall slots between deep vertical fins that cut the low east and west sun: the sun-breaker wall.",
   opts:["frame"],frameName:"Raised fins (relief)",
-  build(o,q){for(let i=0;i<7;i++){const x=11.4+i*6.2;hole(o,R(x,5,2.6,30));if(q.frame&&i<6)band(o,x+3.2,4,1.2,32);}fin(o,3.6,"Brise-soleil fins");}},
+  native:true,build(o,q){const n=Math.max(1,Math.floor((W-22.8)/6.2)+1),x0=(W-((n-1)*6.2+2.6))/2,k=H/H0;for(let i=0;i<n;i++)hole(o,R(x0+i*6.2,5*k,2.6,30*k));fin(o,3.6,"Brise-soleil fins");}},
  {set:"modern",id:"eggcrate",group:"Modernist",name:"Egg-crate grid",ref:AB+", pp. 52–53",
   desc:"A deep grid of horizontal and vertical sun-breakers, each cell recessed with a small window at the back.",
   build(o,q){for(let j=0;j<3;j++)for(let i=0;i<5;i++){const x=12+i*9,y=8+j*10.5;o.relief.push({o:R(x-4.1,y-1.9,8.2,9.8),i:R(x-2.5,y,5,6)});hole(o,R(x-2.5,y,5,6));}}},
- {set:"modern",id:"pilotis",group:"Modernist",name:"Pilotis, open ground floor",ref:AB+", typologies pp. 16–20",
+ {set:"modern",stretch:true,id:"pilotis",group:"Modernist",name:"Pilotis, open ground floor",ref:AB+", typologies pp. 16–20",
   desc:"The building lifted on columns over an open, lit ground floor, with a solid upper wall and a ribbon above.",
   opts:["canopy"],
   build(o,q){[5,22.5,40].forEach(x=>hole(o,R(x,2,15,14)));fin(o,2.5,"Pilotis");band(o,3,18,54,1.4);hole(o,R(12,25,36,6));
@@ -181,13 +205,13 @@ CAT.push(
   styles:{label:"Layout",options:{row:"In a row",tower:"Up a stair tower"}},opts:["frame"],
   build(o,q){const pts=q.style==="tower"?[[30,8],[30,20],[30,32]]:[[15,22],[30,22],[45,22]];const r=q.style==="tower"?4:4.5;
    pts.forEach(([x,y])=>{hole(o,ELL(x,y,r,r));if(q.frame)o.relief.push({o:ELL(x,y,r+1.2,r+1.2),i:ELL(x,y,r,r)});});}},
- {set:"modern",id:"picture",group:"Modernist",name:"Wide picture window",ref:AB+", windows pp. 78–93",
+ {set:"modern",stretch:true,id:"picture",group:"Modernist",name:"Wide picture window",ref:AB+", windows pp. 78–93",
   desc:"One large rectangular window: by the 1920s–30s the triple arch was replaced by large rectangular windows.",
   opts:["frame","canopy"],
   build(o,q){hole(o,R(10,8,40,22));if(q.frame)frame(o,R,10,8,40,22,1.2);if(q.canopy)o.extras.push({t:"canopy",x:6,w:48,y:32.4});}},
  {set:"modern",id:"glassblock",group:"Modernist",name:"Glass-block stair light",ref:AB+", pp. 52–53",
   desc:"A tall strip of small square lights, as the cast glass blocks that lit modernist stairwells.",
-  build(o,q){for(let j=0;j<5;j++)for(let i=0;i<3;i++)hole(o,R(23+i*5.6,6+j*6,3,3));}},
+  native:true,build(o,q){const n=Math.max(1,Math.floor((H-12)/6)+1),y0=(H-(n-1)*6-3)/2;for(let j=0;j<n;j++)for(let i=0;i<3;i++)hole(o,R(W/2-7.1+i*5.6,y0+j*6,3,3));}},
  {set:"both",id:"christmas",group:"Festive",name:"Christmas",ref:"",
   desc:"A festive wall: fir trees, stars and snowflakes cut through the porcelain, so a candle inside lights them like a window advent calendar.",
   styles:{label:"Motif",options:{mixed:"Tree, star, tree",trees:"Three trees",stars:"Three stars",snow:"Three snowflakes",sky:"Trees under stars"}},
@@ -201,16 +225,19 @@ CAT.push(
 const BY=Object.fromEntries(CAT.map(c=>[c.id,c]));
 
 /* ---------- typical elements, composed three to a wall (bay centres at 12, 30 and 48 mm) ---------- */
-const BAY_X=[12,30,48];
+const BAY_X=[12,30,48];   /* the old 60 mm frame: modernist bays are authored on it and keep their own axes, carried with the wall width */
+/* 1860–1925 bays in metres on their axis c (face mm): same window, sill and head lines as the whole-wall designs */
+const at=(c,w)=>c-M(w)/2;
 const BAYS=[
- {id:"pointed",name:"Tall pointed arch",ref:"pp. 169–172",build:(o,c)=>hole(o,POINTED(c-5,6,10,28))},
- {id:"round",name:"Tall round arch",ref:"p. 169",build:(o,c)=>hole(o,ROUND(c-5,6,10,28))},
- {id:"horseshoe",name:"Horseshoe arch",ref:"p. 172",build:(o,c)=>hole(o,HORSESHOE(c-4.5,6,9,28))},
- {id:"door",name:"Door with oculus",ref:"pp. 163, 169",build:(o,c)=>{hole(o,R(c-4,4,8,20));hole(o,ELL(c,30.5,4,4));}},
- {id:"window",name:"Tall window",ref:"p. 166",build:(o,c)=>hole(o,R(c-4.5,10,9,20))},
- {id:"small",name:"Small arched window",ref:"p. 169",build:(o,c)=>hole(o,ROUND(c-2.5,14,5,10))},
- {id:"high",name:"High pointed window",ref:"p. 169",build:(o,c)=>hole(o,POINTED(c-2.7,24,5.4,10))},
- {id:"oculus",name:"Oculus",ref:"p. 169",build:(o,c)=>hole(o,ELL(c,26,4.5,4.5))},
+ {id:"pointed",name:"Tall pointed arch",ref:"pp. 169–172",asb:"110 cm wide, sill 75 cm, crown 3.90 m",build:(o,c)=>hole(o,POINTED(at(c,1.1),M(AS.arch.sill),M(1.1),M(AS.arch.crown-AS.arch.sill)))},
+ {id:"round",name:"Tall round arch",ref:"p. 169",asb:"110 cm wide, sill 75 cm, crown 3.90 m",build:(o,c)=>hole(o,ROUND(at(c,1.1),M(AS.arch.sill),M(1.1),M(AS.arch.crown-AS.arch.sill)))},
+ {id:"horseshoe",name:"Horseshoe arch",ref:"p. 172",asb:"92 cm shaft, 110 cm at the arch, crown 3.90 m",build:(o,c)=>hole(o,HORSESHOE(at(c,1.1/1.2),M(AS.arch.sill),M(1.1/1.2),M(AS.arch.crown-AS.arch.sill)))},
+ {id:"door",name:"Door with oculus",ref:"pp. 163, 169",asb:"door 105 × 215 cm, Ø 55 cm oculus over the lintel",build:(o,c)=>{const y=FLOOR(),top=M(AS.door.h),r=M(0.55)/2;hole(o,R(at(c,AS.door.w),y,M(AS.door.w),top-y));
+   hole(o,ELL(c,top+Math.max(M(AS.door.lintel+0.1),LIM.minBar+0.1)+r,r,r));}},
+ {id:"window",name:"Tall window",ref:"p. 166",asb:"110 × 260 cm on a 75 cm parapet",build:(o,c)=>hole(o,R(at(c,AS.win.w),M(AS.win.sill),M(AS.win.w),M(AS.win.head-AS.win.sill)))},
+ {id:"small",name:"Small arched window",ref:"p. 169",asb:"60 × 130 cm, sill 1.40 m",build:(o,c)=>hole(o,ROUND(at(c,0.6),M(1.4),M(0.6),M(1.3)))},
+ {id:"high",name:"High pointed window",ref:"p. 169",asb:"40 × 80 cm, sill 2.85 m",build:(o,c)=>hole(o,POINTED(at(c,AS.high.w),M(AS.high.sill),M(AS.high.w),M(AS.high.h)))},
+ {id:"oculus",name:"Oculus",ref:"p. 169",asb:"Ø 60 cm, centre 3.40 m",build:(o,c)=>hole(o,ELL(c,M(AS.oculus.y),M(AS.oculus.d)/2,M(AS.oculus.d)/2))},
  {id:"none",name:"Solid",ref:"",build:()=>{}},
  {set:"modern",id:"slot",name:"Tall slot",ref:AB+" pp. 78–93",build:(o,c)=>hole(o,R(c-3,6,6,26))},
  {set:"modern",id:"twinSlots",name:"Twin slits",ref:AB+" pp. 52–53",build:(o,c)=>{hole(o,R(c-4,6,2.6,26));hole(o,R(c+1.4,6,2.6,26));}},
@@ -229,7 +256,7 @@ const stylesOf=c=>{if(!c.styles)return null;const o=Object.assign({},c.styles.op
 const optLabel=(c,k)=>k==="frame"?(c.frameName||OPT_LABEL.frame):k==="cornice"?(c.cornice||OPT_LABEL.cornice):OPT_LABEL[k];
 
 /* oculus above: only where the main opening leaves room under the scrape edge */
-const OCULUS=()=>ELL(30,32.2,3,3);
+const OCULUS=()=>{const r=M(AS.ocAbove.d)/2;return ELL(W/2,Math.min(M(AS.ocAbove.y),H-LIM.top-r-0.2),r,r);};
 /* porcelain between two holes: the true distance between their outlines (bounding boxes overstate it for anything diagonal) */
 function bgap(a,b){const A=bbox(a),B=bbox(b),dx=Math.max(B.x0-A.x1,A.x0-B.x1,0),dy=Math.max(B.y0-A.y1,A.y0-B.y1,0);return Math.hypot(dx,dy);}
 function segGap(a,b,c,d){const cr=(o,p,q)=>(p[0]-o[0])*(q[1]-o[1])-(p[1]-o[1])*(q[0]-o[0]),d1=cr(c,d,a),d2=cr(c,d,b),d3=cr(a,b,c),d4=cr(a,b,d);
@@ -265,12 +292,25 @@ function toFree(spec){const o=build(spec);
     if(s==="poly"){q.p=h.p.map(([x,y])=>[r2((x-b.x0)/(b.w||1)*1e4)/1e4,r2((y-b.y0)/(b.h||1)*1e4)/1e4]);if(h.p.kind)q.k=h.p.kind;}
     if(h.set)q.set=h.set;return q;})};}
 function mirrorFree(spec){return {mode:"free",holes:(spec.holes||[]).map(q=>{const m=Object.assign({},q,{x:r2(W-q.x-q.w)});if(q.p)m.p=q.p.map(([u,v])=>[r2((1-u)*1e4)/1e4,v]);return m;})};}
+/* modernist walls keep the old 60 × 40 drawing (AdB storeys are about 3.0 m, so 40 mm = 3 m at 1 : 75) and are carried
+   to the real wall: hole centres move with the wall (kx across, k up), but every outline is scaled uniformly by u, so a
+   square stays square and a porthole round. Ribbons, picture windows and pilotis are spans between structural lines and
+   do stretch across. Claustras, fins and glass blocks are tiled natively instead (more blocks, never fatter ones). */
+function carry(o,kx,k,u,cx0,cx1){o.holes.forEach(h=>{const b=bbox(h.p),cx=(b.x0+b.x1)/2,cy=(b.y0+b.y1)/2,nx=cx1===undefined?cx*kx:cx1+(cx-cx0)*u,ny=cy*k;
+  const p=h.p.map(([x,y])=>[nx+(x-cx)*u,ny+(y-cy)*u]);h.p=Object.assign(p,{kind:h.p.kind,r:h.p.r?h.p.r*u:h.p.r,ry:h.p.ry?h.p.ry*u:h.p.ry});});return o;}
 function build(spec){
   if(spec.mode==="free"){const o=F();(spec.holes||[]).forEach(q=>hole(o,(FREE[q.s]||FREE.rect).f(q.x,q.y,Math.max(.5,q.w),Math.max(.5,q.h),q),q.set||0));return o;}
-  if(H!==H0||W!==W0){const w=W,k=H/H0,kx=w/W0;W=W0;let o;try{o=build0(spec);}finally{W=w;}o.holes.forEach(h=>{const p=h.p.map(([x,y])=>[x*kx,y*k]);h.p=Object.assign(p,{kind:h.p.kind});});return o;}
+  const k=H/H0,kx=W/W0;
+  if(spec.mode==="bays"){const o=F();(spec.bays||[]).forEach((id,i)=>{const b=BAY[id]||BAY.none;
+      if(b.set!=="modern")b.build(o,bayC(i),i);
+      else{const t=F(),w=W;W=W0;try{b.build(t,BAY_X[i],i);}finally{W=w;}carry(t,1,k,Math.min(k,kx),BAY_X[i],BAY_X[i]*kx);t.holes.forEach(h=>o.holes.push(h));}});
+    if(FLUSH){o.relief=[];o.extras=[];}return o;}
+  const c=BY[spec.type]||BY.blank;
+  if(c.set!=="ottoman"&&!c.native){const w=W,h=H;W=W0;H=H0;let o;try{o=build0(spec);}finally{W=w;H=h;}
+    o.holes.forEach(hh=>{if(c.stretch){const p=hh.p.map(([x,y])=>[x*kx,y*k]);hh.p=Object.assign(p,{kind:hh.p.kind});}});
+    if(!c.stretch)carry(o,kx,k,Math.min(kx,k));return o;}
   return build0(spec);}
 function build0(spec){
-  if(spec.mode==="bays"){const o=F();(spec.bays||[]).forEach((b,i)=>(BAY[b]||BAY.none).build(o,BAY_X[i],i));if(FLUSH){o.relief=[];o.extras=[];}return o;}
   const c=BY[spec.type]||BY.blank,o=F(),q=Object.assign({style:c.styles?Object.keys(c.styles.options)[0]:""},spec);
   c.build(o,q);
   if(q.oculus&&(c.opts||[]).includes("oculus")&&oculusFits(o))hole(o,OCULUS());
@@ -307,29 +347,40 @@ function lipLines(x0,x1,l,r){const a=Math.max(x0,LIPS.in),b=Math.min(x1,W-LIPS.i
   let s="";[[H-LIPS.h,H],[LIPS.h,0]].forEach(([y,y2])=>{s+=`<line x1="${a}" y1="${y}" x2="${b}" y2="${y}" ${d}/>`;   /* svg y runs down: the lower lip's top edge at H-h, the upper lip's bottom edge at h */
     if(l&&a>x0)s+=`<line x1="${a}" y1="${y}" x2="${a}" y2="${y2}" ${d}/>`;if(r&&b<x1)s+=`<line x1="${b}" y1="${y}" x2="${b}" y2="${y2}" ${d}/>`;});
   return s;}
+/* dimension chains for a wall elevation: the overall width and height, then every opening edge across (below the wall)
+   and every sill, head and crown up (right of the wall), all in face mm, so the numbers follow the wall's width and height */
+const f1=v=>(Math.round(v*10)/10).toString();
+function dimChains(o,col,font,ns){const t=(x,y,str,tr)=>`<text x="${x.toFixed(2)}" y="${y.toFixed(2)}" font-size="2.2" fill="${col}" stroke="none" text-anchor="middle" font-family="${font}"${tr?` transform="${tr}"`:""}>${str}</text>`,
+  L=(x1,y1,x2,y2,w)=>`<line x1="${x1.toFixed(2)}" y1="${y1.toFixed(2)}" x2="${x2.toFixed(2)}" y2="${y2.toFixed(2)}" stroke="${col}" stroke-width="${w||.3}" ${ns}/>`,
+  tk=(x,y)=>L(x-.7,y+.7,x+.7,y-.7,.5);
+  const bb=o.holes.map(h=>bbox(h.p)),xs=[...new Set([0,W,...bb.flatMap(q=>[q.x0,q.x1])].map(v=>Math.round(v*10)/10))].sort((a,b)=>a-b),
+    ys=[...new Set([0,H,...bb.flatMap(q=>[q.y0,q.y1])].map(v=>Math.round(v*10)/10))].sort((a,b)=>a-b);
+  let s="";const yC=H+3,yO=H+8.4,xC=W+3,xO=W+8.4;
+  if(xs.length>2&&xs.length<=16){s+=L(0,yC,W,yC);xs.forEach(x=>s+=tk(x,yC));for(let i=1;i<xs.length;i++){const w=xs[i]-xs[i-1];if(w>=2.4)s+=t((xs[i]+xs[i-1])/2,yC-0.7,f1(w));}}
+  s+=L(0,yO,W,yO)+tk(0,yO)+tk(W,yO)+t(W/2,yO-0.7,f1(W)+" mm");
+  if(ys.length>2&&ys.length<=14){s+=L(xC,0,xC,H);ys.forEach(y=>s+=tk(xC,H-y));for(let i=1;i<ys.length;i++){const h=ys[i]-ys[i-1],ym=H-(ys[i]+ys[i-1])/2;if(h>=2.4)s+=t(xC+1.9,ym,f1(h),`rotate(-90 ${(xC+1.9).toFixed(2)} ${ym.toFixed(2)})`);}}
+  s+=L(xO,0,xO,H)+tk(xO,0)+tk(xO,H)+t(xO+1.9,H/2,f1(H)+" mm",`rotate(-90 ${(xO+1.9).toFixed(2)} ${(H/2).toFixed(2)})`);
+  return s;}
+const vbDims=()=>`-3 -3 ${W+16} ${H+14}`;
 function lineSVG(o,opt){const pts=p=>p.map(([x,y])=>x.toFixed(2)+","+(H-y).toFixed(2)).join(" "),ns='vector-effect="non-scaling-stroke"';
-  let s=`<svg viewBox="${opt.dims?`-7 -4 ${W+14} ${H+14}`:`-1 -1 ${W+2} ${H+2}`}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${opt.label||"Wall elevation"}" fill="none" stroke="currentColor">`;
+  let s=`<svg viewBox="${opt.dims?vbDims():`-1 -1 ${W+2} ${H+2}`}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${opt.label||"Wall elevation"}" fill="none" stroke="currentColor">`;
   s+=`<rect x="0" y="0" width="${W}" height="${H}" stroke-width="1.5" ${ns}/>`;
   s+=lipLines(0,W,true,true);
   o.holes.forEach(h=>s+=`<polygon points="${pts(h.p)}" stroke-width="1" stroke-linejoin="round" ${ns}/>`);
-  if(opt.dims){const t=(x,y,str,tr)=>`<text x="${x}" y="${y}" font-size="2.6" fill="currentColor" stroke="none" text-anchor="middle" font-family="Helvetica Neue,Helvetica,Arial,sans-serif"${tr?` transform="${tr}"`:""}>${str}</text>`;
-    s+=`<line x1="0" y1="${H+2.2}" x2="${W}" y2="${H+2.2}" stroke-width=".75" ${ns}/>`+t(W/2,H+5.6,W+" mm");
-    s+=`<line x1="-2.2" y1="0" x2="-2.2" y2="${H}" stroke-width=".75" ${ns}/>`+t(-3.6,H/2,H+" mm",`rotate(-90 -3.6 ${H/2})`);}
+  if(opt.dims)s+=dimChains(o,"currentColor","Helvetica Neue,Helvetica,Arial,sans-serif",ns);
   return s+"</svg>";}
 function faceSVG(o,opt){opt=opt||{};if(opt.line)return lineSVG(o,opt);const night=!!opt.night;
   const wall=night?"#5a4a3d":"#f4efe6",edge=night?"#3b3129":"#b9ae9c",glow=night?"#ffbf66":"#2c2a28",rel=night?"#7a6654":"#e3dacb";
   const pts=p=>p.map(([x,y])=>x.toFixed(2)+","+(H-y).toFixed(2)).join(" ");
-  let s=`<svg viewBox="${opt.dims?`-7 -4 ${W+14} ${H+14}`:`-1 -1 ${W+2} ${H+2}`}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${opt.label||"Wall elevation"}">`;
+  let s=`<svg viewBox="${opt.dims?vbDims():`-1 -1 ${W+2} ${H+2}`}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${opt.label||"Wall elevation"}">`;
   s+=`<rect x="0" y="0" width="${W}" height="${H}" fill="${wall}" stroke="${edge}" stroke-width=".4"/>`;
   o.relief.forEach(r=>{s+=`<polygon points="${pts(r.o)}" fill="${rel}" stroke="${edge}" stroke-width=".25"/>`;if(r.i)s+=`<polygon points="${pts(r.i)}" fill="${wall}"/>`;});
   o.holes.forEach(h=>s+=`<polygon points="${pts(h.p)}" fill="${glow}"/>`);
   o.extras.forEach(x=>{if(x.t==="canopy")s+=`<rect x="${x.x}" y="${H-x.y-2}" width="${x.w}" height="2" fill="${edge}"/>`;if(x.t==="balcony"){const y=H-x.y;s+=`<rect x="${x.x}" y="${y}" width="${x.w}" height="2.2" fill="${edge}"/>`;
     for(let bx=x.x+1.2;bx<x.x+x.w-1.5;bx+=4.3)s+=`<rect x="${bx.toFixed(2)}" y="${(y-8).toFixed(2)}" width="2.5" height="8" fill="${edge}" opacity=".85"/>`;
     s+=`<rect x="${x.x}" y="${y-9}" width="${x.w}" height="1.4" fill="${edge}"/>`;}});
-  if(opt.dims){const t=(x,y,str,a)=>`<text x="${x}" y="${y}" font-size="2.6" fill="${night?"#c9bfae":"#6d665c"}" text-anchor="${a||"middle"}" font-family="JetBrains Mono,monospace">${str}</text>`;
-    s+=`<line x1="0" y1="${H+2.2}" x2="${W}" y2="${H+2.2}" stroke="${edge}" stroke-width=".3"/>`+t(W/2,H+5.6,W+" mm");
-    s+=`<line x1="-2.2" y1="0" x2="-2.2" y2="${H}" stroke="${edge}" stroke-width=".3"/>`+`<text x="-3.6" y="${H/2}" font-size="2.6" fill="${night?"#c9bfae":"#6d665c"}" text-anchor="middle" font-family="JetBrains Mono,monospace" transform="rotate(-90 -3.6 ${H/2})">${H} mm</text>`;}
+  if(opt.dims)s+=dimChains(o,night?"#c9bfae":"#6d665c","Helvetica Neue,Helvetica,Arial,sans-serif","");
   return s+"</svg>";}
 
-G.BeitOpenings={get W(){return W;},setW:w=>{W=w||W0;},get H(){return H;},setH:h=>{H=h;},LIM,FLUSH,CAT,BY,BAYS,BAY,BAY_X,FREE,LIPS,toFree,mirrorFree,lipLines,optsOf,stylesOf,build,canOculus,checkFace,faceSVG,bbox,area,optLabel};
+G.BeitOpenings={get W(){return W;},AS,get SC(){return SC();},setRef:w=>{REF=w||60;},bayX:i=>bayC(i),get EDGE(){return EDGE;},setW:w=>{W=w||W0;},get H(){return H;},setH:h=>{H=h;},LIM,FLUSH,CAT,BY,BAYS,BAY,BAY_X,FREE,LIPS,toFree,mirrorFree,lipLines,optsOf,stylesOf,build,canOculus,checkFace,faceSVG,bbox,area,optLabel};
 })(window);
