@@ -209,3 +209,7 @@ All seven items from the lag proposal (artifact 2HNbEAEUfmbHAJoTTc25Yr). STL/GLB
 - **Fast mode** (setFast, fastBtn, S.fast, KEEP_ON): pixel ratio 1 and no shadow sampling while Fast is on, during Keep, or while moving with slow frames. Captures (JPG/GIF/PDF) force it off.
 - Software-GPU numbers, 17 buildings: day frame 3.4 → 2.5 s, engraved city frame 16.6 → 7.5 s (13.2 M → 5.6 M tris), engraved rebuild 4.3 → 1.9 s, engraved select 1.1 → 0.44 s, night 4.6 → 2.8 s.
 - Deferred: Web Worker for rebuild (#8), three.js upgrade (#9, would touch Gemini's render code).
+
+## 4 Nov, candle shadows kept in Fast mode (v 04.11 · 15:20)
+- alihaidar: the candle light and shadows on the floor must always show (they are the point of the lantern box). Fast mode now only lowers the pixel ratio; it never turns off the shadow map.
+- Auto Fast got stuck on slow screens (1-bit, Retina): OrbitControls damping kept firing "change" for seconds, so "moving" never ended. Moving is now a pointer drag or wheel (controls start/end) plus 250 ms.
