@@ -211,7 +211,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
 <header class="grid12">
   <h1>TIKRAR<small>Beirut Lantern Generator</small></h1>
   <span class="sub"><span id="modSize">porcelain modules 60 × 60 mm · 40 mm walls</span> · houses, towers and city blocks · 1860–1925 and modernist openings</span>
-  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 04.11 · 06:50</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
+  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 04.11 · 08:40</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
   </nav>
 </header>
 
@@ -346,11 +346,11 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
 <div id="toast" role="status" aria-live="polite"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-<script src="openings.js?v=0211b"></script>
+<script src="openings.js?v=0411p"></script>
 <script>
 (function(){
 const B=window.BeitOpenings,W=60,MAX_LEVELS=8,GRID=30,MAX_LIGHTS=12,SHADOW_LIGHTS=6;let CD=38,CH=12,H=B.H,T=3,BASE_T=4,PLATE_T=4,WX=60,WZ=60;   /* WX: module width (front and back walls), WZ: module length (side walls); 60 × 60 in the cluster editor */
-const fwOf=f=>f==="front"||f==="back"?WX:WZ,bld=(spec,f)=>{B.setW(fwOf(f||S.selFace));return B.build(spec);};   /* H, T and the slab: fixed in the cluster editor, sliders in the Module editor (applyDims) */   /* real 3D candle lights + per-pixel subsurface porcelain shader + 16-sample soft ground caustics */
+const mOf=b=>b&&b.set=="ottoman"?1/B.SC:3/H,scaleTxt=b=>"1 : "+Math.round(1000*mOf(b)),storeyTxt=b=>(H*mOf(b)).toFixed(2)+" m storey",fwOf=f=>f==="front"||f==="back"?WX:WZ,bld=(spec,f)=>{B.setW(fwOf(f||S.selFace));return B.build(spec);};   /* H, T and the slab: fixed in the cluster editor, sliders in the Module editor (applyDims) */   /* real 3D candle lights + per-pixel subsurface porcelain shader + 16-sample soft ground caustics */
 const FACES=["front","right","back","left"],FNAME={front:"Front",right:"Right",back:"Back",left:"Left"};
 const $=id=>document.getElementById(id);
 const root=document.documentElement;
@@ -1194,7 +1194,15 @@ function levelY(b,gap){const ys=[];let y=b.plates[0]?LIP.h:0;for(let l=0;l<b.lev
 const perMod=b=>b.span==="module";
 const topComplete=b=>{for(let c=0;c<b.cols;c++)for(let r=0;r<b.deep;r++)if(!alive(b,c+":"+r+":"+(b.levels-1)))return false;return true;};
 const roofRun=b=>(perMod(b)?Math.min(WX,WZ):Math.min(b.cols*WX,b.deep*WZ))/2-2;   /* the slope runs up to the rounded ridge */
-function roofH(b){if(isTruss(b)){const uR=(perMod(b)?Math.min(WX,WZ):Math.min(b.cols*WX,b.deep*WZ))/2;return TRUSS.base+(uR-ventA(b,uR)-TRUSS.heavy/2)*Math.tan(b.pitch*Math.PI/180)+TRUSS.mid+TRUSS.heavyH/2;}return b.roof==="none"?0:b.roof==="modern"?FLAT_T+LIP.h:2.5+roofRun(b)*Math.tan(b.pitch*Math.PI/180)-Math.min(VDROP,Math.max(0,(0.85-0.45)*Math.min(WX,WZ)/2*Math.tan(b.pitch*Math.PI/180)));}
+/* the filled shell's real profile (same numbers as slantRoof): eave top yE at inset uE, top cut at inset uO, top yTop */
+function shellProf(b,hw,hd){const al=b.pitch*Math.PI/180,sa=Math.sin(al),ca=Math.cos(al),rb=1.2,rr=2,fas=Math.max(rb+0.1,BASE_T-rr*ca),uR=Math.min(hw,hd),
+  uE=rr-rr*sa,yE=fas+rr*ca,uO=uR-ventA(b,uR);return {uE,yE,uO,uC:uO-VENT.c,yTop:yE+(uO-VENT.c-uE)*Math.tan(al),uR};}
+/* a roof seen in elevation, as one outline [x,y] from its left eave (x 0..pw wide, the other way pd deep) */
+function roofOutline(b,pw,pd){if(b.roof==="modern")return [[0,0],[pw,0],[pw,FLAT_T],[0,FLAT_T]];
+  if(isTruss(b)){const h=roofH(b),uR=Math.min(pw,pd)/2,a=Math.max(0,pw/2-uR+ventA(b,uR));return [[0,0],[pw,0],[pw,TRUSS.base],[pw/2+a,h],[pw/2-a,h],[0,TRUSS.base]];}
+  const q=shellProf(b,pw/2,pd/2);return [[0,0],[pw,0],[pw,q.yE],[pw-q.uE,q.yE],[pw-q.uC,q.yTop],[q.uC,q.yTop],[q.uE,q.yE],[0,q.yE]];}
+const roofHalfOf=(b)=>{const hw=(perMod(b)?1:b.cols)*WX/2,hd=(perMod(b)?1:b.deep)*WZ/2;return [hw,hd];};
+function roofH(b){if(isTruss(b)){const uR=(perMod(b)?Math.min(WX,WZ):Math.min(b.cols*WX,b.deep*WZ))/2;return TRUSS.base+(uR-ventA(b,uR)-TRUSS.heavy/2)*Math.tan(b.pitch*Math.PI/180)+TRUSS.mid+TRUSS.heavyH/2;}if(b.roof==="none")return 0;if(b.roof==="modern")return FLAT_T+LIP.h;const [hw,hd]=roofHalfOf(b);return shellProf(b,hw,hd).yTop;}
 /* flip any triangle whose normal points down, so the roof faces the sky */
 function outward(geo){const p=geo.attributes.position.array,u=geo.attributes.uv&&geo.attributes.uv.array;
   for(let t=0;t<p.length;t+=9){const ax=p[t+3]-p[t],ay=p[t+4]-p[t+1],az=p[t+5]-p[t+2],bx=p[t+6]-p[t],by=p[t+7]-p[t+1],bz=p[t+8]-p[t+2];
@@ -1734,10 +1742,10 @@ function villageChecks(){const out=[];let ov=[];
 const mini=(spec,label,dims,fn)=>B.faceSVG(bld(spec,fn),{line:true,dims,label});
 /* a bay chip shows its own 24 mm stretch of the wall: the left bay carries the wall's left end, the right bay its right end,
    the centre bay neither; top and bottom edges throughout, and the slab lips behind the wall as hidden lines */
-const bayIcon=(id,i)=>{const bs=["none","none","none"];bs[i]=id;B.setW(60);const o=B.build({mode:"bays",bays:bs}),x0=B.BAY_X[i]-12,x1=x0+24,ns='vector-effect="non-scaling-stroke"';
+const bayIcon=(id,i)=>{const bs=["none","none","none"];bs[i]=id;B.setW(fwOf(S.selFace));const o=B.build({mode:"bays",bays:bs}),Wf=B.W,cx=B.BAY[id]&&B.BAY[id].set==="modern"?B.BAY_X[i]*Wf/60:B.bayX(i),hw=Math.min(cx,Wf-cx,i===1?Wf/2:1e9,Math.max(12,B.AS.pitch*B.SC/2)),x0=i===0?0:i===2?Wf-2*hw:cx-hw,x1=x0+2*hw,ns='vector-effect="non-scaling-stroke"';
   const pts=p=>p.map(([x,y])=>(x-x0).toFixed(2)+","+(H-y).toFixed(2)).join(" "),e=`stroke-width="1.5" ${ns}`;
-  let s=`<svg viewBox="-1 -1 26 ${H+2}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${B.BAY[id].name}" fill="none" stroke="currentColor">`+
-    `<line x1="0" y1="0" x2="24" y2="0" ${e}/><line x1="0" y1="${H}" x2="24" y2="${H}" ${e}/>`+(i===0?`<line x1="0" y1="0" x2="0" y2="${H}" ${e}/>`:"")+(i===2?`<line x1="24" y1="0" x2="24" y2="${H}" ${e}/>`:"");
+  const bw=x1-x0;let s=`<svg viewBox="-1 -1 ${bw+2} ${H+2}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${B.BAY[id].name}" fill="none" stroke="currentColor">`+
+    `<line x1="0" y1="0" x2="${bw}" y2="0" ${e}/><line x1="0" y1="${H}" x2="${bw}" y2="${H}" ${e}/>`+(i===0?`<line x1="0" y1="0" x2="0" y2="${H}" ${e}/>`:"")+(i===2?`<line x1="${bw}" y1="0" x2="${bw}" y2="${H}" ${e}/>`:"");
   s+=`<g transform="translate(${-x0} 0)">${B.lipLines(x0,x1,i===0,i===2)}</g>`;
   o.holes.forEach(h=>s+=`<polygon points="${pts(h.p)}" stroke-width="1" stroke-linejoin="round" ${ns}/>`);return s+"</svg>";};
 function seg(el,val){el.querySelectorAll("button").forEach(b=>{if(b.dataset.v!==undefined)b.setAttribute("aria-pressed",b.dataset.v===String(val));});}
@@ -1766,14 +1774,15 @@ const ck=c=>`<div class="ck"${c.t?` title="${String(c.t).replace(/"/g,"&quot;")}
    The pieces: open module rings (4 walls cast as one, 60 × 60 × 40, 3 mm), plates (4 mm, Ø25 vent per module), the base
    (2.5 mm, unglazed foot), the roof (a hollow cast lid or a 2.5 mm slab) and a tealight. Everything is fired apart and
    stacked dry. These are the details that make that work; the figures follow the selected building. */
-const FIT={clr:LIP.clr,rimW:LIP.w,rimH:LIP.h,tol:0.5,ventLit:VENT_D,get flameTop(){return CH+14;},rib:3};
+const AS_=B.AS,FIT={clr:LIP.clr,rimW:LIP.w,rimH:LIP.h,tol:0.5,ventLit:VENT_D,get flameTop(){return CH+14;},rib:3};
 function techReview(b){const rows=[],R_=(ok,label,v,fx)=>rows.push({ok,label,v,fx});
   const k=1/(1-shrinkOf(b)/100),inner=Math.min(WX,WZ)-2*T,rim=inner-2*FIT.clr,n=Math.max(b.cols,b.deep),span=Math.max(b.cols*WX,b.deep*WZ),top=levelY(b,0).top+roofH(b),lit=b.candles.filter((c,l)=>c&&b.plates[l]).length;
-  R_(true,"Mould scale","× "+k.toFixed(3),`${shrinkOf(b)} % ${BODY[b.body||"porcelain"].name.toLowerCase()} shrinkage: a 60.0 mm module is cast at ${(W*k).toFixed(1)} mm. Pieces from one batch and one kiln shelf vary about ±${FIT.tol} %, so every fit below leaves at least ${FIT.clr} mm.`);
-  R_(true,"Module to plate: locating rim",`${rim.toFixed(1)} mm square, ${FIT.rimW} × ${FIT.rimH}`,`Each plate carries a rim on both faces, one per module, that drops inside the ${inner.toFixed(0)} mm clear opening with ${FIT.clr} mm all round (±${(W*FIT.tol/100).toFixed(2)} mm firing spread). Rims are separate per module, so small differences between modules never add up. Lips on both faces need a closed two-part mould (top and bottom halves); give each lip about 2° draft so it releases.`);
+  R_(true,"Mould scale","× "+k.toFixed(3),`${shrinkOf(b)} % ${BODY[b.body||"porcelain"].name.toLowerCase()} shrinkage: a ${WX} × ${WZ} × ${H} mm module is cast at ${(WX*k).toFixed(1)} × ${(WZ*k).toFixed(1)} × ${(H*k).toFixed(1)} mm. Pieces from one batch and one kiln shelf vary about ±${FIT.tol} %, so every fit below leaves at least ${FIT.clr} mm.`);
+  R_(true,"Module to plate: locating rim",`${rim.toFixed(1)} mm square, ${FIT.rimW} × ${FIT.rimH}`,`Each plate carries a rim on both faces, one per module, that drops inside the ${inner.toFixed(0)} mm clear opening with ${FIT.clr} mm all round (±${(Math.max(WX,WZ)*FIT.tol/100).toFixed(2)} mm firing spread). Rims are separate per module, so small differences between modules never add up. Lips on both faces need a closed two-part mould (top and bottom halves); give each lip about 2° draft so it releases.`);
+  {const sc=B.SC;R_(true,"Proportions",b.set==="ottoman"?`${scaleTxt(b)} · ${storeyTxt(b)}`:`1 : ${Math.round(3000/H)} · 3.00 m storey`,b.set==="ottoman"?`Every 1860–1925 opening is drawn at its as-built size and set at one scale (${sc.toFixed(2)} mm per metre), never stretched: windows ${Math.round(AS_.win.w*100)} × ${Math.round((AS_.win.head-AS_.win.sill)*100)} cm on the ${Math.round(AS_.win.sill*100)} cm parapet = ${(AS_.win.w*sc).toFixed(1)} × ${((AS_.win.head-AS_.win.sill)*sc).toFixed(1)} mm, sill ${(AS_.win.sill*sc).toFixed(1)} mm; bays ${AS_.pitch} m apart = ${(AS_.pitch*sc).toFixed(1)} mm; corner piers ≥ ${B.EDGE} mm. The scale is the smaller of the ${H} mm wall as a ${AS_.storey} m storey and the ${Math.min(WX,WZ)} mm wall holding a ${AS_.span} m front, so all walls share it and every sill and head line runs level round the house.`:`Modernist storeys are about 3.0 m (AdB), so the ${H} mm wall is one storey at 1 : ${Math.round(3000/H)}. Ribbons and picture windows span the wall; other openings keep their shape and spread with it.`);}
   R_(true,"Glaze-free contact bands","3 mm wall rims · plate rims · roof seat",`Wax-resist every face that touches another piece: glaze adds 0.1–0.2 mm and would fuse pieces in the kiln or rock in use. These bands fire bare, the same sandy foot you see at the base.`);
   const plR=span/PLATE_T,baR=span/BASE_T;
-  R_(plR<=30,"Plate flatness",`${span} mm span / ${PLATE_T} mm = ${plR.toFixed(0)} : 1`,plR<=30?"Fires flat on a flat batt with alumina wash.":`Long thin plates slump and curl in firing. Fire on a dead-flat batt with alumina, or split the plate per row of modules (${W} mm wide strips keyed by the rims).`);
+  R_(plR<=30,"Plate flatness",`${span} mm span / ${PLATE_T} mm = ${plR.toFixed(0)} : 1`,plR<=30?"Fires flat on a flat batt with alumina wash.":`Long thin plates slump and curl in firing. Fire on a dead-flat batt with alumina, or split the plate per row of modules (${WX} mm wide strips keyed by the rims).`);
   R_(baR<=30,"Base flatness",`${span} mm span / ${BASE_T} mm = ${baR.toFixed(0)} : 1`,baR<=30?"Thin enough to look like the roof slab, stiff enough to fire flat.":`Keep the visible edge at ${BASE_T} mm and fire it on a dead-flat batt. Its lower lips (one ring per module, ${FIT.rimW} × ${FIT.rimH} mm, set ${(T+FIT.clr).toFixed(1)} mm in) stiffen it and lift it off the table.`);
   const roofSeat=b.roof==="none"?"no roof":b.roof==="modern"?"slab with lips on both faces":"cast lid with inner lip";
   R_(b.roof==="none"||true,"Roof seat",roofSeat,b.roof==="none"?"Open top: the top wall rims stay glazed-free so a roof can be added later.":`The roof runs in over the wall top and turns down as a ${FIT.rimW} × ${FIT.rimH} mm lip inside the top ring (${FIT.clr} mm clear), cast as one with the shell${perMod(b)?" (one lid each)":""}, so it can't slide off. ${b.roof==="modern"?`The flat roof also carries the same lip on its top face, so another piece can stack on it. It is the same ${FLAT_T} mm slab as the plates between floors, flush with the wall face.`:"It is a slip-cast shell as thick as the walls (3 mm), flush with the wall face, sitting ring on ring."}`);
@@ -1785,7 +1794,7 @@ function techReview(b){const rows=[],R_=(ok,label,v,fx)=>rows.push({ok,label,v,f
   R_(true,"Lighting the candles","lift the stack above",`Tealights stand on the plates (Ø${CD} in a ${inner.toFixed(0)} mm square, ${((inner-CD)/2).toFixed(0)} mm all round). To light a level, lift off everything above it as one piece; the rims re-locate it. A long match or lighter through an opening also works for openings ≥ 12 mm.`);
   const slender=top/(Math.min(b.cols*WX,b.deep*WZ));
   R_(slender<=4,"Stability of the stack",`${top.toFixed(0)} mm tall on ${Math.min(b.cols*WX,b.deep*WZ)} mm = ${slender.toFixed(1)} : 1`,slender<=4?"Stands safely dry-stacked.":`Taller than 4 : 1 a dry stack can be knocked over. Keep the rims, add a heavier base (6 mm with ribs) or a felt pad, and don't light the top levels of such a tower.`);
-  if(b.cols*b.deep>1)R_(true,"Modules side by side",`${b.cols} × ${b.deep} rings, 6 mm party walls`,`Neighbouring modules are separate rings standing wall to wall (3 + 3 mm). The plate rims hold each one in its own place, and the outer faces line up within ±${(n*W*FIT.tol/100).toFixed(1)} mm across the building.`);
+  if(b.cols*b.deep>1)R_(true,"Modules side by side",`${b.cols} × ${b.deep} rings, 6 mm party walls`,`Neighbouring modules are separate rings standing wall to wall (3 + 3 mm). The plate rims hold each one in its own place, and the outer faces line up within ±${(span*FIT.tol/100).toFixed(1)} mm across the building.`);
   return rows;}
 function techDetails(b){const ink="var(--ink)",ln="var(--line)",hat="rgba(120,110,95,.22)",ft="rgba(194,180,158,.55)";
   const sv=(w,h,body,sw)=>`<svg viewBox="0 0 ${w+22} ${h}" xmlns="http://www.w3.org/2000/svg" font-family="inherit" font-size="2.9" fill="none" stroke="${ink}" stroke-width="${sw||.25}">${body}</svg>`;
@@ -1801,24 +1810,28 @@ function techDetails(b){const ink="var(--ink)",ln="var(--line)",hat="rgba(120,11
   /* 1 stacking joint: lower wall, plate with lips on both faces (one solid), upper wall */
   const j=sv(80,62,rect(10,40,T*S2,20)+slabP(10,62,40-PLATE_T*S2,PLATE_T*S2,LP,true,true)+rect(10,6,T*S2,40-PLATE_T*S2-6)+
     txt(66,46,"lower wall "+T.toFixed(1))+txt(66,34,"plate "+PLATE_T.toFixed(1))+txt(66,24,"upper wall "+T.toFixed(1))+txt(36,59,`lips ${rw} × ${rh}, ${c} clear, part of the plate`)+`<line x1="${10+T*S2}" y1="53" x2="${lx}" y2="53" stroke-width=".18"/>`);
-  /* 2 roof seat: the shell runs in over the wall top, then turns down as a lip inside the wall; one solid, outer face flush */
-  const wy=34,sl=(x)=>30.5-(x-22)*(10.5/58),lx2=lx+rw*S2;
-  const rs=sv(80,62,rect(10,wy,T*S2,24)+poly([[10,wy],[10,27],[10,26],[11,23.3],[14,22.4],[80,8],[80,20],[lx2,sl(lx2)],[lx2,wy+rh*S2],[lx,wy+rh*S2],[lx,wy],[22,wy]])+`<line x1="10" y1="2" x2="10" y2="60" stroke-width=".15" stroke-dasharray="1 1"/>`+
-    txt(30,48,"top wall")+txt(44,26,"roof shell "+T.toFixed(1))+txt(12,4,"outer face: roof and wall flush")+txt(24,59,`seat lip ${rw} × ${rh} inside the wall, ${c} clear`));
+  /* 2 roof seat: the shell runs in over the wall top, then turns down as a lip inside the wall; one solid, outer face flush.
+     Drawn from the real shell profile (shellProf) at the building's pitch, 4 : 1 */
+  const wy=40,lx2=lx+rw*S2,rp=(()=>{const [hw,hd]=roofHalfOf(b);return shellProf(Object.assign({},b,{pitch:b.roof==="slant"?b.pitch:30}),hw,hd);})(),
+    al=(b.roof==="slant"?b.pitch:30)*Math.PI/180,tn=Math.tan(al),yEv=wy-rp.yE*S2,xE=10+rp.uE*S2,yo=x=>yEv-(x-xE)*tn,yi=x=>yo(x)+T*S2/Math.cos(al),
+    xR=Math.min(80,xE+(yEv-3)/tn);
+  const rs=sv(80,62,rect(10,wy,T*S2,20)+poly([[10,wy],[10,yEv+2],[xE,yEv],[xR,yo(xR)],[xR,Math.min(wy,yi(xR))],[Math.max(lx2,Math.min(xR,xE+(yEv+T*S2/Math.cos(al)-wy)/tn)),Math.min(wy,yi(Math.max(lx2,Math.min(xR,xE+(yEv+T*S2/Math.cos(al)-wy)/tn))))],[lx2,Math.min(wy,yi(lx2))],[lx2,wy+rh*S2],[lx,wy+rh*S2],[lx,wy]])+`<line x1="10" y1="2" x2="10" y2="60" stroke-width=".15" stroke-dasharray="1 1" stroke="${ln}"/>`+
+    `<path d="M${xE+14} ${yEv} A14 14 0 0 0 ${xE+14*Math.cos(al)} ${yEv-14*Math.sin(al)}" stroke-width=".12"/><line x1="${xE}" y1="${yEv}" x2="${xE+18}" y2="${yEv}" stroke-width=".1" stroke-dasharray=".8 .8"/>`+txt(xE+15,yEv-1.5,(b.roof==="slant"?b.pitch:30)+"°")+
+    txt(30,wy+12,"top wall "+T.toFixed(1))+txt(Math.min(48,xR-14),Math.min(wy-2,yi(Math.min(48,xR-14))+5),"roof shell "+T.toFixed(1))+txt(12,4,"outer face: roof and wall flush")+txt(24,59.5,`seat lip ${rw} × ${rh} inside the wall, ${c} clear · eave ${rp.yE.toFixed(1)}`));
   /* 3 base with inner lips on both faces: the upper lip holds the walls, the lower lip is its foot; one solid */
   const bt=BASE_T*S2,bs=sv(80,62,slabP(10,76,30,bt,LP,true,true)+rect(10,6,T*S2,24)+
     `<line x1="0" y1="${30+bt+rh*S2}" x2="80" y2="${30+bt+rh*S2}" stroke="${ln}"/>`+txt(66,24,"wall")+txt(40,38,`base ${BASE_T}`)+txt(30,60,`lips ${rw} × ${rh} both faces, ${c} clear, bare`));
   /* 4 candle section at 1 : 1: the ring between two identical slabs, each with its Ø25 vent and its lips on both faces, lips one solid with the slab */
-  const X0=10,X1=X0+W,yT=8,yW=yT+PLATE_T,yB=yW+H,vx0=X0+W/2-FIT.ventLit/2,vx1=vx0+FIT.ventLit,li=T+c,
+  const X0=10,X1=X0+WX,yT=8,yW=yT+PLATE_T,yB=yW+H,vx0=X0+WX/2-FIT.ventLit/2,vx1=vx0+FIT.ventLit,li=T+c,
     slab=y=>slabP(X0,vx0,y,PLATE_T,[[X0+li,X0+li+rw]],true,true)+slabP(vx1,X1,y,PLATE_T,[[X1-li-rw,X1-li]],true,true)+`<line x1="${vx0}" y1="${y}" x2="${vx1}" y2="${y}" stroke-width=".07" stroke-dasharray=".8 .8"/><line x1="${vx0}" y1="${y+PLATE_T}" x2="${vx1}" y2="${y+PLATE_T}" stroke-width=".07" stroke-dasharray=".8 .8"/>`;
-  const cs=sv(80,62,slab(yT)+slab(yB)+rect(X0,yW,T,H)+rect(X1-T,yW,T,H)+
-    `<rect x="${X0+W/2-CD/2}" y="${yB-CH}" width="${CD}" height="${CH}" fill="${ln}"/>`+
-    `<path d="M${X0+W/2} ${yB-CH} q-2 -6 0 -${FIT.flameTop-CH} q2 ${FIT.flameTop-CH-6} 0 ${FIT.flameTop-CH}" fill="rgba(240,163,58,.8)" stroke="none"/>`+
-    dim(X1-li-rw-3,yB-FIT.flameTop,X1-li-rw-3,yW,(H-FIT.flameTop)+" mm")+txt(X0+W/2,3.4,"vent Ø"+FIT.ventLit+" in every slab","middle")+txt(X0+W/2,61.6,`Ø${CD} × ${CH} tealight on the slab`,"middle")+
+  const cs=sv(Math.max(80,WX+20),yB+PLATE_T+LIP.h+4,slab(yT)+slab(yB)+rect(X0,yW,T,H)+rect(X1-T,yW,T,H)+
+    `<rect x="${X0+WX/2-CD/2}" y="${yB-CH}" width="${CD}" height="${CH}" fill="${ln}"/>`+
+    `<path d="M${X0+WX/2} ${yB-CH} q-2 -6 0 -${FIT.flameTop-CH} q2 ${FIT.flameTop-CH-6} 0 ${FIT.flameTop-CH}" fill="rgba(240,163,58,.8)" stroke="none"/>`+
+    dim(X1-li-rw-3,yB-FIT.flameTop,X1-li-rw-3,yW,(H-FIT.flameTop)+" mm")+txt(X0+WX/2,3.4,"vent Ø"+FIT.ventLit+" in every slab","middle")+txt(X0+WX/2,yB+PLATE_T+LIP.h+3.4,`Ø${CD} × ${CH} tealight on the slab · module ${WX} wide, wall ${H}`,"middle")+
     txt(X1+2,yT+3,"slab "+PLATE_T)+txt(X1+2,yB+3,"slab "+PLATE_T)+txt(X1+2,yW+H/2,"wall "+T)+txt(X1+2,yB+PLATE_T+1.6,`lips ${rw} × ${rh}`)+txt(X1+2,yB+PLATE_T+4.9,`${c} play`),.09);   /* 1 : 1 figure: hairline outline, so the 2.5 × 3 lips read at their true size next to the 4 : 1 details */
   const fig=(svg,t,d)=>`<figure>${svg}<figcaption><b>${t}</b>${d}</figcaption></figure>`;
-  return fig(j,"1 · Stacking joint, 4 : 1","Plates locate the module below and the module above with a bare lip on each face, cast as one with the plate.")+fig(rs,"2 · Roof seat, 4 : 1","The roof sits flush with the outer wall face, no overhang. The shell runs in over the wall top, then turns down as a lip inside the wall, all one piece, so it locates and lifts straight off.")+
-    fig(bs,"3 · Base, 4 : 1",`${BASE_T} mm, flush outside. Inner lips on both faces: the top one holds the walls, the bottom one is its foot, so a base also stacks like a plate.`)+fig(cs,"4 · Candle in a module, 1 : 1","One ring between two identical slabs: the lips on both faces hold the ring and the next piece, the Ø"+FIT.ventLit+" vents let the heat out.");}
+  return fig(j,"1 · Stacking joint, 4 : 1","Plates locate the module below and the module above with a bare lip on each face, cast as one with the plate.")+fig(rs,"2 · Roof seat, 4 : 1"+(b.roof==="slant"?", at "+b.pitch+"°":""),"The roof sits flush with the outer wall face, no overhang. The shell runs in over the wall top, then turns down as a lip inside the wall, all one piece, so it locates and lifts straight off.")+
+    fig(bs,"3 · Base, 4 : 1",`${BASE_T} mm, flush outside. Inner lips on both faces: the top one holds the walls, the bottom one is its foot, so a base also stacks like a plate.`)+fig(cs,"4 · Candle in a module, 1 : 1, section across the "+WX+" mm width","One ring between two identical slabs: the lips on both faces hold the ring and the next piece, the Ø"+FIT.ventLit+" vents let the heat out.");}
 function renderTech(b){const rows=techReview(b),bad=rows.filter(r=>!r.ok).length;
   $("techRows").innerHTML=rows.map(r=>`<div class="tr"><span class="s ${r.ok?"ok":"note"}">${r.ok?"✓":"●"}</span><span>${r.label}</span><span class="v">${r.v}</span><span class="fx">${r.fx}</span></div>`).join("");
   $("techDetails").innerHTML=techDetails(b);$("techMeta").textContent=bad?bad+" detail"+(bad>1?"s":"")+" to add":"fits as drawn";$("techMeta").style.color=bad?"#b7791f":"var(--ok)";}
@@ -1858,7 +1871,7 @@ applyAccent();const b=Bs(),[sc,sr,sl]=keyParts(S.sel);
   else{const c=B.BY[f.type];$("faceDesc").innerHTML=`<b>${c.name}</b>${c.ref?` (${c.set!=="ottoman"?c.ref:"Houses of Beirut "+c.ref})`:""}. ${c.desc}`+dragHint+(sh?" An inner wall: its openings pass light to the next room.":"");}
   $("editMeta").textContent=b.name.toLowerCase()+" · "+(b.levels>1?levelName(sl).toLowerCase()+" · ":"")+FNAME[S.selFace].toLowerCase()+" wall";
   const {top}=levelY(b,0),tot=top+roofH(b);{const n=selIdx().length;$("stackMeta").textContent=n>1?`${n} buildings selected: changes apply to all`:`${b.cols*WX} × ${b.deep*WZ} × ${tot.toFixed(0)} mm`;}
-  const vb=bounds();$("tag").textContent=`${S.buildings.length} buildings · ${(vb.x1-vb.x0).toFixed(0)} × ${(vb.z1-vb.z0).toFixed(0)} mm · selected: ${b.name}, ${b.cols}×${b.deep}×${b.levels}, ${tot.toFixed(0)} mm tall ≈ ${(tot*0.075).toFixed(1)} m at 1:75`;
+  const vb=bounds();$("tag").textContent=`${S.buildings.length} buildings · ${(vb.x1-vb.x0).toFixed(0)} × ${(vb.z1-vb.z0).toFixed(0)} mm · selected: ${b.name}, ${b.cols}×${b.deep}×${b.levels}, ${tot.toFixed(0)} mm tall ≈ ${(tot*mOf(b)).toFixed(1)} m at ${scaleTxt(b)}`;
   /* checks */
   const sel=faceChecks(b,S.sel,S.selFace),bc=buildingChecks(b),vc=villageChecks();
   const bad=sel.list.filter(c=>!c.ok).length+bc.hard.filter(c=>!c.ok).length+vc.filter(c=>!c.ok&&!c.note).length,notes=bc.notes.filter(c=>!c.ok).length;
@@ -1895,6 +1908,8 @@ function drawBoard(){const f=face(),o=bld(f),W=fwOf(S.selFace),free=f.mode==="fr
   for(let x=0;x<=W;x+=10)s+=`<line x1="${x}" y1="${H+0.8}" x2="${x}" y2="${H+1.8}" stroke-width=".75" ${ns}/>`+t(x,H+4.4,x);
   for(let y=0;y<=H;y+=10)s+=`<line x1="-0.8" y1="${H-y}" x2="-1.8" y2="${H-y}" stroke-width=".75" ${ns}/>`+t(-2.6,H-y+0.85,y,"","end");
   const e=edgeOf();s+=`<rect x="${e}" y="${B.LIM.top}" width="${W-2*e}" height="${H-B.LIM.top-B.LIM.base}" stroke-width=".6" stroke-dasharray="1 1.6" opacity=".25" ${ns}/>`;   /* where openings may go */
+  {const b=Bs();if(b&&b.set==="ottoman"){const A=B.AS,sc=B.SC;[["sill",A.win.sill],["head",A.win.head]].forEach(([n,v])=>{const y=H-v*sc;s+=`<line x1="0" y1="${y}" x2="${W}" y2="${y}" stroke-width=".6" stroke-dasharray="4 1.2 .6 1.2" opacity=".3" ${ns}/>`+t(W+0.8,y+0.8,v.toFixed(2)+" m","","start");});}
+   s+=t(W,-0.8,(b?scaleTxt(b)+" · "+storeyTxt(b):""),"","end");}   /* the as-built datum lines: 75 cm parapet and window head */
   s+=`<rect x="0" y="0" width="${W}" height="${H}" stroke-width="1.5" ${ns}/>`+B.lipLines(0,W,true,true);
   o.holes.forEach((h,i)=>s+=`<polygon data-i="${i}" points="${P(h.p)}" fill="currentColor" fill-opacity="${i===FSEL?.16:.04}" stroke-width="${i===FSEL?1.6:1}" stroke-linejoin="round" style="cursor:move" ${ns}/>`);
   if(FSEL>=0){const q=f.holes[FSEL],y0=H-q.y-q.h,hs=1.6;
@@ -2114,7 +2129,7 @@ on("radius","input",e=>{each(b=>b.radius=+e.target.value);renderUI();});
 const modDims=()=>{if(MODE==="module")return S;try{return JSON.parse(localStorage.getItem("tikrar-module-editor-v1"))||{};}catch(e){return {};}};
 function applyDims(){if(MODE==="module"&&S.vent===undefined){const o=S.buildings.find(x=>x.vent);S.vent=o?+o.vent:0;}   /* v 17:30 kept the cut per building: adopt it */
   const D=modDims();WX=D.mw||60;WZ=D.ml||60;RGEO.clear();H=D.mh||40;UH.value=H;T=D.mt||3;BASE_T=PLATE_T=FLAT_T=D.ms||4;VDROP=+D.vent||0;CD=D.cd||38;CH=D.ch||12;CANDLE_Y=CH+8;UCY.value=CH+8;
-  {const el=$("modSize");if(el)el.textContent=`porcelain modules ${WX} × ${WZ} mm · ${H} mm walls`;}B.setH(H);B.LIPS.in=T+LIP.clr;WGEO.clear();CGEO.clear();if(MODE!=="module"){const k=[WX,WZ,H,T,PLATE_T].join("|");if(S.dims!==k){S.dims=k;gridLayout(S.buildings);}return;}
+  {const el=$("modSize");if(el)el.textContent=`porcelain modules ${WX} × ${WZ} mm · ${H} mm walls`;}B.setH(H);B.setRef(Math.min(WX,WZ));B.LIPS.in=T+LIP.clr;B.LIPS.h=LIP.h;WGEO.clear();CGEO.clear();if(MODE!=="module"){const k=[WX,WZ,H,T,PLATE_T].join("|");if(S.dims!==k){S.dims=k;gridLayout(S.buildings);}return;}
   [["modW",WX,WX+" mm"],["modL",WZ,WZ+" mm"],["modH",H,H+" mm"],["modT",T,T.toFixed(1)+" mm"],["modS",PLATE_T,PLATE_T.toFixed(1)+" mm"],["modCD",CD,CD+" mm"],["modCH",CH,CH+" mm"]].forEach(([id,v,t])=>{if(document.activeElement!==$(id))$(id).value=v;$(id+"V").textContent=t;});}
 [["modW","mw"],["modL","ml"],["modH","mh"],["modT","mt"],["modS","ms"],["modCD","cd"],["modCH","ch"]].forEach(([id,k])=>on(id,"input",e=>{S[k]=+e.target.value;applyDims();renderUI();}));
 window.addEventListener("storage",e=>{if(MODE!=="module"&&e.key==="tikrar-module-editor-v1"){applyDims();renderUI();}});   /* a Module editor open in another tab: the city follows live */
@@ -2179,10 +2194,15 @@ function vbarVals(){barSync();const c=S.candle===undefined?1:S.candle,t=S.sun===
 on("resetView","click",()=>{controls.minPolarAngle=0;controls.maxPolarAngle=Math.PI;S.view="";const gl=room.getObjectByName("groundLine");if(gl)gl.visible=false;fitView();});
 on("orthoBtn","click",()=>setOrtho(!S.ortho));document.querySelectorAll("[data-view]").forEach(x=>x.onclick=()=>viewPreset(x.dataset.view));
 on("reset","click",()=>{if(confirm("Reset to the starting city block?")){S=defaults();renderUI();fitView();}});
-on("dlSvg","click",()=>{const b=Bs(),cells=[],keys=liveKeys(b).sort((a,c)=>keyParts(c)[2]-keyParts(a)[2]);
-  keys.forEach((k,row)=>FACES.forEach((fn,j)=>{const svg=B.faceSVG(bld(b.mods[k][fn],fn),{dims:true}).replace("<svg ",`<svg x="${j*80}" y="${row*62}" width="74" height="54" `);
-    const [c,r,l]=keyParts(k);cells.push(svg+`<text x="${j*80+37}" y="${row*62+60}" font-size="3.4" text-anchor="middle" font-family="sans-serif">${levelName(l)} · module ${c+1},${r+1} · ${FNAME[fn]}</text>`);}));
-  const doc=`<svg xmlns="http://www.w3.org/2000/svg" width="320mm" height="${keys.length*62}mm" viewBox="0 0 320 ${keys.length*62}">${cells.join("")}</svg>`;
+/* Elevations (SVG): every module's four walls at 1 : 1 mm, each at its real width (front/back WX, sides WZ) and height H,
+   with dimension chains; one row per module, a title line with the module size, roof pitch and the as-built scale */
+on("dlSvg","click",()=>{const b=Bs(),cells=[],keys=liveKeys(b).sort((a,c)=>keyParts(c)[2]-keyParts(a)[2]),gapX=8,rowH=H+28,
+    rowW=FACES.reduce((a,f)=>a+fwOf(f)+16+gapX,0),font='font-family="Helvetica Neue,Helvetica,Arial,sans-serif"';
+  keys.forEach((k,row)=>{let x=0;const y=14+row*rowH;FACES.forEach(fn=>{const fw=fwOf(fn),cw=fw+16,ch=H+14,svg=B.faceSVG(bld(b.mods[k][fn],fn),{dims:true}).replace("<svg ",`<svg x="${x}" y="${y}" width="${cw}" height="${ch}" `);
+    const [c,r,l]=keyParts(k);cells.push(svg+`<text x="${x+fw/2+3}" y="${y+ch+5}" font-size="3" text-anchor="middle" ${font}>${levelName(l)} · module ${c+1},${r+1} · ${FNAME[fn]} · ${fw} × ${H}</text>`);x+=cw+gapX;});});
+  const head=`<text x="0" y="6" font-size="4" ${font}>${b.name} · modules ${WX} × ${WZ} × ${H} mm, walls ${T} · ${b.roof==="slant"?"hipped roof "+b.pitch+"°, "+roofH(b).toFixed(1)+" mm":b.roof==="modern"?"flat roof "+FLAT_T+" mm":"no roof"}</text>`+
+    `<text x="0" y="11" font-size="3" fill="#6d665c" ${font}>As built ${scaleTxt(b)} (${storeyTxt(b)}). All dimensions fired mm.</text>`;
+  const Ht=14+keys.length*rowH,doc=`<svg xmlns="http://www.w3.org/2000/svg" width="${rowW}mm" height="${Ht}mm" viewBox="0 0 ${rowW} ${Ht}">${head}${cells.join("")}</svg>`;
   const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([doc],{type:"image/svg+xml"}));a.download=b.name.replace(/\W+/g,"-").toLowerCase()+"-elevations.svg";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);});
 
 /* ================= apply one wall to many ================= */
@@ -2209,14 +2229,14 @@ function makeSheet(jspdf){
   const k=1/(1-shrinkOf(b)/100),bc=buildingChecks(b),{top}=levelY(b,0),tot=top+roofH(b),nMod=liveKeys(b).length;
   const matName=`${BODY[b.body||"porcelain"].name}, ${b.finish==="unglazed"?"unglazed":GLAZE[b.glazeCol||"white"].name.toLowerCase()+" glaze"}`;
   /* wall types: every distinct wall design, numbered WT1, WT2 … */
-  const uniq=new Map();liveKeys(b).sort((a,c)=>keyParts(a)[2]-keyParts(c)[2]||keyParts(a)[1]-keyParts(c)[1]||keyParts(a)[0]-keyParts(c)[0]).forEach(kk=>FACES.forEach(f=>{const j=JSON.stringify(b.mods[kk][f]);if(!uniq.has(j))uniq.set(j,[]);uniq.get(j).push([kk,f]);}));
-  const types=[...uniq.entries()],tagOf=j=>"WT"+(types.findIndex(t=>t[0]===j)+1);
+  const uniq=new Map();liveKeys(b).sort((a,c)=>keyParts(a)[2]-keyParts(c)[2]||keyParts(a)[1]-keyParts(c)[1]||keyParts(a)[0]-keyParts(c)[0]).forEach(kk=>FACES.forEach(f=>{const j=JSON.stringify(b.mods[kk][f])+"|"+fwOf(f);if(!uniq.has(j))uniq.set(j,[]);uniq.get(j).push([kk,f]);}));
+  const types=[...uniq.entries()],tagOf=j=>"WT"+(types.findIndex(t=>t[0]===j)+1);   /* a wall type = one design on one wall width (front/back WX, sides WZ) */
   const NS=3+Math.ceil(types.length/2);let sheet=0;
   /* ---------- drawing primitives (page mm) ---------- */
   const ink=()=>{doc.setDrawColor(30,28,25);doc.setTextColor(30,28,25);},grey=()=>{doc.setTextColor(110,104,96);};
   const lw=w=>doc.setLineWidth(w);
   const dash=on=>doc.setLineDashPattern(on==="center"?[3,0.8,0.5,0.8]:on==="hidden"?[1.2,0.8]:[],0);
-  const TT=(str,x,y,size,opt)=>{doc.setFontSize(size||6);doc.text(tx(str),x,y,opt||{});};
+  const TT=(str,x,y,size,opt)=>{doc.setFontSize(size||6);doc.text(Array.isArray(str)?str.map(tx):tx(str),x,y,opt||{});};   /* split text arrives as an array of lines */
   const poly=(pts,ox,oy,s,style,mirror)=>{const P=pts.map(([x,y])=>[ox+(mirror?mirror-x:x)*s,oy-y*s]),seg=[];for(let i=1;i<P.length;i++)seg.push([P[i][0]-P[i-1][0],P[i][1]-P[i-1][1]]);doc.lines(seg,P[0][0],P[0][1],[1,1],style,true);};
   const tick=(x,y)=>doc.line(x-0.8,y+0.8,x+0.8,y-0.8);
   const dimH=(x0,x1,y,label,ext)=>{lw(0.1);doc.line(x0,y,x1,y);tick(x0,y);tick(x1,y);if(ext!==undefined){doc.line(x0,ext,x0,y+0.8);doc.line(x1,ext,x1,y+0.8);}TT(label,(x0+x1)/2,y-0.6,5.2,{align:"center"});};
@@ -2248,9 +2268,10 @@ function makeSheet(jspdf){
   let y=14;const X=iw+20,row=(kk,v)=>{grey();TT(kk,X,y,5.6);ink();TT(String(v),X+30,y,6.4);y+=4.3;};
   TT(b.name,X,y,11);y+=6.5;
   row("Source",b.set==="ottoman"?"Houses of Beirut 1860–1925 (HoB)":"Architectures de Beyrouth 1925–1970 (AdB)");
-  row("Overall, fired",`${b.cols*W} × ${b.deep*W} × ${tot.toFixed(1)} mm`);
-  row("Overall, mould",`${(b.cols*W*k).toFixed(1)} × ${(b.deep*W*k).toFixed(1)} × ${(tot*k).toFixed(1)} mm`);
-  row("At 1:75",`${(b.cols*W*0.075).toFixed(1)} × ${(b.deep*W*0.075).toFixed(1)} × ${(tot*0.075).toFixed(1)} m`);
+  row("Overall, fired",`${b.cols*WX} × ${b.deep*WZ} × ${tot.toFixed(1)} mm`);
+  row("Overall, mould",`${(b.cols*WX*k).toFixed(1)} × ${(b.deep*WZ*k).toFixed(1)} × ${(tot*k).toFixed(1)} mm`);
+  row("As built, "+scaleTxt(b),`${(b.cols*WX*mOf(b)).toFixed(1)} × ${(b.deep*WZ*mOf(b)).toFixed(1)} × ${(tot*mOf(b)).toFixed(1)} m · ${storeyTxt(b)}`);
+  row("Module",`${WX} × ${WZ} × ${H} mm, wall ${T}, slabs ${PLATE_T}, corners R ${radOf(b)}`);
   row("Modules",`${b.cols} across × ${b.deep} deep × ${b.levels} up = ${nMod}`);
   const nAcc=liveKeys(b).filter(kk=>b.mods[kk].col).length;
   row("Colours",`walls ${b.finish==="unglazed"?"unglazed":GLAZE[b.glazeCol||"white"].name.toLowerCase()} · plates ${(b.plateCol||"same")==="same"?"as walls":b.plateCol==="unglazed"?"unglazed":GLAZE[b.plateCol].name.toLowerCase()}`+(nAcc?` · ${nAcc} accent module${nAcc>1?"s":""}`:"")+(b.palette?` · ${PALETTES[b.palette].name}`:""));
@@ -2259,80 +2280,86 @@ function makeSheet(jspdf){
   row("Candles",(b.candles.map((c,l)=>c?levelName(l):null).filter(Boolean).join(", ")||"none")+` · ${b.candles.filter(Boolean).length*b.cols*b.deep} × Ø${CD} × ${CH} tealight`);
   y+=2;TT("BILL OF PIECES",X,y,6.5);y+=1.5;
   const nPl=b.plates.filter(Boolean).length,nRoof=b.roof==="none"?0:perMod(b)?b.cols*b.deep:1;
-  const bom=[["Item","Qty","Description","Fired size (mm)"],["M",String(nMod),"module, 4 walls, open top/bottom","60 × 60 × 40, wall 3"],["P",String(nPl),"plate / base, Ø"+VENT_D+" vent per module",`${b.cols*W} × ${b.deep*W} × ${BASE_T}/${PLATE_T}`],
-    ["R",String(nRoof),b.roof==="none"?"—":b.roof==="slant"?(isTruss(b)?"truss lid: wall plate, hips, rafters, battens":"hipped lid, 10 mm top opening"):"flat slab, Ø"+VENT_D+" vent",b.roof==="none"?"—":`${perMod(b)?W+" × "+W:b.cols*W+" × "+b.deep*W} × ${roofH(b).toFixed(1)}`],["WT",String(types.length),"wall types = wall moulds / insert sets","sheets 4–"+NS]];
+  const bom=[["Item","Qty","Description","Fired size (mm)"],["M",String(nMod),"module, 4 walls, open top/bottom",`${WX} × ${WZ} × ${H}, wall ${T}`],["P",String(nPl),"plate / base, Ø"+VENT_D+" vent per module",`${b.cols*WX} × ${b.deep*WZ} × ${BASE_T}/${PLATE_T}`],
+    ["R",String(nRoof),b.roof==="none"?"—":b.roof==="slant"?(isTruss(b)?"truss lid: wall plate, hips, rafters, battens":"hipped lid, 10 mm top opening"):"flat slab, Ø"+VENT_D+" vent",b.roof==="none"?"—":`${perMod(b)?WX+" × "+WZ:b.cols*WX+" × "+b.deep*WZ} × ${roofH(b).toFixed(1)}`+(b.roof==="slant"?`, ${b.pitch}°`:"")],["WT",String(types.length),"wall types = wall moulds / insert sets","sheets 4–"+NS]];
   const cx=[X,X+10,X+20,X+76];lw(0.12);bom.forEach((r,i)=>{y+=4;if(i===0){doc.setFillColor(238,234,226);doc.rect(X,y-3,PW-12-X,4,"F");}r.forEach((c,j)=>TT(c,cx[j]+0.8,y,5.4));doc.line(X,y+1,PW-12,y+1);});
   y+=6;TT("CHECKS",X,y,6.5);y+=1;
   bc.hard.concat(bc.notes).forEach(c=>{y+=3.6;if(c.ok)doc.setTextColor(47,138,74);else if(c.note)doc.setTextColor(183,121,31);else doc.setTextColor(194,65,45);TT(c.ok?"OK":c.note?"NOTE":"FIX",X,y,5.4);ink();const t=doc.splitTextToSize(tx(c.label+": "+c.v),PW-14-X-12);TT(t,X+11,y,5.4);y+=2.4*(t.length-1);});
   notes(12,ih+22,iw-4,[`All dimensions in mm at the fired size. Mould and resin-print sizes = fired × ${k.toFixed(3)} (${shrinkOf(b)} % shrinkage, ${BODY[b.body||"porcelain"].name.toLowerCase()}).`,
-    `Walls 3.0 thick, vertical corners rounded R ${radOf(b)} (plates and roofs too). Openings cut through, ≥ ${Math.max(3,radOf(b))} from the corners`+" (mitre and radius) and from the scrape edge, ≥ 2.0 above the base lip; bars and columns ≥ 2.5; each wall ≤ 40 % open.",
-    "Pieces are fired separately and stacked dry on 3 mm porcelain locating lips. No glue, no metal, no glass.",
-    "Every candle stands on a plate. Plates and flat roofs carry Ø 25 vents over each module.",
+    `Walls ${T.toFixed(1)} thick, vertical corners rounded R ${radOf(b)} (plates and roofs too). Openings cut through, ≥ ${Math.max(3,radOf(b))} from the corners`+" (mitre and radius) and from the scrape edge, ≥ 2.0 above the base lip; bars and columns ≥ 2.5; each wall ≤ 40 % open.",
+    b.set==="ottoman"?`Openings at as-built late Ottoman sizes, one scale for the whole house (${scaleTxt(b)}: the ${H} wall is a ${storeyTxt(b)}): windows ${Math.round(B.AS.win.w*100)} × ${Math.round((B.AS.win.head-B.AS.win.sill)*100)} cm on a ${Math.round(B.AS.win.sill*100)} cm parapet, bays ${B.AS.pitch} m apart. Nothing is stretched with the wall.`:`Modernist storey 3.0 m: the ${H} wall at 1 : ${Math.round(3000/H)}.`,
+    `Pieces are fired separately and stacked dry on ${LIP.w} × ${LIP.h} porcelain locating lips. No glue, no metal, no glass.`,
+    `Every candle stands on a plate. Plates and flat roofs carry Ø ${VENT_D} vents over each module.`,
     "Opening types from Houses of Beirut 1860–1925 (HoB) and Architectures de Beyrouth 1925–1970 (AdB); page references on the wall-type sheets."]);
 
   /* ================= sheet 2: elevations ================= */
-  const sides=["front","right","back","left"],fwOf=s=>(s==="front"||s==="back"?b.cols:b.deep)*W,platesH=b.plates.reduce((a,p,l)=>a+(p?plateT(l):0),0),fh=b.levels*H+platesH+(b.plates[0]?LIP.h:0)+roofH(b);
-  const cellW=134,cellH=78,s=Math.min((cellW-34)/(Math.max(b.cols,b.deep)*W),(cellH-24)/fh,1.6);
+  const sides=["front","right","back","left"],mwS=s=>s==="front"||s==="back"?WX:WZ,mdS=s=>s==="front"||s==="back"?WZ:WX,fwS=s=>(s==="front"||s==="back"?b.cols:b.deep)*mwS(s),fdS=s=>(s==="front"||s==="back"?b.deep:b.cols)*mdS(s),platesH=b.plates.reduce((a,p,l)=>a+(p?plateT(l):0),0),fh=b.levels*H+platesH+(b.plates[0]?LIP.h:0)+roofH(b);
+  const cellW=134,cellH=78,s=Math.min((cellW-34)/Math.max(b.cols*WX,b.deep*WZ),(cellH-24)/fh,1.6);
   frame("ELEVATIONS",`${s.toFixed(2)} : 1`);
-  const axisLabels=side=>{const n=fwOf(side)/W;if(side==="front")return [...Array(n)].map((_,i)=>String(i+1));if(side==="back")return [...Array(n)].map((_,i)=>String(n-i));
+  const axisLabels=side=>{const n=Math.round(fwS(side)/mwS(side));if(side==="front")return [...Array(n)].map((_,i)=>String(i+1));if(side==="back")return [...Array(n)].map((_,i)=>String(n-i));
     if(side==="right")return [...Array(n)].map((_,i)=>"ABC"[i]);return [...Array(n)].map((_,i)=>"ABC"[n-1-i]);};
-  sides.forEach((side,i)=>{const ox=16+(i%2)*(cellW+6)+6,oy=12+Math.floor(i/2)*(cellH+2)+cellH-12,fw=fwOf(side);
+  sides.forEach((side,i)=>{const ox=16+(i%2)*(cellW+6)+6,oy=12+Math.floor(i/2)*(cellH+2)+cellH-12,fw=fwS(side),mw=mwS(side);
     TT(FNAME[side].toUpperCase()+" ELEVATION"+(side==="front"?" (STREET)":""),ox-4,oy+13,6.5);
     let yy=0;const chain=[],levels=[];
     for(let l=0;l<b.levels;l++){
       if(b.plates[l]){doc.setFillColor(232,226,214);lw(0.15);doc.rect(ox,oy-(yy+plateT(l))*s,fw*s,plateT(l)*s,"FD");chain.push([yy,yy+plateT(l),plateT(l).toFixed(1)]);yy+=plateT(l);}
       levels.push(yy);
-      facadeKeys(b,side,l).forEach((kk,j)=>{if(!kk)return;const x0=ox+j*W*s,spec=b.mods[kk][side],o=bld(spec,side);lw(0.3);doc.setFillColor(255,255,255);doc.rect(x0,oy-(yy+H)*s,W*s,H*s,"FD");
+      facadeKeys(b,side,l).forEach((kk,j)=>{if(!kk)return;const x0=ox+j*mw*s,spec=b.mods[kk][side],o=bld(spec,side);lw(0.3);doc.setFillColor(255,255,255);doc.rect(x0,oy-(yy+H)*s,mw*s,H*s,"FD");
         lw(0.15);doc.setFillColor(255,213,150);o.holes.forEach(h=>poly(h.p,x0,oy-yy*s,s,"FD"));
-        doc.setFillColor(255,255,255);lw(0.1);doc.rect(x0+0.8,oy-yy*s-4.2,8,3.4,"FD");TT(tagOf(JSON.stringify(spec)),x0+4.8,oy-yy*s-1.6,4.6,{align:"center"});});
+        doc.setFillColor(255,255,255);lw(0.1);doc.rect(x0+0.8,oy-yy*s-4.2,8,3.4,"FD");TT(tagOf(JSON.stringify(spec)+"|"+mw),x0+4.8,oy-yy*s-1.6,4.6,{align:"center"});});
       chain.push([yy,yy+H,String(H)]);yy+=H;}
-    if(b.roof!=="none"){const rh=roofH(b),pw=perMod(b)?W:fw,half=pw/2-roofRun(b);lw(0.25);{const c=roofMat(b).color;doc.setFillColor(Math.round(c.r*255),Math.round(c.g*255),Math.round(c.b*255));}
-      for(let x0=0;x0<fw-0.1;x0+=pw){const XX=ox+x0*s;if(b.roof==="modern")doc.rect(XX,oy-(yy+4)*s,pw*s,4*s,"FD");else{doc.rect(XX,oy-(yy+2.5)*s,pw*s,2.5*s,"FD");poly([[0,2.5],[pw,2.5],[pw/2+half,rh],[pw/2-half,rh]],XX,oy-yy*s,s,"FD");}}
-      chain.push([yy,yy+rh,rh.toFixed(1)]);yy+=rh;}
+    if(b.roof!=="none"){const rh=roofH(b),pw=perMod(b)?mw:fw,pd=perMod(b)?mdS(side):fdS(side),ro=roofOutline(b,pw,pd),top=Math.max(...ro.map(q=>q[1]));lw(0.25);{const c=roofMat(b).color;doc.setFillColor(Math.round(c.r*255),Math.round(c.g*255),Math.round(c.b*255));}
+      for(let x0=0;x0<fw-0.1;x0+=pw)poly(ro,ox+x0*s,oy-yy*s,s,"FD");
+      if(b.roof==="slant"){const q=ro[3],r2=ro[4];TT(`${b.pitch}°`,ox+(q[0]-(r2[0]<q[0]?6:-6))*s,oy-(yy+q[1]+2)*s,4.6,{align:"center"});}
+      chain.push([yy,yy+top,top.toFixed(1)]);yy+=top;}
     /* grid axes on module centres, centre lines, ground line, datums, dimensions */
-    axisLabels(side).forEach((lab,j)=>{const x=ox+(j+0.5)*W*s;dash("center");lw(0.08);doc.line(x,oy+1,x,oy-yy*s-3);dash();bubble(x,oy-yy*s-5.5,lab);});
+    axisLabels(side).forEach((lab,j)=>{const x=ox+(j+0.5)*mw*s;dash("center");lw(0.08);doc.line(x,oy+1,x,oy-yy*s-3);dash();bubble(x,oy-yy*s-5.5,lab);});
     lw(0.3);doc.line(ox-6,oy,ox+fw*s+6,oy);
     datum(ox-9,oy,"±0.0");levels.forEach(v=>datum(ox-9,oy-v*s,"+"+v.toFixed(1)));datum(ox-9,oy-yy*s,"+"+yy.toFixed(1));
-    dimH(ox,ox+fw*s,oy+8,fw.toFixed(1),oy+1);if(fw>W)for(let j=0;j<fw/W;j++)dimH(ox+j*W*s,ox+(j+1)*W*s,oy+4,"60.0");
+    dimH(ox,ox+fw*s,oy+8,fw.toFixed(1),oy+1);if(fw>mw+0.1)for(let j=0;j<Math.round(fw/mw);j++)dimH(ox+j*mw*s,ox+(j+1)*mw*s,oy+4,mw.toFixed(1));
     chain.forEach(([a,c,t])=>dimV(ox+fw*s+4,oy-a*s,oy-c*s,t,ox+fw*s+1));dimV(ox+fw*s+9,oy,oy-yy*s,yy.toFixed(1),ox+fw*s+1);});
 
   /* ================= sheet 3: plan, section A–A, joint detail ================= */
-  const sp=Math.min(118/(b.cols*W+20),78/(b.deep*W+20),1.2),ss=Math.min(118/(b.cols*W+24),(96)/(fh+12),1.2);
+  const sp=Math.min(118/(b.cols*WX+20),78/(b.deep*WZ+20),1.2),ss=Math.min(118/(b.cols*WX+24),(96)/(fh+12),1.2);
   frame("PLAN · SECTION A–A · DETAIL 1",`plan ${sp.toFixed(2)}:1 · section ${ss.toFixed(2)}:1 · detail 3:1`);
-  {const ox=24,oy=18+b.deep*W*sp+6,hw=b.cols*W,hd=b.deep*W;TT("PLAN AT GROUND LEVEL",ox-8,14,6.5);
-    for(let c=0;c<b.cols;c++)for(let r=0;r<b.deep;r++){const x0=ox+c*W*sp,y0=oy-(r+1)*W*sp;if(!alive(b,c+":"+r+":0")){dash("hidden");lw(0.12);doc.rect(x0,y0,W*sp,W*sp,"S");dash();continue;}doc.setFillColor(214,206,192);lw(0.3);const rr=radOf(b)*sp;if(rr>0.05)doc.roundedRect(x0,y0,W*sp,W*sp,rr,rr,"FD");else doc.rect(x0,y0,W*sp,W*sp,"FD");doc.setFillColor(255,255,255);lw(0.15);const ri=Math.max(0,radOf(b)-T)*sp;if(ri>0.05)doc.roundedRect(x0+T*sp,y0+T*sp,(W-2*T)*sp,(W-2*T)*sp,ri,ri,"FD");else doc.rect(x0+T*sp,y0+T*sp,(W-2*T)*sp,(W-2*T)*sp,"FD");
-      const cxm=x0+W*sp/2,cym=y0+W*sp/2;if(b.candles[0]){dash("hidden");lw(0.12);doc.circle(cxm,cym,CD/2*sp,"S");dash();}
-      if(b.levels>1&&b.plates.slice(1).some(Boolean)){lw(0.12);doc.circle(cxm,cym,4*sp,"S");}}
-    for(let c=0;c<b.cols;c++){const x=ox+(c+0.5)*W*sp;dash("center");lw(0.08);doc.line(x,oy+2,x,oy-hd*sp-2);dash();bubble(x,oy-hd*sp-5,String(c+1));}
-    for(let r=0;r<b.deep;r++){const yq=oy-(r+0.5)*W*sp;dash("center");lw(0.08);doc.line(ox-2,yq,ox+hw*sp+2,yq);dash();bubble(ox-5,yq,"ABC"[r]);}
-    dimH(ox,ox+hw*sp,oy+9,hw.toFixed(1),oy+1);if(b.cols>1)for(let c=0;c<b.cols;c++)dimH(ox+c*W*sp,ox+(c+1)*W*sp,oy+5,"60.0");
+  {const ox=24,oy=18+b.deep*WZ*sp+6,hw=b.cols*WX,hd=b.deep*WZ;TT("PLAN AT GROUND LEVEL",ox-8,14,6.5);
+    for(let c=0;c<b.cols;c++)for(let r=0;r<b.deep;r++){const x0=ox+c*WX*sp,y0=oy-(r+1)*WZ*sp;if(!alive(b,c+":"+r+":0")){dash("hidden");lw(0.12);doc.rect(x0,y0,WX*sp,WZ*sp,"S");dash();continue;}doc.setFillColor(214,206,192);lw(0.3);const rr=radOf(b)*sp;if(rr>0.05)doc.roundedRect(x0,y0,WX*sp,WZ*sp,rr,rr,"FD");else doc.rect(x0,y0,WX*sp,WZ*sp,"FD");doc.setFillColor(255,255,255);lw(0.15);const ri=Math.max(0,radOf(b)-T)*sp;if(ri>0.05)doc.roundedRect(x0+T*sp,y0+T*sp,(WX-2*T)*sp,(WZ-2*T)*sp,ri,ri,"FD");else doc.rect(x0+T*sp,y0+T*sp,(WX-2*T)*sp,(WZ-2*T)*sp,"FD");
+      const cxm=x0+WX*sp/2,cym=y0+WZ*sp/2;if(b.candles[0]){dash("hidden");lw(0.12);doc.circle(cxm,cym,CD/2*sp,"S");dash();}
+      if(b.levels>1&&b.plates.slice(1).some(Boolean)){lw(0.12);doc.circle(cxm,cym,VENT_D/2*sp,"S");}}
+    for(let c=0;c<b.cols;c++){const x=ox+(c+0.5)*WX*sp;dash("center");lw(0.08);doc.line(x,oy+2,x,oy-hd*sp-2);dash();bubble(x,oy-hd*sp-5,String(c+1));}
+    for(let r=0;r<b.deep;r++){const yq=oy-(r+0.5)*WZ*sp;dash("center");lw(0.08);doc.line(ox-2,yq,ox+hw*sp+2,yq);dash();bubble(ox-5,yq,"ABC"[r]);}
+    dimH(ox,ox+hw*sp,oy+9,hw.toFixed(1),oy+1);if(b.cols>1)for(let c=0;c<b.cols;c++)dimH(ox+c*WX*sp,ox+(c+1)*WX*sp,oy+5,WX.toFixed(1));
+    if(b.deep>1)for(let r=0;r<b.deep;r++)dimV(ox+hw*sp+5,oy-r*WZ*sp,oy-(r+1)*WZ*sp,WZ.toFixed(1),ox+hw*sp+1);
     dimV(ox+hw*sp+9,oy,oy-hd*sp,hd.toFixed(1),ox+hw*sp+1);
-    const ax=oy-(Math.floor((b.deep-1)/2)+0.5)*W*sp;lw(0.35);doc.line(ox-9,ax,ox-3,ax);doc.line(ox+hw*sp+3,ax,ox+hw*sp+12,ax);
+    const ax=oy-(Math.floor((b.deep-1)/2)+0.5)*WZ*sp;lw(0.35);doc.line(ox-9,ax,ox-3,ax);doc.line(ox+hw*sp+3,ax,ox+hw*sp+12,ax);
     lw(0.2);doc.lines([[0,-2.5],[-0.9,1.2],[1.8,0],[-0.9,-1.2]],ox-6,ax,[1,1],"F",true);doc.lines([[0,-2.5],[-0.9,1.2],[1.8,0],[-0.9,-1.2]],ox+hw*sp+9,ax,[1,1],"F",true);
     TT("A",ox-6,ax-3.6,6,{align:"center"});TT("A",ox+hw*sp+9,ax-3.6,6,{align:"center"});
     TT("STREET →  front elevation",ox+hw*sp/2,oy+14,5.4,{align:"center"});
-    grey();TT("Grey: 3.0 walls, two leaves where modules meet. Dashed: Ø"+CD+" tealight. Circle: Ø25 plate vent.",ox-8,oy+18,4.8);ink();}
-  {const ox=156,oy=18+fh*ss+4,r=Math.floor((b.deep-1)/2),fw=b.cols*W;TT("SECTION A–A",ox-4,14,6.5);
+    grey();TT(`Grey: ${T.toFixed(1)} walls, two leaves where modules meet. Dashed: Ø${CD} tealight. Circle: Ø${VENT_D} plate vent. Modules ${WX} × ${WZ}.`,ox-8,oy+18,4.8);ink();}
+  {const ox=156,oy=18+fh*ss+4,r=Math.floor((b.deep-1)/2),fw=b.cols*WX;TT("SECTION A–A",ox-4,14,6.5);
     let yy=0;const lv=[];
     for(let l=0;l<b.levels;l++){
-      if(b.plates[l]){hatch(ox,oy-(yy+plateT(l))*ss,fw*ss,plateT(l)*ss,1);if(l>0)for(let c=0;c<b.cols;c++){doc.setFillColor(255,255,255);doc.rect(ox+((c+0.5)*W-4)*ss,oy-(yy+plateT(l))*ss-0.1,8*ss,plateT(l)*ss+0.2,"F");}yy+=plateT(l);}
+      if(b.plates[l]){hatch(ox,oy-(yy+plateT(l))*ss,fw*ss,plateT(l)*ss,1);if(l>0)for(let c=0;c<b.cols;c++){doc.setFillColor(255,255,255);doc.rect(ox+((c+0.5)*WX-VENT_D/2)*ss,oy-(yy+plateT(l))*ss-0.1,VENT_D*ss,plateT(l)*ss+0.2,"F");}yy+=plateT(l);}
       lv.push(yy);
-      for(let c=0;c<b.cols;c++){const x0=ox+c*W*ss;if(!alive(b,c+":"+r+":"+l))continue;
+      for(let c=0;c<b.cols;c++){const x0=ox+c*WX*ss;if(!alive(b,c+":"+r+":"+l))continue;
         /* the back wall of this row, seen beyond the cut (its inside face, so mirrored) */
-        const o=bld(b.mods[c+":"+r+":"+l].back,"back");lw(0.1);doc.setDrawColor(150,144,136);o.holes.forEach(h=>poly(h.p,x0,oy-yy*ss,ss,"S",W));ink();
-        hatch(x0,oy-(yy+H)*ss,T*ss,H*ss,0.9);hatch(x0+(W-T)*ss,oy-(yy+H)*ss,T*ss,H*ss,0.9);
-        if(b.candles[l]&&b.plates[l]){dash("hidden");lw(0.12);doc.rect(x0+(W-CD)/2*ss,oy-(yy+CH)*ss,CD*ss,CH*ss,"S");dash();doc.setFillColor(240,163,58);doc.ellipse(x0+W/2*ss,oy-(yy+CH+3)*ss,0.8*ss*1.5,1.6*ss*1.5,"F");}}
+        const o=bld(b.mods[c+":"+r+":"+l].back,"back");lw(0.1);doc.setDrawColor(150,144,136);o.holes.forEach(h=>poly(h.p,x0,oy-yy*ss,ss,"S",WX));ink();
+        hatch(x0,oy-(yy+H)*ss,T*ss,H*ss,0.9);hatch(x0+(WX-T)*ss,oy-(yy+H)*ss,T*ss,H*ss,0.9);
+        if(b.candles[l]&&b.plates[l]){dash("hidden");lw(0.12);doc.rect(x0+(WX-CD)/2*ss,oy-(yy+CH)*ss,CD*ss,CH*ss,"S");dash();doc.setFillColor(240,163,58);doc.ellipse(x0+WX/2*ss,oy-(yy+CH+3)*ss,0.8*ss*1.5,1.6*ss*1.5,"F");}}
       yy+=H;}
-    if(b.roof!=="none"){const rh=roofH(b),pw=perMod(b)?W:fw,half=pw/2-roofRun(b);
-      for(let x0=0;x0<fw-0.1;x0+=pw){const XX=ox+x0*ss;
-        if(b.roof==="modern"){hatch(XX,oy-(yy+4)*ss,(pw/2-4)*ss,2.5*ss,0.8);hatch(XX+(pw/2+4)*ss,oy-(yy+4)*ss,(pw/2-4)*ss,2.5*ss,0.8);hatch(XX+T*ss,oy-(yy+1.5)*ss,1.6*ss,1.5*ss,0.6);hatch(XX+(pw-T-1.6)*ss,oy-(yy+1.5)*ss,1.6*ss,1.5*ss,0.6);}
-        else{hatch(XX,oy-(yy+2.5)*ss,(T+0.2)*ss,2.5*ss,0.6);hatch(XX+(pw-T-0.2)*ss,oy-(yy+2.5)*ss,(T+0.2)*ss,2.5*ss,0.6);lw(0.35);
-          doc.line(XX,oy-(yy+2.5)*ss,XX+(pw/2-half)*ss,oy-(yy+rh)*ss);doc.line(XX+pw*ss,oy-(yy+2.5)*ss,XX+(pw/2+half)*ss,oy-(yy+rh)*ss);
-          hatch(XX+(pw/2-half)*ss,oy-(yy+rh)*ss,(half-4)*ss,1.5*ss,0.6);hatch(XX+(pw/2+4)*ss,oy-(yy+rh)*ss,(half-4)*ss,1.5*ss,0.6);}}
+    if(b.roof!=="none"){const rh=roofH(b),pw=perMod(b)?WX:fw,pd=perMod(b)?WZ:b.deep*WZ,li=T+LIP.clr;
+      for(let x0=0;x0<fw-0.1;x0+=pw){const XX=ox+x0*ss,Y=v=>oy-(yy+v)*ss;
+        if(b.roof==="modern"){const a=pw/2-VENT_D/2;hatch(XX,Y(FLAT_T),a*ss,FLAT_T*ss,0.8);hatch(XX+(pw/2+VENT_D/2)*ss,Y(FLAT_T),a*ss,FLAT_T*ss,0.8);
+          [li,pw-li-LIP.w].forEach(x=>{hatch(XX+x*ss,Y(0),LIP.w*ss,LIP.h*ss,0.6);hatch(XX+x*ss,Y(FLAT_T+LIP.h),LIP.w*ss,LIP.h*ss,0.6);});}
+        else if(isTruss(b)){lw(0.35);const ro=roofOutline(b,pw,pd);poly(ro,XX,oy-yy*ss,ss,"S");}
+        else{const q=shellProf(b,pw/2,pd/2),al=b.pitch*Math.PI/180,d=T/Math.cos(al),tn=Math.tan(al);lw(0.35);
+          [[0,1],[pw,-1]].forEach(([e,sg])=>{const X=u=>XX+(e+sg*u)*ss;doc.line(X(0),Y(0),X(0),Y(q.yE));doc.line(X(0),Y(q.yE),X(q.uC),Y(q.yTop));
+            const uI=Math.max(T,q.uE+(d-q.yE)/tn);lw(0.2);doc.line(X(uI),Y(Math.max(0,q.yE+(uI-q.uE)*tn-d)),X(q.uO),Y(q.yE+(q.uO-q.uE)*tn-d));doc.line(X(q.uC),Y(q.yTop),X(q.uO),Y(q.yTop-VENT.c));doc.line(X(q.uO),Y(q.yTop-VENT.c),X(q.uO),Y(q.yE+(q.uO-q.uE)*tn-d));
+            doc.line(X(0),Y(0),X(T),Y(0));lw(0.35);hatch(Math.min(X(li),X(li+LIP.w)),Y(0),LIP.w*ss,LIP.h*ss,0.6);});
+          TT(`${b.pitch}°`,XX+(q.uC/2+2)*ss,Y(q.yE+q.uC/2*tn)-2,5.2);}}
       yy+=rh;}
     lw(0.3);doc.line(ox-6,oy,ox+fw*ss+6,oy);datum(ox-9,oy,"±0.0");lv.forEach(v=>datum(ox-9,oy-v*ss,"+"+v.toFixed(1)));datum(ox-9,oy-yy*ss,"+"+yy.toFixed(1));
-    dimV(ox+fw*ss+5,oy,oy-yy*ss,yy.toFixed(1),ox+fw*ss+1);dimH(ox,ox+T*ss,oy+4,"3.0");dimH(ox,ox+fw*ss,oy+8,fw.toFixed(1),oy+1);
-    if(b.roof==="slant"){const ang=b.pitch;TT(`${ang}°`,ox+8*ss+2,oy-(yy-2)*ss,5.2);}
+    dimV(ox+fw*ss+5,oy,oy-yy*ss,yy.toFixed(1),ox+fw*ss+1);dimH(ox,ox+T*ss,oy+4,T.toFixed(1));dimH(ox,ox+fw*ss,oy+8,fw.toFixed(1),oy+1);
     grey();TT(`Cut through row ${"ABC"[r]}. Hatched: cut porcelain. Grey outlines: back wall seen beyond.`,ox-4,oy+13,4.8);ink();}
   /* detail 1: the stacking joint at 4:1 */
   {const D=3,ox=30,oy=197;TT("DETAIL 1 · STACKING JOINT (3:1)",14,131,6.5);
@@ -2341,23 +2368,26 @@ function makeSheet(jspdf){
     hatch(ox+(T+LIP.clr)*D,oy-8*D,LIP.w*D,LIP.h*D,1);hatch(ox+(T+LIP.clr)*D,oy-(8+PLATE_T+LIP.h)*D,LIP.w*D,LIP.h*D,1);   /* lips both faces, same hatch: one piece with the plate */
     hatch(ox,oy-(8+PLATE_T+8)*D,T*D,8*D,1);                  /* upper wall */
     lw(0.08);dash("center");doc.line(ox+T*D/2,oy+2,ox+T*D/2,oy-(8+PLATE_T+8)*D-2);dash();
-    leader(ox+T*D/2,oy-(8+PLATE_T+4)*D,ox+11*D,oy-(8+PLATE_T+6)*D,"upper module wall 3.0");
-    leader(ox+8*D,oy-(8+PLATE_T/2)*D,ox+11*D,oy-(8+PLATE_T+1.5)*D,`plate ${PLATE_T}.0, Ø25 vent over each module`);
+    leader(ox+T*D/2,oy-(8+PLATE_T+4)*D,ox+11*D,oy-(8+PLATE_T+6)*D,"upper module wall "+T.toFixed(1));
+    leader(ox+8*D,oy-(8+PLATE_T/2)*D,ox+11*D,oy-(8+PLATE_T+1.5)*D,`plate ${PLATE_T.toFixed(1)}, Ø${VENT_D} vent over each module`);
     leader(ox+(T+1)*D,oy-(8-0.7)*D,ox+11*D,oy-(8-3)*D,`lips ${LIP.w} × ${LIP.h} both faces, ${LIP.clr} clearance, one piece with the plate`);
-    leader(ox+T*D/2,oy-3*D,ox+11*D,oy-1*D,"lower module wall 3.0");
-    dimH(ox,ox+T*D,oy+4,"3.0");dimV(ox-6*D,oy-8*D,oy-(8+PLATE_T)*D,PLATE_T+".0");}
+    leader(ox+T*D/2,oy-3*D,ox+11*D,oy-1*D,"lower module wall "+T.toFixed(1));
+    dimH(ox,ox+T*D,oy+4,T.toFixed(1));dimV(ox-6*D,oy-8*D,oy-(8+PLATE_T)*D,PLATE_T.toFixed(1));}
   notes(150,133,60,["Plates and modules fired separately, stacked dry; the lip locates, gravity holds.",`Keep ${LIP.clr} clearance between lip and wall face (fired).`,"Section and plan show fired sizes; scale ×"+k.toFixed(3)+" for moulds.","Tealight on plate only; never directly on a lower lip."],"JOINT NOTES");
 
   /* ================= sheets 4+: wall types ================= */
-  const ws=1.7;
-  types.forEach(([j,uses],ti)=>{if(ti%2===0)frame("WALL TYPES",ws.toFixed(2)+" : 1");
-    const spec=JSON.parse(j),o=bld(spec,"front"),r=B.checkFace(o,shrinkOf(b),radOf(b)),ox=26+(ti%2)*140,oy=20+H*ws;
-    const name=spec.mode==="free"?"Drawn wall, "+spec.holes.length+" opening"+(spec.holes.length===1?"":"s"):spec.mode==="bays"?spec.bays.map(id=>B.BAY[id].name).join(" · "):B.BY[spec.type].name+(spec.style?" ("+spec.style+")":"")+(spec.oculus?" + oculus":"");
-    const ref=spec.mode==="free"?"":spec.mode==="bays"?[...new Set(spec.bays.map(id=>B.BAY[id].ref).filter(Boolean))].join("; "):B.BY[spec.type].ref;
-    TT("WT"+(ti+1),ox-14,15,9);TT(doc.splitTextToSize(tx(name),112),ox+2,14,6);
-    lw(0.35);doc.setFillColor(255,255,255);doc.rect(ox,oy-H*ws,W*ws,H*ws,"FD");lw(0.2);doc.setFillColor(255,226,180);o.holes.forEach(h=>poly(h.p,ox,oy,ws,"FD"));
+  const wmax=Math.max(WX,WZ),ws=Math.min(1.7,104/wmax,92/H),mm=mOf(b),edge=Math.max(B.LIM.edge,radOf(b));
+  types.forEach(([j,uses],ti)=>{if(ti%2===0)frame("WALL TYPES",ws.toFixed(2)+" : 1 · as built "+scaleTxt(b));
+    const spec=JSON.parse(j.slice(0,j.lastIndexOf("|"))),f0=uses[0][1],wf=fwOf(f0),o=bld(spec,f0),r=B.checkFace(o,shrinkOf(b),radOf(b)),ox=26+(ti%2)*140,oy=20+H*ws;
+    const name=spec.mode==="free"?"Drawn wall, "+spec.holes.length+" opening"+(spec.holes.length===1?"":"s"):spec.mode==="bays"?spec.bays.map(id=>B.BAY[id].name).join(" · "):B.BY[spec.type].name+(spec.style?" ("+spec.style+")":"")+(spec.oculus&&B.canOculus(spec)?" + oculus":"");
+    const ref=spec.mode==="free"?"":spec.mode==="bays"?[...new Set(spec.bays.map(id=>B.BAY[id].ref).filter(Boolean))].join("; "):B.BY[spec.type].ref,
+      asb=spec.mode==="free"?"":spec.mode==="bays"?[...new Set(spec.bays.map(id=>B.BAY[id].asb).filter(Boolean))].join("; "):(B.BY[spec.type].asb||"");
+    TT("WT"+(ti+1),ox-14,15,9);TT(doc.splitTextToSize(tx(name+" · "+wf+" mm wall"),112),ox+2,14,6);
+    lw(0.35);doc.setFillColor(255,255,255);doc.rect(ox,oy-H*ws,wf*ws,H*ws,"FD");lw(0.2);doc.setFillColor(255,226,180);o.holes.forEach(h=>poly(h.p,ox,oy,ws,"FD"));
+    /* the as-built datum lines of a late Ottoman storey: parapet (sill) and window head, in metres above the floor */
+    if(b.set==="ottoman"){dash("center");lw(0.07);doc.setDrawColor(150,144,136);[["sill +"+B.AS.win.sill.toFixed(2)+" m",B.AS.win.sill],["head +"+B.AS.win.head.toFixed(2)+" m",B.AS.win.head]].forEach(([lab,v])=>{const yv=oy-v*B.SC*ws;doc.line(ox-2,yv,ox+wf*ws+2,yv);grey();TT(lab,ox+wf*ws+2.6,yv+0.9,4.4);});dash();ink();}
     /* 45° corner mitres and the 3 mm keep-out bands, dashed */
-    dash("hidden");lw(0.08);doc.rect(ox+3*ws,oy-(H-3)*ws,(W-6)*ws,(H-3-2)*ws,"S");dash();
+    dash("hidden");lw(0.08);doc.rect(ox+edge*ws,oy-(H-B.LIM.top)*ws,(wf-2*edge)*ws,(H-B.LIM.top-B.LIM.base)*ws,"S");dash();
     const bbs=o.holes.map(h=>B.bbox(h.p));
     /* opening tags: one per distinct size and kind */
     const groups=[];o.holes.forEach((h,i)=>{const q=bbs[i],key=(h.p.kind||"custom")+"|"+q.w.toFixed(1)+"|"+q.h.toFixed(1);let g=groups.find(x=>x.key===key);if(!g){g={key,kind:h.p.kind||"custom",w:q.w,h:q.h,r:h.p.r,ry:h.p.ry,items:[]};groups.push(g);}g.items.push({q,p:h.p});});
@@ -2365,22 +2395,22 @@ function makeSheet(jspdf){
       g.items.slice(0,g.items.length>8?1:8).forEach(({q})=>{const cxp=ox+(q.x0+q.x1)/2*ws;dash("center");lw(0.07);doc.line(cxp,oy-(q.y0-1.5)*ws,cxp,oy-(q.y1+1.5)*ws);dash();});
       const lx=ox+first.x1*ws,ly=oy-first.y1*ws;leader(lx-0.4,ly+0.8,lx+3,ly-3-gi*0.4,t+(g.items.length>1?" ×"+g.items.length:""));
       if(g.r&&g.kind!=="rect"){const p=g.items[0].p;TT((g.kind==="circle"?"Ø"+(2*g.r).toFixed(1):g.kind==="oval"?(2*g.r).toFixed(1)+"×"+(2*g.ry).toFixed(1):"R"+g.r.toFixed(1)),ox+(p.cx||first.x0)*ws,oy-((first.y1+first.y0)/2)*ws+1,4.6,{align:"center"});}});
-    dimH(ox,ox+W*ws,oy+11,"60.0",oy+1);dimV(ox-11,oy,oy-H*ws,"40.0",ox-1);
-    const xs=[...new Set([0,W,...bbs.flatMap(q=>[q.x0,q.x1])].map(v=>+v.toFixed(1)))].sort((a,c)=>a-c),ys=[...new Set([0,H,...bbs.flatMap(q=>[q.y0,q.y1])].map(v=>+v.toFixed(1)))].sort((a,c)=>a-c);
+    dimH(ox,ox+wf*ws,oy+11,wf.toFixed(1),oy+1);dimV(ox-11,oy,oy-H*ws,H.toFixed(1),ox-1);
+    const xs=[...new Set([0,wf,...bbs.flatMap(q=>[q.x0,q.x1])].map(v=>+v.toFixed(1)))].sort((a,c)=>a-c),ys=[...new Set([0,H,...bbs.flatMap(q=>[q.y0,q.y1])].map(v=>+v.toFixed(1)))].sort((a,c)=>a-c);
     if(xs.length<=14)for(let i=1;i<xs.length;i++)dimH(ox+xs[i-1]*ws,ox+xs[i]*ws,oy+6,(xs[i]-xs[i-1]).toFixed(1),oy+1);
     if(ys.length<=12)for(let i=1;i<ys.length;i++)dimV(ox-6,oy-ys[i-1]*ws,oy-ys[i]*ws,(ys[i]-ys[i-1]).toFixed(1),ox-1);
     /* opening schedule */
-    let yy=oy+17;const cols=[0,8,30,42,52,62,92],hdr=["Tag","Kind","W","H","Sill","Centres from left","Mould W × H"];
-    doc.setFillColor(238,234,226);doc.rect(ox-14,yy-3,124,4,"F");hdr.forEach((h,i)=>TT(h,ox-14+cols[i]+0.6,yy,5.2));lw(0.1);doc.line(ox-14,yy+1,ox+110,yy+1);
+    let yy=oy+17;const cols=[0,8,27,36,45,54,80,103],hdr=["Tag","Kind","W","H","Sill","Centres from left","As built (cm)","Mould W × H"];
+    doc.setFillColor(238,234,226);doc.rect(ox-14,yy-3,132,4,"F");hdr.forEach((h,i)=>TT(h,ox-14+cols[i]+0.6,yy,5.2));lw(0.1);doc.line(ox-14,yy+1,ox+110,yy+1);
     groups.slice(0,9).forEach((g,gi)=>{yy+=3.7;const c=[...new Set(g.items.map(x=>((x.q.x0+x.q.x1)/2).toFixed(1)))];
       [`O${gi+1}${g.items.length>1?" ×"+g.items.length:""}`,g.kind,g.w.toFixed(1),g.h.toFixed(1),[...new Set(g.items.map(x=>x.q.y0.toFixed(1)))].slice(0,3).join("/"),
-       (c.length>6?c.slice(0,6).join(", ")+" …":c.join(", ")),`${(g.w*k).toFixed(2)} × ${(g.h*k).toFixed(2)}`].forEach((v,i)=>TT(v,ox-14+cols[i]+0.6,yy,5.1));doc.line(ox-14,yy+1,ox+110,yy+1);});
+       (c.length>4?c.slice(0,4).join(", ")+" …":c.join(", ")),`${Math.round(g.w*mm*100)} × ${Math.round(g.h*mm*100)}`,`${(g.w*k).toFixed(2)} × ${(g.h*k).toFixed(2)}`].forEach((v,i)=>TT(v,ox-14+cols[i]+0.6,yy,5.1));doc.line(ox-14,yy+1,ox+110,yy+1);});
     if(groups.length>9){yy+=3.7;TT(`… ${groups.length-9} more sizes`,ox-13.4,yy,5.1);}
     yy+=5;const sets={};o.holes.forEach(h=>sets[h.set||0]=(sets[h.set||0]||0)+1);
     yy=notes(ox-14,yy,122,[`${o.holes.length} openings, ${r.open.toFixed(1)} % of the wall open; ${Object.keys(sets).length} insert set${Object.keys(sets).length>1?"s":""} of ${Object.values(sets).join(" + ")} pins. ${r.ok?"Porcelain checks pass.":"FIX: "+r.list.filter(c=>!c.ok).map(c=>c.label).join("; ")}`,
-      "Dashed box: 3.0 keep-out from the 45° corners and the scrape edge, 2.0 above the base lip. Pins 0.15 under the port, 1–2° draft.",
-      "Source: "+(ref?(spec.mode==="wall"&&B.BY[spec.type].set==="ottoman"?"Houses of Beirut "+ref:ref):"—"),
-      `Used on ${uses.length} wall${uses.length>1?"s":""}: `+uses.slice(0,14).map(([kk,f])=>{const [c,rr,l]=keyParts(kk);return `${levelName(l)} ${c+1}${"ABC"[rr]} ${f}`;}).join("; ")+(uses.length>14?"; …":"")],"NOTES");});
+      `Dashed box: ${edge.toFixed(1)} keep-out from the 45° corners and radius, ${B.LIM.top.toFixed(1)} from the scrape edge, ${B.LIM.base.toFixed(1)} above the base lip. Pins 0.15 under the port, 1–2° draft.`,
+      "Source: "+(ref?((spec.mode==="bays"||B.BY[spec.type].set==="ottoman")&&!/Archit/.test(ref)?"Houses of Beirut "+ref:ref):"—")+(asb?". As built: "+asb:"")+(b.set==="ottoman"&&spec.mode!=="free"?`. Drawn ${scaleTxt(b)}: the ${H} mm wall is a ${storeyTxt(b)}.`:""),
+      `Used on ${uses.length} wall${uses.length>1?"s":""}: `+uses.slice(0,8).map(([kk,f])=>{const [c,rr,l]=keyParts(kk);return `${levelName(l)} ${c+1}${"ABC"[rr]} ${f}`;}).join("; ")+(uses.length>8?"; …":"")],"NOTES");});
   doc.save(b.name.replace(/\W+/g,"-").toLowerCase()+"-technical-sheet.pdf");}
 
 on("pdfBtn","click",()=>{const btn=$("pdfBtn"),t=btn.textContent;btn.textContent="Preparing…";btn.disabled=true;
