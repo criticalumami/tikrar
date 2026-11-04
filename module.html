@@ -214,7 +214,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
 <header class="grid12">
   <h1>TIKRAR<small>Beirut Lantern Generator</small></h1>
   <span class="sub"><span id="modSize">porcelain modules 72 × 72 mm · 48 mm walls</span> · houses, towers and city blocks · 1860–1925 and modernist openings</span>
-  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 04.11 · 10:25</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
+  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 04.11 · 11:30</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
   </nav>
 </header>
 
@@ -1305,48 +1305,100 @@ function slantRoof(b){const g=new THREE.Group(),hw=(perMod(b)?1:b.cols)*WX/2,hd=
    an oval section with domed ends, its widest point at mid-height so a two-part mould parts there and pulls straight off.
    HEAVY: hips, the ring round the top opening (a ridge slot on a long roof), one purlin per slope and a low eave board.
    LIGHT: common rafters (jack rafters stop on the hips) and a few battens woven into them, at the 2.5 mm porcelain minimum. */
-const TRUSS={ring:3,ringH:3,rb:1.3,base:-0.4,heavy:2.8,heavyH:2.8,light:2.5,lightH:2.5,mid:1.4,csp:10,bsp:9,K:12,C:4};   /* fired mm. ring/ringH/rb: the eave beam (flush outside, rounded top); base+u·tan: rafter underside line; mid: every member's centreline lies on ONE plane per slope (owner, 3 Nov), so crossings merge flush; csp: rafter centres, bsp: batten spacing; K/C: points round a section / rings in a domed end */
+const TRUSS={ring:3,ringH:3.6,rb:1.3,base:-0.6,heavy:2.8,heavyH:2.8,light:2.5,lightH:2.5,mid:1.4,csp:10,bsp:9,K:12,C:4};   /* fired mm. ring/ringH/rb: the eave beam (flush outside, rounded top); base+u·tan: rafter underside line; mid: every member's centreline lies on ONE plane per slope (owner, 3 Nov), so crossings merge flush; csp: rafter centres, bsp: batten spacing; K/C: points round a section / rings in a domed end */
 const isTruss=b=>b.roof==="slant"&&(b.fill==="truss"||b.fill==="half");
 /* Half (owner, 3 Nov): two adjacent slopes filled, the back (f 0, away from the street) and the right side (f 1); the street front and the left show the frame */
 const filledFaces=b=>b.fill==="half"?[0,1]:[];
 /* every member as a list of rings of [x,y,z] (y up), lofted in order: domed start, section at the start, section at the end, domed end */
 function trussBars(hw,hd,b){const al=b.pitch*Math.PI/180,tn=Math.tan(al),Q=TRUSS,R0=Math.min(radOf(b),hw,hd),uR=Math.min(hw,hd),
-    uO=uR-ventA(b,uR),uT=uO-Q.heavy/2,bars=[],P=u=>Q.base+u*tn,   /* P(u): underside of the common rafters at inset u from the eave; low enough that their tails grow out of the eave beam */
+    uO=uR-ventA(b,uR),uT=uO-Q.heavy/2,bars=[],caps=[],tubes=[],P=u=>Q.base+u*tn,   /* P(u): underside of the common rafters at inset u from the eave; low enough that their tails grow out of the eave beam */
     F=(f,u,s)=>f===0?[s,-(hd-u)]:f===1?[hw-u,s]:f===2?[-s,hd-u]:[-(hw-u),-s],
     /* a round bar between two axis points: oval w (horizontal) by h, ends domed by w/2 (kept inside both end points' plan reach) */
     bar=(a,c,w,h)=>{const t=[c[0]-a[0],c[1]-a[1],c[2]-a[2]],L=Math.hypot(...t)||1;t.forEach((v,i)=>t[i]=v/L);
       let s=[-t[2],0,t[0]];const sl=Math.hypot(s[0],s[2])||1;s=[s[0]/sl,0,s[2]/sl];const n=[t[1]*s[2]-t[2]*s[1],t[2]*s[0]-t[0]*s[2],t[0]*s[1]-t[1]*s[0]];if(n[1]<0)n.forEach((v,i)=>n[i]=-v);
       const e=Math.min(w/2,L/2-0.05),ring=(o,k,sc)=>{const r=[];for(let j=0;j<Q.K;j++){const th=j/Q.K*2*Math.PI,cs=Math.cos(th)*w/2*sc,sn=Math.sin(th)*h/2*sc;r.push([0,1,2].map(i=>o[i]+k*t[i]+cs*s[i]+sn*n[i]));}return r;},
         rs=[];for(let i=Q.C;i>=0;i--){const ph=i/Q.C*Math.PI/2;rs.push(ring(a,e-e*Math.sin(ph),Math.max(0.02,Math.cos(ph))));}
-      for(let i=0;i<=Q.C;i++){const ph=i/Q.C*Math.PI/2;rs.push(ring(a,L-e+e*Math.sin(ph),Math.max(0.02,Math.cos(ph))));}bars.push(rs);},
+      for(let i=0;i<=Q.C;i++){const ph=i/Q.C*Math.PI/2;rs.push(ring(a,L-e+e*Math.sin(ph),Math.max(0.02,Math.cos(ph))));}bars.push(rs);caps.push([a.map((v,i)=>v+e*t[i]),c.map((v,i)=>v-e*t[i]),w/2]);},
     on=(f,u,s,dy)=>{const [x,z]=F(f,u,s);return [x,P(u)+dy,z];},   /* an axis point on face f, dy above the rafter underside */
     /* a closed round tube round a level rounded rectangle (half sizes ax, az, corner rc) at height y: no ends, so no stubs at its corners */
     tube=(ax,az,rc,y,w,h)=>{const rs=[],n=6;[[ax-rc,az-rc,0],[-(ax-rc),az-rc,Math.PI/2],[-(ax-rc),-(az-rc),Math.PI],[ax-rc,-(az-rc),1.5*Math.PI]].forEach(([cx,cz,a0])=>{for(let k=0;k<=n;k++){const a=a0+k/n*Math.PI/2,nx=Math.cos(a),nz=Math.sin(a),o=[cx+rc*nx,y,cz+rc*nz],r=[];
-        for(let j=0;j<Q.K;j++){const th=j/Q.K*2*Math.PI;r.push([o[0]+Math.cos(th)*w/2*nx,o[1]+Math.sin(th)*h/2,o[2]+Math.cos(th)*w/2*nz]);}rs.push(r);}});rs.closed=true;bars.push(rs);};
-  const full=filledFaces(b),panels=[];
+        for(let j=0;j<Q.K;j++){const th=j/Q.K*2*Math.PI;r.push([o[0]+Math.cos(th)*w/2*nx,o[1]+Math.sin(th)*h/2,o[2]+Math.cos(th)*w/2*nz]);}rs.push(r);}});rs.closed=true;bars.push(rs);tubes.push([ax,az,rc,y,w/2]);};
+  const full=filledFaces(b),panels=[],plates=[];
   for(let f=0;f<4;f++){const half=f%2===0?hw:hd,jack=s=>Math.min(uT,half-Math.abs(s)-Q.heavy/2);
     if(full.includes(f)){/* a filled slope: one plate on the same plane, its edges buried in the eave beam, the hips and the top ring */
       const o=[[0,0,-1],[1,0,0],[0,0,1],[-1,0,0]][f],sa=Math.sin(al),ca=Math.cos(al),nv=[o[0]*sa,ca,o[2]*sa],th=Q.light/2,
         pt=(u,sg,k)=>{const p=on(f,u,sg*(half-u),Q.mid);return [p[0]+k*th*nv[0],p[1]+k*th*nv[1],p[2]+k*th*nv[2]];},u0p=Q.ring/2+Math.max(0,Math.min(R0,hw,hd)-Q.ring/2)*(1-Math.SQRT1_2);   /* the eave edge stops at the hip feet, inside the rounded corners */
-      panels.push([pt(u0p,-1,1),pt(u0p,-1,-1),pt(u0p,1,1),pt(u0p,1,-1),pt(uT,1,1),pt(uT,1,-1),pt(uT,-1,1),pt(uT,-1,-1)]);continue;}
+      panels.push([pt(u0p,-1,1),pt(u0p,-1,-1),pt(u0p,1,1),pt(u0p,1,-1),pt(uT,1,1),pt(uT,1,-1),pt(uT,-1,1),pt(uT,-1,-1)]);plates.push([[pt(u0p,-1,0),pt(u0p,1,0),pt(uT,1,0),pt(uT,-1,0)],nv,th]);continue;}
     /* LIGHT common rafters, growing out of the eave beam */
-    for(let k=-Math.floor(half/Q.csp);k<=Math.floor(half/Q.csp);k++){const s=k*Q.csp,u1=jack(s);if(u1<5||Math.abs(s)>half-R0-Q.light)continue;
-      bar(on(f,Q.ring/2,s,Q.mid),on(f,u1+Q.light/2,s,Q.mid),Q.light,Q.lightH);}
+    const pur=uT<26?[uT*0.5]:[uT/3,uT*2/3],bat=[];for(let u=Q.ring+Q.bsp*0.7;u<uT-Q.heavy-1;u+=Q.bsp){if(pur.some(p=>Math.abs(p-u)<4))continue;if(half-u<3+Q.heavy/2)break;bat.push(u);}
+    for(let k=-Math.floor(half/Q.csp);k<=Math.floor(half/Q.csp);k++){const s=k*Q.csp,u1=jack(s),uh=half-Math.abs(s);if(u1<5||Math.abs(s)>half-R0-Q.light)continue;
+      /* no pin-sized windows (owner, 4 Nov: smooth joints): a jack never meets the hip right beside a purlin, a batten or the ring
+         corner, and when the last purlin or batten it crosses is under 10 mm below the hip, it stops on that member instead */
+      let ue=u1<uT?uh:uT+Q.light/2;if(u1<uT){if([...pur,...bat,uT].some(p=>Math.abs(uh-p)<3.5))continue;const pb=Math.max(Q.ring/2,...[...pur,...bat].filter(p=>p<uh));if(uh-pb<10){if(pb<=Q.ring/2)continue;ue=pb;}}
+      bar(on(f,1.2,s,Q.mid),on(f,ue,s,Q.mid),Q.light,Q.lightH);}   /* a jack rafter ends ON the hip's axis, so the two blend into one fillet (owner, 4 Nov) instead of touching tip to side */   /* feet sunk in the eave beam (owner, 4 Nov: merged with the base at the bottom): the foot's top stays below the beam's crest, its underside above the wall top */
     /* HEAVY purlin, mid-slope (two on long runs), and LIGHT battens clear of it, all hip to hip on the same plane */
-    const pur=uT<26?[uT*0.5]:[uT/3,uT*2/3];pur.forEach(u=>{const e=half-u-Q.heavy/2;if(e>4)bar(on(f,u,-e,Q.mid),on(f,u,e,Q.mid),Q.heavy,Q.heavyH);});
-    for(let u=Q.ring+Q.bsp*0.7;u<uT-Q.heavy-1;u+=Q.bsp){if(pur.some(p=>Math.abs(p-u)<4))continue;const e=half-u-Q.heavy/2;if(e<3)break;bar(on(f,u,-e,Q.mid),on(f,u,e,Q.mid),Q.light,Q.lightH);}}
+    pur.forEach(u=>{const e=half-u;if(e>4+Q.heavy/2)bar(on(f,u,-e,Q.mid),on(f,u,e,Q.mid),Q.heavy,Q.heavyH);});
+    bat.forEach(u=>{const e=half-u;bar(on(f,u,-e,Q.mid),on(f,u,e,Q.mid),Q.light,Q.lightH);});}
   /* HEAVY ring round the top opening (on a long roof its long sides are the ridge): one closed tube, level */
   tube(hw-uT,hd-uT,Math.min(1.5,hw-uT-0.1,hd-uT-0.1),P(uT)+Q.mid,Q.heavy,Q.heavyH);
   /* HEAVY hips: each grows out of the eave beam's rounded corner and runs into the corner of the top ring */
   const u0=Q.ring/2+Math.max(0,R0-Q.ring/2)*(1-Math.SQRT1_2);[[1,1],[1,-1],[-1,1],[-1,-1]].forEach(([sx,sz])=>{const pt=u=>[sx*(hw-u),P(u)+Q.mid,sz*(hd-u)];bar(pt(u0),pt(uT),Q.heavy,Q.heavyH);});
-  bars.panels=panels;return bars;}
+  bars.panels=panels;bars.caps=caps;bars.tubes=tubes;bars.plates=plates;return bars;}
+/* the truss as ONE blended ceramic piece (owner, 4 Nov: every joint merged, no hard edges, a smooth transition): a signed
+   distance field of every member (round bars as capsules, the top ring as a rounded-rectangle torus, the eave beam, the
+   filled plates) joined by a smooth minimum, so each crossing and each foot grows out of the next member with a fillet of
+   about TRUSS_FIL mm. Clipped to the walls' outer face, so the outside stays flush. Meshed by manifold's levelSet. */
+const TRUSS_FIL=1.0;
+function trussField(hw,hd,b){const Q=TRUSS,R0=Math.min(radOf(b),hw,hd),tb=trussBars(hw,hd,b),k=TRUSS_FIL,
+    rr=(x,z,ax,az,r)=>{const qx=Math.abs(x)-(ax-r),qz=Math.abs(z)-(az-r);return Math.hypot(Math.max(qx,0),Math.max(qz,0))+Math.min(Math.max(qx,qz),0)-r;},
+    smin=(a,c)=>{const ua=Math.max(k-a,0),uc=Math.max(k-c,0);return Math.max(k,Math.min(a,c))-Math.hypot(ua,uc);},   /* a round union: a true circular fillet of radius k in every crotch */
+    ri=[hw-Q.ring,hd-Q.ring,Math.max(0.6,R0-Q.ring)],
+    caps=tb.caps.map(([a,c,r])=>{const d=[c[0]-a[0],c[1]-a[1],c[2]-a[2]],m=r+2*k;return {a,d,dd:d[0]*d[0]+d[1]*d[1]+d[2]*d[2]||1,r,
+      lo:[0,1,2].map(i=>Math.min(a[i],c[i])-m),hi:[0,1,2].map(i=>Math.max(a[i],c[i])+m)};}),
+    plates=tb.plates.map(([C,n,th])=>{const e1=[0,1,2].map(i=>C[1][i]-C[0][i]),l=Math.hypot(...e1);e1.forEach((v,i)=>e1[i]=v/l);
+      const e2=[n[1]*e1[2]-n[2]*e1[1],n[2]*e1[0]-n[0]*e1[2],n[0]*e1[1]-n[1]*e1[0]],P=C.map(p=>{const q=[0,1,2].map(i=>p[i]-C[0][i]);return [q[0]*e1[0]+q[1]*e1[1]+q[2]*e1[2],q[0]*e2[0]+q[1]*e2[1]+q[2]*e2[2]];});
+      return {o:C[0],n,e1,e2,P,th};}),
+    poly=(P,x,y)=>{let d=Infinity,sg=1;for(let i=0,j=P.length-1;i<P.length;j=i++){const ex=P[j][0]-P[i][0],ey=P[j][1]-P[i][1],wx=x-P[i][0],wy=y-P[i][1],
+        t=Math.max(0,Math.min(1,(wx*ex+wy*ey)/(ex*ex+ey*ey))),bx=wx-ex*t,by=wy-ey*t;d=Math.min(d,bx*bx+by*by);
+        const c1=y>=P[i][1],c2=y<P[j][1],c3=ex*wy>ey*wx;if((c1&&c2&&c3)||(!c1&&!c2&&!c3))sg=-sg;}return sg*Math.sqrt(d);},
+    G=4,gx=Math.ceil(2*hw/G)+1,gz=Math.ceil(2*hd/G)+1,bins=Array.from({length:gx*gz},()=>[]),   /* caps binned in plan, so each sample checks only its neighbours */
+    yTop=Math.max(Q.ringH,...tb.caps.map(c=>Math.max(c[0][1],c[1][1])+c[2]),...tb.tubes.map(t=>t[3]+t[4]))+k;
+  caps.forEach(c=>{for(let i=Math.max(0,Math.floor((c.lo[0]+hw)/G));i<=Math.min(gx-1,Math.floor((c.hi[0]+hw)/G));i++)for(let j=Math.max(0,Math.floor((c.lo[2]+hd)/G));j<=Math.min(gz-1,Math.floor((c.hi[2]+hd)/G));j++)bins[i*gz+j].push(c);});
+  const f=(x,y,z)=>{   /* distance, negative inside */
+    const dp=Math.max(rr(x,z,hw,hd,R0),-rr(x,z,...ri)),rb=y>Q.ringH/2?Q.rb:0.6,wx=dp+rb,wy=Math.abs(y-Q.ringH/2)-Q.ringH/2+rb;
+    let d=Math.min(Math.max(wx,wy),0)+Math.hypot(Math.max(wx,0),Math.max(wy,0))-rb;   /* the eave beam, top rounded */
+    for(const t of tb.tubes){const [ax,az,rc,ty,r]=t,a=Math.abs(rr(x,z,ax,az,rc)),dy=y-ty;if(a>r+k+d||Math.abs(dy)>r+k+d)continue;d=smin(d,Math.hypot(a,dy)-r);}
+    const bi=Math.min(gx-1,Math.max(0,Math.floor((x+hw)/G))),bj=Math.min(gz-1,Math.max(0,Math.floor((z+hd)/G)));
+    for(const c of bins[bi*gz+bj]){if(x<c.lo[0]||x>c.hi[0]||y<c.lo[1]||y>c.hi[1]||z<c.lo[2]||z>c.hi[2])continue;
+      const px=x-c.a[0],py=y-c.a[1],pz=z-c.a[2],h=Math.max(0,Math.min(1,(px*c.d[0]+py*c.d[1]+pz*c.d[2])/c.dd));d=smin(d,Math.hypot(px-h*c.d[0],py-h*c.d[1],pz-h*c.d[2])-c.r);}
+    for(const p of plates){const q=[x-p.o[0],y-p.o[1],z-p.o[2]],dn=Math.abs(q[0]*p.n[0]+q[1]*p.n[1]+q[2]*p.n[2])-p.th,
+        dq=poly(p.P,q[0]*p.e1[0]+q[1]*p.e1[1]+q[2]*p.e1[2],q[0]*p.e2[0]+q[1]*p.e2[1]+q[2]*p.e2[2]);
+      d=smin(d,Math.min(Math.max(dq,dn),0)+Math.hypot(Math.max(dq,0),Math.max(dn,0)));}
+    return Math.max(d,rr(x,z,hw,hd,R0),-y);};   /* never past the walls' outer face, never below the wall top */
+  return {f,bounds:{min:[-hw-0.5,-0.5,-hd-0.5],max:[hw+0.5,yTop,hd+0.5]}};}
+/* the blended truss as a manifold, y up (as in the view) */
+/* n: the sample budget (about 1 µs each), so a big roof gets a coarser grid instead of a long wait; the STL takes four times the view's */
+function trussBlend(M,b,edge,n){const hw=(perMod(b)?1:b.cols)*WX/2,hd=(perMod(b)?1:b.deep)*WZ/2,{f,bounds}=trussField(hw,hd,b),
+    V=[0,1,2].reduce((q,i)=>q*(bounds.max[i]-bounds.min[i]),1),e=Math.max(edge,Math.cbrt(2*V/n));
+  return M.Manifold.levelSet(p=>-f(p[0],p[1],p[2]),bounds,e,0,e/20);}
 /* loft one member's rings into indexed triangles */
 function barTris(rs,pos,idx){const K=TRUSS.K,b0=pos.length/3,C=TRUSS.C,N=rs.closed?rs.length:rs.length-1;rs.forEach(r=>r.forEach(p=>pos.push(...p)));
   const A=rs[C][0],D=rs[C+1][0],Cc=rs[C][1],m=[0,1,2].map(i=>rs[C].reduce((q,p)=>q+p[i],0)/K),u=[0,1,2].map(i=>D[i]-A[i]),v=[0,1,2].map(i=>Cc[i]-A[i]),
     out=(u[1]*v[2]-u[2]*v[1])*(A[0]-m[0])+(u[2]*v[0]-u[0]*v[2])*(A[1]-m[1])+(u[0]*v[1]-u[1]*v[0])*(A[2]-m[2])>0;   /* wind every triangle outward */
   for(let i=0;i<N;i++)for(let j=0;j<K;j++){const i2=(i+1)%rs.length,a=b0+i*K+j,c=b0+i*K+(j+1)%K,d=b0+i2*K+j,e=b0+i2*K+(j+1)%K;if(out)idx.push(a,d,c,c,d,e);else idx.push(a,c,d,c,e,d);}}
+/* the blended truss for the view: meshed once per shape in the background (manifold loads on first use); until it is ready the
+   plain bars stand in, then the city is rebuilt */
+const TBLEND=new Map();
+let TBQ=Promise.resolve();   /* one shape at a time, with a breath between, so a city of truss roofs does not freeze the page */
+function trussBlendGeo(b,hw,hd,key){let v=TBLEND.get(key);if(v)return v.geo||null;TBLEND.set(key,v={geo:null});b=JSON.parse(JSON.stringify(b));
+  TBQ=TBQ.then(()=>new Promise(r=>setTimeout(r,30))).then(()=>manifoldLib()).then(M=>{const m=trussBlend(M,b,0.5,1.5e6),mesh=m.getMesh(),np=mesh.numProp,pos=new Float32Array(mesh.numVert*3);m.delete();
+    for(let i=0;i<mesh.numVert;i++)for(let j=0;j<3;j++)pos[i*3+j]=mesh.vertProperties[i*np+j];
+    const geo=new THREE.BufferGeometry();geo.setAttribute("position",new THREE.BufferAttribute(pos,3));geo.setIndex(new THREE.BufferAttribute(mesh.triVerts,1));geo.computeVertexNormals();
+    geo.setAttribute("uv",new THREE.Float32BufferAttribute(Array.from(pos).filter((_,i)=>i%3!==1),2));geo.computeBoundingSphere();v.geo=geo;rebuild();}).catch(e=>{console.warn("truss blend",e);});
+  return null;}
 function trussRoof(b){const g=new THREE.Group(),hw=(perMod(b)?1:b.cols)*WX/2,hd=(perMod(b)?1:b.deep)*WZ/2,mat=roofMat(b),Q=TRUSS,R0=Math.min(radOf(b),hw,hd);
   const key=[hw,hd,R0,b.pitch,VDROP,"truss3",b.fill].join("|");let geo=RGEO.get(key);
+  const bg=trussBlendGeo(b,hw,hd,key);if(bg){const m=new THREE.Mesh(bg,mat);m.castShadow=true;m.receiveShadow=true;m.userData.shared=true;g.add(m,...seatMeshes(hw,hd,b,mat));return g;}   /* the blended piece includes the eave beam */
   if(!geo){const pos=[],idx=[],tb=trussBars(hw,hd,b);tb.forEach(rs=>barTris(rs,pos,idx));
     tb.panels.forEach(c=>{const m=[0,1,2].map(i=>c.reduce((q,p)=>q+p[i],0)/8);[[0,2,4,6],[1,7,5,3],[0,1,3,2],[2,3,5,4],[4,5,7,6],[6,7,1,0]].forEach(q=>{const P=q.map(i=>c[i]),u=[0,1,2].map(i=>P[1][i]-P[0][i]),v=[0,1,2].map(i=>P[3][i]-P[0][i]),
       n=[u[1]*v[2]-u[2]*v[1],u[2]*v[0]-u[0]*v[2],u[0]*v[1]-u[1]*v[0]],fc=[0,1,2].map(i=>(P[0][i]+P[1][i]+P[2][i]+P[3][i])/4),out=n[0]*(fc[0]-m[0])+n[1]*(fc[1]-m[1])+n[2]*(fc[2]-m[2])>0,b0=pos.length/3;
@@ -2674,7 +2726,11 @@ function seatSolids(M,b){const hw=(perMod(b)?1:b.cols)*WX/2,hd=(perMod(b)?1:b.de
     fo=loftRR(M,blockRings(hw-T+0.4,hd-T+0.4,rf,SEAT_T,0,0.5,0),16),fi=loftRR(M,holeRings(d.i-0.05,d.iz-0.05,d.ri,SEAT_T,0,0.5),16);
   const lip=lo.subtract(li),fl=fo.subtract(fi);[lo,li,fo,fi].forEach(x=>x.delete());return [lip,fl];}
 /* the truss roof as one solid: every round bar is the hull of its rings (each is convex), unioned with the eave board and the seat */
-function trussSolid(M,b){const hw=(perMod(b)?1:b.cols)*WX/2,hd=(perMod(b)?1:b.deep)*WZ/2,Q=TRUSS,R0=Math.min(radOf(b),hw,hd),
+function trussSolid(M,b){try{const m=trussBlend(M,b,0.3,1e7),r=m.rotate([90,0,0]),u=M.Manifold.union([r,...seatSolids(M,b)]);m.delete();   /* the blended piece, z up */
+    if(String(u.status()).match(/NoError|^0$/)&&u.volume()>1){const cs=u.decompose();if(cs.length<2)return u;const keep=cs.filter(c=>c.volume()>1);return keep.length===1?keep[0]:M.Manifold.union(keep);}}catch(e){console.warn("truss blend",e);}
+  return trussBars3(M,b);}
+/* fallback: every round bar as the hull of its rings, unioned with the eave board and the seat */
+function trussBars3(M,b){const hw=(perMod(b)?1:b.cols)*WX/2,hd=(perMod(b)?1:b.deep)*WZ/2,Q=TRUSS,R0=Math.min(radOf(b),hw,hd),
     zup=r=>r.map(([x,y,z])=>[x,-z,y]),parts=[];
   const tb=trussBars(hw,hd,b);tb.panels.forEach(c=>parts.push(M.Manifold.hull(zup(c))));
   tb.forEach(rs=>{if(rs.closed)rs.forEach((r,i)=>parts.push(M.Manifold.hull([...zup(r),...zup(rs[(i+1)%rs.length])])));else parts.push(M.Manifold.hull(zup(rs.flat())));});   /* a closed tube: one convex hull per segment */
