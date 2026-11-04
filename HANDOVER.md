@@ -197,3 +197,15 @@ Nothing looks different and the STL/GLB output is unchanged: the merged scene wa
 - Module editor only (`.modonly` row "All elevations": PDF, SVG; ids `catPdf`, `catSvg`; code `catItems()`, `makeCatalogue()` just before "apply one wall to many"). Every catalogue wall type of both eras (`B.CAT` with `set` ottoman / modern), one entry per style, plus the oculus variant where `canOculus` allows, built with `B.setW(WX)` (and again on WZ when the module is not square) at the current H, T and sizes.
 - PDF: A4 landscape, index sheet (module settings, how to read, index) then 6 elevations per sheet at ONE scale (1 : 1 for 72 wide, smaller when the module is wider), each with overall W/H, a chain of every opening edge across and every sill/head/crown up, R / Ø, opening count, % open, porcelain-check result and the as-built size. Dense claustras/glass blocks dimension the first opening, margins and pitch only. SVG: one sheet of line elevations (`faceSVG` line + dims) at 1 : 1.
 
+
+## 4 Nov, cluster lag round 2 (v 04.11 · 14:50)
+All seven items from the lag proposal (artifact 2HNbEAEUfmbHAJoTTc25Yr). STL/GLB are unchanged (hash-identical to main for engraved flat, modern, slant shell and truss roofs).
+- **Lite engraving in the view** (engProfLite, engRRLite): 3-ring, 8-sided pockets in the viewport. ENG_FULL / fullEng() switch back to the full profile; piecesOf() runs entirely under fullEng, so STL and GLB always get full engraving. Never call engWOf/engROf for export code outside fullEng.
+- **LOD** (FAR, lodScan): buildings where one engraving pixel is under 1 screen px are drawn without pockets; re-checked 400 ms after the camera stops.
+- **Per-building cache + sliced rebuild** (BCACHE, bEntry, gSig/GSIG, rebuildPrep): rebuild() builds dirty buildings across frames (30 ms budget), then assembles; rebuildNow() stays synchronous. Anything global that changes geometry must be in gSig() or bumped via TB_READY.
+- **Fewer segments**: plain walls/corners use KSEG_LITE/CSEG_LITE; engraved ones keep full counts (corner STL cells depend on them). Smaller flame spheres.
+- **Night lights**: MAX_LIGHTS=4, SHADOW_LIGHTS=4 (was 12/6).
+- **Glaze**: gloss/satin are MeshStandardMaterial in the view; clearcoat only in Render mode (hqMatOf).
+- **Fast mode** (setFast, fastBtn, S.fast, KEEP_ON): pixel ratio 1 and no shadow sampling while Fast is on, during Keep, or while moving with slow frames. Captures (JPG/GIF/PDF) force it off.
+- Software-GPU numbers, 17 buildings: day frame 3.4 → 2.5 s, engraved city frame 16.6 → 7.5 s (13.2 M → 5.6 M tris), engraved rebuild 4.3 → 1.9 s, engraved select 1.1 → 0.44 s, night 4.6 → 2.8 s.
+- Deferred: Web Worker for rebuild (#8), three.js upgrade (#9, would touch Gemini's render code).
