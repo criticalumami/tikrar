@@ -211,7 +211,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
 <header class="grid12">
   <h1>TIKRAR<small>Beirut Lantern Generator</small></h1>
   <span class="sub"><span id="modSize">porcelain modules 60 × 60 mm · 40 mm walls</span> · houses, towers and city blocks · 1860–1925 and modernist openings</span>
-  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 04.11 · 06:10</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
+  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 04.11 · 06:50</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
   </nav>
 </header>
 
@@ -220,7 +220,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
   <div class="viewer" id="viewer">
     <div class="tag" id="tag"></div>
     <div class="vbar">
-      <div class="grp"><button type="button" id="dayBtn" aria-pressed="true" title="Daylight: the site turns light">Day</button><button type="button" id="nightBtn" aria-pressed="false" title="Night, candles lit: the site turns dark">Night</button><button type="button" id="renderBtn" aria-pressed="false" title="Realistic render: ceramic textures, ambient occlusion, bloom, filmic tone">Render</button></div>
+      <div class="grp"><button type="button" id="dayBtn" aria-pressed="true" title="Daylight: the site turns light">Day</button><button type="button" id="nightBtn" aria-pressed="false" title="Night, candles lit: the site turns dark">Night</button><button type="button" id="bitBtn" aria-pressed="false" title="1-Bit view, after Return of the Obra Dinn: every pixel ink or paper, dithered. Click again for green, amber, then off">1-Bit</button><button type="button" id="renderBtn" aria-pressed="false" title="Realistic render: ceramic textures, ambient occlusion, bloom, filmic tone">Render</button></div>
       <div class="grp"><button type="button" id="candleBtn" aria-pressed="true" title="Candles on or off (strength: View panel)">Candles</button><button type="button" id="sunBtn" aria-pressed="true" title="Sunlight and shadows on or off (time of day: View panel)">Sun</button><button type="button" id="explodeBtn" aria-pressed="false" title="Explode the pieces on or off (distance: View panel)">Explode</button><button type="button" id="cutBtn" aria-pressed="false" title="Section cut on or off (axis and position: View panel)">Cut</button></div>
       <div class="grp"><button type="button" id="randBar" title="Re-roll the whole city with the panel's Re-roll switches (Layout, Openings, Colours)">Randomize</button></div>
       <div class="grp"><button type="button" id="orthoBtn" aria-pressed="false" title="Orthographic: parallel lines, no perspective">Ortho</button><button type="button" data-view="axo" title="Axonometric view">Axo</button><button type="button" data-view="plan" title="Plan, from above">Plan</button><button type="button" data-view="front" title="Front elevation">Front</button></div>
@@ -250,7 +250,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
       <div class="f"><span class="lbl">Landmarks</span><div class="v"><div class="seg" id="lmSeg" title="Randomize All with or without landmarks; each landmark stands alone on its own block"><button type="button" data-v="0">Without</button><button type="button" data-v="1">With</button></div></div></div>
       <div class="f"><span class="lbl">Randomize</span><div class="v"><div class="seg"><button type="button" id="randBlock" title="New buildings in the selected building's block only, on the same footprints: the other blocks stay as they are">Block</button><button type="button" id="randVillage" title="New buildings everywhere">All</button><button type="button" id="rand10" title="10 random shots as a GIF: ten randomized cities as one GIF (Keep palette keeps the palette in every shot); your design comes back afterwards">GIF ×10</button></div><button class="btn" type="button" id="keepPal" aria-pressed="false" title="Randomize with the selected building's palette">Keep palette</button></div></div>
       <div class="f cluonly"><label class="lbl" for="engWc" title="Pixel pattern engraved into the outside of the walls: the clay under it is thinner (1 mm), so the candlelight shows brighter">Wall engrave (city)</label><div class="v two"><select id="engWc" aria-label="Wall pattern"></select><button class="btn" type="button" id="engWcS" title="New random pattern on every wall">Shuffle</button></div></div>
-      <div class="f cluonly"><label class="lbl" for="engRc" title="Pixel pattern engraved into the four slopes of a filled slanted roof (not on trusses, Half or the flat roof)">Roof engrave (city)</label><div class="v two"><select id="engRc" aria-label="Roof pattern"></select><button class="btn" type="button" id="engRcS" title="New random pattern on every roof slope">Shuffle</button></div></div>
+      <div class="f cluonly"><label class="lbl" for="engRc" title="Pixel pattern engraved into the four slopes of a filled slanted roof (the flat roof too; not trusses or Half)">Roof engrave (city)</label><div class="v two"><select id="engRc" aria-label="Roof pattern"></select><button class="btn" type="button" id="engRcS" title="New random pattern on every roof slope">Shuffle</button></div></div>
       <div class="f"><span class="lbl">Re-roll</span><div class="v"><button class="btn" type="button" id="rxL" aria-pressed="false" title="Layout: deal the same buildings into a new city plan (their footprints and floor levels stay)">Layout</button><button class="btn" type="button" id="rxO" aria-pressed="true" title="Openings: new walls and openings on every module, and a new roof type (slanted or flat)">Openings</button><button class="btn" type="button" id="rxP" aria-pressed="true" title="Colours: new glazes and slabs (and roofs, if Roofs is on)">Colours</button><button class="btn" type="button" id="rxR" aria-pressed="true" title="Roofs: Colours also re-deals roof and lid colours. Off: roofs keep their colours">Roofs</button></div></div>
       <div class="f"><span class="lbl">Colours from</span><div class="v"><div class="seg" id="rxMSeg" title="One palette for the whole re-roll, or a mix of palettes building by building"><button type="button" data-v="0">One palette</button><button type="button" data-v="1">Mix</button></div></div></div>
       <div class="f"><span class="lbl"></span><div class="v"><div class="seg"><button type="button" id="rxSel" title="Re-roll the selected building(s) with the switches above (Layout needs the whole city). Floor levels and the number of buildings never change">Selected</button><button type="button" id="rxAll" title="Re-roll the whole city with the switches above. Floor levels and the number of buildings never change">Whole city</button></div></div></div>
@@ -277,7 +277,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
       <div class="f"><span class="lbl">Roof</span><div class="v"><div class="seg" id="roofSeg"><button type="button" data-v="slant">Slanted</button><button type="button" data-v="modern">Flat</button><button type="button" data-v="none">Off</button></div></div></div>
       <div class="f"><span class="lbl">Slanted</span><div class="v"><div class="seg" id="fillSeg" title="The slanted roof is either filled (a closed cast shell) or trusses only: the late Ottoman timber frame (Half: the two back slopes filled, the street side and the other side open), hips, rafters and battens, as one cast piece"><button type="button" data-v="shell">Filled</button><button type="button" data-v="truss">Trusses</button><button type="button" data-v="half">Half</button></div></div></div>
       <div class="f modonly"><label class="lbl" for="engW" title="Pixel pattern engraved into the outside of the walls: the clay under it is thinner (1 mm), so the candlelight shows brighter">Wall engrave</label><div class="v two"><select id="engW" aria-label="Wall pattern"></select><button class="btn" type="button" id="engWS" title="New random pattern on every wall">Shuffle</button></div></div>
-      <div class="f modonly"><label class="lbl" for="engR" title="Pixel pattern engraved into the four slopes of a filled slanted roof (not on trusses, Half or the flat roof)">Roof engrave</label><div class="v two"><select id="engR" aria-label="Roof pattern"></select><button class="btn" type="button" id="engRS" title="New random pattern on every roof slope">Shuffle</button></div></div>
+      <div class="f modonly"><label class="lbl" for="engR" title="Pixel pattern engraved into the four slopes of a filled slanted roof (the flat roof too; not trusses or Half)">Roof engrave</label><div class="v two"><select id="engR" aria-label="Roof pattern"></select><button class="btn" type="button" id="engRS" title="New random pattern on every roof slope">Shuffle</button></div></div>
       <div class="f"><span class="lbl">Roof piece</span><div class="v"><div class="seg" id="spanSeg" title="One roof piece over the whole building, or a small lid on every top module"><button type="button" data-v="whole">Whole</button><button type="button" data-v="module">Per module</button></div></div></div>
       <div class="f"><label class="lbl" for="pitch">Pitch</label><div class="v rng"><input type="range" id="pitch" min="10" max="55" step="1"><span class="num" id="pitchV"></span></div></div>
       <div class="f modonly"><label class="lbl" for="ventD" title="Lower the cut at the top of a slanted roof: the lower it is cut, the bigger the opening">Roof opening</label><div class="v rng"><input type="range" id="ventD" min="0" max="20" step="0.5"><span class="num" id="ventDV"></span></div></div>
@@ -592,7 +592,7 @@ S.buildings=S.buildings.filter(b=>!b.tree);S.buildings.forEach(b=>{if(b.glaze){i
 /* saving and history (v 02.11 review): the design is written to localStorage once the editing pauses (and when the page is left),
    and every settled change is one Undo step; a slider drag is one step. Only the design is in the history: night, sun, explode,
    candle strength, cut and camera are view settings and stay as they are. */
-const VIEWK=new Set(["noSel","sunOff","explodePrev","candlePrev","cutLast","night","explode","candle","sun","render","ortho","lock","spin","nopanel","cut","view","gifWhat","dims"]);
+const VIEWK=new Set(["noSel","sunOff","explodePrev","candlePrev","cutLast","night","explode","candle","sun","render","bit","ortho","lock","spin","nopanel","cut","view","gifWhat","dims"]);
 const hSnap=()=>{const o={};for(const k in S)if(!VIEWK.has(k))o[k]=S[k];return JSON.stringify(o);};
 let hCur="",hU=[],hR=[],hSz=0,hSkip=false,hT=0,lsT=0,hLive=false;   /* hLive: set by the first touch; until then settling only re-bases */const HMAX=60,HBYTES=40e6;
 const persist=()=>{lsT=0;try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}};
@@ -1343,9 +1343,21 @@ function windToNormals(geo){const p=geo.attributes.position.array,n=geo.attribut
 /* the flat roof IS a slab (owner request 31 Oct): the same piece as the plates between floors, same thickness, round edge,
    Ø25 vent over each module, lips on both faces and the same colour; it just sits on the top level */
 let FLAT_T=PLATE_T;
+/* pixel engraving of the flat roof: the top face between the lips and round the vents. The same cells serve the render and the STL cuts. */
+const FGEO=new Map();
+function flatEng(b,nc,nd,ep){const R=radOf(b),key=[nc,nd,WX,WZ,T,R,FLAT_T,LIP.w,LIP.clr,ENG.pitch,ep].join("|");let v=FGEO.get(key);if(v)return v;
+  const hw=nc*WX/2,hd=nd*WZ/2,xs=c=>(c-(nc-1)/2)*WX,zs=r=>(r-(nd-1)/2)*WZ,vents=[];
+  for(let c=0;c<nc;c++)for(let r=0;r<nd;r++)vents.push(circle(VENT_D/2,xs(c),zs(r)));
+  const geo=softExtrude(rsq(-hw,-hd,hw,hd,R),vents,FLAT_T,null,1.9).geometry,bv=Math.min(1.9,FLAT_T/2-0.05);let cells=[];
+  const lips=[];for(let c=0;c<nc;c++)for(let r=0;r<nd;r++){const o=WX/2-T-LIP.clr,oz=WZ/2-T-LIP.clr,i=o-LIP.w,iz=oz-LIP.w,x=xs(c),z=zs(r);
+    lips.push([[x-o,z-oz],[x+o,z-oz],[x+o,z+oz],[x-o,z+oz]],[[x-i,z-iz],[x+i,z-iz],[x+i,z+iz],[x-i,z+iz]]);}
+  const ok=engraveFace(geo,{O:[0,0,FLAT_T],ea:[1,0,0],eb:[0,1,0],en:[0,0,1],uv:(x,y)=>[x,y]},loops=>(cells=engCells([...loops,...lips],ep,engClrI()+bv)),FLAT_T-ENG.rem);
+  v={geo:ok?geo:null,cells:ok?cells:[]};if(FGEO.size>100)FGEO.clear();FGEO.set(key,v);return v;}
 function modernRoof(b){const g=new THREE.Group(),nc=perMod(b)?1:b.cols,nd=perMod(b)?1:b.deep,hw=nc*WX/2,hd=nd*WZ/2,mat=plateMat(b,b.levels),xs=c=>(c-(nc-1)/2)*WX,zs=r=>(r-(nd-1)/2)*WZ,vents=[];
   for(let c=0;c<nc;c++)for(let r=0;r<nd;r++)vents.push(circle(VENT_D/2,xs(c),zs(r)));
-  g.add(soft(rsq(-hw,-hd,hw,hd,radOf(b)),vents,FLAT_T,mat,0,1.9));   /* sits on the wall tops, flush outside */
+  const slab=soft(rsq(-hw,-hd,hw,hd,radOf(b)),vents,FLAT_T,mat,0,1.9),ep=engROf(b,0);   /* sits on the wall tops, flush outside */
+  if(ep){const fe=flatEng(b,nc,nd,ep);if(fe.geo){slab.geometry.dispose();slab.geometry=fe.geo;}}
+  g.add(slab);
   for(let c=0;c<nc;c++)for(let r=0;r<nd;r++)g.add(lipRing(xs(c),zs(r),-LIP.h,mat,b),lipRing(xs(c),zs(r),FLAT_T,mat,b,true));   /* lip under (inside the walls) and on top (to stack) */
   return g;}
 /* the candle (a tealight): diameter CD (default 38 mm) and height CH (default 12 mm, double the first 6 mm model), set in the Module editor; the flame sits on top of it */
@@ -1640,7 +1652,24 @@ function setRender(on){   /* Render keeps the view exactly as it is: ortho stays
   S.render=on;$("renderBtn").setAttribute("aria-pressed",on);Object.keys(MATS).forEach(k=>delete MATS[k]);Object.keys(LIT).forEach(k=>delete LIT[k]);save();rebuild();}
 function resize(){const r=view.getBoundingClientRect();renderer.setSize(r.width,r.height,false);persp.aspect=r.width/r.height;persp.updateProjectionMatrix();orthoFrustum();
   if(composer){composer.setSize(r.width,r.height);const pr=renderer.getPixelRatio();fxaa.uniforms.resolution.value.set(1/(r.width*pr),1/(r.height*pr));}}
-const draw=()=>{if(S.render&&composer){finalPass.uniforms.time.value=tick%100;composer.render();}else renderer.render(scene,camera);};
+/* 1-Bit view (owner request 4 Nov, after Return of the Obra Dinn): the scene is drawn at half resolution, then every pixel becomes ink or paper:
+   brightness against an 8x8 Bayer dither, plus a dark outline wherever the brightness jumps. S.bit: 0 off, 1 black/white, 2 green, 3 amber. */
+const BITP=[null,[0x111116,0xf4f1e8,"B/W"],[0x07140b,0x6dff8e,"Green"],[0x1a0e00,0xffb347,"Amber"]];
+let bitRT=null,bitMat=null,bitScene=null;const bitCam=new THREE.OrthographicCamera(-1,1,1,-1,0,1),bitSz=new THREE.Vector2();
+function drawBit(){renderer.getDrawingBufferSize(bitSz);const pr=renderer.getPixelRatio(),w=Math.max(2,Math.ceil(bitSz.x/(2*pr))),h=Math.max(2,Math.ceil(bitSz.y/(2*pr)));
+  if(!bitRT){bitRT=new THREE.WebGLRenderTarget(w,h,{minFilter:THREE.NearestFilter,magFilter:THREE.NearestFilter,depthBuffer:true});
+    bitMat=new THREE.ShaderMaterial({uniforms:{tex:{value:null},size:{value:new THREE.Vector2(w,h)},ink:{value:new THREE.Color()},paper:{value:new THREE.Color()}},depthTest:false,depthWrite:false,
+      vertexShader:"varying vec2 vUv;void main(){vUv=uv;gl_Position=vec4(position.xy,0.,1.);}",
+      fragmentShader:`uniform sampler2D tex;uniform vec2 size;uniform vec3 ink;uniform vec3 paper;varying vec2 vUv;
+        float b2(vec2 a){a=floor(a);return fract(a.x/2.+a.y*a.y*.75);}float b4(vec2 a){return b2(.5*a)*.25+b2(a);}float b8(vec2 a){return b4(.5*a)*.25+b2(a);}
+        float lum(vec2 p){vec3 c=texture2D(tex,(p+.5)/size).rgb;return clamp((pow(dot(c,vec3(.299,.587,.114)),1./2.2)-.5)*2.1,0.,1.);}
+        void main(){vec2 p=floor(vUv*size);float l=lum(p),e=abs(l-lum(p+vec2(1.,0.)))+abs(l-lum(p+vec2(0.,1.)));
+          float v=step(b8(p)*.96+.02,l);if(e>.16)v=0.;gl_FragColor=vec4(mix(ink,paper,v),1.);}`});
+    bitScene=new THREE.Scene();bitScene.add(new THREE.Mesh(new THREE.PlaneGeometry(2,2),bitMat));bitScene.children[0].frustumCulled=false;}
+  if(bitRT.width!==w||bitRT.height!==h){bitRT.setSize(w,h);bitMat.uniforms.size.value.set(w,h);}
+  const P=BITP[S.bit]||BITP[1];bitMat.uniforms.ink.value.setHex(P[0]);bitMat.uniforms.paper.value.setHex(P[1]);bitMat.uniforms.tex.value=bitRT.texture;
+  renderer.setRenderTarget(bitRT);renderer.render(scene,camera);renderer.setRenderTarget(null);renderer.render(bitScene,bitCam);}
+const draw=()=>{if(S.bit){drawBit();return;}if(S.render&&composer){finalPass.uniforms.time.value=tick%100;composer.render();}else renderer.render(scene,camera);};
 /* draw only when something changed: an edit, the camera moving (and settling), or the candles flickering at night */
 let dirty=2,lastMove=0;const need=()=>{dirty=Math.max(dirty,1);};
 controls.addEventListener("change",()=>{need();lastMove=performance.now();});
@@ -1798,7 +1827,7 @@ function renderUI(){
 applyAccent();const b=Bs(),[sc,sr,sl]=keyParts(S.sel);
   $("bList").innerHTML=S.buildings.map((x,i)=>`<button type="button" class="${i===S.selB?"on":isSel(i)?"also":""}" data-b="${i}" aria-pressed="${isSel(i)}" title="Shift- or ⌘-click to add to the selection">${x.name}<span>${x.cols}×${x.deep}×${x.levels}</span></button>`).join("");
   $("villageMeta").textContent=S.buildings.length+" building"+(S.buildings.length>1?"s":"")+" · "+S.buildings.reduce((a,x)=>a+x.cols*x.deep*x.levels,0)+" modules";
-  seg($("setSeg"),b.set);{const a=document.activeElement;if(a!==$("gutV"))$("gutV").value=gut();if(a!==$("aveV"))$("aveV").value=ave();if(a!==$("bwV"))$("bwV").value=BLOCKM;$("gapV").textContent=(S.gaps||[]).length;$("mixBtn").setAttribute("aria-pressed",!!S.mix);seg($("lmSeg"),S.landmarks?"1":"0");}$("varyBtn").setAttribute("aria-pressed",!!S.vary);if(document.activeElement!==$("countV"))$("countV").value=S.buildings.length;seg($("blocksSeg"),String(blkMode()));seg($("colsSeg"),b.cols);{const m=S.rmax;$("capC").textContent="across"+(m?" · max "+m.c:"");$("capD").textContent="deep"+(m?" · max "+m.d:"");$("capL").textContent="levels"+(m?" · max "+m.l:"");}seg($("deepSeg"),b.deep);$("levelsV").textContent=b.levels;seg($("roofSeg"),b.roof);seg($("spanSeg"),b.span||"whole");seg($("fillSeg"),b.fill||"shell");$("engW").value=b.engW||"";$("engR").value=b.engR||"";["engW","engR"].forEach(id=>{const v=S.buildings.length&&S.buildings.every(q=>(q[id]||"")===(S.buildings[0][id]||""))?(S.buildings[0][id]||""):(S[id]||"");$(id+"c").value=v;});$("engR").disabled=b.roof!=="slant"||(b.fill&&b.fill!=="shell");$("fillSeg").querySelectorAll("button").forEach(x=>x.disabled=b.roof!=="slant");$("radius").value=radOf(b);$("radiusV").textContent="R "+radOf(b)+" mm";$("levelsV").textContent=b.levels;
+  seg($("setSeg"),b.set);{const a=document.activeElement;if(a!==$("gutV"))$("gutV").value=gut();if(a!==$("aveV"))$("aveV").value=ave();if(a!==$("bwV"))$("bwV").value=BLOCKM;$("gapV").textContent=(S.gaps||[]).length;$("mixBtn").setAttribute("aria-pressed",!!S.mix);seg($("lmSeg"),S.landmarks?"1":"0");}$("varyBtn").setAttribute("aria-pressed",!!S.vary);if(document.activeElement!==$("countV"))$("countV").value=S.buildings.length;seg($("blocksSeg"),String(blkMode()));seg($("colsSeg"),b.cols);{const m=S.rmax;$("capC").textContent="across"+(m?" · max "+m.c:"");$("capD").textContent="deep"+(m?" · max "+m.d:"");$("capL").textContent="levels"+(m?" · max "+m.l:"");}seg($("deepSeg"),b.deep);$("levelsV").textContent=b.levels;seg($("roofSeg"),b.roof);seg($("spanSeg"),b.span||"whole");seg($("fillSeg"),b.fill||"shell");$("engW").value=b.engW||"";$("engR").value=b.engR||"";["engW","engR"].forEach(id=>{const v=S.buildings.length&&S.buildings.every(q=>(q[id]||"")===(S.buildings[0][id]||""))?(S.buildings[0][id]||""):(S[id]||"");$(id+"c").value=v;});$("engR").disabled=!(b.roof==="modern"||(b.roof==="slant"&&(!b.fill||b.fill==="shell")));$("fillSeg").querySelectorAll("button").forEach(x=>x.disabled=b.roof!=="slant");$("radius").value=radOf(b);$("radiusV").textContent="R "+radOf(b)+" mm";$("levelsV").textContent=b.levels;
   {const sl=S.buildings.filter(x=>x.roof==="slant"),pa=$("pitchAll");pa.disabled=!sl.length;if(document.activeElement!==pa)pa.value=sl.length?sl[0].pitch:30;$("pitchAllV").textContent=(sl.length?+pa.value:"–")+"°";}$("ventD").value=VDROP;$("ventD").disabled=b.roof!=="slant";$("ventDV").textContent=VDROP?"cut −"+VDROP.toFixed(1)+" mm":"10 mm";$("pitch").value=b.pitch;$("pitchV").textContent=b.pitch+"°";$("pitch").disabled=b.roof!=="slant";$("bodySel").value=b.body||"porcelain";seg($("finishSeg"),b.finish||"glazed");
   $("glazeSw").innerHTML=(b.finish||"glazed")!=="unglazed"?Object.entries(GLAZE).map(([k,g])=>{const c=g.col===null?BODY[b.body||"porcelain"].col:g.col;return `<button type="button" data-g="${k}" title="${g.name} glaze" aria-label="${g.name} glaze" aria-pressed="${(b.glazeCol||"white")===k}" style="width:22px;height:22px;border-radius:50%;cursor:pointer;background:${hex(c)};border:2px solid ${(b.glazeCol||"white")===k?"var(--terra)":"var(--line)"}${g.col===null?";background-image:linear-gradient(135deg,transparent 45%,rgba(0,0,0,.25) 50%,transparent 55%)":""}"></button>`;}).join(""):"";
   {const bodyC=BODY[b.body||"porcelain"].col,swb=(k,name,bg,cur,extra)=>`<button type="button" data-g="${k}" title="${name}" aria-label="${name}" aria-pressed="${cur===k}" style="width:22px;height:22px;border-radius:50%;cursor:pointer;background:${bg};border:2px solid ${cur===k?"var(--terra)":"var(--line)"}${extra||""}"></button>`,
@@ -2358,10 +2387,13 @@ on("pdfBtn","click",()=>{const btn=$("pdfBtn"),t=btn.textContent;btn.textContent
   loadJsPDF().then(makeSheet).catch(e=>alert("The PDF could not be made: "+e.message)).finally(()=>{btn.textContent=t;btn.disabled=false;});});
 
 $("explode").value=S.explode;S.editSet=S.editSet||Bs().set;
-if(S.render){S.render=false;setTimeout(()=>$("renderBtn").click(),0);}
+if(S.render){S.render=false;setTimeout(()=>$("renderBtn").click(),0);}bitSync();
 $("candle").value=S.candle===undefined?1:S.candle;rxSync();$("keepPal").setAttribute("aria-pressed",!!S.keepPal);setPanel(!S.nopanel);setLock(S.lock);setSpin(S.spin);$("sunT").value=S.sun===undefined?0.35:S.sun;vbarVals();cutBind();cutUI();applyDims();resize();if(S.ortho)setOrtho(true);renderUI();fitView();
 /* ===== bar switches: on/off only; strength, time, distance and axis are in the View panel ===== */
 on("candleBtn","click",()=>{const c=S.candle===undefined?1:S.candle;if(c>0){S.candlePrev=c;S.candle=0;}else S.candle=S.candlePrev||1;$("candle").value=S.candle;applyNight();save();vbarVals();});
+on("bitBtn","click",()=>{S.bit=((S.bit||0)+1)%4;bitSync();need();save();});
+function bitSync(){const b=$("bitBtn");b.setAttribute("aria-pressed",!!S.bit);b.textContent=S.bit?"1-Bit · "+BITP[S.bit][2]:"1-Bit";document.documentElement.classList.toggle("bit",!!S.bit);}
+bitSync();
 on("sunBtn","click",()=>{S.sunOff=!S.sunOff;applyNight();save();vbarVals();});
 on("explodeBtn","click",()=>{const v=S.explode||0;if(v>0){S.explodePrev=v;S.explode=0;}else S.explode=S.explodePrev||12;$("explode").value=S.explode;rebuild();vbarVals();});
 on("cutBtn","click",()=>{if(cutOn()){S.cutLast=S.cut.a;setCut({a:"off"});}else setCut({a:S.cutLast||"x",t:0.5});});
@@ -2543,7 +2575,9 @@ function piecesOf(M,b,cache){const kp=cache?[radOf(b),b.roof,b.fill||"shell",b.p
     for(let c=0;c<(one?1:b.cols);c++)for(let r=0;r<(one?1:b.deep);r++){let lm=-1;if(!one){for(let l=0;l<b.levels;l++)if(alive(b,c+":"+r+":"+l))lm=l;if(lm<0)continue;}
       const rat={p:one?[0,0,LY.top]:[mx(c),my(r),LY.ys[lm]+H],m:glzRoof(b,one?null:b.mods[c+":"+r+":"+lm]),lab:one?"roof":"roof-c"+c+"r"+r};
       if(b.roof==="modern"){const cells=[];for(let i=0;i<nc;i++)for(let j=0;j<nd;j++)cells.push({x:(i-(nc-1)/2)*WX,y:(j-(nd-1)/2)*WZ,vent:"round",up:true,dn:true});
-        put("slab|"+nc+"x"+nd+"|"+FLAT_T+"|"+JSON.stringify(cells),"roof-flat",nc+"×"+nd+" modules, "+FLAT_T+" mm, lips both faces",()=>slabSolid(M,b,nc*WX/2,nd*WZ/2,FLAT_T,cells),"flat roof",rat);}
+        const ep=engROf(b,0);put("slab|"+nc+"x"+nd+"|"+FLAT_T+"|"+JSON.stringify(cells)+"|"+ep,"roof-flat",nc+"×"+nd+" modules, "+FLAT_T+" mm, lips both faces"+(ep?", pixel engraved":""),()=>{let s=slabSolid(M,b,nc*WX/2,nd*WZ/2,FLAT_T,cells);
+          const pc=ep?flatEng(b,nc,nd,ep).cells:[];if(pc.length){const prof=engProf(FLAT_T-ENG.rem),pk=pc.map(([ca,cb])=>{const pts=[];prof.forEach(([sz,dep])=>engRR(sz).forEach(([x,y])=>pts.push([ca+x,cb+y,FLAT_T-dep])));engRR(prof[0][0]).forEach(([x,y])=>pts.push([ca+x,cb+y,FLAT_T+0.6]));return M.Manifold.hull(pts);});
+            const u=M.Manifold.union(pk),n=s.subtract(u);s.delete();u.delete();pk.forEach(x=>x.delete());s=n;}return s;},"flat roof",rat);}
       else if(isTruss(b)){const sb=Object.assign({},b,one?{}:{span:"module"});put("truss|"+(b.fill||"")+"|"+nc+"x"+nd+"|"+b.pitch,b.fill==="half"?"roof-half":"roof-truss",(b.fill==="half"?"half-filled ":"")+"truss roof, "+nc+"×"+nd+" modules, "+b.pitch+"°, round bars: heavy "+TRUSS.heavy+" mm, light "+TRUSS.light+" mm at "+TRUSS.csp+" mm",()=>trussSolid(M,sb),null,rat);}
       else{const sb=Object.assign({},b,one?{}:{span:"module"});put("pitch|"+nc+"x"+nd+"|"+b.pitch+"|"+[0,1,2,3].map(i=>engROf(b,i)).join(","),"roof-pitched","pitched roof, "+nc+"×"+nd+" modules, "+b.pitch+"°, "+T+" mm shell",()=>pitchedSolid(M,sb),null,rat);}}}
   /* the same slab cast for several jobs (base, plate, flat roof) is one file */
