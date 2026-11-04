@@ -218,7 +218,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
 <header class="grid12">
   <h1>TIKRAR<small>Beirut Lantern Generator</small></h1>
   <span class="sub"><span id="modSize">porcelain modules 72 × 72 mm · 48 mm walls</span> · houses, towers and city blocks · 1860–1925 and modernist openings</span>
-  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 04.11 · 14:10</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
+  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 04.11 · 14:45</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
   </nav>
 </header>
 
@@ -339,6 +339,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
       <div class="checks" id="checks"></div>
       <p class="hint"><b style="color:var(--bad)">✗</b> porcelain limits, to fix before casting. <b style="color:#b7791f">●</b> proportions from the two manuals: advice, not a rule.</p>
       <div class="f"><span class="lbl">Export</span><div class="v"><div class="seg"><button type="button" id="pdfBtn">Sheet (PDF)</button><button type="button" id="dlSvg">Elevations (SVG)</button></div></div></div>
+      <div class="f modonly"><span class="lbl">All elevations</span><div class="v"><div class="seg"><button type="button" id="catPdf" title="Every wall type of the late Ottoman and modernist sets, dimensioned, on the current module sizes">PDF</button><button type="button" id="catSvg" title="The same elevations as one SVG">SVG</button></div></div></div>
       <div class="f"><span class="lbl">Print</span><div class="v"><div class="seg" style="flex:1"><button type="button" id="stlBtn" title="Every piece of the selected buildings as watertight STL files in a zip: modules, base, plates and roof">Pieces (STL)</button></div><label class="meta" style="display:flex;align-items:center;gap:4px" title="0 = fired size. Enter the clay's shrinkage (e.g. 14) to scale the pieces up into mould masters">shrink <input id="stlShrink" type="number" min="0" max="40" step="0.5" value="0" style="width:4.2em"> %</label></div></div>
       <div class="f"><span class="lbl">Blender</span><div class="v"><div class="seg" style="flex:1"><button type="button" id="glbBtn" title="The whole city in place as one .glb for Blender (named pieces, glaze colours as named materials, candle markers) plus a .json with the dimensions. For renders only: print from the STL zip">Scene (GLB)</button></div><label class="meta" style="display:flex;align-items:center;gap:4px" title="Tick to export only the selected buildings; untick for the whole city"><input id="glbSel" type="checkbox"> selected only</label></div></div>
       <div class="f"><span class="lbl">GIF</span><div class="v"><select id="gifMode" aria-label="Animation"><option value="orbit">Orbit</option><option value="sun">Sun, morning to evening</option><option value="explode">Explode and back</option><option value="slide">Openings slide round the walls</option><option value="rand">Randomize, same palette</option><option value="randall">Randomize, all palettes</option></select><select id="gifWhat" hidden aria-label="What a randomize GIF changes" title="Randomize GIFs (also the toolbar GIF): Both = a new city plan and new walls and colours each frame; Look = same plan, new walls and colours; Layout = the same buildings, rearranged into a new plan" style="flex:0 0 84px"><option value="both">Both</option><option value="look">Look</option><option value="layout">Layout</option></select><select id="gifN" aria-label="Frames" style="flex:0 0 64px"><option>10</option><option>12</option><option selected>24</option><option>36</option><option>48</option></select><button class="btn" type="button" id="gifBtn">Make</button></div></div>
@@ -2411,6 +2412,97 @@ on("dlSvg","click",()=>{const b=Bs(),cells=[],keys=liveKeys(b).sort((a,c)=>keyPa
     `<text x="0" y="11" font-size="3" fill="#6d665c" ${font}>As built ${scaleTxt(b)} (${storeyTxt(b)}). All dimensions fired mm.</text>`;
   const Ht=14+keys.length*rowH,doc=`<svg xmlns="http://www.w3.org/2000/svg" width="${rowW}mm" height="${Ht}mm" viewBox="0 0 ${rowW} ${Ht}">${head}${cells.join("")}</svg>`;
   const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([doc],{type:"image/svg+xml"}));a.download=b.name.replace(/\W+/g,"-").toLowerCase()+"-elevations.svg";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);});
+
+/* ================= all elevations (catalogue): every wall type of both eras on the current module sizes =================
+   One entry per wall type and style (plus the oculus variant where it fits), built on the front/back width WX and, when the module
+   is not square, again on the side width WZ. Module editor only. PDF (A4 landscape, one scale, dimensioned) and one SVG. */
+const ERAS=[{id:"ottoman",name:"Late Ottoman 1860-1925",short:"LATE OTTOMAN"},{id:"modern",name:"Modernist 1925-1970",short:"MODERNIST"}];
+const eraM=e=>e==="ottoman"?1/B.SC:3/H;   /* metres per fired mm: Ottoman walls are one 4.5 m storey, modernist ones 3.0 m */
+function catItems(){const out=[],widths=WX===WZ?[[WX,"all walls"]]:[[WX,"front / back wall"],[WZ,"side wall"]];
+  ERAS.forEach(E=>{let n=0;B.CAT.filter(c=>c.set===E.id).forEach(c=>{const st=c.styles?Object.entries(c.styles.options):[[null,""]];
+    st.forEach(([sk,sl])=>[false,true].forEach(oc=>{const spec={type:c.id};if(sk)spec.style=sk;if(oc){spec.oculus=true;if(!B.canOculus(spec))return;}
+      n++;widths.forEach(([w,wl])=>{B.setW(w);const o=B.build(spec),r=B.checkFace(o,shrinkOf(Bs()),radOf(Bs()));
+        out.push({era:E.id,tag:(E.id==="ottoman"?"O":"M")+String(n).padStart(2,"0"),c,spec,w,wl,o,r,
+          name:c.name+(oc?" + oculus":""),style:sk?(c.styles.label+": "+sl):"",asb:E.id==="ottoman"?(c.asb||""):""});});}));});});
+  B.setW(WX);return out;}
+const catName=()=>`module-${WX}x${WZ}x${H}`;
+function catSave(blob,name){const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);}
+on("catSvg","click",()=>{const it=catItems(),font='font-family="Helvetica Neue,Helvetica,Arial,sans-serif"',cw=Math.max(WX,WZ)+16+8,ch=H+14+9,cols=4;let y=0,body="";
+  const head=(t,t2)=>{body+=`<text x="0" y="${y+5}" font-size="4.5" ${font}>${t}</text><text x="0" y="${y+10}" font-size="3" fill="#6d665c" ${font}>${t2}</text>`;y+=15;};
+  head(`All elevations · module ${WX} × ${WZ} × ${H} mm, walls ${T} mm`,"Every wall type of both eras on the current module sizes. Fired mm, 1 : 1. Dashed: slab lips behind the wall.");
+  ERAS.forEach(E=>{const L=it.filter(i=>i.era===E.id);if(!L.length)return;
+    head(E.name,`Drawn ${"1 : "+Math.round(1000*eraM(E.id))} (${(H*eraM(E.id)).toFixed(2)} m storey) · ${new Set(L.map(i=>i.tag)).size} wall types`);
+    L.forEach((i,n)=>{const x=(n%cols)*cw,yy=y+Math.floor(n/cols)*ch,svg=B.faceSVG(i.o,{line:true,dims:true,label:i.name}).replace("<svg ",`<svg x="${x}" y="${yy}" width="${i.w+16}" height="${H+14}" color="#1e1c19" `);
+      body+=svg+`<text x="${x+i.w/2+3}" y="${yy+H+14+3.4}" font-size="2.6" text-anchor="middle" ${font}><tspan font-weight="bold">${i.tag}</tspan> ${i.name.replace(/&/g,"&amp;")}</text>`+
+        `<text x="${x+i.w/2+3}" y="${yy+H+14+6.6}" font-size="2.3" text-anchor="middle" fill="#6d665c" ${font}>${(i.style||"").replace(/&/g,"&amp;")}${i.style?" · ":""}${i.w} × ${H}${WX!==WZ?" · "+i.wl:""}</text>`;});
+    y+=Math.ceil(L.length/cols)*ch+6;});
+  const W2=cols*cw,doc=`<svg xmlns="http://www.w3.org/2000/svg" width="${W2}mm" height="${y}mm" viewBox="0 0 ${W2} ${y}"><rect width="${W2}" height="${y}" fill="#fff"/><g color="#1e1c19">${body}</g></svg>`;
+  catSave(new Blob([doc],{type:"image/svg+xml"}),catName()+"-all-elevations.svg");});
+function makeCatalogue(jspdf){
+  const b=Bs(),doc=new jspdf.jsPDF({orientation:"landscape",unit:"mm",format:"a4"}),PW=297,PH=210,date=new Date().toISOString().slice(0,10),items=catItems(),k=1/(1-shrinkOf(b)/100),edge=Math.max(B.LIM.edge,radOf(b));
+  /* layout: 3 × 2 cells per sheet at one scale, a new sheet for each era */
+  const CW=92,CH=82,CX=10,CY=12,wmax=Math.max(WX,WZ),sc=Math.min(1,(CH-33)/H,(CW-18)/wmax),scTxt=sc===1?"1 : 1":"1 : "+(1/sc).toFixed(2);
+  const pages=[];ERAS.forEach(E=>{const L=items.filter(i=>i.era===E.id);for(let n=0;n<L.length;n+=6)pages.push({era:E,cells:L.slice(n,n+6)});});
+  pages.forEach((p,pi)=>p.cells.forEach(c=>c.page=pi+2));
+  const NS=pages.length+1;let sheet=0;
+  const ink=()=>{doc.setDrawColor(30,28,25);doc.setTextColor(30,28,25);},grey=()=>doc.setTextColor(110,104,96),lw=w=>doc.setLineWidth(w);
+  const dash=on=>doc.setLineDashPattern(on==="center"?[3,0.8,0.5,0.8]:on==="hidden"?[1.2,0.8]:[],0);
+  const TT=(str,x,y,size,opt)=>{doc.setFontSize(size||6);doc.text(Array.isArray(str)?str.map(tx):tx(str),x,y,opt||{});};
+  const poly=(pts,ox,oy,s)=>{const P=pts.map(([x,y])=>[ox+x*s,oy-y*s]),seg=[];for(let i=1;i<P.length;i++)seg.push([P[i][0]-P[i-1][0],P[i][1]-P[i-1][1]]);doc.lines(seg,P[0][0],P[0][1],[1,1],"S",true);};
+  const tick=(x,y)=>doc.line(x-0.8,y+0.8,x+0.8,y-0.8);
+  /* narrow segments put their number on the far side of the line so neighbours never overprint */
+  const dimH=(x0,x1,y,label,ext,low)=>{lw(0.1);doc.line(x0,y,x1,y);tick(x0,y);tick(x1,y);if(ext!==undefined){doc.line(x0,ext,x0,y+0.8);doc.line(x1,ext,x1,y+0.8);}TT(label,(x0+x1)/2,low?y+2.5:y-0.6,4.6,{align:"center"});};
+  const dimV=(x,y0,y1,label,ext,right)=>{lw(0.1);doc.line(x,y0,x,y1);tick(x,y0);tick(x,y1);if(ext!==undefined){doc.line(ext,y0,x+0.8,y0);doc.line(ext,y1,x+0.8,y1);}doc.setFontSize(4.6);const w=doc.getTextWidth(tx(label));doc.text(tx(label),right?x+2.1:x-0.6,(y0+y1)/2+w/2,{angle:90});};
+  const frame=(title,scale)=>{sheet++;if(sheet>1)doc.addPage();ink();lw(0.5);doc.rect(5,5,PW-10,PH-10);lw(0.15);doc.rect(7,7,PW-14,PH-14);
+    const X=PW-7-128,Y=PH-7-23;doc.setFillColor(255,255,255);lw(0.3);doc.rect(X,Y,128,23,"FD");lw(0.12);[[X,Y+9,X+128,Y+9],[X+64,Y+9,X+64,Y+23],[X+96,Y+16,X+96,Y+23],[X,Y+16,X+128,Y+16]].forEach(l=>doc.line(...l));
+    TT("BEIT LANTERN",X+2,Y+4,7.5);grey();TT("porcelain lantern modules · all elevations",X+2,Y+7.5,4.8);ink();TT(title,X+126,Y+6,7,{align:"right"});
+    const cell=(lab,val,x,y)=>{grey();TT(lab,x+1.5,y+2.6,4.3);ink();TT(val,x+1.5,y+5.9,6);};
+    cell("MODULE",`${WX} × ${WZ} × ${H} mm, walls ${T}`,X,Y+9);cell("UNITS",`mm, fired · mould ×${k.toFixed(3)}`,X+64,Y+9);
+    cell("SCALE",scale,X,Y+16);cell("DATE",date,X+64,Y+16);cell("SHEET",`${sheet} / ${NS}`,X+96,Y+16);};
+  /* ---------- sheet 1: settings and index ---------- */
+  frame("ELEVATION INDEX",scTxt);
+  TT("MODULE SETTINGS",CX,CY+4,7);
+  const rows=[["Width (front and back walls)",WX+" mm"],["Length (side walls)",WZ+" mm"],["Wall height",H+" mm"],["Wall thickness",T+" mm"],["Slab (base, plates, flat roof)",PLATE_T+" mm, lips both faces"],["Corner radius",radOf(b)+" mm"],
+    ["Keep-out from the corners",edge.toFixed(1)+" mm"],["Clear of the scrape edge",B.LIM.top+" mm"],["Above the base lip",B.LIM.base+" mm"],["Fired shrink / mould factor",shrinkOf(b)+" % / ×"+k.toFixed(3)],
+    ["Late Ottoman",`1 : ${Math.round(1000*eraM("ottoman"))}, wall = ${(H*eraM("ottoman")).toFixed(2)} m storey`],["Modernist",`1 : ${Math.round(1000*eraM("modern"))}, wall = ${(H*eraM("modern")).toFixed(2)} m storey`]];
+  rows.forEach(([a,v],i)=>{const y=CY+9+i*4.3;lw(0.08);doc.line(CX,y+1.3,CX+120,y+1.3);grey();TT(a,CX,y,5.6);ink();TT(v,CX+62,y,5.6);});
+  const nt=notes=>{let y=CY+4;TT("HOW TO READ",CX+140,y,7);y+=5;notes.forEach((l,i)=>{const t=doc.splitTextToSize(tx(`${i+1}. ${l}`),130);TT(t,CX+140,y,5.4);y+=2.7*t.length+0.8;});};
+  nt([`Every wall type of both eras is drawn at ${scTxt}, on the module sizes above. Change a size in the Module editor and export again: the openings follow.`,
+    "Late Ottoman openings are drawn in real metres at one scale (a wall is one 4.5 m storey, never stretched); modernist walls keep their 3.0 m storey, with claustras, fins and glass blocks tiled to the wall.",
+    WX===WZ?"The module is square, so each option has one elevation for all four walls.":`The module is not square: each option is drawn twice, on the front/back width (${WX}) and on the side width (${WZ}).`,
+    "Dimensions: the overall width and height; below the wall every opening edge across, left of it every sill, head and crown up. Radii (R) and diameters (Ø) are inside the openings. Numbers in fired mm, tolerance ±0.2.",
+    "Dense patterns (claustras, glass blocks) give the first opening, the margins and the pitch, then repeat. Porcelain checks (openings, bars, edges, pins) are tested on each wall: OK or the failing rule."]);
+  const IY=CY+9+rows.length*4.3+6;TT("INDEX",CX,IY,7);
+  items.filter(i=>i.wl!=="side wall").forEach((i,n)=>{const col=Math.floor(n/38),y=IY+5+(n%38)*2.55;if(col>2||y>PH-12)return;const x=CX+col*92;
+    grey();TT(i.tag,x,y,4.9);ink();TT((i.name+(i.style?" ("+i.style.split(": ")[1]+")":"")).slice(0,46),x+8,y,4.9);TT("sheet "+i.page,x+82,y,4.9,{align:"right"});});
+  /* ---------- sheets 2+: the elevations ---------- */
+  pages.forEach(pg=>{frame("ELEVATIONS · "+pg.era.short,scTxt+" · as built 1 : "+Math.round(1000*eraM(pg.era.id)));
+    pg.cells.forEach((it,n)=>{const cx=CX+(n%3)*CW,cy=CY+Math.floor(n/3)*CH,wf=it.w,o=it.o,ox=cx+14,oy=cy+10+H*sc;
+      ink();TT(it.tag,cx,cy+4,8);TT(doc.splitTextToSize(tx(it.name),CW-16),cx+12,cy+3.2,6.2);if(it.style){grey();TT(it.style+(WX!==WZ?" · "+it.wl:""),cx+12,cy+6.6,5);ink();}else if(WX!==WZ){grey();TT(it.wl,cx+12,cy+6.6,5);ink();}
+      lw(0.35);doc.setFillColor(255,255,255);doc.rect(ox,oy-H*sc,wf*sc,H*sc,"FD");lw(0.2);o.holes.forEach(h=>poly(h.p,ox,oy,sc));
+      const bbs=o.holes.map(h=>B.bbox(h.p)),rnd=v=>+v.toFixed(1);
+      /* centre lines of the first opening of each kind and size, with its R or Ø */
+      const seen=new Set();o.holes.forEach((h,i)=>{const q=bbs[i],key=(h.p.kind||"c")+"|"+rnd(q.w)+"|"+rnd(q.h);if(seen.has(key))return;seen.add(key);
+        const cxp=ox+(q.x0+q.x1)/2*sc;dash("center");lw(0.06);doc.line(cxp,oy-(q.y0-1.2)*sc,cxp,oy-(q.y1+1.2)*sc);dash();
+        if(h.p.r&&h.p.kind!=="rect"&&q.w*sc>=7){const kd=h.p.kind;TT(kd==="circle"?"Ø"+(2*h.p.r).toFixed(1):kd==="oval"?(2*h.p.r).toFixed(1)+"×"+(2*h.p.ry).toFixed(1):"R"+h.p.r.toFixed(1),cxp+1,oy-((q.y1+q.y0)/2)*sc+0.8,4.4);}});
+      /* dimension chains; a dense pattern is dimensioned on its first opening and its pitch */
+      let xs=[...new Set([0,wf,...bbs.flatMap(q=>[q.x0,q.x1])].map(rnd))].sort((a,c)=>a-c),ys=[...new Set([0,H,...bbs.flatMap(q=>[q.y0,q.y1])].map(rnd))].sort((a,c)=>a-c),dense=false;
+      if(xs.length>14||ys.length>12){dense=true;const my=Math.min(...bbs.map(q=>q.y0)),mx=Math.min(...bbs.map(q=>q.x0));
+        const row=bbs.filter(q=>Math.abs(q.y0-my)<0.06).sort((a,c)=>a.x0-c.x0).slice(0,2),col=bbs.filter(q=>Math.abs(q.x0-mx)<0.06).sort((a,c)=>a.y0-c.y0).slice(0,2);
+        xs=[...new Set([0,...row.flatMap(q=>[q.x0,q.x1])].map(rnd))].sort((a,c)=>a-c);ys=[...new Set([0,...col.flatMap(q=>[q.y0,q.y1])].map(rnd))].sort((a,c)=>a-c);}
+      for(let i=1;i<xs.length;i++){const w=xs[i]-xs[i-1];dimH(ox+xs[i-1]*sc,ox+xs[i]*sc,oy+6,rnd(w).toString(),oy+1,w*sc<5.2);}
+      for(let i=1;i<ys.length;i++){const h=ys[i]-ys[i-1];dimV(ox-6,oy-ys[i-1]*sc,oy-ys[i]*sc,rnd(h).toString(),ox-1,h*sc<4.6);}
+      dimH(ox,ox+wf*sc,oy+11,wf.toFixed(1),oy+1);dimV(ox-11,oy,oy-H*sc,H.toFixed(1),ox-1);
+      /* caption: counts, open area, checks, as-built size */
+      let yy=oy+15.5;const same=(q,r)=>Math.abs(q.w-r.w)<0.06&&Math.abs(q.h-r.h)<0.06,f0=bbs[0]||{x0:0,y0:0,w:0,h:0},
+        nx=bbs.filter(q=>q!==f0&&same(q,f0)&&Math.abs(q.y0-f0.y0)<0.06&&q.x0>f0.x0+0.06).sort((a,c)=>a.x0-c.x0)[0],ny=bbs.filter(q=>q!==f0&&same(q,f0)&&Math.abs(q.x0-f0.x0)<0.06&&q.y0>f0.y0+0.06).sort((a,c)=>a.y0-c.y0)[0];
+      const pitch=dense?` · pitch ${nx?rnd(nx.x0-f0.x0):"-"} × ${ny?rnd(ny.y0-f0.y0):"-"}`:"";
+      grey();TT(`${o.holes.length} opening${o.holes.length===1?"":"s"}, ${it.r.open.toFixed(0)} % open${pitch}`,cx,yy,5);yy+=2.8;
+      TT(it.r.ok?"Porcelain checks: OK":"FIX: "+it.r.list.filter(c=>!c.ok).map(c=>c.label).join("; "),cx,yy,5);yy+=2.8;
+      if(it.asb){const t=doc.splitTextToSize(tx("As built: "+it.asb),CW-4);TT(t.slice(0,2),cx,yy,4.8);}ink();});});
+  doc.save(catName()+"-all-elevations.pdf");}
+on("catPdf","click",()=>{const btn=$("catPdf"),t=btn.textContent;btn.textContent="Preparing…";btn.disabled=true;
+  loadJsPDF().then(makeCatalogue).catch(e=>alert("The PDF could not be made: "+e.message)).finally(()=>{btn.textContent=t;btn.disabled=false;});});
 
 /* ================= apply one wall to many ================= */
 on("applyBtn","click",()=>{const b=Bs(),src=JSON.stringify(face()),[,,l0]=keyParts(S.sel),scope=$("applyScope").value,f0=S.selFace;
