@@ -69,6 +69,8 @@ body.nopanel .layout>aside{display:none}body.nopanel .layout>.viewer{grid-column
 .vbar button:hover{background:rgba(255,255,255,.1)}
 .vbar button[aria-pressed="true"]{background:var(--terra);color:#fff}
 .keepTop{position:absolute;top:10px;right:116px;z-index:5;height:30px;padding:0 12px;border:1px solid var(--terra);border-radius:0;background:var(--bg,#fff);color:var(--terra);font:700 11px/16px var(--sans);text-transform:uppercase;letter-spacing:.06em;cursor:pointer}.keepTop[aria-pressed="true"],.keepR[aria-pressed="true"]{background:var(--terra);color:#fff}.keepR{margin-left:4px;padding:0 10px;height:var(--ctl);border:1px solid var(--line);background:transparent;color:inherit;font:500 11px/16px var(--sans);text-transform:uppercase;letter-spacing:.06em;cursor:pointer}
+body.fs{overflow:hidden}body.fs .viewer{position:fixed!important;inset:0;z-index:9999;width:100vw!important;height:100vh!important;max-height:none!important;aspect-ratio:auto!important;margin:0!important;outline:0}body.fs .viewer>*:not(canvas):not(.fsHint){display:none!important}
+.fsHint{position:absolute;left:50%;bottom:24px;transform:translateX(-50%);z-index:10000;padding:8px 14px;background:rgba(17,17,17,.8);color:#fff;font:500 12px/16px var(--sans);letter-spacing:.04em;pointer-events:none;transition:opacity .6s}
 .randTop{position:absolute;top:10px;right:10px;z-index:5;height:30px;padding:0 16px;border:0;border-radius:0;background:var(--terra);color:#fff;font:700 11px/16px var(--sans);text-transform:uppercase;letter-spacing:.06em;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.3)}.randTop:hover{filter:brightness(1.12)}
 .vbar #dbgBtn[aria-pressed="true"]{background:#c62828}
 
@@ -214,7 +216,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
 <header class="grid12">
   <h1>TIKRAR<small>Beirut Lantern Generator</small></h1>
   <span class="sub"><span id="modSize">porcelain modules 72 × 72 mm · 48 mm walls</span> · houses, towers and city blocks · 1860–1925 and modernist openings</span>
-  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 04.11 · 12:20</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
+  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 04.11 · 13:05</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
   </nav>
 </header>
 
@@ -228,7 +230,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
       <div class="grp"><button type="button" id="candleBtn" aria-pressed="true" title="Candles on or off (strength: View panel)">Candles</button><button type="button" id="sunBtn" aria-pressed="true" title="Sunlight and shadows on or off (time of day: View panel)">Sun</button><button type="button" id="explodeBtn" aria-pressed="false" title="Explode the pieces on or off (distance: View panel)">Explode</button><button type="button" id="cutBtn" aria-pressed="false" title="Section cut on or off (axis and position: View panel)">Cut</button></div>
       <div class="grp"><button type="button" id="dbgBtn" aria-pressed="false" title="Debug: outline in red the modules that fail a porcelain check, in amber the ones with advice, on the model">Debug</button></div>
       <div class="grp"><button type="button" id="orthoBtn" aria-pressed="false" title="Orthographic: parallel lines, no perspective">Ortho</button><button type="button" data-view="axo" title="Axonometric view">Axo</button><button type="button" data-view="plan" title="Plan, from above">Plan</button><button type="button" data-view="front" title="Front elevation">Front</button></div>
-      <div class="grp"><button type="button" id="spinBtn" aria-pressed="false" title="Keep turning the view around the model">Spin</button><button type="button" id="slideBtn" aria-pressed="false" title="Keep the model still and slide the openings round the walls, over the corners onto the next wall; you can still change elements while it runs (also a GIF: see GIF, under Checks)">Slide</button><button type="button" id="lockBtn" aria-pressed="false" title="Lock the camera: no orbit, pan or zoom">Lock</button><button type="button" id="resetView" title="Reset the view">Reset</button><button type="button" id="jpgBtn" title="Save the 3D view as a JPG">JPG</button><button type="button" id="gifQuick" title="A re-roll series as an animated GIF, from this exact view, following the panel's Re-roll switches (frames: GIF, under Checks)">GIF</button><button type="button" id="panelBtn" aria-pressed="true" title="Show or hide the side panel (P)">Panel</button></div>
+      <div class="grp"><button type="button" id="spinBtn" aria-pressed="false" title="Keep turning the view around the model">Spin</button><button type="button" id="slideBtn" aria-pressed="false" title="Keep the model still and slide the openings round the walls, over the corners onto the next wall; you can still change elements while it runs (also a GIF: see GIF, under Checks)">Slide</button><button type="button" id="lockBtn" aria-pressed="false" title="Lock the camera: no orbit, pan or zoom">Lock</button><button type="button" id="resetView" title="Reset the view">Reset</button><button type="button" id="jpgBtn" title="Save the 3D view as a JPG">JPG</button><button type="button" id="gifQuick" title="A re-roll series as an animated GIF, from this exact view, following the panel's Re-roll switches (frames: GIF, under Checks)">GIF</button><button type="button" id="fsBtn" title="Full screen: only the 3D view, no buttons (Esc or F to leave)">Full</button><button type="button" id="panelBtn" aria-pressed="true" title="Show or hide the side panel (P)">Panel</button></div>
       <button type="button" class="vmore" id="vmore" aria-label="More controls" hidden>&#8250;</button>
     </div>
   </div>
@@ -793,7 +795,7 @@ MAT.contact=new THREE.MeshBasicMaterial({color:0x000000,transparent:true,opacity
 /* ---------- ground ---------- */
 let room=new THREE.Group();scene.add(room);
 const lc=h=>new THREE.Color(h).convertSRGBToLinear();
-function updateRuler(){const rg=room&&room.getObjectByName("rulerGroup");if(!rg)return;const c=camera.position,t=controls.target,el=Math.atan2(c.y,Math.hypot(c.x-t.x,c.z-t.z)),hi=el>0.3&&S.view!=="front";rg.userData.g.forEach(p=>p.visible=hi);rg.userData.s.forEach(p=>p.visible=!hi);
+function updateRuler(){const rg=room&&room.getObjectByName("rulerGroup");if(!rg)return;{const f=document.body.classList.contains("fs");rg.visible=!f;scene.traverse(o=>{if((o.isLine&&(o.material===MAT.line||o.material===MAT.sel||o.material===MAT.selMod))||(o.isMesh&&o.material===MAT.band))o.visible=!f;});}const c=camera.position,t=controls.target,el=Math.atan2(c.y,Math.hypot(c.x-t.x,c.z-t.z)),hi=el>0.3&&S.view!=="front";rg.userData.g.forEach(p=>p.visible=hi);rg.userData.s.forEach(p=>p.visible=!hi);
   /* red dimensions: ground ones on the corner nearest the camera, the height at the corner furthest to the screen's left */
   const dx=c.x-t.x,dz=c.z-t.z,fl=Math.hypot(dx,dz)<1e-3?[0,1]:[dx,dz],lx=-fl[1],lz=fl[0];   /* screen-left on the ground = (-dz, dx) looking from the camera at the target */
   const ax=Math.abs(dx)<1e-3?1:Math.sign(dx),az=Math.abs(dz)<1e-3?1:Math.sign(dz);
@@ -2579,6 +2581,19 @@ on("explodeBtn","click",()=>{const v=S.explode||0;if(v>0){S.explodePrev=v;S.expl
 on("cutBtn","click",()=>{if(cutOn()){S.cutLast=S.cut.a;setCut({a:"off"});}else setCut({a:S.cutLast||"x",t:0.5});});
 on("randBar","click",()=>{if(MODE==="module")$("randB").click();else remix(S.buildings,true);});
 try{["gifSp","keepSec"].forEach(id=>{const e=$(id);if(e){if(S[id])e.value=S[id];e.addEventListener("change",()=>{S[id]=e.value;save();if(id==="keepSec"&&window.__keepRestart)window.__keepRestart();});}});}catch(e){}
+/* Full screen: the 3D view alone, no panel, bar or buttons. F or the Full button enters; Esc or F leaves */
+{let hint=null,ht=0;
+ const fs=()=>document.body.classList.contains("fs"),
+  show=m=>{document.body.classList.toggle("fs",m);dispatchEvent(new Event("resize"));try{updateRuler();need();}catch(e){}
+   if(m){try{hint&&hint.remove();}catch(e){}hint=document.createElement("div");hint.className="fsHint";hint.textContent="Press Esc or F to leave full screen";view.appendChild(hint);clearTimeout(ht);ht=setTimeout(()=>{hint.style.opacity="0";setTimeout(()=>{try{hint.remove();}catch(e){}},700);},2500);}
+   else{try{hint&&hint.remove();}catch(e){}}},
+  enter=()=>{show(true);try{const r=document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen();if(r&&r.catch)r.catch(()=>{});}catch(e){}},
+  leave=()=>{show(false);try{if(document.fullscreenElement)document.exitFullscreen();}catch(e){}};
+ on("fsBtn","click",enter);
+ addEventListener("keydown",e=>{const t=document.activeElement&&document.activeElement.tagName;if(e.metaKey||e.ctrlKey||e.altKey)return;
+  if(e.key==="Escape"&&fs()){leave();return;}
+  if((e.key==="f"||e.key==="F")&&!/INPUT|SELECT|TEXTAREA/.test(t||"")){fs()?leave():enter();}});
+ document.addEventListener("fullscreenchange",()=>{if(!document.fullscreenElement&&fs())show(false);});}
 /* Keep randomizing: every Randomize button gets a "Keep" toggle that presses it again at the panel's Keep randomizing time until switched off (one loop at a time) */
 {let live=null,timer=0;
  const stop=()=>{clearInterval(timer);timer=0;if(live)live.k.setAttribute("aria-pressed","false");live=null;};
