@@ -218,7 +218,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
 <header class="grid12">
   <h1>TIKRAR<small>Beirut Lantern Generator</small></h1>
   <span class="sub"><span id="modSize">porcelain modules 72 × 72 mm · 48 mm walls</span> · houses, towers and city blocks · 1860–1925 and modernist openings</span>
-  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 04.11 · 14:00</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
+  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 04.11 · 14:10</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
   </nav>
 </header>
 
@@ -654,7 +654,7 @@ const persp=new THREE.PerspectiveCamera(35,1,1,8000),ortho=new THREE.Orthographi
 let orthoH=400;function orthoFrustum(){const r=view.getBoundingClientRect(),a=r.width/Math.max(1,r.height);Object.assign(ortho,{left:-orthoH*a,right:orthoH*a,top:orthoH,bottom:-orthoH});ortho.updateProjectionMatrix();}
 const controls=new THREE.OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.minDistance=60;controls.maxDistance=3000;controls.minPolarAngle=0;controls.maxPolarAngle=Math.PI;
 function bounds(){let x0=1e9,x1=-1e9,z0=1e9,z1=-1e9,h=0;S.buildings.forEach(b=>{const f=fp(b);x0=Math.min(x0,b.x-f.w/2);x1=Math.max(x1,b.x+f.w/2);z0=Math.min(z0,b.z-f.d/2);z1=Math.max(z1,b.z+f.d/2);h=Math.max(h,b.levels*H+40);});return {x0,x1,z0,z1,h};}
-function fitView(){const b=bounds(),cx=(b.x0+b.x1)/2,cz=(b.z0+b.z1)/2,s=Math.max(b.x1-b.x0,b.z1-b.z0,b.h)*1.45+120+(MODE==="module"?70:0);   /* the red dimensions sit outside the module: room for them */
+function fitView(){const b=bounds(),cx=(b.x0+b.x1)/2,cz=(b.z0+b.z1)/2,s=Math.max(b.x1-b.x0,b.z1-b.z0,b.h)*1.45+120+(MODE==="module"||blkMode()?70:0);   /* the red dimensions sit outside the module: room for them */
  
   camera.position.set(cx+s*0.45,b.h*0.5+s*0.5,cz+s*0.95);controls.target.set(cx,b.h*0.3,cz);
   if(camera===ortho){orthoH=s*0.42;ortho.zoom=1;orthoFrustum();}controls.update();need();}
@@ -662,11 +662,11 @@ function fitView(){const b=bounds(),cx=(b.x0+b.x1)/2,cz=(b.z0+b.z1)/2,s=Math.max
 function viewPreset(v){if(camera!==ortho)setOrtho(true);   /* Axo, Plan and Front are parallel projections */
   /* Front is a true elevation: the camera stays level (the ground reads as one line) however you turn it; Plan stays overhead */
   controls.minPolarAngle=v==='front'?Math.PI/2:0;controls.maxPolarAngle=v==='front'?Math.PI/2:v==='plan'?0:Math.PI;S.view=v;
-  const b=bounds(),cx=(b.x0+b.x1)/2,cz=(b.z0+b.z1)/2,s=Math.max(b.x1-b.x0,b.z1-b.z0,b.h)*1.45+120,ty=v==="plan"?0:b.h*0.35;
+  const b=bounds(),cx=(b.x0+b.x1)/2,cz=(b.z0+b.z1)/2,s=Math.max(b.x1-b.x0,b.z1-b.z0,b.h)*1.45+120+(MODE==="module"||blkMode()?70:0),ty=v==="plan"?0:b.h*0.35;
   const dir=v==="plan"?[0,1,0.0001]:v==="front"?[0,0,1]:[1,0.8165,1];   /* isometric: 35.26° above the ground, 45° to the walls */
   const d=new THREE.Vector3(...dir).normalize().multiplyScalar(s*1.2);controls.target.set(cx,ty,cz);if(v==='front')camera.up.set(0,1,0);camera.position.set(cx+d.x,ty+d.y,cz+d.z);
-  if(camera===ortho){const r=view.getBoundingClientRect(),a=r.width/Math.max(1,r.height),wx=(b.x1-b.x0)/2*1.06+40;
-    orthoH=v==="axo"?s*0.5:v==="plan"?Math.max((b.z1-b.z0)/2+30,wx/a):Math.max(b.h*0.6+20,wx/a);ortho.zoom=1;orthoFrustum();}
+  if(camera===ortho){const r=view.getBoundingClientRect(),a=r.width/Math.max(1,r.height),ex=MODE!=="module"&&blkMode()?90:0,wx=(b.x1-b.x0)/2*1.06+40+ex;
+    orthoH=v==="axo"?s*0.5:v==="plan"?Math.max((b.z1-b.z0)/2+30+ex,wx/a):Math.max(b.h*0.6+20,wx/a);ortho.zoom=1;orthoFrustum();}
   {const gl=room.getObjectByName("groundLine");if(gl)gl.visible=v==="front";}controls.update();need();}
 function setOrtho(on){const from=camera,to=on?ortho:persp;if(from===to)return;to.position.copy(from.position);to.quaternion.copy(from.quaternion);
   if(on){orthoH=from.position.distanceTo(controls.target)*Math.tan(persp.fov*Math.PI/360);ortho.zoom=1;orthoFrustum();}
@@ -867,6 +867,19 @@ function buildRoom(){scene.remove(room);room.traverse(o=>{if(o.geometry)o.geomet
         lab(WZ+"",xo+sx*11,Y,(mz0+mz1)/2,rd,1.15,"gz",ag,sx,sz);lab(WZ+"",xo+sx*11,SY,(mz0+mz1)/2,rd,1.15,"sz",ag,sx,sz);
         lab(H+"",xo+sx*11,yt/2,zo,rd,1.15,"v",hg,sx,sz);
         ag.userData={sx,sz,k:"a"};hg.userData={sx,sz,k:"h"};rg.userData.d.push(ag,hg);rg.add(ag,hg);});}
+    /* city blocks and streets (Cluster editor, Lines / Plots): two thin chains on the far sides, away from the ruler on the front and left.
+       Along the back edge every block width and every street between blocks; down the right edge every block depth and street. Light grey
+       type, ground only (they hide in Front and low views), 40 mm clear of the blocks so they never reach the buildings or the red module dimensions. */
+    if(ruler&&MODE!=="module"&&LAYOUT.cols&&LAYOUT.cols.length&&LAYOUT.rows&&LAYOUT.rows.length){const L=LAYOUT,dg=new THREE.Group(),gc=S.night?0xb4bac6:0x55504a,Y=ry+0.6,pt=[],
+        cols=L.cols.filter((c,i)=>L.blocks.some(k=>k.c===i)),rows=L.rows.filter((r,j)=>L.blocks.some(k=>k.r===j)),
+        zb=Math.min(...rows.map(r=>r.z1-r.d))-40,xr=Math.max(...cols.map(c=>c.x0+c.w))+40,t=2.5,n=v=>String(Math.round(v*10)/10);
+      const xs=[];cols.forEach(c=>{xs.push(c.x0,c.x0+c.w);});const zs=[];rows.slice().sort((a,c)=>c.z1-a.z1).forEach(r=>{zs.push(r.z1,r.z1-r.d);});
+      pt.push(V(xs[0],ry,zb),V(xs[xs.length-1],ry,zb),V(xr,ry,zs[0]),V(xr,ry,zs[zs.length-1]));
+      xs.forEach(x=>pt.push(V(x,ry,zb-t),V(x,ry,zb+t)));zs.forEach(z=>pt.push(V(xr-t,ry,z),V(xr+t,ry,z)));
+      for(let i=0;i<xs.length-1;i++)if(xs[i+1]-xs[i]>1)lab(n(xs[i+1]-xs[i]),(xs[i]+xs[i+1])/2,Y,zb-17,gc,1.3,"g",dg,1,1);
+      for(let i=0;i<zs.length-1;i++)if(zs[i]-zs[i+1]>1)lab(n(zs[i]-zs[i+1]),xr+17,Y,(zs[i]+zs[i+1])/2,gc,1.3,"gz",dg,1,1);
+      dg.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(pt),new THREE.LineBasicMaterial({color:gc})));
+      rg.userData.g.push(dg);rg.add(dg);}
     if(ruler)hp.push(V(b.x0,ry,zf),V(b.x0+Math.floor(w/10)*10,ry,zf),V(xl,ry,b.z1),V(xl,ry,b.z1-Math.floor(d/10)*10));   /* the same graduations hanging below the ground line, for Front and low views where the ground is edge-on */
     {const hl=new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(hp),new THREE.LineBasicMaterial({color:rc}));rg.userData.s.push(hl);rg.add(hl);}
     const rl=new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(pts),new THREE.LineBasicMaterial({color:rc}));rl.name="ruler";rg.add(rl);
