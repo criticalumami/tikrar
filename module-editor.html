@@ -211,7 +211,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
 <header class="grid12">
   <h1>TIKRAR<small>Beirut Lantern Generator</small></h1>
   <span class="sub"><span id="modSize">porcelain modules 60 × 60 mm · 40 mm walls</span> · houses, towers and city blocks · 1860–1925 and modernist openings</span>
-  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 04.11 · 08:40</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
+  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 04.11 · 09:00</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
   </nav>
 </header>
 
@@ -311,7 +311,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
       <div class="f" id="modTools"></div>
       <div class="faces" id="faces"></div>
       <div class="f"><span class="lbl">Style</span><div class="v"><div class="seg" id="editSetSeg"><button type="button" data-v="ottoman">1860–1925</button><button type="button" data-v="modern">Modernist</button></div></div></div>
-      <div class="f"><span class="lbl">Mode</span><div class="v"><div class="seg" id="modeSeg"><button type="button" data-v="bays">Three elements</button><button type="button" data-v="wall">Whole wall</button><button type="button" data-v="free" title="Place and size every opening yourself: drag them in the drawing">Drawn</button></div></div></div>
+      <div class="f"><span class="lbl">Mode</span><div class="v"><div class="seg" id="modeSeg"><button type="button" data-v="wall">Whole wall</button><button type="button" data-v="bays">Three elements</button><button type="button" data-v="free" title="Place and size every opening yourself: drag them in the drawing">Drawn</button></div></div></div>
       <div id="editor"></div>
       <div class="big" id="bigFace"></div>
       <div class="free" id="freeTools" hidden></div>
@@ -426,7 +426,7 @@ function lit(n,every){const a=Array.from({length:n},(_,l)=>l%every===0);return {
 const isLM=b=>!!(b.landmark||/\(landmark\)/.test(b.name||""));
 const LANDMARKS=["holiday","gefinor","edl","saroulla","egg","museum"];
 function randomWall(set){
-  if(Math.random()<0.5){const els=B.BAYS.filter(b=>b.set===set).map(b=>b.id);let bs;
+  if(MODE!=="module"&&Math.random()<0.5){   /* the Module editor always deals whole walls */const els=B.BAYS.filter(b=>b.set===set).map(b=>b.id);let bs;
     do{bs=[0,1,2].map(()=>Math.random()<0.2?"none":pick(els));if(Math.random()<0.6)bs[2]=bs[0];}while(bs.every(x=>x==="none"));
     return bays(...bs);}
   const c=pick(B.CAT.filter(k=>k.set===set&&k.id!=="blank")),w=wall(c.id),st=B.stylesOf(c);
