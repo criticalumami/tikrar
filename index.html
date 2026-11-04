@@ -211,7 +211,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
 <header class="grid12">
   <h1>TIKRAR<small>Beirut Lantern Generator</small></h1>
   <span class="sub"><span id="modSize">porcelain modules 60 × 60 mm · 40 mm walls</span> · houses, towers and city blocks · 1860–1925 and modernist openings</span>
-  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 04.11 · 09:50</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
+  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 04.11 · 09:15</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
   </nav>
 </header>
 
@@ -2041,7 +2041,7 @@ addEventListener("keydown",e=>{if((e.key==="p"||e.key==="P")&&!/INPUT|SELECT|TEX
 on("sunT","input",e=>{S.sun=+e.target.value;applyNight();save();vbarVals();});
 /* lock the camera: no orbit, pan or zoom (the view buttons still work) */
 const setLock=on=>{S.lock=!!on;controls.enabled=!S.lock;$("lockBtn").setAttribute("aria-pressed",S.lock);};
-on("lockBtn","click",()=>{setLock(!S.lock);save();});
+on("lockBtn","click",()=>{setLock(!S.lock);toast(S.lock?"Camera locked: click Lock again to orbit, pan and zoom":"Camera free");save();});   /* a locked camera was easy to hit by accident and then looked like broken controls */
 const setSpin=on=>{S.spin=!!on;controls.autoRotate=S.spin;controls.autoRotateSpeed=-4;$("spinBtn").setAttribute("aria-pressed",S.spin);need();};   /* turns slowly round the target, also when the camera is locked */
 on("spinBtn","click",()=>{setSpin(!S.spin);save();});
 on("slideBtn","click",()=>setSlide(!ORBIT.on));
@@ -2229,7 +2229,7 @@ function barSync(){const set=(id,v)=>{const e=$(id);if(e)e.setAttribute("aria-pr
   set("dayBtn",!S.night);set("nightBtn",S.night);set("candleBtn",(S.candle===undefined?1:S.candle)>0);set("sunBtn",!S.sunOff);set("explodeBtn",(S.explode||0)>0);set("cutBtn",cutOn());}
 function vbarVals(){barSync();const c=S.candle===undefined?1:S.candle,t=S.sun===undefined?0.35:S.sun,m=Math.round((6+12*t)*60/15)*15;
   $("candleV").textContent=Math.round(c*100)+" %";$("sunV").textContent=Math.floor(m/60)+":"+String(m%60).padStart(2,"0");$("explodeV").textContent=(S.explode||0)+" mm";}
-on("resetView","click",()=>{controls.minPolarAngle=0;controls.maxPolarAngle=Math.PI;S.view="";const gl=room.getObjectByName("groundLine");if(gl)gl.visible=false;fitView();});
+on("resetView","click",()=>{if(S.lock){setLock(false);save();}controls.minPolarAngle=0;controls.maxPolarAngle=Math.PI;S.view="";const gl=room.getObjectByName("groundLine");if(gl)gl.visible=false;fitView();});
 on("orthoBtn","click",()=>setOrtho(!S.ortho));document.querySelectorAll("[data-view]").forEach(x=>x.onclick=()=>viewPreset(x.dataset.view));
 on("reset","click",()=>{if(confirm("Reset to the starting city block?")){S=defaults();renderUI();fitView();}});
 /* Elevations (SVG): every module's four walls at 1 : 1 mm, each at its real width (front/back WX, sides WZ) and height H,
@@ -2456,7 +2456,7 @@ on("pdfBtn","click",()=>{const btn=$("pdfBtn"),t=btn.textContent;btn.textContent
 
 $("explode").value=S.explode;S.editSet=S.editSet||Bs().set;
 if(S.render){S.render=false;setTimeout(()=>$("renderBtn").click(),0);}bitSync();
-$("candle").value=S.candle===undefined?1:S.candle;rxSync();$("keepPal").setAttribute("aria-pressed",!!S.keepPal);setPanel(!S.nopanel);setLock(S.lock);setSpin(S.spin);$("sunT").value=S.sun===undefined?0.35:S.sun;vbarVals();cutBind();cutUI();applyDims();resize();if(S.ortho)setOrtho(true);renderUI();fitView();
+$("candle").value=S.candle===undefined?1:S.candle;rxSync();$("keepPal").setAttribute("aria-pressed",!!S.keepPal);setPanel(!S.nopanel);setLock(false);   /* the camera always starts free */setSpin(S.spin);$("sunT").value=S.sun===undefined?0.35:S.sun;vbarVals();cutBind();cutUI();applyDims();resize();if(S.ortho)setOrtho(true);renderUI();fitView();
 /* ===== bar switches: on/off only; strength, time, distance and axis are in the View panel ===== */
 on("candleBtn","click",()=>{const c=S.candle===undefined?1:S.candle;if(c>0){S.candlePrev=c;S.candle=0;}else S.candle=S.candlePrev||1;$("candle").value=S.candle;applyNight();save();vbarVals();});
 on("bitBtn","click",()=>{S.bit=S.bit?0:1;bitSync();need();save();});
