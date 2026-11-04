@@ -68,7 +68,7 @@ body.nopanel .layout>aside{display:none}body.nopanel .layout>.viewer{grid-column
 .vbar button{height:var(--ctl);background:transparent;border:0;color:#f2f2f2;border-radius:0;font:500 11px/16px var(--sans);text-transform:uppercase;letter-spacing:.06em;padding:0 10px;cursor:pointer}
 .vbar button:hover{background:rgba(255,255,255,.1)}
 .vbar button[aria-pressed="true"]{background:var(--terra);color:#fff}
-.randTop{position:absolute;top:10px;right:10px;z-index:5;height:30px;padding:0 16px;border:0;border-radius:999px;background:var(--terra);color:#fff;font:700 11px/16px var(--sans);text-transform:uppercase;letter-spacing:.06em;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.3)}.randTop:hover{filter:brightness(1.12)}
+.randTop{position:absolute;top:10px;right:10px;z-index:5;height:30px;padding:0 16px;border:0;border-radius:0;background:var(--terra);color:#fff;font:700 11px/16px var(--sans);text-transform:uppercase;letter-spacing:.06em;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.3)}.randTop:hover{filter:brightness(1.12)}
 .vbar #dbgBtn[aria-pressed="true"]{background:#c62828}
 
 .vbar .grp.cutG button{padding:0 5px}.vbar .grp.cutG .cutS[hidden]{display:none}
@@ -213,7 +213,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
 <header class="grid12">
   <h1>TIKRAR<small>Beirut Lantern Generator</small></h1>
   <span class="sub"><span id="modSize">porcelain modules 72 × 72 mm · 48 mm walls</span> · houses, towers and city blocks · 1860–1925 and modernist openings</span>
-  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 04.11 · 09:45</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
+  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 04.11 · 09:55</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
   </nav>
 </header>
 
@@ -221,7 +221,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
   <div class="split" id="split" title="Drag to resize the 3D view and the panel (snaps to the grid columns); double-click to reset" role="separator" aria-orientation="vertical"></div>
   <div class="viewer" id="viewer">
     <div class="tag" id="tag"></div>
-    <button class="randTop" type="button" id="randBar" title="Re-roll the whole city with the panel's Re-roll switches (Layout, Openings, Colours)">&#10227; Randomize</button>
+    <button class="randTop" type="button" id="randBar" title="Cluster editor: re-roll the whole city with the panel's Re-roll switches. Module editor: new walls, colours, roof and size, everything at once">Randomize</button>
     <div class="vbar">
       <div class="grp"><button type="button" id="dnBtn" aria-pressed="false" title="Day or night: click to switch. Night lights the candles and turns the site dark">Day</button><button type="button" id="bitBtn" aria-pressed="false" title="1-Bit view, after Return of the Obra Dinn: every pixel ink or paper, dithered. Click again to switch it off">1-Bit</button><button type="button" id="renderBtn" aria-pressed="false" title="Realistic render: ceramic textures, ambient occlusion, bloom, filmic tone">Render</button></div>
       <div class="grp"><button type="button" id="candleBtn" aria-pressed="true" title="Candles on or off (strength: View panel)">Candles</button><button type="button" id="sunBtn" aria-pressed="true" title="Sunlight and shadows on or off (time of day: View panel)">Sun</button><button type="button" id="explodeBtn" aria-pressed="false" title="Explode the pieces on or off (distance: View panel)">Explode</button><button type="button" id="cutBtn" aria-pressed="false" title="Section cut on or off (axis and position: View panel)">Cut</button></div>
@@ -2517,7 +2517,7 @@ bitSync();
 on("sunBtn","click",()=>{S.sunOff=!S.sunOff;applyNight();save();vbarVals();});
 on("explodeBtn","click",()=>{const v=S.explode||0;if(v>0){S.explodePrev=v;S.explode=0;}else S.explode=S.explodePrev||12;$("explode").value=S.explode;rebuild();vbarVals();});
 on("cutBtn","click",()=>{if(cutOn()){S.cutLast=S.cut.a;setCut({a:"off"});}else setCut({a:S.cutLast||"x",t:0.5});});
-on("randBar","click",()=>{if(MODE==="module")$("randWall").click();else remix(S.buildings,true);});
+on("randBar","click",()=>{if(MODE==="module")$("randB").click();else remix(S.buildings,true);});
 /* ===== v 02.11 review: toast, Undo/Redo, share link and JSON, collapsible panels, "more controls" chevron ===== */
 let toastT=0;function toast(msg){const t=$("toast");if(!t)return;t.textContent=msg;t.classList.add("on");clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove("on"),3800);}
 /* put a design (a snapshot string) back: the design keys are replaced, the view settings stay */
