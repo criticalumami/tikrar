@@ -9,3 +9,5 @@ Proposals by crit for **Beit Lantern**, modular slip-cast porcelain Lebanese lan
 Design language drawn from *Architectures de Beyrouth 1925–1970, Manuel de restauration* (Beirut Heritage Initiative, 2022). The PDF is not included here; page references in the proposals point to it.
 
 Rule used throughout: no non-porcelain accessories.
+
+Handover for reviewers and new contributors: [PROJECT-HANDOVER.md](PROJECT-HANDOVER.md) (overview) and [HANDOVER.md](HANDOVER.md) (code log).

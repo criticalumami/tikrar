@@ -1,5 +1,7 @@
 # TIKRAR handover
 
+> **5 Nov 2026:** for the whole-project overview (design rules, printers, Blender, UV lamp, open decisions) read [PROJECT-HANDOVER.md](PROJECT-HANDOVER.md) first. Parts of this file are out of date; its section 12 lists which. In particular, David's repo is now read-only: push only to criticalumami/tikrar.
+
 30 Oct 2026 · alihaidar
 
 ## What TIKRAR is
