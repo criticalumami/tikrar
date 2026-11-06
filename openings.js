@@ -204,6 +204,21 @@ CAT.push(
   desc:"One large rectangular window: by the 1920s–30s the triple arch was replaced by large rectangular windows.",
   opts:["frame","canopy"],
   build(o,q){hole(o,R(10,8,40,22));if(q.frame)frame(o,R,10,8,40,22,1.2);if(q.canopy)o.extras.push({t:"canopy",x:6,w:48,y:32.4});}},
+ /* Modernist facade, after the 1930s–50s Beirut/Mediterranean school: bays divided by thin full-height pilasters, a deep solid
+    parapet band, a clerestory strip under tall multi-pane windows, and a solid band above in place of the projecting cornice slab
+    (flush: nothing projects). Tiled natively: more bays on a wider wall, never fatter pilasters. */
+ {set:"modern",native:true,id:"facade",group:"Modernist",name:"Pilastered facade",ref:AB+", typologies pp. 16–20, windows pp. 78–93",
+  desc:"Long horizontal bands cut by slim pilasters: a clerestory strip over a solid parapet, tall multi-pane windows above, a solid cornice band on top. Pick the balcony bay for a glazed door over a railing of slots, or strips for stacked ribbon windows between the pilasters.",
+  styles:{label:"Composition",options:{bands:"Windows over clerestory",balcony:"Balcony bay",strips:"Stacked strips"}},
+  build(o,q){const e=EDGE,P=3.6,n=Math.max(2,Math.round((W-2*e)/20)),bw=(W-2*e-(n-1)*P)/n,k=H/H0,st=q.style||"bands";let c=0;
+   const add=p=>hole(o,p,1+Math.floor(c++/LIM.maxPins)),mull=2.5,
+     panes=(x,y,w,h)=>{const m=w>=26?3:w>=14?2:1,pw=(w-(m-1)*mull)/m;for(let i=0;i<m;i++)add(R(x+i*(pw+mull),y,pw,h));};
+   const bal=Math.min(n-1,Math.max(1,Math.round(n/2)-1));
+   for(let i=0;i<n;i++){const x=e+i*(bw+P);
+     if(st==="strips"){add(R(x,8*k,bw,3.6*k));panes(x,15*k,bw,6*k);add(R(x,24.5*k,bw,5*k));add(R(x,33.5*k,bw,3.3*k));}
+     else if(st==="balcony"&&i===bal){panes(x,15*k,bw,20*k);const m=Math.max(2,Math.floor((bw+mull)/(2.1+mull))),sw=(bw-(m-1)*mull)/m;
+       for(let j=0;j<m;j++)add(R(x+j*(sw+mull),6*k,sw,6.5*k));}
+     else{add(R(x,6*k,bw,3.6*k));panes(x,15.5*k,bw,19*k);}}}},
  {set:"modern",id:"glassblock",group:"Modernist",name:"Glass-block stair light",ref:AB+", pp. 52–53",
   desc:"A tall strip of small square lights, as the cast glass blocks that lit modernist stairwells.",
   native:true,build(o,q){const n=Math.max(1,Math.floor((H-12)/6)+1),y0=(H-(n-1)*6-3)/2;for(let j=0;j<n;j++)for(let i=0;i<3;i++)hole(o,R(W/2-7.1+i*5.6,y0+j*6,3,3));}},
@@ -229,6 +244,8 @@ const BAYS=[
  {set:"modern",id:"twinSlots",name:"Twin slits",ref:AB+" pp. 52–53",build:(o,c)=>{hole(o,R(c-4,6,2.6,26));hole(o,R(c+1.4,6,2.6,26));}},
  {set:"modern",id:"square",name:"Square window",ref:AB+" pp. 78–93",build:(o,c)=>hole(o,R(c-5,14,10,10))},
  {set:"modern",id:"ribbonSeg",name:"Ribbon segment",ref:AB+" pp. 78–93",build:(o,c)=>hole(o,R(c-7.5,18,15,7))},
+ {set:"modern",id:"bandBay",name:"Banded bay",ref:AB+" pp. 78–93",build:(o,c)=>{hole(o,R(c-6,6,12,4.2));hole(o,R(c-6,16,4.75,21));hole(o,R(c+1.25,16,4.75,21));}},
+ {set:"modern",id:"balconyBay",name:"Balcony bay",ref:AB+" pp. 16–20",build:(o,c)=>{hole(o,R(c-6,19.5,4.75,17.5));hole(o,R(c+1.25,19.5,4.75,17.5));[0,1,2].forEach(i=>hole(o,R(c-6+i*4.9,7,2.3,8.5)));}},
  {set:"modern",id:"porthole",name:"Porthole",ref:AB+" pp. 78–93",build:(o,c)=>hole(o,ELL(c,22,5,5))},
  {set:"modern",id:"portholes3",name:"Porthole column",ref:AB+" pp. 78–93",build:(o,c)=>[9,20,31].forEach(y=>hole(o,ELL(c,y,3,3)))},
  {set:"modern",id:"claustraCol",name:"Claustra column",ref:AB+" pp. 52–53",build:(o,c,i)=>{for(let j=0;j<5;j++)for(let k=0;k<3;k++)hole(o,R(c-6.1+k*4.9,8+j*4.9,2.4,2.4),1+i);}},

@@ -226,7 +226,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
 <header class="grid12">
   <h1>TIKRAR<small>Beirut Lantern Generator</small></h1>
   <span class="sub"><span id="modSize">porcelain modules 72 × 72 mm · 48 mm walls</span> · houses, towers and city blocks · 1860–1925 and modernist openings</span>
-  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 06.11 · 08:45</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
+  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 06.11 · 14:10</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
   </nav>
 </header>
 
@@ -271,7 +271,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
       <h2>City block <span class="meta" id="villageMeta"></span></h2>
       <div class="blist" id="bList"></div>
       <div class="f"><span class="lbl">Select</span><div class="v"><div class="seg"><button type="button" id="selAll">All</button><button type="button" id="selNone">Clear</button></div><span class="hint">shift or ⌘ click to pick several</span></div></div>
-      <div class="f"><span class="lbl">Add</span><div class="v"><select id="addKind" aria-label="Building to add"><option value="central">Central-hall house</option><option value="liwan">Līwān house</option><option value="photo">Arches &amp; keyholes</option><option value="stair">Stair tower</option><option value="modernRow">Modernist block</option><option value="modernTower">Modernist tower</option><option value="court">Public court (flat tray)</option><option value="random">Random</option><optgroup label="Landmarks, true size at 1:75"><option value="holiday">Holiday Inn · 26 storeys</option><option value="gefinor">Gefinor Center · 15 storeys</option><option value="edl">Électricité du Liban · 15 storeys</option><option value="saroulla">Saroulla building · 10 storeys</option><option value="egg">The Egg · cinema</option><option value="museum">National Museum</option><option value="shams">Immeuble Shams · Raouché</option><option value="panarab">Starco / Pan-Arab · podium &amp; tower</option><option value="phoenicia">Hôtel Phoenicia · colonnade &amp; slab</option><option value="artisans">Artisans du Liban · seafront</option><option value="raouche">Raouché Terraces · stepped</option><option value="unesco">Palais de l'UNESCO · civic hall</option></optgroup></select><button class="btn" type="button" id="addBtn">Add</button></div></div>
+      <div class="f"><span class="lbl">Add</span><div class="v"><select id="addKind" aria-label="Building to add"><option value="central">Central-hall house</option><option value="liwan">Līwān house</option><option value="photo">Arches &amp; keyholes</option><option value="stair">Stair tower</option><option value="modernRow">Modernist block</option><option value="modernFacade">Modernist terrace block</option><option value="modernTower">Modernist tower</option><option value="court">Public court (flat tray)</option><option value="random">Random</option><optgroup label="Landmarks, true size at 1:75"><option value="holiday">Holiday Inn · 26 storeys</option><option value="gefinor">Gefinor Center · 15 storeys</option><option value="edl">Électricité du Liban · 15 storeys</option><option value="saroulla">Saroulla building · 10 storeys</option><option value="egg">The Egg · cinema</option><option value="museum">National Museum</option><option value="shams">Immeuble Shams · Raouché</option><option value="panarab">Starco / Pan-Arab · podium &amp; tower</option><option value="phoenicia">Hôtel Phoenicia · colonnade &amp; slab</option><option value="artisans">Artisans du Liban · seafront</option><option value="raouche">Raouché Terraces · stepped</option><option value="unesco">Palais de l'UNESCO · civic hall</option></optgroup></select><button class="btn" type="button" id="addBtn">Add</button></div></div>
       <div class="f"><span class="lbl">Move</span><div class="v"><div class="seg" id="moveSeg"><button type="button" data-mv="-1,0" aria-label="Move left">←</button><button type="button" data-mv="1,0" aria-label="Move right">→</button><button type="button" data-mv="0,-1" aria-label="Move back">↑</button><button type="button" data-mv="0,1" aria-label="Move forward">↓</button><button type="button" id="rotBtn" aria-label="Turn 90°">⟳</button></div></div></div>
       <div class="f"><span class="lbl">Edit</span><div class="v"><div class="seg"><button type="button" id="dupB">Duplicate</button><button type="button" id="delB">Remove</button></div></div></div>
       <div class="f"><span class="lbl">Buildings</span><div class="v"><div class="seg" id="countSeg" title="Grow or shrink the city block (1 to 120): type a number or use − / +; new buildings take the next block slots"><button type="button" data-d="-1" aria-label="One building fewer">−</button><input class="cnt" id="countV" type="number" min="1" max="120" step="1" inputmode="numeric" aria-label="Number of buildings"><button type="button" data-d="1" aria-label="One building more">+</button></div></div></div>
@@ -386,7 +386,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
 <div id="toast" role="status" aria-live="polite"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-<script src="openings.js?v=0611a"></script>
+<script src="openings.js?v=0611d"></script>
 <script>
 (function(){
 const B=window.BeitOpenings,W=60,MAX_LEVELS=8,GRID=30,MAX_LIGHTS=4,SHADOW_LIGHTS=4;let CD=38,CH=12,H=B.H,T=3,BASE_T=4,PLATE_T=4,WX=72,WZ=72;   /* WX: module width (front and back walls), WZ: module length (side walls); 60 × 60 in the cluster editor */
@@ -447,6 +447,11 @@ const KINDS={
       return f==="left"?wall("portholes",{style:"tower"}):wall("glassblock");}),
   /* public court: a flat porcelain tray (no walls, no roof) for a square, a courtyard or a plot left open */
   court:()=>make("Public court","modern",2,2,1,"none",()=>INNER(),{court:true,candles:[false],plates:[true]}),
+  modernFacade:()=>make("Modernist terrace block","modern",4,1,3,"modern",(c,r,l,f,ext)=>{
+      if(!ext)return bays("none","square","none");
+      if(f==="front")return wall("facade",{style:l===0?"strips":l===1?"balcony":"bands"});
+      if(f==="back")return wall("facade",{style:"bands"});
+      return wall("facade",{style:"strips"});}),
   modernTower:()=>make("Modernist tower","modern",1,1,6,"modern",(c,r,l,f)=>{
       if(l===0)return f==="front"?wall("pilotis"):f==="back"?wall("picture"):wall("glassblock");
       if(f==="front")return [null,wall("eggcrate"),wall("ribbon"),wall("claustra",{style:"crosses"}),wall("eggcrate"),wall("ribbon",{style:"two"})][l];
