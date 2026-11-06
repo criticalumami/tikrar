@@ -284,7 +284,10 @@ function mirrorFree(spec){return {mode:"free",holes:(spec.holes||[]).map(q=>{con
    do stretch across. Claustras, fins and glass blocks are tiled natively instead (more blocks, never fatter ones). */
 function carry(o,kx,k,u,cx0,cx1){o.holes.forEach(h=>{const b=bbox(h.p),cx=(b.x0+b.x1)/2,cy=(b.y0+b.y1)/2,nx=cx1===undefined?cx*kx:cx1+(cx-cx0)*u,ny=cy*k;
   const p=h.p.map(([x,y])=>[nx+(x-cx)*u,ny+(y-cy)*u]);h.p=Object.assign(p,{kind:h.p.kind,r:h.p.r?h.p.r*u:h.p.r,ry:h.p.ry?h.p.ry*u:h.p.ry});});return o;}
-function build(spec){
+const BUILD_CACHE=new Map(),CHECK_CACHE=new Map();
+function build(spec){const ck=W+"|"+H+"|"+REF+"|"+JSON.stringify(spec);let c=BUILD_CACHE.get(ck);if(c)return c;
+  c=build_(spec);c._ck=ck;if(BUILD_CACHE.size>4000)BUILD_CACHE.clear();BUILD_CACHE.set(ck,c);return c;}
+function build_(spec){
   if(spec.mode==="free"){const o=F();(spec.holes||[]).forEach(q=>hole(o,(FREE[q.s]||FREE.rect).f(q.x,q.y,Math.max(.5,q.w),Math.max(.5,q.h),q),q.set||0));return o;}
   const k=H/H0,kx=W/W0;
   if(spec.mode==="bays"){const o=F();(spec.bays||[]).forEach((id,i)=>{const b=BAY[id]||BAY.none;
@@ -305,7 +308,10 @@ function build0(spec){
 function canOculus(spec){if(spec.mode==="bays"||spec.mode==="free")return false;const o=F(),c=BY[spec.type]||BY.blank;c.build(o,Object.assign({},spec,{oculus:false}));return (c.opts||[]).includes("oculus")&&oculusFits(o);}
 
 /* ---------- checks for one face ---------- */
-function checkFace(o,shrink,radius){const edge=Math.max(LIM.edge,radius||0);   /* openings stay off the rounded corner as well as the mitre */
+function checkFace(o,shrink,radius){const ck=o&&o._ck?o._ck+"|"+(shrink||14)+"|"+(radius||0)+"|"+LIPS.h+"|"+LIPS.in:"";
+  if(ck){const r=CHECK_CACHE.get(ck);if(r)return r;}
+  const r=checkFace_(o,shrink,radius);if(ck){if(CHECK_CACHE.size>4000)CHECK_CACHE.clear();CHECK_CACHE.set(ck,r);}return r;}
+function checkFace_(o,shrink,radius){const edge=Math.max(LIM.edge,radius||0);   /* openings stay off the rounded corner as well as the mitre */
   const k=1/(1-(shrink||14)/100),hs=o.holes.map(h=>({p:h.p,b:bbox(h.p)}));
   const minOpen=hs.length?Math.min(...hs.map(h=>Math.min(h.b.w,h.b.h,narrow(h.p)))):null;
   let minGap=1e9;for(let i=0;i<hs.length;i++)for(let j=i+1;j<hs.length;j++)minGap=Math.min(minGap,gap(hs[i].p,hs[j].p,minGap));
