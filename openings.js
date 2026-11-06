@@ -17,9 +17,13 @@ const ROUND=(x,s,w,h)=>{const r=w/2,st=Math.max(0.01,h-r);return tag([[x,s],[x+w
 const POINTED=(x,s,w,h)=>{const st=Math.max(0.01,h-0.866*w);return tag([[x,s],[x+w,s],...ARC(x,s+st,w,0,PI/3,10),...ARC(x+w,s+st,w,2*PI/3,PI,10).slice(1)],"pointed arch",{r:w,cx:x,cy:s+st});};
 const SEGM=(x,s,w,h)=>{const r0=w/6,Rr=(w*w/4+r0*r0)/(2*r0),st=Math.max(0.01,h-r0),cy=s+st+r0-Rr,a=Math.asin((w/2)/Rr);return tag([[x,s],[x+w,s],...ARC(x+w/2,cy,Rr,PI/2-a,PI/2+a,16)],"segmental arch",{r:Rr,cx:x+w/2,cy});};
 const ELL=(cx,cy,rx,ry)=>{const o=[];for(let k=0;k<32;k++){const a=2*PI*k/32;o.push([cx+rx*Math.cos(a),cy+ry*Math.sin(a)]);}return tag(o,Math.abs(rx-ry)<1e-6?"circle":"oval",{r:rx,ry,cx,cy});};
-/* horseshoe ("keyhole") arch: the circle is wider than the shaft below it */
-const HORSESHOE=(x,s,w,h)=>{const r=w*0.6,cx=x+w/2,cy=s+h-r,a0=Math.atan2(-Math.sqrt(r*r-w*w/4),w/2);return tag([[x,s],[x+w,s],...ARC(cx,cy,r,a0,PI-a0,24)],"horseshoe arch",{r,cx,cy});};
-const ARCHES={pointed:POINTED,round:ROUND,horseshoe:HORSESHOE};
+const HSK=1.28;   /* widest / spring chord: the circle is 0.64 × the chord in radius, so it closes in to 78 % of its diameter at the springing, as at Madinat al-Zahra */
+/* horseshoe on columns, as in the Córdoba arcade: the opening is the full width W between the columns up to the impost,
+   steps in on the impost blocks to the spring chord, then closes in round the horseshoe. The arch is as high as 0.81 W. */
+const HORSEARC=(x,s,W,h,plain)=>{const c=W/HSK,r=c*0.64,d=(W-c)/2,rise=r*(1+Math.sqrt(0.64*0.64-0.25)/0.64),sp=s+Math.max(0.01,h-rise),cx=x+W/2,cy=sp+Math.sqrt(r*r-c*c/4),a0=Math.atan2(-Math.sqrt(r*r-c*c/4),c/2);
+  return tag(plain?[[x+d,s],[x+W-d,s],...ARC(cx,cy,r,a0,PI-a0,36)]:[[x,s],[x+W,s],[x+W,sp],[x+W-d,sp],...ARC(cx,cy,r,a0,PI-a0,36),[x+d,sp],[x,sp]],"horseshoe arcade",{r,cx,cy});};
+const HORSEWIN=(x,s,W,h)=>HORSEARC(x,s,W,h,true);   /* a single window: the shaft is the spring chord, no impost steps */
+const ARCHES={pointed:POINTED,round:ROUND,horseshoe:HORSEWIN};
 function bbox(p){let a=1e9,b=1e9,c=-1e9,d=-1e9;p.forEach(([x,y])=>{a=Math.min(a,x);b=Math.min(b,y);c=Math.max(c,x);d=Math.max(d,y);});return {x0:a,y0:b,x1:c,y1:d,w:c-a,h:d-b};}
 function area(p){let s=0;for(let i=0;i<p.length;i++){const [x0,y0]=p[i],[x1,y1]=p[(i+1)%p.length];s+=x0*y1-x1*y0;}return Math.abs(s)/2;}
 /* ---------- face collector ---------- */
@@ -56,21 +60,22 @@ const colMM=c=>Math.max(LIM.minBar+0.1,M(c));  /* a column is at least the porce
 const bayC=i=>W/2+(i-1)*AS.pitch*SC();         /* the three bay axes, 2.3 m apart */
 /* openings in metres: x axis offset a (m from the centre line), from y0 (m above the floor) */
 const WIN=(a)=>R(AX(a)-M(AS.win.w)/2,M(AS.win.sill),M(AS.win.w),M(AS.win.head-AS.win.sill));
-const ARCHW=(f,a,w,sill,crown)=>{const ws=f===HORSESHOE?w/1.2:w;return f(AX(a)-M(ws)/2,M(sill),M(ws),M(crown-sill));};
+const ARCHW=(f,a,w,sill,crown)=>{return f(AX(a)-M(w)/2,M(sill),M(w),M(crown-sill));};
 const FL=(f,a,w,top)=>{const y=FLOOR();return f(AX(a)-M(w)/2,y,M(w),M(top)-y);};   /* from the floor up to top (m) */
 
 /* ---------- catalogue (book page numbers) ---------- */
 const CAT=[
  {id:"triple",group:"Bays",name:"Triple-arch bay",ref:"pp. 170–173",asb:"arches 100 · 120 · 100 cm on 25 cm columns, crowns 3.60 / 3.90 m, to the floor",
-  desc:"The emblem of the central-hall house: three arches on two slender columns, the centre one wider and taller. Pointed arches are the most common; semicircular ones are the exception.",
-  styles:{label:"Arches",options:{pointed:"Pointed",round:"Semicircular"}},opts:["cornice","balcony"],cornice:"Discharging arch (relief)",
-  build(o,q){const f=ARCHES[q.style]||POINTED,A=AS.arcade,col=colMM(A.col)/SC(),y=FLOOR(),xs=A.mid/2+col+A.side/2;
-   hole(o,f(AX(-xs)-M(A.side)/2,y,M(A.side),M(A.crownS)-y));hole(o,f(AX(0)-M(A.mid)/2,y,M(A.mid),M(A.crownM)-y));hole(o,f(AX(xs)-M(A.side)/2,y,M(A.side),M(A.crownS)-y));
+  desc:"The emblem of the central-hall house: three arches on two slender columns, the centre one wider and taller. Pointed arches are the most common; semicircular ones are the exception. The horseshoe version is the Umayyad arcade of Córdoba and Madinat al-Zahra: each arch closes in below its widest point and springs from the column.",
+  styles:{label:"Arches",options:{pointed:"Pointed",round:"Semicircular",horseshoe:"Horseshoe (Córdoba)"}},opts:["cornice","balcony"],cornice:"Discharging arch (relief)",
+  build(o,q){const f=ARCHES[q.style]||POINTED,A=AS.arcade,col=colMM(A.col)/SC(),y=FLOOR(),K=f===HORSEWIN?1.3:1,xs=K*(A.mid+A.side)/2+col;
+   const arch=(a,w,top)=>hole(o,(f===HORSEWIN?HORSEARC:f)(AX(a)-M(w*K)/2,y,M(w*K),M(top)-y));   /* the Córdoba arcade is wider and rides on impost blocks */
+   arch(-xs,A.side,A.crownS);arch(0,A.mid,A.crownM);arch(xs,A.side,A.crownS);
    fin(o,colMM(A.col),"Triple-arch columns");}},
  {id:"liwan",group:"Bays",name:"Līwān arch",ref:"pp. 20–22",asb:"about 290 cm wide, crown 4.00 m, to the floor",
   desc:"One large arch opening the hall or porch to the outside. The early central-hall houses had a single large arch before the triple arch became the norm.",
   styles:{label:"Arch",options:{round:"Semicircular",pointed:"Pointed",horseshoe:"Horseshoe"}},opts:["frame","balcony","oculus"],
-  build(o,q){const f=ARCHES[q.style]||ROUND,w=q.style==="horseshoe"?AS.liwan.w/1.2:AS.liwan.w;hole(o,FL(f,0,w,AS.liwan.crown));}},
+  build(o,q){const f=ARCHES[q.style]||ROUND,w=AS.liwan.w;hole(o,FL(f,0,w,AS.liwan.crown));}},
  {id:"closedLiwan",group:"Bays",name:"Door between two windows",ref:"p. 20",asb:"door 105 cm under a segmental head at 3.35 m, windows 110 × 260 cm on axes 2.30 m out",
   desc:"The closed līwān: a centred door flanked by two windows, the standard front of the smaller extra-mural houses. Door head and window heads share one line.",
   opts:["frame","cornice","oculus"],cornice:"Cornices over the windows",
@@ -102,7 +107,7 @@ const CAT=[
   build(o,q){hole(o,ARCHW(ARCHES[q.style]||ROUND,0,AS.arch.w,AS.arch.sill,AS.arch.crown));}},
  {id:"coupled",group:"Windows",name:"Coupled windows",ref:"p. 169",asb:"two 80 cm arched lights on a 25 cm column, crown 3.75 m",
   desc:"Two twin arched openings with an intermediate column, often lighting a stairwell, one arch per flight.",
-  styles:{label:"Arches",options:{pointed:"Pointed",round:"Semicircular"}},opts:["cornice","oculus"],cornice:"Hood moulding (relief)",
+  styles:{label:"Arches",options:{pointed:"Pointed",round:"Semicircular",horseshoe:"Horseshoe"}},opts:["cornice","oculus"],cornice:"Hood moulding (relief)",
   build(o,q){const f=ARCHES[q.style]||POINTED,C=AS.coupled,c=colMM(C.col)/SC(),a=(C.w+c)/2;
    [-a,a].forEach(x=>hole(o,ARCHW(f,x,C.w,C.sill,C.crown)));fin(o,colMM(C.col),"Coupled-window column");}},
  {id:"high",group:"Windows",name:"High windows",ref:"p. 169",asb:"40 × 80 cm, sill 2.85 m",
@@ -232,10 +237,11 @@ const at=(c,w)=>c-M(w)/2;
 const BAYS=[
  {id:"pointed",name:"Tall pointed arch",ref:"pp. 169–172",asb:"110 cm wide, sill 75 cm, crown 3.90 m",build:(o,c)=>hole(o,POINTED(at(c,1.1),M(AS.arch.sill),M(1.1),M(AS.arch.crown-AS.arch.sill)))},
  {id:"round",name:"Tall round arch",ref:"p. 169",asb:"110 cm wide, sill 75 cm, crown 3.90 m",build:(o,c)=>hole(o,ROUND(at(c,1.1),M(AS.arch.sill),M(1.1),M(AS.arch.crown-AS.arch.sill)))},
- {id:"horseshoe",name:"Horseshoe arch",ref:"p. 172",asb:"92 cm shaft, 110 cm at the arch, crown 3.90 m",build:(o,c)=>hole(o,HORSESHOE(at(c,1.1/1.2),M(AS.arch.sill),M(1.1/1.2),M(AS.arch.crown-AS.arch.sill)))},
+ {id:"horseshoe",name:"Horseshoe arch",ref:"p. 172",asb:"130 cm at the widest, closing in to 100 cm at the springing, crown 3.90 m",build:(o,c)=>hole(o,HORSEWIN(at(c,1.3),M(AS.arch.sill),M(1.3),M(AS.arch.crown-AS.arch.sill)))},
  {id:"door",name:"Door with oculus",ref:"pp. 163, 169",asb:"door 105 × 215 cm, Ø 55 cm oculus over the lintel",build:(o,c)=>{const y=FLOOR(),top=M(AS.door.h),r=M(0.55)/2;hole(o,R(at(c,AS.door.w),y,M(AS.door.w),top-y));
    hole(o,ELL(c,top+Math.max(M(AS.door.lintel+0.1),LIM.minBar+0.1)+r,r,r));}},
  {id:"window",name:"Tall window",ref:"p. 166",asb:"110 × 260 cm on a 75 cm parapet",build:(o,c)=>hole(o,R(at(c,AS.win.w),M(AS.win.sill),M(AS.win.w),M(AS.win.head-AS.win.sill)))},
+ {id:"horseshoeTwin",name:"Twin horseshoe lights",ref:"pp. 169, 172",asb:"two 80 cm horseshoe lights on a 25 cm column, crown 3.75 m",build:(o,c)=>{const C=AS.coupled,col=colMM(C.col)/SC(),a=(C.w+col)/2;[-a,a].forEach(d=>hole(o,HORSEARC(c+d*SC()-M(C.w)/2,M(C.sill),M(C.w),M(C.crown-C.sill))));}},
  {id:"small",name:"Small arched window",ref:"p. 169",asb:"60 × 130 cm, sill 1.40 m",build:(o,c)=>hole(o,ROUND(at(c,0.6),M(1.4),M(0.6),M(1.3)))},
  {id:"high",name:"High pointed window",ref:"p. 169",asb:"40 × 80 cm, sill 2.85 m",build:(o,c)=>hole(o,POINTED(at(c,AS.high.w),M(AS.high.sill),M(AS.high.w),M(AS.high.h)))},
  {id:"oculus",name:"Oculus",ref:"p. 169",asb:"Ø 60 cm, centre 3.40 m",build:(o,c)=>hole(o,ELL(c,M(AS.oculus.y),M(AS.oculus.d)/2,M(AS.oculus.d)/2))},
@@ -285,10 +291,10 @@ const FREE={
  rect:{name:"Window",f:(x,y,w,h)=>R(x,y,w,h)},
  round:{name:"Round arch",f:(x,y,w,h)=>ROUND(x,y,w,h)},
  pointed:{name:"Pointed arch",f:(x,y,w,h)=>POINTED(x,y,w,h)},
- horseshoe:{name:"Horseshoe arch",f:(x,y,w,h)=>HORSESHOE(x+w/12,y,w/1.2,h)},
+ horseshoe:{name:"Horseshoe arch",f:(x,y,w,h)=>HORSEWIN(x,y,w,h)},
  circle:{name:"Circle",f:(x,y,w,h)=>ELL(x+w/2,y+h/2,w/2,h/2)},
  poly:{name:"Outline",f:(x,y,w,h,q)=>tag((q.p||[[0,0],[1,0],[1,1],[0,1]]).map(([u,v])=>[x+u*w,y+v*h]),q.k||"outline")}};
-const KIND2FREE={"rect":"rect","round arch":"round","pointed arch":"pointed","horseshoe arch":"horseshoe","circle":"circle","oval":"circle"};
+const KIND2FREE={"rect":"rect","round arch":"round","pointed arch":"pointed","horseshoe arch":"horseshoe","horseshoe arcade":"horseshoe","circle":"circle","oval":"circle"};
 const r2=v=>Math.round(v*100)/100;
 function toFree(spec){const o=build(spec);
   return {mode:"free",holes:o.holes.map(h=>{const b=bbox(h.p),s=KIND2FREE[h.p.kind]||"poly",q={s,x:r2(b.x0),y:r2(b.y0),w:r2(b.w),h:r2(b.h)};
