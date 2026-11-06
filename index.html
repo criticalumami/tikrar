@@ -226,7 +226,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
 <header class="grid12">
   <h1>TIKRAR<small>Beirut Lantern Generator</small></h1>
   <span class="sub"><span id="modSize">porcelain modules 72 × 72 mm · 48 mm walls</span> · houses, towers and city blocks · 1860–1925 and modernist openings</span>
-  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 06.11 · 07:35</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
+  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 06.11 · 08:25</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
   </nav>
 </header>
 
@@ -258,9 +258,10 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
       <h2>Randomize <span class="histMini"><button class="btn" type="button" id="undoBtn" title="Undo the last change (Ctrl or &#8984; + Z)" disabled>Undo</button><button class="btn" type="button" id="redoBtn" title="Redo (Shift + Ctrl or &#8984; + Z)" disabled>Redo</button></span></h2>
       <div class="f"><span class="lbl">Scope</span><div class="v"><div class="seg" id="rxScopeSeg" title="What part of the design to randomize"><button type="button" data-v="city" class="cluonly">Whole city</button><button type="button" data-v="block" class="cluonly">Block</button><button type="button" data-v="sel">Building</button><button type="button" data-v="wall">Wall</button></div></div></div>
       <div class="f cluonly" id="rxModeRow"><span class="lbl">Method</span><div class="v"><div class="seg" id="rxModeSeg" title="New buildings generates fresh buildings and footprints; Re-roll keeps footprints and floor levels and re-deals selected switches"><button type="button" data-v="new">New buildings</button><button type="button" data-v="reroll">Re-roll</button></div></div></div>
-      <div class="f cluonly" id="rxSwitchesRow"><span class="lbl">Re-roll</span><div class="v"><button class="btn" type="button" id="rxL" aria-pressed="false" title="Layout: deal the same buildings into a new city plan (their footprints and floor levels stay)">Layout</button><button class="btn" type="button" id="rxO" aria-pressed="true" title="Openings: new walls and openings on every module, and a new roof type (slanted or flat)">Openings</button><button class="btn" type="button" id="rxP" aria-pressed="true" title="Colours: new glazes and slabs (and roofs, if Roofs is on)">Colours</button><button class="btn" type="button" id="rxR" aria-pressed="true" title="Roofs: Colours also re-deals roof and lid colours. Off: roofs keep their colours">Roofs</button></div></div>
-      <div class="f"><span class="lbl">Locks</span><div class="v"><div class="lockBar" id="lockBar" role="group" aria-label="Lock features so Randomize leaves them as they are"><button type="button" data-lk="layout" data-m="c" aria-pressed="false" title="Lock the city layout: Randomize keeps every building where it is">&#128274; Layout</button><button type="button" data-lk="size" aria-pressed="false" title="Lock the size (columns, depth, levels): Randomize leaves it as it is">&#128274; Size</button><button type="button" data-lk="walls" aria-pressed="false" title="Lock the walls and openings: Randomize leaves them as they are">&#128274; Walls</button><button type="button" data-lk="roof" aria-pressed="false" title="Lock the roofs (type and piece): Randomize leaves them as they are">&#128274; Roof</button><button type="button" data-lk="light" aria-pressed="false" title="Lock the candles and plates: Randomize leaves them as they are">&#128274; Light</button><button type="button" data-lk="col" aria-pressed="false" title="Lock the palette: Randomize keeps every colour as it is">&#128274; Palette</button><button type="button" class="lkAll" id="lkAll" aria-pressed="false" title="Lock every feature at once (press again to unlock all)">Lock all</button></div></div></div>
+      <div class="f cluonly" id="rxSwitchesRow"><span class="lbl">Re-roll</span><div class="v"><button class="btn" type="button" id="rxL" aria-pressed="false" title="Layout: deal the same buildings into a new city plan (their footprints and floor levels stay)">Layout</button><button class="btn" type="button" id="rxO" aria-pressed="true" title="Openings: new walls and openings on every module, and a new roof type (slanted or flat)">Openings</button><button class="btn" type="button" id="rxP" aria-pressed="true" title="Colours: new glazes and slabs (and roofs, if Roofs is on)">Colours</button><button class="btn" type="button" id="rxR" aria-pressed="true" title="Roofs: Colours also re-deals roof and lid colours. Off: roofs keep their colours">Roofs</button><button class="btn" type="button" id="rxE" aria-pressed="true" title="Engrave: re-deal pixelated engraving on walls and roofs">Engrave</button></div></div>
+      <div class="f"><span class="lbl">Locks</span><div class="v"><div class="lockBar" id="lockBar" role="group" aria-label="Lock features so Randomize leaves them as they are"><button type="button" data-lk="layout" data-m="c" aria-pressed="false" title="Lock the city layout: Randomize keeps every building where it is">&#128274; Layout</button><button type="button" data-lk="size" aria-pressed="false" title="Lock the size (columns, depth, levels): Randomize leaves it as it is">&#128274; Size</button><button type="button" data-lk="walls" aria-pressed="false" title="Lock the walls and openings: Randomize leaves them as they are">&#128274; Walls</button><button type="button" data-lk="roof" aria-pressed="false" title="Lock the roofs (type and piece): Randomize leaves them as they are">&#128274; Roof</button><button type="button" data-lk="eng" aria-pressed="false" title="Lock the pixel engraving (walls and roof): Randomize leaves it as it is">&#128274; Engrave</button><button type="button" data-lk="light" aria-pressed="false" title="Lock the candles and plates: Randomize leaves them as they are">&#128274; Light</button><button type="button" data-lk="col" aria-pressed="false" title="Lock the palette: Randomize keeps every colour as it is">&#128274; Palette</button><button type="button" class="lkAll" id="lkAll" aria-pressed="false" title="Lock every feature at once (press again to unlock all)">Lock all</button></div></div></div>
       <div class="f cluonly"><span class="lbl">Palette</span><div class="v"><div class="seg" id="rxMSeg" title="One palette for the whole re-roll, or a mix of palettes building by building"><button type="button" data-v="0">One</button><button type="button" data-v="1">Mix</button></div><button class="btn" type="button" id="keepPal" aria-pressed="false" title="Randomize with the selected building's palette">Keep palette</button></div></div>
+      <div class="f"><span class="lbl">Engraving</span><div class="v"><div class="seg" id="engRandSeg" title="Pixelated engraving when randomizing: Without keeps walls and roofs plain; Random mixes engraved and plain walls and roofs; All engraves walls and roofs"><button type="button" data-v="0">Without</button><button type="button" data-v="1">Random</button><button type="button" data-v="2">All</button></div><button class="btn" type="button" id="randEngNow" title="Randomize pixel engraving on the current scope right now">Roll</button></div></div>
       <div class="f cluonly"><span class="lbl">Landmarks</span><div class="v"><div class="seg" id="lmSeg" title="Randomize All with or without landmarks; each landmark stands alone on its own block"><button type="button" data-v="0">Without</button><button type="button" data-v="1">With</button></div></div></div>
       <div class="f"><span class="lbl">Action</span><div class="v"><button class="btn primary" type="button" id="rxGo" style="flex:1" title="Run the randomizer for the chosen Scope, Method and Locks">Randomize</button><select id="keepSec" aria-label="Keep randomizing: time between re-rolls" title="Time between re-rolls when Keep is on" style="flex:0 0 88px"><option value="1">every 1 s</option><option value="2.5" selected>every 2.5 s</option><option value="5">every 5 s</option><option value="10">every 10 s</option><option value="30">every 30 s</option></select><button class="btn cluonly" type="button" id="rand10" title="10 random shots as a GIF: ten randomized cities as one GIF; your design comes back afterwards">GIF ×10</button></div></div>
       <div hidden><button type="button" id="randBlock">Block</button><button type="button" id="randVillage">All</button><button type="button" id="rxSel">Selected</button><button type="button" id="rxAll">Whole city</button></div>
@@ -309,10 +310,10 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
       <div class="f modonly"><label class="lbl" for="modCD" title="Candle (tealight) diameter, standard 38 mm">Candle Ø</label><div class="v rng"><input type="range" id="modCD" min="20" max="52" step="1"><span class="num" id="modCDV"></span></div></div>
       <div class="f modonly"><label class="lbl" for="modCH" title="Candle (tealight) height, default 12 mm: double the first model">Candle height</label><div class="v rng"><input type="range" id="modCH" min="6" max="30" step="1"><span class="num" id="modCHV"></span></div></div>
       <div class="f modonly"><label class="lbl" for="modO" title="Grow or shrink every opening of the selected wall about its own centre (the wall becomes a drawn wall)">Openings</label><div class="v rng"><input type="range" id="modO" min="50" max="150" step="5" value="100"><span class="num" id="modOV">100 %</span></div></div>
-      <div class="f modonly"><label class="lbl" for="engW" title="Dense pixel grid engraved into the outside of the walls: the clay under it is thinner (1 mm), so the candlelight shows brighter">Wall engrave</label><div class="v"><select id="engW" aria-label="Wall engraving"></select></div></div>
-      <div class="f modonly"><label class="lbl" for="engR" title="Dense pixel grid engraved into the four slopes of a filled slanted roof (the flat roof too; not trusses or Half)">Roof engrave</label><div class="v"><select id="engR" aria-label="Roof engraving"></select></div></div>
-      <div class="f cluonly"><label class="lbl" for="engWc" title="Dense pixel grid engraved into the outside of the walls: the clay under it is thinner (1 mm), so the candlelight shows brighter">Wall engrave (city)</label><div class="v"><select id="engWc" aria-label="Wall engraving"></select></div></div>
-      <div class="f cluonly"><label class="lbl" for="engRc" title="Dense pixel grid engraved into the four slopes of a filled slanted roof (the flat roof too; not trusses or Half)">Roof engrave (city)</label><div class="v"><select id="engRc" aria-label="Roof engraving"></select></div></div>
+      <div class="f"><label class="lbl" for="engW" title="Dense pixel grid engraved into the outside of the walls: the clay under it is thinner (1 mm), so the candlelight shows brighter">Wall engrave</label><div class="v"><select id="engW" aria-label="Wall engraving"></select><button type="button" class="lkInline" data-lk="eng" aria-pressed="false" title="Lock the pixel engraving (walls and roof)">&#128274;</button></div></div>
+      <div class="f"><label class="lbl" for="engR" title="Dense pixel grid engraved into the four slopes of a filled slanted roof (the flat roof too; not trusses or Half)">Roof engrave</label><div class="v"><select id="engR" aria-label="Roof engraving"></select></div></div>
+      <div class="f cluonly"><label class="lbl" for="engWc" title="City-wide wall engraving: Off, On, or Random mix across all buildings">Wall engrave (city)</label><div class="v"><select id="engWc" aria-label="Wall engraving"></select></div></div>
+      <div class="f cluonly"><label class="lbl" for="engRc" title="City-wide roof engraving: Off, On, or Random mix across all buildings">Roof engrave (city)</label><div class="v"><select id="engRc" aria-label="Roof engraving"></select></div></div>
       <div class="f"><label class="lbl" for="bodySel">Clay</label><div class="v"><select id="bodySel"><option value="porcelain">Porcelain</option><option value="stoneware">Stoneware</option><option value="terracotta">Terracotta</option></select>
         <div class="seg" id="finishSeg" title="Glaze finish: matte (default), glossy, or bare clay"><button type="button" data-v="glazed">Matte</button><button type="button" data-v="gloss">Gloss</button><button type="button" data-v="unglazed">Bare</button></div></div></div>
       <div class="f"><span class="lbl">Glaze</span><div class="v sw" id="glazeSw"></div></div>
@@ -412,7 +413,9 @@ function make(name,set,cols,deep,levels,roof,fn,o){
   const b=Object.assign({name,set,cols,deep,levels,roof,pitch:30,body:"porcelain",finish:"glazed",glazeCol:"white",roofCol:"same",x:0,z:0,rot:0,mods:{},
     plates:Array.from({length:levels},()=>true),candles:Array.from({length:levels},(_,l)=>l===0)},o||{});
   for(let c=0;c<cols;c++)for(let r=0;r<deep;r++)for(let l=0;l<levels;l++){const m={};FACES.forEach(f=>m[f]=fn(c,r,l,f,!sharedOf(b,c,r,f)));b.mods[c+":"+r+":"+l]=m;}
-  try{if(S.engW)b.engW=S.engW;if(S.engR)b.engR=S.engR;if(S.engW||S.engR)b.engS=S.engS||0;}catch(e){}   /* the city-wide engraving carries over to new buildings */
+  try{if(S.engW==="grid")b.engW="grid";else if(S.engW==="rand"&&!b.court)b.engW=Math.random()<0.45?"grid":"";
+    if(S.engR==="grid"&&canEngR(b))b.engR="grid";else if(S.engR==="rand"&&canEngR(b))b.engR=Math.random()<0.45?"grid":"";
+    if(b.engW||b.engR)b.engS=S.engS||0;}catch(e){}   /* the city-wide engraving carries over to new buildings */
   return b;}
 /* the neighbour a wall faces, if any (walls between modules stay inside the building) */
 /* with a level, a wall only counts as inside when the neighbour module is really there (not removed) */
@@ -487,16 +490,26 @@ function randomizeLight(b){
   if(!keys.length){b.candles[0]=true;return;}
   if(!keys.some(([k])=>!b.noCandle[k])){const [k,l]=pick(keys);delete b.noCandle[k];b.candles[l]=true;}
   keys.forEach(([k,l])=>{if(!b.candles[l])delete b.noCandle[k];});}   /* a level with no lit module is simply unticked */   /* a slab under every level by default */
+const canEngR=b=>!b.court&&(b.roof==="modern"||(b.roof==="slant"&&(!b.fill||b.fill==="shell")));
+const engMode=()=>S&&S.engRand!==undefined?String(S.engRand):"1";
+function randomizeEngrave(b,forceDiff){if(!b||b.court){if(b){b.engW="";b.engR="";}return;}
+  const m=engMode(),cr=canEngR(b);
+  if(m==="0"){b.engW="";b.engR="";return;}
+  if(m==="2"){b.engW="grid";b.engR=cr?"grid":"";return;}
+  const ow=b.engW||"",or=b.engR||"";
+  let nw=Math.random()<0.45?"grid":"",nr=cr&&Math.random()<0.45?"grid":"";
+  if(forceDiff&&nw===ow&&nr===or){if(cr){const st=[["",""],["grid",""],["","grid"],["grid","grid"]].filter(([w,r])=>w!==ow||r!==or);[nw,nr]=pick(st);}else nw=ow?"":"grid";}
+  b.engW=nw;b.engR=nr;}
 /* a new random building on the same footprint and spot, so the other blocks stay where they are */
 function randomFit(o){const tower=o.cols*o.deep===1&&Math.random()<0.6,set=tower?(Math.random()<0.75?"modern":"ottoman"):(Math.random()<0.6?"ottoman":"modern"),
   levels=o.levels||(tower?pick([3,4,5,6]):pick([1,2,3])),b=make(set==="modern"?(tower?"Modernist tower":"Modernist block"):(tower?"Stair tower":"House"),set,o.cols,o.deep,levels,set==="ottoman"?"slant":"modern",()=>wall("blank"));
-  randomizeLight(b);randomizeBuilding(b);Object.assign(b,{x:o.x,z:o.z,rot:o.rot,blk:o.blk});return pickSpan(b);}
+  randomizeLight(b);randomizeBuilding(b);Object.assign(b,{x:o.x,z:o.z,rot:o.rot,blk:o.blk});pickSpan(b);try{if(!LK().eng)randomizeEngrave(b);}catch(e){}return b;}
 /* random roofs: a whole hipped roof only on small footprints (up to two modules), otherwise one lid per module */
 const pickSpan=b=>{b.span=b.roof==="slant"&&b.cols*b.deep>2?"module":b.cols*b.deep>1&&Math.random()<0.6?"module":"whole";return b;};
 function randomBuilding(){const tower=Math.random()<0.45,set=tower?(Math.random()<0.75?"modern":"ottoman"):(Math.random()<0.6?"ottoman":"modern");
   const cols=tower?1:pick([1,2,3]),deep=tower?1:Math.min(cols,pick([1,2,3])),levels=tower?pick([3,4,5,6]):pick([1,2,3]);
   const b=make(set==="modern"?(tower?"Modernist tower":"Modernist block"):(tower?"Stair tower":"House"),set,cols,deep,levels,set==="ottoman"?"slant":"modern",()=>wall("blank"));
-  randomizeLight(b);randomizeBuilding(b);return pickSpan(b);}
+  randomizeLight(b);randomizeBuilding(b);pickSpan(b);try{if(!LK().eng)randomizeEngrave(b);}catch(e){}return b;}
 const fp=b=>b.rot%2?{w:b.deep*WZ,d:b.cols*WX}:{w:b.cols*WX,d:b.deep*WZ};
 /* the village is a Swiss grid: square fields of 4 modules (240 mm), one module of each kept as the gutter, so the
    largest building (3 × 3) fills a field and every building sits flush to its field's back-left corner */
@@ -623,7 +636,7 @@ function defaults(noB){return {buildings:noB?[]:MODE==="module"?[KINDS.liwan()]:
 let S=null;
 try{const v=JSON.parse(localStorage.getItem(KEY)||"null");if(v&&Array.isArray(v.buildings)&&v.buildings.length)S=Object.assign(defaults(true),v);}catch(e){}
 if(!S)S=defaults();
-try{["engW","engR"].forEach(k=>{if(S[k])S[k]="grid";});}catch(e){}   /* old pattern choices become the plain dense grid */
+try{["engW","engR"].forEach(k=>{if(S[k]&&S[k]!=="rand")S[k]="grid";});}catch(e){}   /* old pattern choices become the plain dense grid */
 S.night=false;   /* the site opens in Day */
 S.noSel=false;
 S.buildings.forEach(b=>{if(b.set==='grid')b.set='modern';Object.values(b.mods).forEach(m=>FACES.forEach(f=>{const w=m[f];if(w&&((w.type&&!B.BY[w.type])||(w.bays&&w.bays.some(x=>!B.BAY[x]))))m[f]=randomWall(b.set);}));});   /* the retired grid openings become a fresh wall of the building's book */if(S.editSet==='grid')S.editSet='modern';if(S.gutter===undefined)S.gutter=30;GUTTER=S.gutter;if(S.avenue===undefined)S.avenue=60;AVENUE=S.avenue;if(S.blockM===undefined)S.blockM=6;BLOCKM=S.blockM;if((S.gridded||0)<3){gridLayout(S.buildings);S.gridded=3;}   /* designs saved before the village grid are laid out on it once */
@@ -632,7 +645,7 @@ S.buildings=S.buildings.filter(b=>!b.tree);S.buildings.forEach(b=>{if(b.glaze){i
 /* saving and history (v 02.11 review): the design is written to localStorage once the editing pauses (and when the page is left),
    and every settled change is one Undo step; a slider drag is one step. Only the design is in the history: night, sun, explode,
    candle strength, cut and camera are view settings and stay as they are. */
-const VIEWK=new Set(["fast","noSel","sunOff","explodePrev","candlePrev","cutLast","night","explode","candle","sun","render","bit","bitPx","bitC","bitB","bitO","ortho","lock","spin","nopanel","cut","view","gifWhat","dims","noDims","tab","rxScope","rxMode"]);
+const VIEWK=new Set(["fast","noSel","sunOff","explodePrev","candlePrev","cutLast","night","explode","candle","sun","render","bit","bitPx","bitC","bitB","bitO","ortho","lock","spin","nopanel","cut","view","gifWhat","dims","noDims","tab","rxScope","rxMode","engRand"]);
 const hSnap=()=>{const o={};for(const k in S)if(!VIEWK.has(k))o[k]=S[k];return JSON.stringify(o);};
 let hCur="",hU=[],hR=[],hSz=0,hSkip=false,hT=0,lsT=0,hLive=false;   /* hLive: set by the first touch; until then settling only re-bases */const HMAX=60,HBYTES=40e6;
 const persist=()=>{lsT=0;try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}};
@@ -2177,7 +2190,7 @@ applyAccent();const b=Bs(),[sc,sr,sl]=keyParts(S.sel);
   $("bList").innerHTML=S.buildings.map((x,i)=>`<button type="button" class="${i===S.selB?"on":isSel(i)?"also":""}" data-b="${i}" aria-pressed="${isSel(i)}" title="Shift- or ⌘-click to add to the selection">${x.name}<span>${x.cols}×${x.deep}×${x.levels}</span></button>`).join("");
   const totMods=S.buildings.reduce((a,x)=>a+x.cols*x.deep*x.levels,0);
   $("villageMeta").textContent=S.buildings.length+" building"+(S.buildings.length>1?"s":"")+" · "+totMods+" modules";
-  seg($("setSeg"),b.set);{const a=document.activeElement;if(a!==$("gutV"))$("gutV").value=gut();if(a!==$("aveV"))$("aveV").value=ave();if(a!==$("bwV"))$("bwV").value=BLOCKM;$("gapV").textContent=(S.gaps||[]).length;$("mixBtn").setAttribute("aria-pressed",!!S.mix);seg($("lmSeg"),S.landmarks?"1":"0");}$("varyBtn").setAttribute("aria-pressed",!!S.vary);if(document.activeElement!==$("countV"))$("countV").value=S.buildings.length;if($("modCountV")&&document.activeElement!==$("modCountV"))$("modCountV").value=totMods;seg($("blocksSeg"),String(blkMode()));if($("dimsSeg"))seg($("dimsSeg"),S.noDims?"0":blkMode()>0?"2":"1");seg($("colsSeg"),b.cols);{const m=S.rmax;$("capC").textContent="across"+(m?" · max "+m.c:"");$("capD").textContent="deep"+(m?" · max "+m.d:"");$("capL").textContent="levels"+(m?" · max "+m.l:"");}seg($("deepSeg"),b.deep);$("levelsV").textContent=b.levels;seg($("roofSeg"),b.roof);seg($("spanSeg"),b.span||"whole");seg($("fillSeg"),b.fill||"shell");$("engW").value=b.engW||"";$("engR").value=b.engR||"";["engW","engR"].forEach(id=>{const v=S.buildings.length&&S.buildings.every(q=>(q[id]||"")===(S.buildings[0][id]||""))?(S.buildings[0][id]||""):(S[id]||"");$(id+"c").value=v;});$("engR").disabled=!(b.roof==="modern"||(b.roof==="slant"&&(!b.fill||b.fill==="shell")));$("fillSeg").querySelectorAll("button").forEach(x=>x.disabled=b.roof!=="slant");$("radius").value=radOf(b);$("radiusV").textContent="R "+radOf(b)+" mm";$("levelsV").textContent=b.levels;
+  seg($("setSeg"),b.set);{const a=document.activeElement;if(a!==$("gutV"))$("gutV").value=gut();if(a!==$("aveV"))$("aveV").value=ave();if(a!==$("bwV"))$("bwV").value=BLOCKM;$("gapV").textContent=(S.gaps||[]).length;$("mixBtn").setAttribute("aria-pressed",!!S.mix);seg($("lmSeg"),S.landmarks?"1":"0");}$("varyBtn").setAttribute("aria-pressed",!!S.vary);if(document.activeElement!==$("countV"))$("countV").value=S.buildings.length;if($("modCountV")&&document.activeElement!==$("modCountV"))$("modCountV").value=totMods;seg($("blocksSeg"),String(blkMode()));if($("dimsSeg"))seg($("dimsSeg"),S.noDims?"0":blkMode()>0?"2":"1");seg($("colsSeg"),b.cols);{const m=S.rmax;$("capC").textContent="across"+(m?" · max "+m.c:"");$("capD").textContent="deep"+(m?" · max "+m.d:"");$("capL").textContent="levels"+(m?" · max "+m.l:"");}seg($("deepSeg"),b.deep);$("levelsV").textContent=b.levels;seg($("roofSeg"),b.roof);seg($("spanSeg"),b.span||"whole");seg($("fillSeg"),b.fill||"shell");$("engW").value=b.engW||"";$("engR").value=b.engR||"";["engW","engR"].forEach(id=>{const pool=id==="engR"?S.buildings.filter(canEngR):S.buildings.filter(q=>!q.court),v=!pool.length?(S[id]||""):pool.every(q=>(q[id]||"")===(pool[0][id]||""))?(pool[0][id]||""):"rand";$(id+"c").value=v;});$("engR").disabled=!canEngR(b);$("fillSeg").querySelectorAll("button").forEach(x=>x.disabled=b.roof!=="slant");$("radius").value=radOf(b);$("radiusV").textContent="R "+radOf(b)+" mm";$("levelsV").textContent=b.levels;
   {const sl=S.buildings.filter(x=>x.roof==="slant"),pa=$("pitchAll");pa.disabled=!sl.length;if(document.activeElement!==pa)pa.value=sl.length?sl[0].pitch:30;$("pitchAllV").textContent=(sl.length?+pa.value:"–")+"°";}$("ventD").value=VDROP;$("ventD").disabled=b.roof!=="slant";$("ventDV").textContent=VDROP?"cut −"+VDROP.toFixed(1)+" mm":"10 mm";$("pitch").value=b.pitch;$("pitchV").textContent=b.pitch+"°";$("pitch").disabled=b.roof!=="slant";$("bodySel").value=b.body||"porcelain";seg($("finishSeg"),b.finish||"glazed");
   $("glazeSw").innerHTML=(b.finish||"glazed")!=="unglazed"?Object.entries(GLAZE).map(([k,g])=>{const c=g.col===null?BODY[b.body||"porcelain"].col:g.col;return `<button type="button" data-g="${k}" title="${g.name} glaze" aria-label="${g.name} glaze" aria-pressed="${(b.glazeCol||"white")===k}" style="width:22px;height:22px;border-radius:50%;cursor:pointer;background:${hex(c)};border:2px solid ${(b.glazeCol||"white")===k?"var(--terra)":"var(--line)"}${g.col===null?";background-image:linear-gradient(135deg,transparent 45%,rgba(0,0,0,.25) 50%,transparent 55%)":""}"></button>`;}).join(""):"";
   {const bodyC=BODY[b.body||"porcelain"].col,swb=(k,name,bg,cur,extra)=>`<button type="button" data-g="${k}" title="${name}" aria-label="${name}" aria-pressed="${cur===k}" style="width:22px;height:22px;border-radius:50%;cursor:pointer;background:${bg};border:2px solid ${cur===k?"var(--terra)":"var(--line)"}${extra||""}"></button>`,
@@ -2342,6 +2355,7 @@ on("randBlock","click",()=>{const lk=LK();if(lkEvery()){toast("Everything is loc
     if(lk.roof){n.roof=b.roof;n.pitch=b.pitch;n.span=b.span;n.fill=b.fill;}
     if(lk.walls)Object.keys(n.mods).forEach(k=>{if(b.mods[k])n.mods[k]=clone(b.mods[k]);});
     if(lk.light){n.plates=b.plates.slice(0,n.levels);n.candles=b.candles.slice(0,n.levels);}
+    if(lk.eng){n.engW=b.engW||"";n.engR=canEngR(n)?(b.engR||""):"";}else randomizeEngrave(n);
     if(lk.col){n.palette=b.palette;n.body=b.body;n.finish=b.finish;n.glazeCol=b.glazeCol;n.roofCol=b.roofCol;n.plateCol=b.plateCol;}
     else randPal(n,keep||Math.random()<0.7?pal:pick(Object.keys(PALETTES)));
     return n;});S.sel="0:0:0";renderUI();});
@@ -2393,7 +2407,7 @@ function gifEncode(frames,w,h,cs,pal){const o=[],s=t=>{for(const c of t)o.push(c
   frames.forEach(ix=>{o.push(0x21,0xf9,4,4);u16(cs);o.push(0,0,0x2c);u16(0);u16(0);u16(w);u16(h);o.push(0);gifLZW(ix,o);});o.push(0x3b);return new Uint8Array(o);}
 const nextFrame=()=>new Promise(r=>requestAnimationFrame(()=>r()));
 on("rand10","click",()=>{$("gifMode").value="rand";$("gifN").value="10";$("gifBtn").click();});
-on("gifBtn","click",async()=>{const btn=$("gifBtn");if(btn.disabled)return;if(MODE!=="module"&&/^rand/.test($("gifMode").value)&&!S.rxL&&S.rxO===false&&S.rxP===false){toast("Switch on Layout, Openings or Colours in Re-roll first");return;}btn.disabled=true;const mode=$("gifMode").value,N=+$("gifN").value;
+on("gifBtn","click",async()=>{const btn=$("gifBtn");if(btn.disabled)return;if(MODE!=="module"&&/^rand/.test($("gifMode").value)&&!S.rxL&&S.rxO===false&&S.rxP===false&&S.rxE===false){toast("Switch on Layout, Openings, Colours or Engrave in Re-roll first");return;}btn.disabled=true;const mode=$("gifMode").value,N=+$("gifN").value;
   /* the frames are the 3D view itself, same framing, light and settings, at up to 1080 px on the long side */
   setFast(false); const cv=renderer.domElement,sc=Math.min(1,1080/Math.max(cv.width,cv.height)),w=Math.round(cv.width*sc),h=Math.round(cv.height*sc),c2=document.createElement("canvas");c2.width=w;c2.height=h;const g2=c2.getContext("2d",{willReadFrequently:true});
   g2.imageSmoothingQuality="high";const hist=new Uint32Array(32768),sum=new Float64Array(32768*3);
@@ -2407,8 +2421,8 @@ on("gifBtn","click",async()=>{const btn=$("gifBtn");if(btn.disabled)return;if(MO
       else if(mode==="sun"){S.sun=0.04+0.92*i/(N-1);applyNight();}
       else if(mode==="slide"){ORBIT.on=true;ORBIT.mm=Math.round(orbitP()*i/N*100)/100;rebuildNow();}   /* one full lap of the ring in N equal steps, so the GIF loops */
       else if(mode==="explode"){S.explode=Math.round(24*Math.sin(Math.PI*i/N));rebuildNow();}   /* the modules part and close again, so the GIF loops */
-      else if(MODE==="module"){const b=Bs(),k=mode==="randall"||!PALETTES[b.palette]?palAt(i):b.palette;randomShape(b);randomizeBuilding(b);applyPalette(b,k);rebuildNow();}   /* Module editor: new walls on the same module, colours re-dealt from its palette */
-      else{rxApply(S.buildings,true,mode==="randall"?palAt(i):(PALETTES[Bs().palette]?Bs().palette:palAt(0)));   /* the panel's Re-roll switches decide what each frame changes (Layout / Openings / Colours, one palette or a mix) */
+      else if(MODE==="module"){const b=Bs(),k=mode==="randall"||!PALETTES[b.palette]?palAt(i):b.palette;randomShape(b);if(!LK().walls)randomizeBuilding(b);if(!LK().eng)randomizeEngrave(b,true);else if(!canEngR(b))b.engR="";if(!LK().col)applyPalette(b,k);rebuildNow();}   /* Module editor: new walls on the same module, colours re-dealt from its palette */
+      else{rxApply(S.buildings,true,mode==="randall"?palAt(i):(PALETTES[Bs().palette]?Bs().palette:palAt(0)));   /* the panel's Re-roll switches decide what each frame changes (Layout / Openings / Colours / Engrave, one palette or a mix) */
         rebuildNow();}   /* the same city plan each frame, so the view stays put: every building keeps its footprint and spot and gets new levels, walls and colours (one palette, or the next palette each frame) */
       await nextFrame();settleLight();draw();g2.drawImage(cv,0,0,w,h);frames.push(gif15(g2.getImageData(0,0,w,h).data,hist,sum));}
     btn.textContent="…";await nextFrame();const {pal,lut}=gifPalette(hist,sum),ixs=frames.map(f=>{const o=new Uint8Array(f.length);for(let i=0;i<f.length;i++)o[i]=lut[f[i]];return o;});
@@ -2429,30 +2443,33 @@ function randAll(){const lk=LK();if(lkEvery()){toast("Everything is locked: unlo
       if(lk.roof){b.roof=old.roof;b.pitch=old.pitch;b.span=old.span;b.fill=old.fill;}
       if(lk.walls)Object.keys(b.mods).forEach(k=>{if(old.mods[k])b.mods[k]=clone(old.mods[k]);});
       if(lk.light){b.plates=old.plates.slice(0,b.levels);b.candles=old.candles.slice(0,b.levels);}
+      if(lk.eng){b.engW=old.engW||"";b.engR=canEngR(b)?(old.engR||""):"";}else randomizeEngrave(b);
       if(lk.col){b.palette=old.palette;b.body=old.body;b.finish=old.finish;b.glazeCol=old.glazeCol;b.roofCol=old.roofCol;b.plateCol=old.plateCol;}}
     if(!lk.col||!old)randPal(b,keep||Math.random()<0.7?pal:pick(Object.keys(PALETTES)));
     if(!lk.layout)autoPlace(b,list);list.push(b);}
   /* landmarks on: about one per 25 buildings (at least one), each different, each on its own block */
   if(nLM){const ks=LANDMARKS.slice().sort(()=>Math.random()-0.5).slice(0,Math.min(nLM,LANDMARKS.length,list.length));
-    ks.forEach(k=>{const b=KINDS[k]();randPal(b,keep||Math.random()<0.7?pal:pick(Object.keys(PALETTES)));list.splice(Math.floor(Math.random()*list.length),1,b);});}
+    ks.forEach(k=>{const b=KINDS[k]();if(!lk.eng)randomizeEngrave(b);randPal(b,keep||Math.random()<0.7?pal:pick(Object.keys(PALETTES)));list.splice(Math.floor(Math.random()*list.length),1,b);});}
   /* public courts: about one in ten (at least one from six buildings up), in place of ordinary buildings, never of a landmark */
   if(!lk.layout&&!lk.size){const nc=n>=6?Math.max(1,Math.round(n/10)):0;for(let i=0;i<nc;i++){const idx=list.map((b,j)=>j).filter(j=>!isLM(list[j])&&!list[j].court);if(!idx.length)break;
      const j=pick(idx),b=KINDS.court();randPal(b,keep||Math.random()<0.7?pal:pick(Object.keys(PALETTES)));list[j]=b;}}
   if(lk.layout){S.buildings=list;return;}
   S.word=null;if(S.vary)varyStreets();S.mix=true;S.gridCols=0;rollBlocks();S.buildings=gridLayout(list);S.selB=0;S.multi=[];S.sel="0:0:0";}
-/* Re-roll: three independent axes. Layout = same buildings dealt into a new plan; Openings = new walls on every module; Colours = new palette(s). Floor levels and the number of buildings never change */
-function rxApply(list,all,palFix){const lk=LK(),wl=!!S.rxL&&all&&!lk.layout,wo=S.rxO!==false&&!(lk.walls&&lk.roof),wp=S.rxP!==false&&!lk.col;
+/* Re-roll: four independent axes. Layout = same buildings dealt into a new plan; Openings = new walls on every module; Colours = new palette(s); Engrave = pixel engraving. Floor levels and the number of buildings never change */
+function rxApply(list,all,palFix){const lk=LK(),wl=!!S.rxL&&all&&!lk.layout,wo=S.rxO!==false&&!(lk.walls&&lk.roof),wp=S.rxP!==false&&!lk.col,we=S.rxE!==false&&!lk.eng;
   const keep=(S.keepPal||LK().col)&&PALETTES[Bs().palette],pal=palFix||(keep?Bs().palette:pick(Object.keys(PALETTES))),mix=!!S.rxM;if(wp)usePal(pal);
   list.forEach(b=>{if(wo&&!b.court&&!isLM(b)){const old=b.mods;if(!lk.walls){randomizeBuilding(b);Object.keys(b.mods).forEach(k=>{const o=old[k];if(o&&o.lid)b.mods[k].lid=o.lid;});}
-      if(!lk.roof&&b.roof!=="none"){b.roof=Math.random()<0.5?"slant":"modern";if(!b.pitch)b.pitch=30;b.span=b.cols*b.deep>1&&Math.random()<0.5?"module":"whole";b.fill=pick(["shell","truss","half"]);}}   /* Openings also re-deal the roof type (slanted or flat) and the roof piece, whole or per module, 50/50 on any building of more than one module */
+      if(!lk.roof&&b.roof!=="none"){b.roof=Math.random()<0.5?"slant":"modern";if(!b.pitch)b.pitch=30;b.span=b.cols*b.deep>1&&Math.random()<0.5?"module":"whole";b.fill=pick(["shell","truss","half"]);if(!canEngR(b))b.engR="";}}   /* Openings also re-deal the roof type (slanted or flat) and the roof piece, whole or per module, 50/50 on any building of more than one module */
+    if(we)randomizeEngrave(b,list.length===1);
     if(wp)applyPalette(b,mix?pick(Object.keys(PALETTES)):pal,undefined,S.rxR===false);});
   if(wl){const l=S.buildings.slice().sort(()=>Math.random()-0.5);S.word=null;if(S.vary)varyStreets();S.mix=true;rollBlocks();S.buildings=gridLayout(l);S.selB=0;S.multi=[];S.sel="0:0:0";}
-  return [wl&&"Layout",wo&&"Openings",wp&&(mix?"Colours (mix)":"Colours")+(S.rxR===false?", roofs kept":"")].filter(Boolean);}
-function remix(list,all){const lk=LK();if(lkEvery()){toast("Everything is locked: unlock a feature to randomize");return;}if(!(S.rxL&&all&&!lk.layout)&&(S.rxO===false||(lk.walls&&lk.roof))&&(S.rxP===false||lk.col)){if(S.rxL&&all&&lk.layout){toast("Layout is locked");return;}toast(S.rxL?"Layout needs the whole city: use Whole city":"Switch on Layout, Openings or Colours first");return;}
+  return [wl&&"Layout",wo&&"Openings",wp&&(mix?"Colours (mix)":"Colours")+(S.rxR===false?", roofs kept":""),we&&"Engrave"].filter(Boolean);}
+function remix(list,all){const lk=LK();if(lkEvery()){toast("Everything is locked: unlock a feature to randomize");return;}if(!(S.rxL&&all&&!lk.layout)&&(S.rxO===false||(lk.walls&&lk.roof))&&(S.rxP===false||lk.col)&&(S.rxE===false||lk.eng)){if(S.rxL&&all&&lk.layout){toast("Layout is locked");return;}toast(S.rxL?"Layout needs the whole city: use Whole city":"Switch on Layout, Openings, Colours or Engrave first");return;}
   const what=rxApply(list,all);renderUI();toast(what.join(", ")+" re-rolled in "+list.length+" building"+(list.length===1?"":"s"));}
 const rxScopeOf=()=>MODE==="module"?(S.rxScope==="wall"?"wall":"sel"):(S.rxScope||"city");
 const rxModeOf=()=>S.rxMode||"new";
-const rxSync=()=>{const sc=rxScopeOf(),md=rxModeOf();$("rxL").setAttribute("aria-pressed",!!S.rxL);$("rxO").setAttribute("aria-pressed",S.rxO!==false);$("rxP").setAttribute("aria-pressed",S.rxP!==false);$("rxR").setAttribute("aria-pressed",S.rxR!==false);seg($("rxMSeg"),S.rxM?"1":"0");
+const rxSync=()=>{const sc=rxScopeOf(),md=rxModeOf();$("rxL").setAttribute("aria-pressed",!!S.rxL);$("rxO").setAttribute("aria-pressed",S.rxO!==false);$("rxP").setAttribute("aria-pressed",S.rxP!==false);$("rxR").setAttribute("aria-pressed",S.rxR!==false);if($("rxE"))$("rxE").setAttribute("aria-pressed",S.rxE!==false);seg($("rxMSeg"),S.rxM?"1":"0");
+  if($("engRandSeg"))seg($("engRandSeg"),engMode());
   if($("rxScopeSeg"))seg($("rxScopeSeg"),sc);if($("rxModeSeg"))seg($("rxModeSeg"),md);
   if($("rxModeRow"))$("rxModeRow").hidden=MODE==="module"||sc==="wall";
   if($("rxSwitchesRow"))$("rxSwitchesRow").hidden=MODE==="module"||sc==="wall"||md!=="reroll";};
@@ -2472,6 +2489,14 @@ on("rxL","click",()=>{S.rxL=!S.rxL;rxSync();save();});
 on("rxO","click",()=>{S.rxO=S.rxO===false;rxSync();save();});
 on("rxP","click",()=>{S.rxP=S.rxP===false;rxSync();save();});
 on("rxR","click",()=>{S.rxR=S.rxR===false;rxSync();save();});
+on("rxE","click",()=>{S.rxE=S.rxE===false;rxSync();save();});
+const engScopeList=()=>{const sc=rxScopeOf();if(MODE==="module"||sc==="sel"||sc==="wall")return SELB();if(sc==="block"){const ks=new Set(SELB().map(b=>b.blk));return S.buildings.filter(b=>ks.has(b.blk));}return S.buildings;};
+on("engRandSeg","click",e=>{const x=e.target.closest("button");if(!x)return;S.engRand=x.dataset.v;delete S.engW;delete S.engR;rxSync();
+  if(LK().eng){toast("Engrave is locked: unlock it to change engraving");save();return;}
+  const list=engScopeList();list.forEach(b=>randomizeEngrave(b,list.length===1));renderUI();});
+on("randEngNow","click",()=>{if(LK().eng){toast("Engrave is locked: unlock it to randomize");return;}
+  if(engMode()==="0"){S.engRand="1";rxSync();}delete S.engW;delete S.engR;
+  const list=engScopeList();list.forEach(b=>randomizeEngrave(b,list.length===1));renderUI();});
 on("rxMSeg","click",e=>{const x=e.target.closest("button");if(!x)return;S.rxM=x.dataset.v==="1";rxSync();save();});
 on("rxSel","click",()=>remix(SELB(),false));
 on("rxAll","click",()=>remix(S.buildings,true));
@@ -2509,12 +2534,12 @@ const randomShape=b=>{const m=rmaxOf(b),lk=LK();if(!lk.size)resize3(b,upTo(m.c),
   if(lk.roof)return;
   const q=Math.random();b.roof=q<0.5?"slant":q<0.85?"modern":"none";b.fill=pick(["shell","truss","half"]);
   b.span=b.roof==="slant"&&b.cols*b.deep>2?"module":pick(["whole","module"]);};
-on("randB","click",()=>{const lk=LK();if(lkEvery()){toast("Everything is locked: unlock a feature to randomize");return;}each(b=>{const k=pick(Object.keys(PALETTES));if(!lk.col)usePal(k);randomShape(b);if(!lk.walls)randomizeBuilding(b);if(!lk.light)randomizeLight(b);if(!lk.col)randPal(b,k);});renderUI();});
+on("randB","click",()=>{const lk=LK();if(lkEvery()){toast("Everything is locked: unlock a feature to randomize");return;}const one=SELB().length===1;each(b=>{const k=pick(Object.keys(PALETTES));if(!lk.col)usePal(k);randomShape(b);if(!lk.walls)randomizeBuilding(b);if(!lk.light)randomizeLight(b);if(!lk.eng)randomizeEngrave(b,one);else if(!canEngR(b))b.engR="";if(!lk.col)randPal(b,k);});renderUI();});
 on("randLight","click",()=>{each(randomizeLight);renderUI();});
 on("colsSeg","click",e=>{const x=e.target.closest("button");if(!x)return;setRmax("c",+x.dataset.v);each(b=>resize3(b,+x.dataset.v,b.deep,b.levels));renderUI();});
 on("deepSeg","click",e=>{const x=e.target.closest("button");if(!x)return;setRmax("d",+x.dataset.v);each(b=>resize3(b,b.cols,+x.dataset.v,b.levels));renderUI();});
 on("levelsSeg","click",e=>{const x=e.target.closest("button");if(!x||!x.dataset.d)return;each(b=>{const n=Math.max(1,Math.min(Math.max(MAX_LEVELS,b.levels),b.levels+ +x.dataset.d));if(n!==b.levels)resize3(b,b.cols,b.deep,n);});setRmax("l",Bs().levels);renderUI();});
-on("roofSeg","click",e=>{const x=e.target.closest("button");if(!x)return;each(b=>b.roof=x.dataset.v);renderUI();});
+on("roofSeg","click",e=>{const x=e.target.closest("button");if(!x)return;each(b=>{b.roof=x.dataset.v;if(!canEngR(b))b.engR="";});renderUI();});
 on("ventD","input",e=>{S.vent=+e.target.value;applyDims();renderUI();});
 on("pitch","input",e=>{each(b=>b.pitch=+e.target.value);renderUI();});
 on("pitchAll","input",e=>{S.buildings.forEach(b=>{if(b.roof==="slant"&&!b.court)b.pitch=+e.target.value;});renderUI();});   /* every slanted roof in the block; flat and off roofs keep theirs */
@@ -2530,12 +2555,13 @@ function applyDims(){if(MODE==="module"&&S.vent===undefined){const o=S.buildings
 window.addEventListener("storage",e=>{if(MODE!=="module"&&e.key==="tikrar-module-editor-v1"){applyDims();renderUI();}});   /* a Module editor open in another tab: the city follows live */
 on("modO","input",e=>{scaleWall(+e.target.value);$("modOV").textContent=e.target.value+" %";});
 on("modO","change",e=>{FSCALE=null;e.target.value=100;$("modOV").textContent="100 %";renderUI();});
-on("fillSeg","click",e=>{const x=e.target.closest("button");if(!x)return;each(b=>b.fill=x.dataset.v);renderUI();});   /* filled shell or trusses only, on slanted roofs */
-{const opts='<option value="">Off</option><option value="grid" title="A dense grid of pixels">On</option>';
-  ["engW","engR"].forEach(id=>{$(id).innerHTML=opts;on(id,"change",e=>{each(b=>{b[id]=e.target.value;});renderUI();});
-    /* the city-wide twin in the City block panel: one setting for every building, kept for buildings added later */
-    const c=id+"c";$(c).innerHTML=opts;
-    on(c,"change",e=>{S[id]=e.target.value;S.buildings.forEach(b=>{b[id]=S[id];});renderUI();});});}   /* pixel engraving: wall and roof are separate on/off switches, dense pixel grid only */
+on("fillSeg","click",e=>{const x=e.target.closest("button");if(!x)return;each(b=>{b.fill=x.dataset.v;if(!canEngR(b))b.engR="";});renderUI();});   /* filled shell or trusses only, on slanted roofs */
+{const opts='<option value="">Off</option><option value="grid" title="A dense grid of pixels">On</option>',
+   cOpts=opts+'<option value="rand" title="Randomize pixel engraving across the city">Random mix</option>';
+  ["engW","engR"].forEach(id=>{$(id).innerHTML=opts;on(id,"change",e=>{each(b=>{b[id]=id==="engR"&&!canEngR(b)?"":e.target.value;});renderUI();});
+    /* the city-wide twin in the City block panel: one setting for every building (or a random mix), kept for buildings added later */
+    const c=id+"c";$(c).innerHTML=cOpts;
+    on(c,"change",e=>{S[id]=e.target.value;S.buildings.forEach(b=>{if(b.court){b[id]="";return;}if(id==="engR"&&!canEngR(b)){b.engR="";return;}b[id]=S[id]==="rand"?(Math.random()<0.45?"grid":""):S[id];});renderUI();});});}   /* pixel engraving: wall and roof are separate switches, dense pixel grid or random mix */
 on("spanSeg","click",e=>{const x=e.target.closest("button");if(!x)return;each(b=>b.span=x.dataset.v);renderUI();});
 on("roofSw","click",e=>{const x=e.target.closest("button");if(!x)return;each(b=>b.roofCol=x.dataset.g);renderUI();});
 on("plateSw","click",e=>{const x=e.target.closest("button");if(!x)return;each(b=>{b.plateCol=x.dataset.g;delete b.slabCol;});renderUI();});
