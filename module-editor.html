@@ -226,7 +226,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
 <header class="grid12">
   <h1>TIKRAR<small>Beirut Lantern Generator</small></h1>
   <span class="sub"><span id="modSize">porcelain modules 72 × 72 mm · 48 mm walls</span> · houses, towers and city blocks · 1860–1925 and modernist openings</span>
-  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 06.11 · 14:40</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
+  <nav><span id="ver" title="Version: if this is not the latest, reload the page">v 08.11 · 09:30</span><a href="./" data-sec="cluster">Cluster editor</a><a href="module-editor.html" data-sec="module">Module editor</a><a href="proposals.html">Proposals</a><button class="btn icon" id="gridBtn" type="button" aria-pressed="false" title="Show the grid (G)">#</button>
   </nav>
 </header>
 
@@ -313,6 +313,8 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
       <div class="f modonly"><label class="lbl" for="modO" title="Grow or shrink every opening of the selected wall about its own centre (the wall becomes a drawn wall)">Openings</label><div class="v rng"><input type="range" id="modO" min="50" max="150" step="5" value="100"><span class="num" id="modOV">100 %</span></div></div>
       <div class="f"><label class="lbl" for="engW" title="Dense pixel grid engraved into the outside of the walls: the clay under it is thinner (1 mm), so the candlelight shows brighter">Wall engrave</label><div class="v"><select id="engW" aria-label="Wall engraving"></select><button type="button" class="lkInline" data-lk="eng" aria-pressed="false" title="Lock the pixel engraving (walls and roof)">&#128274;</button></div></div>
       <div class="f"><label class="lbl" for="engR" title="Dense pixel grid engraved into the four slopes of a filled slanted roof (the flat roof too; not trusses or Half)">Roof engrave</label><div class="v"><select id="engR" aria-label="Roof engraving"></select></div></div>
+      <div class="f"><label class="lbl" for="detB" title="Late Ottoman openings: shallow recessed grooves for the architrave, hood, sill, keystone gap, string course and the frame round a group of arches. Flush outside, nothing projects">Opening detail</label><div class="v"><select id="detB" aria-label="Opening detail"><option value="">Plain</option><option value="1">Detail</option></select></div></div>
+      <div class="f cluonly"><label class="lbl" for="detBc" title="City-wide opening detail on the 1860–1925 buildings: Plain or Detail">Opening detail (city)</label><div class="v"><select id="detBc" aria-label="Opening detail, city"><option value="">Plain</option><option value="1">Detail</option></select></div></div>
       <div class="f cluonly"><label class="lbl" for="engWc" title="City-wide wall engraving: Off, On, or Random mix across all buildings">Wall engrave (city)</label><div class="v"><select id="engWc" aria-label="Wall engraving"></select></div></div>
       <div class="f cluonly"><label class="lbl" for="engRc" title="City-wide roof engraving: Off, On, or Random mix across all buildings">Roof engrave (city)</label><div class="v"><select id="engRc" aria-label="Roof engraving"></select></div></div>
       <div class="f"><label class="lbl" for="bodySel">Clay</label><div class="v"><select id="bodySel"><option value="porcelain">Porcelain</option><option value="stoneware">Stoneware</option><option value="terracotta">Terracotta</option></select>
@@ -386,7 +388,7 @@ header h1{grid-column:1/6}header .sub{grid-column:6/8}header nav{grid-column:8/1
 <div id="toast" role="status" aria-live="polite"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-<script src="openings.js?v=0611c"></script>
+<script src="openings.js?v=0811a"></script>
 <script>
 (function(){
 const B=window.BeitOpenings,W=60,MAX_LEVELS=8,GRID=30,MAX_LIGHTS=4,SHADOW_LIGHTS=4;let CD=38,CH=12,H=B.H,T=3,BASE_T=4,PLATE_T=4,WX=72,WZ=72;   /* WX: module width (front and back walls), WZ: module length (side walls); 60 × 60 in the cluster editor */
@@ -419,6 +421,7 @@ function make(name,set,cols,deep,levels,roof,fn,o){
   try{if(S.vent!==undefined&&b.vent===undefined)b.vent=+S.vent;
     if(S.engW==="grid")b.engW="grid";else if(S.engW==="rand"&&!b.court)b.engW=Math.random()<0.45?"grid":"";
     if(S.engR==="grid"&&canEngR(b))b.engR="grid";else if(S.engR==="rand"&&canEngR(b))b.engR=Math.random()<0.45?"grid":"";
+    if(S.det==='1'&&b.set==='ottoman')b.det='1';
     if(b.engW||b.engR)b.engS=S.engS||0;}catch(e){}   /* the city-wide engraving carries over to new buildings */
   return b;}
 /* the neighbour a wall faces, if any (walls between modules stay inside the building) */
@@ -1243,8 +1246,8 @@ function engraveFace(geo,fr,cellsFn,d){
   const info=loops.map(lp=>({lp,p:poly(lp),a:Math.abs(area(poly(lp)))}));
   info.forEach(o=>{o.depth=info.filter(q=>q!==o&&q.a>o.a&&engPip(o.p[0][0],o.p[0][1],q.p)).length;});
   loops.length=0;info.forEach(o=>loops.push(o.lp));
-  const cells=cellsFn(loops.map(poly));
-  if(!cells.length)return false;
+  const allCells=cellsFn(loops.map(poly)),pcs=allCells.filter(c=>c.poly),cells=allCells.filter(c=>!c.poly);   /* poly cells: recessed grooves of the Detail option (simple polygons, any shape) */
+  if(!cells.length&&!pcs.length)return false;
   /* pockets */
   const lite=!ENG_FULL,RR=lite?engRRLite:engRR,prof=lite?engProfLite(d):engProf(d),R=prof.length,m=RR(prof[0][0]).length,pv=[],pq=[],pocketRims=[],tri=[];
   const P3=(cell,x,y,dep)=>fl.pt?fl.pt(cell,x,y,dep):wld(cell[0]+x,cell[1]+y,-dep);   /* a curved face brings its own pt: a point of a pocket, x/y across it, dep below the surface */
@@ -1260,6 +1263,21 @@ function engraveFace(geo,fr,cellsFn,d){
         cen=[(p0[0]+p1[0]+p2[0])/3,(p0[1]+p1[1]+p2[1])/3,(p0[2]+p1[2]+p2[2])/3],dep=-loc(cen[0],cen[1],cen[2])[2],axd=[C0[0]-en[0]*dep,C0[1]-en[1]*dep,C0[2]-en[2]*dep];
       const tw=[axd[0]-cen[0],axd[1]-cen[1],axd[2]-cen[2]],want=[tw[0]+en[0]*0.5,tw[1]+en[1]*0.5,tw[2]+en[2]*0.5];
       if(g[0]*want[0]+g[1]*want[1]+g[2]*want[2]<0)tri.push([tr[0],tr[2],tr[1]]);else tri.push(tr);});});
+  /* grooves (Detail): a polygon pocket with a small chamfer at the rim, straight sides and a flat floor, d deep (c.d). Same rule as the pixel pockets: the face
+     stays flush outside the rim, nothing is cut near an edge. Only on flat faces (the frame brings ea/eb). */
+  const ptri=[];
+  if(pcs.length&&fr.ea&&fr.eb){const ea=fr.ea,eb=fr.eb,nz=v=>{const l=Math.hypot(v[0],v[1],v[2])||1;return [v[0]/l,v[1]/l,v[2]/l];};
+    pcs.forEach(c=>{let p=c.poly.map(q=>[q[0],q[1]]);{let a2=0;for(let i=0;i<p.length;i++){const [x0,y0]=p[i],[x1,y1]=p[(i+1)%p.length];a2+=x0*y1-x1*y0;}if(a2<0)p=p.reverse();}
+      const n=p.length,dd=c.d||0.6,rm=ENG.rimG||0.15,en=nrmAt(p[0][0],p[0][1]),outn=p.map((b,i)=>{const a=p[(i+n-1)%n],e=p[(i+1)%n],n1=[(b[1]-a[1]),-(b[0]-a[0])],n2=[(e[1]-b[1]),-(e[0]-b[0])],l1=Math.hypot(...n1)||1,l2=Math.hypot(...n2)||1,u=[n1[0]/l1,n1[1]/l1],v=[n2[0]/l2,n2[1]/l2],k=Math.max(0.4,1+u[0]*v[0]+u[1]*v[1]);return [(u[0]+v[0])/k,(u[1]+v[1])/k];});
+      const r0=p.map((q,i)=>[q[0]+outn[i][0]*rm,q[1]+outn[i][1]*rm]),W3=(q,dep)=>wld(q[0],q[1],-dep),inw=outn.map(o=>nz([-(ea[0]*o[0]+eb[0]*o[1]),-(ea[1]*o[0]+eb[1]*o[1]),-(ea[2]*o[0]+eb[2]*o[1])])),
+        V0=r0.map(q=>W3(q,0)),V1=p.map(q=>W3(q,rm)),V2=p.map(q=>W3(q,dd)),mix=(i,a,b)=>nz([inw[i][0]*a+en[0]*b,inw[i][1]*a+en[1]*b,inw[i][2]*a+en[2]*b]);
+      const addTri=(A,B,C,nA,nB,nC,want)=>{const u=[B[0]-A[0],B[1]-A[1],B[2]-A[2]],v=[C[0]-A[0],C[1]-A[1],C[2]-A[2]],g=[u[1]*v[2]-u[2]*v[1],u[2]*v[0]-u[0]*v[2],u[0]*v[1]-u[1]*v[0]];
+        if(g[0]*want[0]+g[1]*want[1]+g[2]*want[2]<0)ptri.push([A,nA],[C,nC],[B,nB]);else ptri.push([A,nA],[B,nB],[C,nC]);};
+      for(let i=0;i<n;i++){const j=(i+1)%n,wantA=[inw[i][0]+en[0],inw[i][1]+en[1],inw[i][2]+en[2]],wantB=[inw[i][0]+en[0]*0.5,inw[i][1]+en[1]*0.5,inw[i][2]+en[2]*0.5];
+        addTri(V0[i],V0[j],V1[j],en,en,mix(j,0.5,0.5),wantA);addTri(V0[i],V1[j],V1[i],en,mix(j,0.5,0.5),mix(i,0.5,0.5),wantA);
+        addTri(V1[i],V1[j],V2[j],mix(i,0.5,0.5),mix(j,0.5,0.5),mix(j,0.3,0.9),wantB);addTri(V1[i],V2[j],V2[i],mix(i,0.5,0.5),mix(j,0.3,0.9),mix(i,0.3,0.9),wantB);}
+      THREE.ShapeUtils.triangulateShape(p.map(q=>new THREE.Vector2(q[0],q[1])),[]).forEach(([i,j,k])=>addTri(V2[i],V2[j],V2[k],en,en,en,en));
+      pocketRims.push({a:p[0][0],b:p[0][1],w:V0,p2:r0});});}
   /* smooth normals over each pocket, the rim ring blending into the flat face */
   const nrm=pv.map(()=>[0,0,0]);
   tri.forEach(([i,j,k])=>{const p0=pv[i],p1=pv[j],p2=pv[k],u=[p1[0]-p0[0],p1[1]-p0[1],p1[2]-p0[2]],v=[p2[0]-p0[0],p2[1]-p0[1],p2[2]-p0[2]],g=[u[1]*v[2]-u[2]*v[1],u[2]*v[0]-u[0]*v[2],u[0]*v[1]-u[1]*v[0]];[i,j,k].forEach(q=>{nrm[q][0]+=g[0];nrm[q][1]+=g[1];nrm[q][2]+=g[2];});});
@@ -1290,7 +1308,8 @@ function engraveFace(geo,fr,cellsFn,d){
   for(let t=0;t<nt;t++){if(sel[t])continue;for(let v=0;v<9;v++){pos.push(P[t*9+v]);nor.push(N[t*9+v]);}if(U)for(let v=0;v<6;v++)uv.push(U[t*6+v]);for(let v=0;v<3;v++)thin.push(0);}
   const push=(w,n,th)=>{pos.push(w[0],w[1],w[2]);nor.push(n[0],n[1],n[2]);thin.push(th||0);if(U)uv.push(...fl.uv(w[0],w[1],w[2]));};
   cap.forEach(tr=>tr.forEach(w=>{const q=loc(w[0],w[1],w[2]);push(w,nrmAt(q[0],q[1]));}));
-  tri.forEach(tr=>tr.forEach(i=>push(pv[i],nrm[i],i%per>=(R-1)*m?1:0)));   /* aThin marks the pocket floors: the shader lets more candlelight through there */
+  tri.forEach(tr=>tr.forEach(i=>push(pv[i],nrm[i],i%per>=(R-1)*m?1:0)));
+  ptri.forEach(([w,n])=>push(w,n,0));   /* aThin marks the pocket floors: the shader lets more candlelight through there */
   geo.setAttribute("position",new THREE.Float32BufferAttribute(pos,3));geo.setAttribute("normal",new THREE.Float32BufferAttribute(nor,3));if(U)geo.setAttribute("uv",new THREE.Float32BufferAttribute(uv,2));geo.setAttribute("aThin",new THREE.Float32BufferAttribute(thin,1));
   return true;}
 /* Random mix (Shuffle): each wall of each module, and each roof slope, gets its own pattern, picked from a seed so it stays put until shuffled again */
@@ -1312,20 +1331,25 @@ const engCornerFrame=R=>({loc:(x,y,z)=>{const dx=x+R,dz=z+R;return [-Math.atan2(
 function engCornerCells(R,ra,rb,patId,ci){const g=cornerGeo(R,ra,rb,0,0,"").clone(),pr=engPer(R);let out=[];fullEng(()=>engraveFace(g,engCornerFrame(R),loops=>(out=engCells(loops,patId,engClrI(),{cols:pr.cor[ci],rows:pr.rows})),engDepth()));return out;}
 /* a wall's cells: the pattern inside the wall's cap (the rounded ends and the bevel inset) clear of every opening. The same cells
    serve the render and the STL cuts, so what you see is what is cast. */
-function engWallCells(hp,fw,Rr,patId,fname){const bv=wallBv(hp),pr=engPer(Rr);
-  return engCells([[[-50,0],[fw+50,0],[fw+50,H],[-50,H]],...hp],patId,engClrI()+bv,{cols:pr.col[fname],rows:pr.rows});}   /* the wall runs on into the corners, so only the top, the bottom and the openings limit it */
+function engWallCells(hp,fw,Rr,patId,fname,dp){const bv=wallBv(hp),pr=engPer(Rr);
+  return engCells([[[-50,0],[fw+50,0],[fw+50,H],[-50,H]],...hp,...(dp||[])],patId,engClrI()+bv,{cols:pr.col[fname],rows:pr.rows});}   /* the wall runs on into the corners, so only the top, the bottom and the openings limit it */
+/* Detail option (6 Nov): recessed grooves round the Ottoman openings (openings.js detail()), cut from the outside like the pixel pockets.
+   detDepth keeps at least ENG.rem of clay. Not in Slide mode or on a module that uses the ring strip (its openings sit near a corner). */
+const detDepth=()=>Math.max(0,Math.min(B.DET.d,T-ENG.rem-0.4));
+const detOf=(b,k)=>b.det&&detDepth()>0.25&&!ringOn(b,k);
+const detFace=(spec,f)=>{B.setW(fwOf(f));return B.detail(spec);};
 const engWallFrame=()=>({O:[0,0,T],ea:[1,0,0],eb:[0,1,0],en:[0,0,1],uv:(x,y)=>[x,y]});   /* wall space: x along the wall, y up, z from the inner face (0) to the outer face (T) */
 function buildWall(bi,k,fname){
   const fw=fwOf(fname),off=(fname==="front"||fname==="back"?WZ:WX)/2-T,o=orbitFace(S.buildings[bi],k,fname),g=new THREE.Group();g.rotation.y=ANG[fname];
   const Rr=Math.min(radOf(S.buildings[bi]),Math.min(WX,WZ)/2-1),rIn=rInOf(Rr);
-  const key=(ORBIT.on&&ORBIT.mm?FACES.map(f=>JSON.stringify(S.buildings[bi].mods[k][f])).join("")+"@"+ORBIT.mm+fname:JSON.stringify(S.buildings[bi].mods[k][fname]))+"|"+Rr+"|"+T+"|"+H+"|"+fw+"|"+off+"|"+engWOf(S.buildings[bi],k,fname);let geo=WGEO.get(key);
-  if(!geo){const hp=o.holes.map(h=>fillet(h.p,0.8)),bv=wallBv(hp);geo=softExtrude([[Rr,0],[fw-Rr,0],[fw-Rr,H],[Rr,H]],hp,T,null,bv,engWOf(S.buildings[bi],k,fname)?KSEG:KSEG_LITE).geometry;   /* plain walls: 3 bevel steps, like their corners */
+  const key=(ORBIT.on&&ORBIT.mm?FACES.map(f=>JSON.stringify(S.buildings[bi].mods[k][f])).join("")+"@"+ORBIT.mm+fname:JSON.stringify(S.buildings[bi].mods[k][fname]))+"|"+Rr+"|"+T+"|"+H+"|"+fw+"|"+off+"|"+engWOf(S.buildings[bi],k,fname)+(detOf(S.buildings[bi],k)?"|D"+detDepth():"");let geo=WGEO.get(key);
+  if(!geo){const hp=o.holes.map(h=>fillet(h.p,0.8)),bv=wallBv(hp),dp=detOf(S.buildings[bi],k)?detFace(S.buildings[bi].mods[k][fname],fname):[];geo=softExtrude([[Rr,0],[fw-Rr,0],[fw-Rr,H],[Rr,H]],hp,T,null,bv,(engWOf(S.buildings[bi],k,fname)||dp.length)?KSEG:KSEG_LITE).geometry;   /* plain walls: 3 bevel steps, like their corners */
     /* with round corners the wall's two ends meet the concentric outer and inner corner arcs seamlessly */
     if(Rr>0.01){const p=geo.attributes.position.array,ec=bv+0.02,bb=hp.map(h=>{let a=[1e9,1e9,-1e9,-1e9];h.forEach(([x,y])=>{a=[Math.min(a[0],x),Math.min(a[1],y),Math.max(a[2],x),Math.max(a[3],y)];});return a;}),
         inHole=(x,y)=>bb.some(a=>x>a[0]-ec&&x<a[2]+ec&&y>a[1]-ec&&y<a[3]+ec);
       for(let i=0;i<p.length;i+=3){const x=p[i],y=p[i+1],s=Math.max(0,Math.min(T,T-p[i+2])),xE=s+Rr-(s/T)*(Rr-rIn);if(x<Rr+ec&&!inHole(x,y))p[i]=xE;else if(x>fw-Rr-ec&&!inHole(x,y))p[i]=fw-xE;}
       geo.attributes.position.needsUpdate=true;bevelNormals(geo,T,Math.min(bv,T/2-0.05));}
-    {const ew=engWOf(S.buildings[bi],k,fname);if(ew)engraveFace(geo,engWallFrame(),()=>engWallCells(hp,fw,Rr,ew,fname),engDepth());}   /* pixel engraving on the outside */
+    {const ew=engWOf(S.buildings[bi],k,fname);if(ew||dp.length)engraveFace(geo,engWallFrame(),()=>(ew?engWallCells(hp,fw,Rr,ew,fname,dp):[]).concat(dp.map(p=>({poly:p,d:detDepth()}))),ew?engDepth():detDepth());}   /* pixels (if on) keep clear of the grooves */   /* pixel engraving on the outside */
     {const p=geo.attributes.position.array,n=geo.attributes.normal.array,cd=new Float32Array(p.length/3*4);
       const th=geo.attributes.aThin&&geo.attributes.aThin.array;
       for(let i=0,j=0;i<p.length;i+=3,j+=4){cd[j]=p[i]-fw/2+(th&&th[i/3]>0.5?1000:0);cd[j+1]=p[i+1];cd[j+2]=p[i+2]+off;cd[j+3]=n[i+2];}
@@ -2225,7 +2249,7 @@ applyAccent();const b=Bs(),[sc,sr,sl]=keyParts(S.sel);
   $("bList").innerHTML=S.buildings.map((x,i)=>`<button type="button" class="${i===S.selB?"on":isSel(i)?"also":""}" data-b="${i}" aria-pressed="${isSel(i)}" title="Shift- or ⌘-click to add to the selection">${x.name}<span>${x.cols}×${x.deep}×${x.levels}</span></button>`).join("");
   const totMods=S.buildings.reduce((a,x)=>a+x.cols*x.deep*x.levels,0);
   $("villageMeta").textContent=S.buildings.length+" building"+(S.buildings.length>1?"s":"")+" · "+totMods+" modules";
-  seg($("setSeg"),b.set);{const a=document.activeElement;if(a!==$("gutV"))$("gutV").value=gut();if(a!==$("aveV"))$("aveV").value=ave();if(a!==$("bwV"))$("bwV").value=BLOCKM;$("gapV").textContent=(S.gaps||[]).length;$("mixBtn").setAttribute("aria-pressed",!!S.mix);seg($("lmSeg"),S.landmarks?"1":"0");}$("varyBtn").setAttribute("aria-pressed",!!S.vary);if(document.activeElement!==$("countV"))$("countV").value=S.buildings.length;if($("modCountV")&&document.activeElement!==$("modCountV"))$("modCountV").value=totMods;seg($("blocksSeg"),String(blkMode()));if($("dimsSeg"))seg($("dimsSeg"),S.noDims?"0":blkMode()>0?"2":"1");seg($("colsSeg"),b.cols);{const m=S.rmax;$("capC").textContent="across"+(m?" · max "+m.c:"");$("capD").textContent="deep"+(m?" · max "+m.d:"");$("capL").textContent="levels"+(m?" · max "+m.l:"");}seg($("deepSeg"),b.deep);$("levelsV").textContent=b.levels;seg($("roofSeg"),b.roof);seg($("spanSeg"),b.span||"whole");seg($("fillSeg"),b.fill||"shell");$("engW").value=b.engW||"";$("engR").value=b.engR||"";["engW","engR"].forEach(id=>{const pool=id==="engR"?S.buildings.filter(canEngR):S.buildings.filter(q=>!q.court),v=!pool.length?(S[id]||""):pool.every(q=>(q[id]||"")===(pool[0][id]||""))?(pool[0][id]||""):"rand";$(id+"c").value=v;});$("engR").disabled=!canEngR(b);$("fillSeg").querySelectorAll("button").forEach(x=>x.disabled=b.roof!=="slant");$("radius").value=radOf(b);$("radiusV").textContent="R "+radOf(b)+" mm";$("levelsV").textContent=b.levels;
+  seg($("setSeg"),b.set);{const a=document.activeElement;if(a!==$("gutV"))$("gutV").value=gut();if(a!==$("aveV"))$("aveV").value=ave();if(a!==$("bwV"))$("bwV").value=BLOCKM;$("gapV").textContent=(S.gaps||[]).length;$("mixBtn").setAttribute("aria-pressed",!!S.mix);seg($("lmSeg"),S.landmarks?"1":"0");}$("varyBtn").setAttribute("aria-pressed",!!S.vary);if(document.activeElement!==$("countV"))$("countV").value=S.buildings.length;if($("modCountV")&&document.activeElement!==$("modCountV"))$("modCountV").value=totMods;seg($("blocksSeg"),String(blkMode()));if($("dimsSeg"))seg($("dimsSeg"),S.noDims?"0":blkMode()>0?"2":"1");seg($("colsSeg"),b.cols);{const m=S.rmax;$("capC").textContent="across"+(m?" · max "+m.c:"");$("capD").textContent="deep"+(m?" · max "+m.d:"");$("capL").textContent="levels"+(m?" · max "+m.l:"");}seg($("deepSeg"),b.deep);$("levelsV").textContent=b.levels;seg($("roofSeg"),b.roof);seg($("spanSeg"),b.span||"whole");seg($("fillSeg"),b.fill||"shell");$("engW").value=b.engW||"";$("engR").value=b.engR||"";$("detB").value=b.det||"";$("detB").disabled=b.set!=="ottoman";{const pl=S.buildings.filter(q=>q.set==="ottoman"&&!q.court);$("detBc").value=pl.length?(pl.every(q=>q.det)?"1":pl.some(q=>q.det)?"":""):(S.det||"");}["engW","engR"].forEach(id=>{const pool=id==="engR"?S.buildings.filter(canEngR):S.buildings.filter(q=>!q.court),v=!pool.length?(S[id]||""):pool.every(q=>(q[id]||"")===(pool[0][id]||""))?(pool[0][id]||""):"rand";$(id+"c").value=v;});$("engR").disabled=!canEngR(b);$("fillSeg").querySelectorAll("button").forEach(x=>x.disabled=b.roof!=="slant");$("radius").value=radOf(b);$("radiusV").textContent="R "+radOf(b)+" mm";$("levelsV").textContent=b.levels;
   {const sl=S.buildings.filter(x=>x.roof==="slant"&&!x.court),pa=$("pitchAll"),va=$("ventAll");pa.disabled=!sl.length;if(document.activeElement!==pa)pa.value=sl.length?sl[0].pitch:30;$("pitchAllV").textContent=(sl.length?+pa.value:"–")+"°";
    if(va){const v0=sl.length?ventOf(sl[0]):ventOf(b);va.disabled=!sl.length;if(document.activeElement!==va)va.value=v0;$("ventAllV").textContent=sl.length?(v0?"cut −"+v0.toFixed(1)+" mm":"10 mm"):"–";}}
   {const vd=ventOf(b);if(document.activeElement!==$("ventD"))$("ventD").value=vd;$("ventD").disabled=b.roof!=="slant";$("ventDV").textContent=vd?"cut −"+vd.toFixed(1)+" mm":"10 mm";}$("pitch").value=b.pitch;$("pitchV").textContent=b.pitch+"°";$("pitch").disabled=b.roof!=="slant";$("bodySel").value=b.body||"porcelain";seg($("finishSeg"),b.finish||"glazed");
@@ -2600,6 +2624,8 @@ on("fillSeg","click",e=>{const x=e.target.closest("button");if(!x)return;each(b=
     /* the city-wide twin in the City block panel: one setting for every building (or a random mix), kept for buildings added later */
     const c=id+"c";$(c).innerHTML=cOpts;
     on(c,"change",e=>{S[id]=e.target.value;S.buildings.forEach(b=>{if(b.court){b[id]="";return;}if(id==="engR"&&!canEngR(b)){b.engR="";return;}b[id]=S[id]==="rand"?(Math.random()<0.45?"grid":""):S[id];});renderUI();});});}   /* pixel engraving: wall and roof are separate switches, dense pixel grid or random mix */
+on("detB","change",e=>{each(b=>{b.det=b.set==="ottoman"?e.target.value:"";});renderUI();});
+on("detBc","change",e=>{S.det=e.target.value;S.buildings.forEach(b=>{b.det=b.set==="ottoman"&&!b.court?S.det:"";});renderUI();});
 on("spanSeg","click",e=>{const x=e.target.closest("button");if(!x)return;each(b=>b.span=x.dataset.v);renderUI();});
 on("roofSw","click",e=>{const x=e.target.closest("button");if(!x)return;each(b=>b.roofCol=x.dataset.g);renderUI();});
 on("plateSw","click",e=>{const x=e.target.closest("button");if(!x)return;each(b=>{b.plateCol=x.dataset.g;delete b.slabCol;});renderUI();});
@@ -3040,7 +3066,7 @@ function checkDesign(d){if(!d||d.t!=="tikrar"||!d.s||!Array.isArray(d.s.building
     if(b.set==="grid")b.set="modern";if(b.set!=="ottoman"&&b.set!=="modern")return "A building in that design has an unknown book.";
     if(![b.x,b.z,b.rot].every(n=>typeof n==="number"&&isFinite(n)))b.x=b.z=b.rot=0;
     b.name=String(b.name||"Building").slice(0,80);
-    ['engW','engR'].forEach(k=>{if(b[k]!==undefined)b[k]=b[k]?'grid':'';});if(!Number.isInteger(b.engS))b.engS=0;   /* pixel engraving: a known pattern or off */
+    ['engW','engR'].forEach(k=>{if(b[k]!==undefined)b[k]=b[k]?'grid':'';});if(!Number.isInteger(b.engS))b.engS=0;b.det=b.det&&b.set==='ottoman'?'1':'';   /* pixel engraving: a known pattern or off */
     b.plates=Array.from({length:b.levels},(_,i)=>Array.isArray(b.plates)?!!b.plates[i]:true);b.candles=Array.from({length:b.levels},(_,i)=>Array.isArray(b.candles)?!!b.candles[i]:i===0);
     for(let c=0;c<b.cols;c++)for(let r=0;r<b.deep;r++)for(let l=0;l<b.levels;l++){const m=b.mods[c+":"+r+":"+l];if(!m||typeof m!=="object")return "A module in that design is missing.";
       for(const f of FACES){const w=m[f];if(w===undefined||w===null||typeof w!=="object"||!w.mode){m[f]=INNER();continue;}
@@ -3127,9 +3153,10 @@ function moduleSolid(M,b,mod,mk){const R=Math.min(radOf(b),Math.min(WX,WZ)/2-1),
   FACES.forEach(f=>{if(!holes[f].length)return;const cs=new M.CrossSection(holes[f],"NonZero");
     const fw=fwOf(f),off=(f==="front"||f==="back"?WZ:WX)/2;cuts.push(cs.extrude(T+2).translate([0,0,off-T-1]).rotate([90,0,0]).translate([-fw/2,0,0]).rotate([0,0,FACE_DEG[f]]));cs.delete();});
   if(cuts.length){const u=M.Manifold.union(cuts),n=s.subtract(u);s.delete();u.delete();s=n;}
+  const dpF={};if(b.det&&detDepth()>0.25&&!(R>0.05&&nearCorner(b,mk,R)))FACES.forEach(f=>{dpF[f]=detFace(mod[f],f);});
   if(b.engW){const pk=[],prof=engProf(engDepth());   /* pixel pockets: each is the hull of its rings (a pocket is convex), cut from the outside */
     FACES.forEach(f=>{const fw=fwOf(f),off=(f==="front"||f==="back"?WZ:WX)/2,ew=engWOf(b,mk,f);if(!ew)return;
-      engWallCells(holes[f],fw,R,ew,f).forEach(([ca,cb])=>{const pts=[];prof.forEach(([sz,dep])=>engRR(sz).forEach(([x,y])=>pts.push([ca+x,cb+y,off-dep])));engRR(prof[0][0]).forEach(([x,y])=>pts.push([ca+x,cb+y,off+0.6]));
+      engWallCells(holes[f],fw,R,ew,f,dpF[f]).forEach(([ca,cb])=>{const pts=[];prof.forEach(([sz,dep])=>engRR(sz).forEach(([x,y])=>pts.push([ca+x,cb+y,off-dep])));engRR(prof[0][0]).forEach(([x,y])=>pts.push([ca+x,cb+y,off+0.6]));
         pk.push(M.Manifold.hull(pts).rotate([90,0,0]).translate([-fw/2,0,0]).rotate([0,0,FACE_DEG[f]]));});});
     if(R>0.01){const fr=engCornerFrame(R),bvf=f=>Math.min(holes[f]&&holes[f].length?wallBv(holes[f]):BV,T/2-0.05);   /* the rounded corners: the same cells as the render, bent round the quarter cylinder */
       CORNERS.forEach(([ang,f0,f1])=>{const ew=engWOf(b,mk,f0);if(!ew)return;const px=Math.round(Math.cos(ang)+Math.sin(ang))*WX/2,pz=Math.round(Math.cos(ang)-Math.sin(ang))*WZ/2,ca=Math.cos(ang),sa=Math.sin(ang);
@@ -3137,6 +3164,9 @@ function moduleSolid(M,b,mod,mk){const R=Math.min(radOf(b),Math.min(WX,WZ)/2-1),
         engCornerCells(R,bvf(f0),bvf(f1),ew,CORNERS.findIndex(q=>q[1]===f0)).forEach(([cu,cv])=>{const pts=[];prof.forEach(([sz,dep])=>engRR(sz).forEach(([x,y])=>pts.push(tp(fr.wld(cu+x,cv+y,-dep)))));engRR(prof[0][0]).forEach(([x,y])=>pts.push(tp(fr.wld(cu+x,cv+y,0.6))));
           pk.push(M.Manifold.hull(pts));});});}
     if(pk.length){const u=M.Manifold.union(pk),n=s.subtract(u);s.delete();u.delete();pk.forEach(x=>x.delete());s=n;}}
+  {const gc=[];FACES.forEach(f=>{const ps=dpF[f]||[];if(!ps.length)return;const fw=fwOf(f),off=(f==="front"||f==="back"?WZ:WX)/2,dd=detDepth();   /* Detail: the recessed grooves, cut from the outside; same polygons as the render */
+      const cs=new M.CrossSection(ps,"NonZero");gc.push(cs.extrude(dd+0.6).translate([0,0,off-dd]).rotate([90,0,0]).translate([-fw/2,0,0]).rotate([0,0,FACE_DEG[f]]));cs.delete();});
+    if(gc.length){const u=M.Manifold.union(gc),n=s.subtract(u);s.delete();u.delete();s=n;}}
   return s;}
 /* the pitched roof: the editor's own lofted shell (slantRoof), turned Z-up and welded shut along its seat ring */
 function pitchedSolid(M,b){const g0=fullEng(()=>slantRoof(b)),g=g0.children[0].geometry,p=g.attributes.position.array,key=new Map(),v=[],t=[];
@@ -3173,7 +3203,7 @@ const glzBody=b=>(b.finish||"glazed")==="unglazed"?"unglazed":(b.glazeCol||"whit
   glzRoof=(b,m)=>{const rc=(m&&m.lid)||b.roofCol||"same";return rc==="same"?glzBody(b):rc;};   /* glaze key of each part, as bodyMat / plateMat / roofMat pick it */
 /* every piece of one building, identical pieces counted once: [{name,qty,desc,solid}] */
 function piecesOf(M,b,cache){return fullEng(()=>piecesOf_(M,b,cache));}   /* STL/GLB always full engraving, whatever the view LOD */
-function piecesOf_(M,b,cache){const kp=cache?[radOf(b),b.roof,b.fill||"shell",b.pitch,ventOf(b),b.span,b.engW||"",b.engR||"",b.engS||0].join("~")+"|":"",out=new Map(),
+function piecesOf_(M,b,cache){const kp=cache?[radOf(b),b.roof,b.fill||"shell",b.pitch,ventOf(b),b.span,b.engW||"",b.engR||"",b.engS||0,b.det||""].join("~")+"|":"",out=new Map(),
     put=(k,name,desc,make,use,at)=>{const p=out.get(k);if(p){p.qty++;if(use)p.uses.add(use);if(at)p.at.push(at);return;}
       let solid=cache&&cache.get(kp+k);if(!solid){solid=make();if(cache)cache.set(kp+k,solid);}   /* cache: solids shared between buildings (GLB scene); at: where each copy stands, for the GLB */
       out.set(k,{name,desc,qty:1,uses:new Set(use?[use]:[]),at:at?[at]:[],solid,gkey:kp+k});};
@@ -3184,7 +3214,7 @@ function piecesOf_(M,b,cache){const kp=cache?[radOf(b),b.roof,b.fill||"shell",b.
     if(b.plates[l]){const cells=[];for(let c=0;c<b.cols;c++)for(let r=0;r<b.deep;r++){const up=alive(b,c+":"+r+":"+l),dn=l===0?up:alive(b,c+":"+r+":"+(l-1));
         cells.push({x:mx(c),y:my(r),vent:up?"round":(l>0&&courtOpen(b,c,r,l)?"court":null),up,dn});}
       const k="slab|"+b.cols+"x"+b.deep+"|"+plateT(l)+"|"+JSON.stringify(cells);put(k,l?"plate-L"+l:"base",b.cols+"×"+b.deep+" modules, "+plateT(l)+" mm, lips both faces",()=>slabSolid(M,b,hw,hd,plateT(l),cells),l?"plate L"+l:"base",{p:[0,0,LY.ys[l]-plateT(l)],m:glzPlate(b,l),lab:l?"plate-L"+l:"base"});}
-    for(let c=0;c<b.cols;c++)for(let r=0;r<b.deep;r++){const key=c+":"+r+":"+l;if(!alive(b,key))continue;const m=b.mods[key],spec={};FACES.forEach(f=>spec[f]=m[f]);const k="mod|"+JSON.stringify(spec)+"|"+(b.engW?FACES.map(f=>engWOf(b,key,f)).join(","):"");
+    for(let c=0;c<b.cols;c++)for(let r=0;r<b.deep;r++){const key=c+":"+r+":"+l;if(!alive(b,key))continue;const m=b.mods[key],spec={};FACES.forEach(f=>spec[f]=m[f]);const k="mod|"+JSON.stringify(spec)+"|"+(b.engW?FACES.map(f=>engWOf(b,key,f)).join(","):"")+(b.det?"|D":"");
       if(!mname.has(k))mname.set(k,"module-"+String.fromCharCode(65+(mi++%26))+(mi>26?Math.floor((mi-1)/26):""));
       put(k,mname.get(k),"module "+WX+" × "+WZ+" × "+H+", walls "+T+" mm ("+FACES.map(f=>f+": "+(m[f].bays?m[f].bays.join("/"):m[f].id||m[f].mode)).join(", ")+")",()=>moduleSolid(M,b,m,key),null,{p:[mx(c),my(r),LY.ys[l]],m:m.col||glzBody(b),lab:"L"+l+"-c"+c+"r"+r,candle:litMod(b,c,r,l)});}}
   if(b.roof!=="none"){const one=!(perMod(b)||!topComplete(b)),nc=one?b.cols:1,nd=one?b.deep:1;

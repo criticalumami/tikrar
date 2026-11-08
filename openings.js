@@ -330,6 +330,66 @@ function build0(spec){
   return o;}
 function canOculus(spec){if(spec.mode==="bays"||spec.mode==="free")return false;const o=F(),c=BY[spec.type]||BY.blank;c.build(o,Object.assign({},spec,{oculus:false}));return (c.opts||[]).includes("oculus")&&oculusFits(o);}
 
+
+/* ---------- architectural detail, Detail / Plain (6 Nov) ----------
+   Late Ottoman openings read through their dressings: the architrave (a flat band round the opening, then a moulding), the sill
+   under a window, the hood or cornice over it, the keystone at an arch's crown, the string course that ties the facade, and the
+   rectangular alfiz-like frame round a group of arches. At 1 : 100 these are cast as shallow RECESSED grooves (DET.g flush band,
+   DET.w wide groove, DET.d deep): the outer face stays flush, every edge is soft, nothing projects, and the clay under a groove
+   is still thicker than a pixel pocket. detail(spec) gives the grooves of one wall as simple polygons in face mm, or [] when the
+   wall is plain, modernist or drawn; a groove that would touch another opening or groove is simply left out. */
+const DET={g:1.3,w:1.0,d:0.7,rim:0.15,key:1.5,gap:0.7,sill:2.6,corner:7.2};
+const dedupe=p=>p.filter((q,i)=>i===0||Math.hypot(q[0]-p[i-1][0],q[1]-p[i-1][1])>1e-6);
+const nrm2=(a,b)=>{const dx=b[0]-a[0],dy=b[1]-a[1],l=Math.hypot(dx,dy)||1;return [dy/l,-dx/l];};   /* right of the direction of travel */
+/* an open path (counter-clockwise travel, so outward is to the right) pushed out by d with mitred joints */
+function offPath(path,d){const n=path.length;return path.map((b,i)=>{const n1=i>0?nrm2(path[i-1],b):nrm2(b,path[i+1]),n2=i<n-1?nrm2(b,path[i+1]):n1,
+  m=[n1[0]+n2[0],n1[1]+n2[1]],k=1+n1[0]*n2[0]+n1[1]*n2[1],f=Math.min(2.5,1/Math.max(k,0.4));return [b[0]+d*m[0]*f,b[1]+d*m[1]*f];});}
+function groove(path,d0,w){const a=offPath(path,d0+w),b=offPath(path,d0);return tag(a.concat(b.reverse()),"groove");}
+/* the part of an open path (travelling right to left over a crown) outside the band xl..xr */
+function splitCrown(path,xl,xr){const cut=x=>{for(let i=0;i<path.length-1;i++){const p=path[i],q=path[i+1];if(p[0]>x&&q[0]<=x){const t=(p[0]-x)/(p[0]-q[0]);return [i,[x,p[1]+(q[1]-p[1])*t]];}}return null;};
+  const r=cut(xr),l=cut(xl);if(!r||!l)return [path];return [path.slice(0,r[0]+1).concat([r[1]]),[l[1]].concat(path.slice(l[0]+1))];}
+const bbP=p=>bbox(p);
+function detailOf(o){
+  const out=[],hs=o.holes.map(h=>h.p),inB=p=>{const b=bbox(p);return b.x0>=DET.corner&&b.x1<=W-DET.corner&&b.y0>=LIM.base+0.5-1e-6&&b.y1<=H-LIM.top+1e-6;};
+  const clear=(p,skip)=>hs.every(h=>h===skip||gap(p,h,DET.gap)>=DET.gap)&&out.every(q=>gap(p,q,0.5)>=0.5);
+  const ok=(ps,skip)=>{const own=[];for(const p of ps){if(!inB(p)||!clear(p,skip)||own.some(q=>gap(p,q,0.5)<0.5))return false;own.push(p);}return true;};
+  const failed=[],mine=new Map();
+  hs.forEach(p=>{const k=p.kind,b=bbox(p),sets=[];
+    if(k==="circle"||k==="oval"){const rx=b.w/2,ry=b.h/2,cx=(b.x0+b.x1)/2,cy=(b.y0+b.y1)/2,ga=0.75/(Math.max(rx,ry)+DET.g),ring=(a0,a1)=>{const A=[],B=[];for(let i=0;i<=16;i++){const a=a0+(a1-a0)*i/16;A.push([cx+(rx+DET.g+DET.w)*Math.cos(a),cy+(ry+DET.g+DET.w)*Math.sin(a)]);B.push([cx+(rx+DET.g)*Math.cos(a),cy+(ry+DET.g)*Math.sin(a)]);}return tag(A.concat(B.reverse()),"groove");};
+      sets.push([ring(ga,PI-ga),ring(PI+ga,2*PI-ga)]);}
+    else if(k==="rect"||/arch|arcade/.test(k||"")){
+      /* the path round the head: from the bottom right corner, up, over and down to the bottom left (counter-clockwise) */
+      let q=p;if(area2(q)<0)q=q.slice().reverse();let i0=0,best=1e9;for(let i=0;i<q.length;i++){const a=q[i],c=q[(i+1)%q.length];if(Math.abs(a[1]-b.y0)<1e-3&&Math.abs(c[1]-b.y0)<1e-3&&c[0]>a[0]&&(a[1]<best)){i0=i;best=a[1];}}
+      const rot=q.slice(i0+1).concat(q.slice(0,i0+1));   /* starts at the right end of the bottom edge, ends at its left end */
+      const path=dedupe(rot);const lo=LIM.base+0.5;if(path[0][1]<lo)path[0]=[path[0][0],lo];if(path[path.length-1][1]<lo)path[path.length-1]=[path[path.length-1][0],lo];const arch=k!=="rect",cr=arch?path.reduce((m,c)=>c[1]>m[1]?c:m,path[0]):null;
+      const make=d0=>arch?splitCrown(path,cr[0]-DET.key/2,cr[0]+DET.key/2).map(s=>groove(s,d0,DET.w)):[groove(path,d0,DET.w)];
+      const g1=make(DET.g);let base=arch?[g1.concat(make(DET.g+DET.w+0.9)),g1]:[g1];   /* double moulding on an arch: archivolt and hood */
+      if(k==="rect"){const x0=b.x0-DET.g-DET.w-0.8,x1=b.x1+DET.g+DET.w+0.8,yh=b.y1+DET.g+DET.w+0.9;base=[g1.concat([R(x0,yh,x1-x0,DET.w)]),g1];}   /* the hood over a window or door */
+      const sill=b.y0>LIM.base+DET.sill+DET.g?R(b.x0-DET.g-DET.w,b.y0-DET.g-DET.w,b.w+2*(DET.g+DET.w),DET.w):null;
+      base.forEach(s=>{if(sill)sets.push(s.concat([sill]));});base.forEach(s=>sets.push(s));
+    }
+    let done=false;for(const s of sets){if(ok(s,p)){s.forEach(g=>out.push(g));mine.set(p,s);done=true;break;}}if(!done&&k!=="claustra")failed.push(p);});
+  /* openings too close together for a frame each (a triple arch, coupled lights, a door under its fanlight): one rectangular frame round the group */
+  if(failed.length){const frame=grp=>{const bs=grp.map(bbox),x0=Math.min(...bs.map(b=>b.x0)),x1=Math.max(...bs.map(b=>b.x1)),y0=Math.max(Math.min(...bs.map(b=>b.y0)),LIM.base+0.5),y1=Math.max(...bs.map(b=>b.y1)),g=DET.g,w=DET.w;
+      return tag([[x0-g-w,y0],[x0-g-w,y1+g+w],[x1+g+w,y1+g+w],[x1+g+w,y0],[x1+g,y0],[x1+g,y1+g],[x0-g,y1+g],[x0-g,y0]],"groove");};
+    let f=frame(failed);
+    if(ok([f],failed[0])&&failed.every(h=>gap(f,h,DET.gap)>=DET.gap||h===failed[0]))out.push(f);
+    else{   /* a door under its fanlight: take in every opening that stands over the same stretch of wall and frame them together */
+      const fb=failed.map(bbox),a0=Math.min(...fb.map(b=>b.x0))-3,a1=Math.max(...fb.map(b=>b.x1))+3,grp=hs.filter(h=>{const b=bbox(h);return b.x1>a0&&b.x0<a1;});
+      grp.forEach(h=>{const m=mine.get(h);if(m)m.forEach(q=>{const i=out.indexOf(q);if(i>=0)out.splice(i,1);});});
+      f=frame(grp);if(ok([f],grp[0])&&grp.every(h=>gap(f,h,DET.gap)>=DET.gap))out.push(f);
+      else grp.forEach(h=>{const m=mine.get(h);if(m&&ok(m,h))m.forEach(q=>out.push(q));});}}
+  /* the string course: one groove along the facade above the highest dressing, stopping short of the corner piers */
+  if(out.length){const top=Math.max(...hs.map(h=>bbox(h).y1),...out.map(q=>bbox(q).y1)),y=top+1.2,s=R(DET.corner+0.5,y,W-2*DET.corner-1,DET.w);if(inB(s)&&ok([s],null))out.push(s);}
+  return out;}
+const area2=p=>{let s=0;for(let i=0;i<p.length;i++){const [x0,y0]=p[i],[x1,y1]=p[(i+1)%p.length];s+=x0*y1-x1*y0;}return s;};
+const DET_CACHE=new Map();
+/* the grooves of one wall (face spec) at the current W and H; Ottoman catalogue walls only */
+function detail(spec){if(!spec||spec.mode==="free")return [];
+  if(spec.mode==="bays"){if((spec.bays||[]).some(id=>(BAY[id]||{}).set==="modern"))return [];}
+  else{const c=BY[spec.type];if(!c||c.set!=="ottoman")return [];}
+  const o=build(spec);let r=DET_CACHE.get(o._ck);if(r)return r;r=detailOf(o);if(DET_CACHE.size>4000)DET_CACHE.clear();DET_CACHE.set(o._ck,r);return r;}
+
 /* ---------- checks for one face ---------- */
 function checkFace(o,shrink,radius){const ck=o&&o._ck?o._ck+"|"+(shrink||14)+"|"+(radius||0)+"|"+LIPS.h+"|"+LIPS.in:"";
   if(ck){const r=CHECK_CACHE.get(ck);if(r)return r;}
@@ -397,5 +457,5 @@ function faceSVG(o,opt){opt=opt||{};if(opt.line)return lineSVG(o,opt);const nigh
   if(opt.dims)s+=dimChains(o,night?"#c9bfae":"#6d665c","Helvetica Neue,Helvetica,Arial,sans-serif","");
   return s+"</svg>";}
 
-G.BeitOpenings={get W(){return W;},AS,get SC(){return SC();},setRef:w=>{REF=w||60;},bayX:i=>bayC(i),get EDGE(){return EDGE;},setW:w=>{W=w||W0;},get H(){return H;},setH:h=>{H=h;},LIM,FLUSH,CAT,BY,BAYS,BAY,BAY_X,FREE,LIPS,toFree,mirrorFree,lipLines,optsOf,stylesOf,build,canOculus,checkFace,faceSVG,bbox,area,optLabel};
+G.BeitOpenings={get W(){return W;},AS,get SC(){return SC();},setRef:w=>{REF=w||60;},bayX:i=>bayC(i),get EDGE(){return EDGE;},setW:w=>{W=w||W0;},get H(){return H;},setH:h=>{H=h;},LIM,FLUSH,CAT,BY,BAYS,BAY,BAY_X,FREE,LIPS,toFree,mirrorFree,lipLines,optsOf,stylesOf,build,canOculus,checkFace,faceSVG,bbox,area,optLabel,detail,DET};
 })(window);
