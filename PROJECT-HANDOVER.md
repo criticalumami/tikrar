@@ -467,3 +467,8 @@ A reviewer should not trust these:
 | Pad | A flat raft under the supports for bed adhesion. |
 | Go | The owner's explicit, typed approval for an irreversible step (print, stop, delete). |
 | `STATUS.md` | Append-only log that bridges the cloud project and the owner's local Mac session. |
+
+
+## Opening detail (Detail / Plain, 8 Nov)
+
+Late Ottoman openings can carry dressings, switched per building (Building panel, "Opening detail") or city-wide ("Opening detail (city)"); stored as `b.det` ("1" or ""), carried to new buildings via `S.det`. `openings.js` `detail(spec)` returns shallow recessed grooves as simple polygons in face mm: architrave U round each opening (double moulding on arches, split at the crown for a keystone), hood over rectangular openings, sill line, a rectangular frame round groups too close for a frame each (triple arch, coupled lights, door under fanlight) and a string course. `DET` sets sizes (1.3 mm flush band, 1.0 mm groove, 0.7 mm deep). Everything stays flush outside; a groove that would touch another opening or groove is dropped. Rendered through `engraveFace` poly cells (`{poly,d}`), cut in the STL in `moduleSolid`; pixel engraving keeps clear of the grooves. Not applied in Slide mode, to modules on the ring strip, to modernist or drawn walls. The books' PDFs are not in the repo, so the vocabulary follows the page references already in `openings.js` (HoB pp. 162-173) and general late Ottoman Beirut practice.
